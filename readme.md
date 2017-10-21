@@ -145,7 +145,7 @@ mvn license:format -Dlicense.header=license.txt
 
 Apache OpenCMIS Workbench is a java application that allows to browse through the CMIS functionalities available on the server. You can use it to connect to Copper CMS as shown below,
 
-![First run](docs/img/first_run.gif "First Run")
+![Workbench](docs/img/workbench_connection.png "Workbench")
 
 
 Issues
