@@ -1,0 +1,1 @@
+(cd .. && mvn -P test-profile test)

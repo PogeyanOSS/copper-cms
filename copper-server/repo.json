@@ -1,0 +1,23 @@
+[
+    {
+        "repositoryId": "LDAPRepository",
+        "repositoryName": "LDAPRepository",
+        "db": {
+            "type": "mongo",
+            "connectionString": "127.0.0.1:27017;ContentDB"
+        },
+        "description": "LDAP CMIS repository",
+        "file": {
+            "storage": "local",
+            "location": "e:\\docs"
+        },
+        "login": {
+            "type": "ldap",
+            "serverName": "localhost",
+            "port": "389",
+            "companyName": "",
+            "adminUser": "admin:admin123",
+            "masterCompany": "dc=example,dc=com"
+        }
+    }
+]

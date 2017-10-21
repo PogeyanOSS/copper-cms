@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
+  <display-name>server</display-name>
+  <servlet>
+    <servlet-name>cmisbrowser</servlet-name>
+    <servlet-class>com.pogeyan.cmis.browser.AkkaCmisBrowserBindingServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <async-supported>true</async-supported>
+  </servlet>
+  <servlet>
+    <servlet-name>metrics</servlet-name>
+    <servlet-class>io.prometheus.client.exporter.MetricsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <async-supported>true</async-supported>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>metrics</servlet-name>
+    <url-pattern>/metrics</url-pattern>
+  </servlet-mapping>
+  <session-config>
+    <session-timeout>5</session-timeout>
+  </session-config>
+  <filter>
+    <filter-name>Metric Filter</filter-name>
+    <filter-class>com.pogeyan.cmis.server.MetricsFilter</filter-class>
+    <async-supported>true</async-supported>
+  </filter>
+  <filter-mapping>
+    <filter-name>Metric Filter</filter-name>
+    <url-pattern>/metrics</url-pattern>
+  </filter-mapping>
+  <filter>
+    <filter-name>CORS Filter</filter-name>
+    <filter-class>com.pogeyan.cmis.server.CORSFilter</filter-class>
+    <async-supported>true</async-supported>
+    <init-param>
+      <description>A comma separated list of allowed headers when making a non simple CORS request.</description>
+      <param-name>cors.allowed.headers</param-name>
+      <param-value>Content-Type,X-Requested-With,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers,authorization</param-value>
+    </init-param>
+    <init-param>
+      <description>A comma separated list non-standard response headers that will be exposed to XHR2 object.</description>
+      <param-name>cors.exposed.headers</param-name>
+      <param-value>Content-Disposition</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CORS Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>
