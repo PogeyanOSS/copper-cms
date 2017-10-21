@@ -139,6 +139,15 @@ mvn license:format -Dlicense.header=license.txt
 * Go to project location and run command "mvn install -pl chemistry-opencmis-test-tck" , it will run all tck module test.
 * Check the TCK test result.
 
+## Connecting via Apache OpenCMIS Workbench
+
+> Note: Copper CMS doesn't allow to load repositories directly when you hit the top-level URL. It assumes the application knows to read the repository listing from another backend store to connect to that repository.
+
+Apache OpenCMIS Workbench is a java application that allows to browse through the CMIS functionalities available on the server. You can use it to connect to Copper CMS as shown below,
+
+![First run](docs/img/first_run.gif "First Run")
+
+
 Issues
 ------
 
