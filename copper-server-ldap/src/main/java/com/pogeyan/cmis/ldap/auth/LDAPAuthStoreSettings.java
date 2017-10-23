@@ -25,6 +25,7 @@ public class LDAPAuthStoreSettings implements IAuthStoreSettings {
 	private String companyName;
 	private String adminUser;
 	private String mastercompany;
+	private String userIdAttribute;
 
 	@Override
 	public void setStoreSetting(Map<String, String> dbSettings) {
@@ -33,6 +34,7 @@ public class LDAPAuthStoreSettings implements IAuthStoreSettings {
 		this.port = Integer.parseInt(dbSettings.get("port"));
 		this.adminUser = dbSettings.get("adminUser");
 		this.mastercompany = dbSettings.get("masterCompany");
+		this.userIdAttribute = dbSettings.get("userIdAttribute");
 	}
 
 	@Override
@@ -62,5 +64,13 @@ public class LDAPAuthStoreSettings implements IAuthStoreSettings {
 
 	public void setMastercompany(String mastercompany) {
 		this.mastercompany = mastercompany;
+	}
+
+	public String getUserIdAttribute() {
+		return userIdAttribute;
+	}
+
+	public void setUserIdAttribute(String userIdAttribute) {
+		this.userIdAttribute = userIdAttribute;
 	}
 }

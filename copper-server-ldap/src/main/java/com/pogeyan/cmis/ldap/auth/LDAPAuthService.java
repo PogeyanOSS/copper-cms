@@ -84,6 +84,7 @@ public class LDAPAuthService implements IAuthService {
 		loginProperties.setUserName(userName);
 		loginProperties.setPassword(password);
 		loginProperties.setMasterCompany(this.storeSettings.getMastercompany());
+		loginProperties.setUserIdAttribute(this.storeSettings.getUserIdAttribute());
 
 		LDAPLogin login;
 		try {

@@ -56,8 +56,8 @@ public class LDAPUtils {
 				+ loginProperties.getUserName() + "))";
 		DirContext adminContext = loginUser(ldapURI, adminUserDN, adminPassword);
 		if (!adminUser.equals(loginProperties.getUserName())) {
-			String userDN = UID + "=" + loginProperties.getUserName() + "," + OrganizationalUnit + "=" + People + ","
-					+ loginProperties.getMasterCompany();
+			String userDN = loginProperties.getUserIdAttribute() + "=" + loginProperties.getUserName() + ","
+					+ OrganizationalUnit + "=" + People + "," + loginProperties.getMasterCompany();
 			DirContext userContext = loginUser(ldapURI, userDN, loginProperties.getPassword());
 			if (userContext != null) {
 				LDAPLogin userObject = search(adminContext, companyName, filter);
