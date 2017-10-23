@@ -120,6 +120,7 @@ Copper CMS also provides LDAP support for user management.
             "companyName": "",
             "adminUser": "admin:admin123",
             "masterCompany": "dc=example,dc=com",
+			"userIdAttribute":"uid"
         }
     }
 ]

@@ -40,6 +40,9 @@ public class LoginProperties {
 	/** The master company. */
 	private String masterCompany;
 
+	/** The UserIdAttribute. */
+	private String UserIdAttribute;
+
 	/**
 	 * @return the userName
 	 */
@@ -151,5 +154,13 @@ public class LoginProperties {
 
 	public void setMasterCompany(String masterCompany) {
 		this.masterCompany = masterCompany;
+	}
+
+	public String getUserIdAttribute() {
+		return UserIdAttribute;
+	}
+
+	public void setUserIdAttribute(String userIdAttribute) {
+		UserIdAttribute = userIdAttribute;
 	}
 }
