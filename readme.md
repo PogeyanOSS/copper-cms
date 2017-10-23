@@ -125,7 +125,9 @@ Copper CMS also provides LDAP support for user management.
     }
 ]
 ```
-> Note: The above repo.json uses LDAP users, the group permissions are read from LMCACL OpenLDAP attribute.
+> Note: The above repo.json uses LDAP users, the permissions are read from LMCACL OpenLDAP attribute.
+
+The LDAP support is tested only with OpenLDAP, for other LDAP server it needs tweaking, for ex: LMCACL attribute is not required when using Active Directory.
 
 ### Adding license to files
 

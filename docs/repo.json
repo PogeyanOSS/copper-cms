@@ -17,7 +17,8 @@
             "port": "389",
             "companyName": "",
             "adminUser": "admin:admin123",
-            "masterCompany": "dc=example,dc=com"
+            "masterCompany": "dc=example,dc=com",
+            "userIdAttribute": "uid"
         }
     }
 ]
