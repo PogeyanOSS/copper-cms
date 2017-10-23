@@ -18,10 +18,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.unboundid</groupId>
-			<artifactId>unboundid-ldapsdk</artifactId>
-			<version>3.2.0</version>
-		</dependency>
+   <groupId>org.apache.directory.shared</groupId>
+   <artifactId>shared-ldap-codec-core</artifactId>
+   <version>1.0.0-M4</version>
+</dependency>
 		<dependency>
 			<groupId>com.pogeyan.cmis</groupId>
 			<artifactId>copper-server-api</artifactId>

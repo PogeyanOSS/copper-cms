@@ -54,7 +54,7 @@ public class UsersProperties {
 	 * (uidNumber)
 	 */
 	private long uidNumber;
-	/* This will provide repository level permission for the user*/
+	/* This will provide repository level permission for the user */
 	private BasicPermissions permission;
 
 	public String getCompanyName() {
@@ -233,7 +233,8 @@ public class UsersProperties {
 	}
 
 	/**
-	 * @param permission the permission to set
+	 * @param permission
+	 *            the permission to set
 	 */
 	public void setPermission(BasicPermissions permission) {
 		this.permission = permission;

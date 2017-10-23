@@ -20,5 +20,5 @@ package com.pogeyan.cmis.ldap.model;
  *
  */
 public enum Property {
-	Users,Groups,Organization,SubGroups,Domain
+	Users, Groups, Organization, SubGroups, Domain
 }

@@ -37,7 +37,6 @@ import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.ldap.LDAPUtils;
 import com.pogeyan.cmis.ldap.model.LDAPLogin;
 import com.pogeyan.cmis.ldap.model.LoginProperties;
-import com.unboundid.ldap.sdk.LDAPException;
 
 public class LDAPAuthService implements IAuthService {
 	private static final Logger LOG = LoggerFactory.getLogger(LDAPAuthService.class);
@@ -93,7 +92,7 @@ public class LDAPAuthService implements IAuthService {
 				LOG.info("LDAP login successfull {}", userName);
 				return login;
 			}
-		} catch (LDAPException e) {
+		} catch (Exception e) {
 			LOG.error("writeContent exception: {}, {}", e.getMessage(), ExceptionUtils.getStackTrace(e));
 		}
 
