@@ -15,6 +15,8 @@ Copper CMS project implements the (OpenCMIS specifications)[http://docs.oasis-op
 
 > Query Service and Multi-Filing Service is not supported yet.
 
+**This is an alpha version only, production usage is at the users risk to maintain, We are still finalizing the interfaces and customization options.**
+
 # Requirements
 * Java 8 SDK
 * Maven
@@ -147,6 +149,7 @@ Apache OpenCMIS Workbench is a java application that allows to browse through th
 
 ![Workbench](docs/img/workbench_connection.png "Workbench")
 
+> Download Apache OpenCMIS Workbench from this [link](http://chemistry.apache.org/java/download.html).
 
 Issues
 ------
