@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.MChangeType;
-import com.pogeyan.cmis.DB.DatabaseManager;
+import com.pogeyan.cmis.data.DatabaseManager;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.data.dao.MDiscoveryServiceDAO;

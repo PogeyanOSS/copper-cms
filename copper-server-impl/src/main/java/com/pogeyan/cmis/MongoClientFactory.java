@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-import com.pogeyan.cmis.DB.IDBClientFactory;
+import com.pogeyan.cmis.data.IDBClientFactory;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
 import com.pogeyan.cmis.data.dao.MDiscoveryServiceDAO;
@@ -125,11 +125,6 @@ public class MongoClientFactory implements IDBClientFactory {
 		MongoCollection<Document> contentMongoClient = getMongoClient(repositoryId, properties.get(0),
 				Integer.valueOf(properties.get(1))).getDatabase(properties.get(2)).getCollection("objectData");
 		contentMongoClient.createIndex(new BasicDBObject(indexIds));
-	}
-
-	@Override
-	public void close() {
-
 	}
 
 	private <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {

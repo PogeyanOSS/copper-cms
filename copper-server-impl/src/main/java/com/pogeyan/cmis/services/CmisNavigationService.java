@@ -49,7 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.DB.DatabaseManager;
+import com.pogeyan.cmis.data.DatabaseManager;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
@@ -603,13 +603,13 @@ public class CmisNavigationService {
 			String[] queryResult = dataPath.split(",");
 			List<MBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(t), null))
-					.collect(Collectors.<MBaseObject> toList());
+					.collect(Collectors.<MBaseObject>toList());
 			if (folderChildren.size() == 1) {
 				acl = new ArrayList<>();
 				acl.add(dataAcl);
 			} else {
 				acl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<MAclImpl> toList());
+						.collect(Collectors.<MAclImpl>toList());
 			}
 			return acl;
 		}

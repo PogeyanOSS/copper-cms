@@ -13,13 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.DB;
+package com.pogeyan.cmis.data;
 
 public interface IDBClientFactory {
-
 	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
 
 	void addIndex(String repositoryId, String[] columnsToIndex);
-
-	void close();
 }

@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.DB.DatabaseManager;
+import com.pogeyan.cmis.data.DatabaseManager;
 import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
 import com.pogeyan.cmis.data.dao.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.data.dao.MTypeManagerDAO;
@@ -78,8 +78,8 @@ public class CmisTypeServices {
 		public static void addBaseType(String repositoryId) throws MongoException {
 			LOG.info("addBaseType for {}", repositoryId);
 			try {
-				MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-						MTypeManagerDAO.class);
+				MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				List<ObjectId> getid = typeMorphiaDAO.findIds();
 				if (getid.size() > 0) {
 					LOG.info("Added BaseType Successfully for repository: {}", repositoryId);
@@ -900,8 +900,8 @@ public class CmisTypeServices {
 				Boolean includePropertyDefinitions, int maxItems, int skipCount, MTypeManagerDAO typeMorphiaDAO,
 				MTypeObject object) {
 			TypeDefinitionListImpl result = new TypeDefinitionListImpl();
-			MDocumentTypeManagerDAO docTypeMorphia = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MDocumentTypeManagerDAO.class);
+			MDocumentTypeManagerDAO docTypeMorphia = DatabaseManager.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			if (typeId != null) {
 				List<MTypeObject> childrenList = typeMorphiaDAO.getChildrenIds(typeId, maxItems, skipCount);
 				if (childrenList.size() > 0) {
@@ -909,19 +909,19 @@ public class CmisTypeServices {
 					result.setHasMoreItems(childrenList.size() > maxItems - skipCount);
 					List<TypeDefinition> resultTypes = childrenList.stream().map(
 							t -> getPropertyIncludeObject(repositoryId, t, docTypeMorphia, includePropertyDefinitions))
-							.collect(Collectors.<TypeDefinition> toList());
+							.collect(Collectors.<TypeDefinition>toList());
 					result.setList(resultTypes);
 				} else {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(childrenList.size()));
-					result.setList(Collections.<TypeDefinition> emptyList());
+					result.setList(Collections.<TypeDefinition>emptyList());
 				}
 
 			} else {
 				if (skipCount >= 6) {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(0));
-					result.setList(Collections.<TypeDefinition> emptyList());
+					result.setList(Collections.<TypeDefinition>emptyList());
 				} else {
 					List<TypeDefinition> resultTypes = new ArrayList<>();
 					resultTypes.add(getPropertyIncludeObject(repositoryId,
@@ -966,8 +966,8 @@ public class CmisTypeServices {
 			boolean inclPropDefs = includePropertyDefinitions == null ? true : includePropertyDefinitions;
 			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
 					MTypeManagerDAO.class);
-			MDocumentTypeManagerDAO docTypeMorphia = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MDocumentTypeManagerDAO.class);
+			MDocumentTypeManagerDAO docTypeMorphia = DatabaseManager.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			if (typeId != null) {
 				MTypeObject object = null;
 				if (typeMorphiaDAO.getById(Arrays.asList(typeId)).size() > 0) {
@@ -1465,18 +1465,19 @@ public class CmisTypeServices {
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
 					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty,
-					type.isVersionable() == null ? false : type.isVersionable(), type.getContentStreamAllowed() == null
-							? ContentStreamAllowed.NOTALLOWED : type.getContentStreamAllowed());
+					type.isVersionable() == null ? false : type.isVersionable(),
+					type.getContentStreamAllowed() == null ? ContentStreamAllowed.NOTALLOWED
+							: type.getContentStreamAllowed());
 			return newType;
 		}
 
 		private static void addIndex(String repositoryId, Map<String, MPropertyDefinition<?>> getPropertyDefinitions) {
 			List<String> primaryIndex = getPropertyDefinitions.entrySet().stream()
 					.filter(map -> map.getValue().getLocalName().equalsIgnoreCase("primaryKey"))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
 			List<String> secondaryIndex = getPropertyDefinitions.entrySet().stream()
 					.filter(map -> map.getValue().getLocalName().equalsIgnoreCase("lk_" + map.getValue().getId()))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
 			secondaryIndex.parallelStream().collect(Collectors.toCollection(() -> primaryIndex));
 			String[] columnsToIndex = primaryIndex.toArray(new String[primaryIndex.size()]);
 			if (columnsToIndex.length > 0) {

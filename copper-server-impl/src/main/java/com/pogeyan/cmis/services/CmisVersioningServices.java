@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.DB.DatabaseManager;
+import com.pogeyan.cmis.data.DatabaseManager;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.data.dao.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
@@ -197,8 +197,8 @@ public class CmisVersioningServices {
 		public static ObjectId cancelCheckOut(String repositoryId, String objectId, ExtensionsData extension,
 				String userName) throws CmisUpdateConflictException, CmisUpdateConflictException {
 			LOG.info("Cancel checkOut on objectId: {} , repository: {}", objectId, repositoryId);
-			MDocumentObjectDAO documentMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MDocumentObjectDAO.class);
+			MDocumentObjectDAO documentMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
 			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, new ObjectId(objectId),
 					null);

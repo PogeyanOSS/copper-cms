@@ -150,8 +150,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		ObjectId objectId = new ObjectId(t.getObjectId());
 		boolean acessPermission = false;
-		MBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId,
-				null);
+		MBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null);
 
 		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
 

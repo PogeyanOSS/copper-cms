@@ -64,7 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
-import com.pogeyan.cmis.DB.DatabaseManager;
+import com.pogeyan.cmis.data.DatabaseManager;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;

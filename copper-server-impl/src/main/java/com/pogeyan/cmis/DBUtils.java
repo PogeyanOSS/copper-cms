@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 
-import com.pogeyan.cmis.DB.DatabaseManager;
+import com.pogeyan.cmis.data.DatabaseManager;
 import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
 import com.pogeyan.cmis.data.dao.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MAclImpl;
