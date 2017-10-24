@@ -40,14 +40,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.data.DatabaseManager;
+import com.pogeyan.cmis.DatabaseManager;
+import com.pogeyan.cmis.RepositoryManager;
+import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.storage.IStorageService;
-import com.pogeyan.cmis.data.dao.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MToken;
 import com.pogeyan.cmis.document.storage.StorageDocumentServiceFactory;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
 
 public class CmisVersioningServices {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisVersioningServices.class);

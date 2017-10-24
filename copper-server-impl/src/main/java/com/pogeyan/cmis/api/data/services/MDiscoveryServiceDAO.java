@@ -13,10 +13,18 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data;
+package com.pogeyan.cmis.api.data.services;
 
-public interface IDBClientFactory {
-	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
+import java.util.List;
 
-	void addIndex(String repositoryId, String[] columnsToIndex);
+import com.pogeyan.cmis.data.objects.MBaseObject;
+
+public interface MDiscoveryServiceDAO {
+	/**
+	 * Returns List of MBaseObject Object values depending on change log
+	 * token,maxItems,skipCount.
+	 */
+	public List<MBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns);
+
+	public long getLatestTokenChildrenSize(long latestChangeToken);
 }

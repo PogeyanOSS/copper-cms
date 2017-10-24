@@ -13,18 +13,15 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.dao;
+package com.pogeyan.cmis.api.data.services;
 
 import java.util.List;
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.dao.DAO;
-
 import com.pogeyan.cmis.data.objects.MTypeObject;
 
-public interface MTypeManagerDAO extends DAO<MTypeObject, ObjectId> {
+public interface MTypeManagerDAO {
 	/**
 	 * Returns MTypeObject values depending on TypeId
 	 */

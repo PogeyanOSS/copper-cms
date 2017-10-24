@@ -24,8 +24,8 @@ import org.apache.chemistry.opencmis.commons.impl.TypeCache;
 import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.data.DatabaseManager;
-import com.pogeyan.cmis.data.dao.MTypeManagerDAO;
+import com.pogeyan.cmis.DatabaseManager;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 
 public class CmisTypeCacheService implements TypeCache {

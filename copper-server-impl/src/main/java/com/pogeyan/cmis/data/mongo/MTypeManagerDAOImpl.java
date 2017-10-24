@@ -13,8 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.daoimpl;
+package com.pogeyan.cmis.data.mongo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
 
-import com.pogeyan.cmis.data.dao.MTypeManagerDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.data.objects.MTypeObject;
 
 public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> implements MTypeManagerDAO {
@@ -36,14 +37,20 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 
 	@Override
 	public List<MTypeObject> getById(List<?> typeId) {
-		if (typeId.size() == 1) {
+		if (typeId == null) {
+			List<ObjectId> getid = this.findIds();
+			if (getid.size() > 0) {
+				return new ArrayList<MTypeObject>();
+			} else {
+				return null;
+			}
+		} else if (typeId.size() == 1) {
 			Query<MTypeObject> query = createQuery().field("id").equal(typeId.get(0));
 			return query.asList();
 		} else {
 			Query<MTypeObject> query = createQuery().field("id").in(typeId);
 			return query.asList();
 		}
-
 	}
 
 	@Override

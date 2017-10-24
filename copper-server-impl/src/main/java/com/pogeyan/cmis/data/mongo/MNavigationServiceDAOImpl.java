@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.daoimpl;
+package com.pogeyan.cmis.data.mongo;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -26,7 +26,7 @@ import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 
 import com.pogeyan.cmis.MChangeType;
-import com.pogeyan.cmis.data.dao.MNavigationServiceDAO;
+import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 
 public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MNavigationServiceDAO {

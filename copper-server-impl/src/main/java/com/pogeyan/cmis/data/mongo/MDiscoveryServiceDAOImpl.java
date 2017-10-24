@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.daoimpl;
+package com.pogeyan.cmis.data.mongo;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
 
-import com.pogeyan.cmis.data.dao.MDiscoveryServiceDAO;
+import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 
 public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MDiscoveryServiceDAO {

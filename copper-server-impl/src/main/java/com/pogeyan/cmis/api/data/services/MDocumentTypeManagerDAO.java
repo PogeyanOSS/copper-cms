@@ -13,21 +13,14 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.dao;
+package com.pogeyan.cmis.api.data.services;
 
-import java.util.List;
+import com.pogeyan.cmis.data.objects.MCmisDocumentTypeDefinition;
 
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.dao.DAO;
-
-import com.pogeyan.cmis.data.objects.MBaseObject;
-
-public interface MDiscoveryServiceDAO extends DAO<MBaseObject, ObjectId> {
+public interface MDocumentTypeManagerDAO {
 	/**
-	 * Returns List of MBaseObject Object values depending on change log
-	 * token,maxItems,skipCount.
+	 * Returns MCmisDocumentTypeDefinition values depending on TypeId
 	 */
-	public List<MBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns);
+	public MCmisDocumentTypeDefinition getByTypeId(String typeId);
 
-	public long getLatestTokenChildrenSize(long latestChangeToken);
 }

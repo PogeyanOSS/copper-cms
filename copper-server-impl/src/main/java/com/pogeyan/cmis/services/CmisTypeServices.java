@@ -48,16 +48,15 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionContainerImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionListImpl;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.data.DatabaseManager;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
-import com.pogeyan.cmis.data.dao.MDocumentTypeManagerDAO;
-import com.pogeyan.cmis.data.dao.MTypeManagerDAO;
+import com.pogeyan.cmis.DatabaseManager;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MCmisDocumentTypeDefinition;
 import com.pogeyan.cmis.data.objects.MCmisFolderTypeDefinition;
@@ -80,8 +79,8 @@ public class CmisTypeServices {
 			try {
 				MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
-				List<ObjectId> getid = typeMorphiaDAO.findIds();
-				if (getid.size() > 0) {
+				List<MTypeObject> getTypeObject = typeMorphiaDAO.getById(null);
+				if (getTypeObject != null) {
 					LOG.info("Added BaseType Successfully for repository: {}", repositoryId);
 				} else {
 					List<MTypeObject> baseType = upset();
@@ -1465,9 +1464,8 @@ public class CmisTypeServices {
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
 					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty,
-					type.isVersionable() == null ? false : type.isVersionable(),
-					type.getContentStreamAllowed() == null ? ContentStreamAllowed.NOTALLOWED
-							: type.getContentStreamAllowed());
+					type.isVersionable() == null ? false : type.isVersionable(), type.getContentStreamAllowed() == null
+							? ContentStreamAllowed.NOTALLOWED : type.getContentStreamAllowed());
 			return newType;
 		}
 

@@ -49,12 +49,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.data.DatabaseManager;
+import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
-import com.pogeyan.cmis.data.dao.MDocumentObjectDAO;
-import com.pogeyan.cmis.data.dao.MNavigationServiceDAO;
 import com.pogeyan.cmis.data.objects.MAclImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
@@ -454,7 +454,7 @@ public class CmisNavigationService {
 
 			List<ObjectParentData> objectParent = new ArrayList<ObjectParentData>();
 			MBaseObject resultData = null;
-			MBaseObjectDAO baseMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(objectId), null);
 			String[] queryResult = data.getInternalPath().split(",");
@@ -470,7 +470,8 @@ public class CmisNavigationService {
 						ObjectParentDataImpl parent = new ObjectParentDataImpl();
 						parent.setObject(objectData);
 						parent.setRelativePathSegment(i == 1 ? data.getName()
-								: baseMorphiaDAO.get(new ObjectId(queryResult[i])).getName() + "/" + data.getName());
+								: DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(queryResult[i]), null)
+										.getName() + "/" + data.getName());
 						i--;
 						objectParent.add(parent);
 					}

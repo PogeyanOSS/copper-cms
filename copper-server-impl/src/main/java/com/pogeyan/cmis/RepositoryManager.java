@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.repo.impl;
+package com.pogeyan.cmis;
 
 import java.util.Map;
 

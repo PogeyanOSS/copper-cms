@@ -64,18 +64,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
-import com.pogeyan.cmis.data.DatabaseManager;
+import com.pogeyan.cmis.DatabaseManager;
+import com.pogeyan.cmis.RepositoryManager;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
 import com.pogeyan.cmis.services.CmisObjectService;
 import com.pogeyan.cmis.services.CmisTypeServices;
 

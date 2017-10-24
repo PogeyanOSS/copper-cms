@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.data.mongo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,25 +37,19 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-import com.pogeyan.cmis.data.IDBClientFactory;
+import com.pogeyan.cmis.IDBClientFactory;
+import com.pogeyan.cmis.RepositoryManager;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
+import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.IRepository;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
-import com.pogeyan.cmis.data.dao.MDiscoveryServiceDAO;
-import com.pogeyan.cmis.data.dao.MDocumentObjectDAO;
-import com.pogeyan.cmis.data.dao.MDocumentTypeManagerDAO;
-import com.pogeyan.cmis.data.dao.MNavigationServiceDAO;
-import com.pogeyan.cmis.data.dao.MTypeManagerDAO;
-import com.pogeyan.cmis.data.daoimpl.MBaseObjectDAOImpl;
-import com.pogeyan.cmis.data.daoimpl.MDiscoveryServiceDAOImpl;
-import com.pogeyan.cmis.data.daoimpl.MDocumentObjectDAOImpl;
-import com.pogeyan.cmis.data.daoimpl.MDocumentTypeManagerDAOImpl;
-import com.pogeyan.cmis.data.daoimpl.MNavigationServiceDAOImpl;
-import com.pogeyan.cmis.data.daoimpl.MTypeManagerDAOImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MCmisDocumentTypeDefinition;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MTypeObject;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
 
 public class MongoClientFactory implements IDBClientFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(MongoClientFactory.class.getName());
@@ -82,7 +76,6 @@ public class MongoClientFactory implements IDBClientFactory {
 
 	public static IDBClientFactory createDatabaseService() {
 		return new MongoClientFactory();
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -117,8 +110,9 @@ public class MongoClientFactory implements IDBClientFactory {
 		IRepository repository = RepositoryManager.getInstance().getRepository(repositoryId);
 		String dataBaseName = repository.getDBName().get("connectionString");
 		List<String> properties = getClientProperties(dataBaseName);
-		LOG.info("ContentDB Name-" + properties.get(2));
-		LOG.info("HostId" + properties.get(0));
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(2));
+		}
 		Map<Object, Object> indexIds = new HashMap<>();
 		Stream<String> indexId = Arrays.stream(columnsToIndex);
 		indexId.forEach(x -> indexIds.put(x, 1));

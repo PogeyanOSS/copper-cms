@@ -20,14 +20,12 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 
-import com.pogeyan.cmis.data.DatabaseManager;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
-import com.pogeyan.cmis.data.dao.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MAclImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MToken;
-import com.pogeyan.cmis.impl.MongoRepository;
 
 public class DBUtils {
 	public static class Variables {
@@ -142,7 +140,7 @@ public class DBUtils {
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
-					put(Variables.NAME, MongoRepository.ROOT_ID);
+					put(Variables.NAME, CopperCmsRepository.ROOT_ID);
 
 				}
 			};

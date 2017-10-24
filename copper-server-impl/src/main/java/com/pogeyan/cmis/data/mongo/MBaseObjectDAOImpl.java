@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.daoimpl;
+package com.pogeyan.cmis.data.mongo;
 
 import java.util.List;
 import java.util.Map;
@@ -25,7 +25,7 @@ import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
 import com.pogeyan.cmis.MChangeType;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MToken;
 

@@ -33,7 +33,6 @@ import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.document.storage.StorageDocumentServiceFactory;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
 
 public class CmisUtils {
 

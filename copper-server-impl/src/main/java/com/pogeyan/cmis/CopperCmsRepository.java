@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.impl;
+package com.pogeyan.cmis;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,8 +52,8 @@ import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MongoRepository {
-	private static final Logger LOG = LoggerFactory.getLogger(MongoRepository.class);
+public class CopperCmsRepository {
+	private static final Logger LOG = LoggerFactory.getLogger(CopperCmsRepository.class);
 	private static final String CMIS_READ = "cmis:read";
 	private static final String CMIS_WRITE = "cmis:write";
 	private static final String CMIS_ALL = "cmis:all";
@@ -77,18 +77,18 @@ public class MongoRepository {
 		Package p = Package.getPackage("com.pogeyan.cmis.mongo");
 		if (p == null) {
 			OPENCMIS_VERSION = "?";
-			OPENCMIS_SERVER = "Mongo-CMIS";
+			OPENCMIS_SERVER = "Copper CMS";
 		} else {
 			String ver = p.getImplementationVersion();
 			OPENCMIS_VERSION = (null == ver ? "?" : ver);
-			OPENCMIS_SERVER = "Mongo-CMIS/" + OPENCMIS_VERSION;
+			OPENCMIS_SERVER = "Copper CMS/" + OPENCMIS_VERSION;
 		}
 	}
 
 	/**
 	 * Gets a repository object by id.
 	 */
-	public MongoRepository(final String repositoryId) {
+	public CopperCmsRepository(final String repositoryId) {
 		// check repository id
 		if (repositoryId == null || repositoryId.trim().length() == 0) {
 			throw new IllegalArgumentException("Invalid repository id!");

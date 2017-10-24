@@ -87,19 +87,21 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.CmisPropertyConverter;
 import com.pogeyan.cmis.CmisUtils;
+import com.pogeyan.cmis.CopperCmsRepository;
 import com.pogeyan.cmis.DBUtils;
+import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.MChangeType;
 import com.pogeyan.cmis.MongoNameValidator;
 import com.pogeyan.cmis.MongoTypeValidator;
-import com.pogeyan.cmis.data.DatabaseManager;
+import com.pogeyan.cmis.RepositoryManager;
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
-import com.pogeyan.cmis.data.dao.MDocumentObjectDAO;
-import com.pogeyan.cmis.data.dao.MNavigationServiceDAO;
-import com.pogeyan.cmis.data.dao.MTypeManagerDAO;
 import com.pogeyan.cmis.data.objects.MAce;
 import com.pogeyan.cmis.data.objects.MAclImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
@@ -107,8 +109,6 @@ import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MToken;
 import com.pogeyan.cmis.data.objects.MTypeObject;
 import com.pogeyan.cmis.document.storage.StorageDocumentServiceFactory;
-import com.pogeyan.cmis.impl.MongoRepository;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
 
 import scala.Tuple2;
 
@@ -131,7 +131,7 @@ public class CmisObjectService {
 				} else {
 					ObjectId objectId = new ObjectId();
 					MToken token = new MToken(0, System.currentTimeMillis());
-					MBaseObject folderObject = new MBaseObject(objectId, MongoRepository.ROOT_ID,
+					MBaseObject folderObject = new MBaseObject(objectId, CopperCmsRepository.ROOT_ID,
 							BaseTypeId.CMIS_FOLDER, "cmis:folder", repositoryId, null,
 							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, null, "/",
 							null);
@@ -2160,7 +2160,7 @@ public class CmisObjectService {
 						hasCopied = true;
 					}
 					Object value = propDef.getCardinality() == Cardinality.SINGLE ? defaultVal.get(0) : defaultVal;
-					MongoRepository fObject = new MongoRepository(repositoryId);
+					CopperCmsRepository fObject = new CopperCmsRepository(repositoryId);
 					PropertyData<?> pd = fObject.getObjectFactory().createPropertyData(propDef, value);
 					// set property:
 					propertiesReturn.put(propId, pd);

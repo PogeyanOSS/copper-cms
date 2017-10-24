@@ -13,17 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.dao;
+package com.pogeyan.cmis;
 
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.dao.DAO;
+public interface IDBClientFactory {
+	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
 
-import com.pogeyan.cmis.data.objects.MCmisDocumentTypeDefinition;
-
-public interface MDocumentTypeManagerDAO extends DAO<MCmisDocumentTypeDefinition, ObjectId> {
-	/**
-	 * Returns MCmisDocumentTypeDefinition values depending on TypeId
-	 */
-	public MCmisDocumentTypeDefinition getByTypeId(String typeId);
-
+	void addIndex(String repositoryId, String[] columnsToIndex);
 }

@@ -23,6 +23,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pogeyan.cmis.RepositoryManager;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
@@ -31,7 +32,6 @@ import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.auth.LoginRequestObject;
 import com.pogeyan.cmis.api.messages.LoginRequest;
 import com.pogeyan.cmis.api.messages.LoginResponse;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
 
 public class LoginActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(LoginActor.class);
