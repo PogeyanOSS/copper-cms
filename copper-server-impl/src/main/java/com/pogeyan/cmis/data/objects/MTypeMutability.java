@@ -19,9 +19,7 @@ import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.TypeMutability;
-import org.mongodb.morphia.annotations.Embedded;
 
-@Embedded
 public class MTypeMutability implements TypeMutability {
 
 	private Boolean canCreate;

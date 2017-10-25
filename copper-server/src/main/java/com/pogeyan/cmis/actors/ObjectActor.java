@@ -64,8 +64,8 @@ import com.pogeyan.cmis.api.messages.PostFileResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.*;
-import com.pogeyan.cmis.data.objects.MAce;
-import com.pogeyan.cmis.data.objects.MAclImpl;
+import com.pogeyan.cmis.data.objects.MAceImpl;
+import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.services.CmisObjectService;
 import com.pogeyan.cmis.services.CmisTypeCacheService;
@@ -268,10 +268,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getRepositoryId());
 		List<String> permissions = new ArrayList<String>();
 		permissions.add(permission);
-		List<MAce> aceList = new ArrayList<MAce>();
-		MAce ace = new MAce(principalId, permissions);
+		List<MAceImpl> aceList = new ArrayList<MAceImpl>();
+		MAceImpl ace = new MAceImpl(principalId, permissions);
 		aceList.add(ace);
-		MAclImpl aclImp = new MAclImpl();
+		MAccessControlListImpl aclImp = new MAccessControlListImpl();
 		aclImp.setAces(aceList);
 		ObjectId newObjectId = CmisObjectService.Impl.createFolder(request.getRepositoryId(), folderId, prop,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
@@ -309,10 +309,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getRepositoryId());
 		List<String> permissions = new ArrayList<String>();
 		permissions.add(permission);
-		List<MAce> aceList = new ArrayList<MAce>();
-		MAce ace = new MAce(principalId, permissions);
+		List<MAceImpl> aceList = new ArrayList<MAceImpl>();
+		MAceImpl ace = new MAceImpl(principalId, permissions);
 		aceList.add(ace);
-		MAclImpl aclImp = new MAclImpl();
+		MAccessControlListImpl aclImp = new MAccessControlListImpl();
 		aclImp.setAces(aceList);
 		ObjectId newObjectId = null;
 		if (request.getContentStream() == null) {
@@ -356,10 +356,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String sourceId = request.getParameter(QueryGetRequest.PARAM_SOURCE_ID);
 		List<String> permissions = new ArrayList<String>();
 		permissions.add(permission);
-		List<MAce> aceList = new ArrayList<MAce>();
-		MAce ace = new MAce(principalId, permissions);
+		List<MAceImpl> aceList = new ArrayList<MAceImpl>();
+		MAceImpl ace = new MAceImpl(principalId, permissions);
 		aceList.add(ace);
-		MAclImpl aclImp = new MAclImpl();
+		MAccessControlListImpl aclImp = new MAccessControlListImpl();
 		aclImp.setAces(aceList);
 		ObjectData sourceDoc = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), new ObjectId(sourceId),
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
@@ -402,10 +402,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getRepositoryId());
 		List<String> permissions = new ArrayList<String>();
 		permissions.add(permission);
-		List<MAce> aceList = new ArrayList<MAce>();
-		MAce ace = new MAce(principalId, permissions);
+		List<MAceImpl> aceList = new ArrayList<MAceImpl>();
+		MAceImpl ace = new MAceImpl(principalId, permissions);
 		aceList.add(ace);
-		MAclImpl aclImp = new MAclImpl();
+		MAccessControlListImpl aclImp = new MAccessControlListImpl();
 		aclImp.setAces(aceList);
 		ObjectId newObjectId = CmisObjectService.Impl.createItem(request.getRepositoryId(), prop, folderId,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
@@ -437,10 +437,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getRepositoryId());
 		List<String> permissions = new ArrayList<String>();
 		permissions.add(permission);
-		List<MAce> aceList = new ArrayList<MAce>();
-		MAce ace = new MAce(principalId, permissions);
+		List<MAceImpl> aceList = new ArrayList<MAceImpl>();
+		MAceImpl ace = new MAceImpl(principalId, permissions);
 		aceList.add(ace);
-		MAclImpl aclImp = new MAclImpl();
+		MAccessControlListImpl aclImp = new MAccessControlListImpl();
 		aclImp.setAces(aceList);
 		ObjectId newObjectId = CmisObjectService.Impl.createPolicy(request.getRepositoryId(), prop, folderId,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
@@ -472,10 +472,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		ObjectId folderId = request.getObjectId() != null ? new ObjectId(request.getObjectId()) : null;
 		List<String> permissions = new ArrayList<String>();
 		permissions.add(permission);
-		List<MAce> aceList = new ArrayList<MAce>();
-		MAce ace = new MAce(principalId, permissions);
+		List<MAceImpl> aceList = new ArrayList<MAceImpl>();
+		MAceImpl ace = new MAceImpl(principalId, permissions);
 		aceList.add(ace);
-		MAclImpl aclImp = new MAclImpl();
+		MAccessControlListImpl aclImp = new MAccessControlListImpl();
 		aclImp.setAces(aceList);
 		ObjectId newObjectId = CmisObjectService.Impl.createRelationship(request.getRepositoryId(), folderId, prop,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());

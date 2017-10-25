@@ -15,9 +15,11 @@
  */
 package com.pogeyan.cmis.data.mongo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -26,8 +28,12 @@ import org.mongodb.morphia.query.UpdateOperations;
 
 import com.pogeyan.cmis.MChangeType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
+import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
+import com.pogeyan.cmis.data.objects.MAceImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MToken;
+import com.pogeyan.cmis.data.objects.MongoAceImpl;
+import com.pogeyan.cmis.data.objects.MongoAclImpl;
 
 public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MBaseObjectDAO {
 
@@ -55,6 +61,11 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implemen
 		UpdateOperations<MBaseObject> update = createUpdateOperations();
 		Query<MBaseObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
 				.notEqual(MChangeType.DELETED.value());
+		if (updateProps.get("acl") != null) {
+			MongoAclImpl mAcl = convertMongoAcl((MAccessControlListImpl) updateProps.get("acl"));
+			updateProps.remove("acl");
+			updateProps.put("acl", mAcl);
+		}
 		for (Map.Entry<String, Object> entry : updateProps.entrySet()) {
 			update = update.set(entry.getKey(), entry.getValue());
 		}
@@ -88,6 +99,26 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implemen
 	@Override
 	public void commit(MBaseObject entity) {
 		this.save(entity);
+	}
+
+	private MongoAclImpl convertMongoAcl(MAccessControlListImpl acl) {
+		if (acl != null) {
+			List<MAceImpl> list = new ArrayList<MAceImpl>(acl.getAces().size());
+			for (Ace ace : acl.getAces()) {
+				MongoAceImpl aces = new MongoAceImpl();
+				aces.setDirect(true);
+				aces.setPrincipalId(ace.getPrincipalId());
+				aces.setPremission(ace.getPermissions());
+				list.add(aces);
+			}
+			MongoAclImpl mAcl = new MongoAclImpl();
+			mAcl.setAces(list);
+			mAcl.setAclPropagation("objectonly");
+			mAcl.setExact(true);
+			return mAcl;
+		}
+		return null;
+
 	}
 
 }

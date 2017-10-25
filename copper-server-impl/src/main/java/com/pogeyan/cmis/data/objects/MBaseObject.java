@@ -15,9 +15,11 @@
  */
 package com.pogeyan.cmis.data.objects;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -46,7 +48,7 @@ public class MBaseObject {
 	private String internalPath;
 	private String path;
 	private List<String> policies;
-	private MAclImpl acl;
+	private MongoAclImpl acl;
 	private String parentId;
 
 	private Map<String, Object> properties;
@@ -65,8 +67,8 @@ public class MBaseObject {
 
 	public MBaseObject(ObjectId id, String name, BaseTypeId baseId, String typeId, String fRepositoryId,
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, MToken token,
-			String internalPath, Map<String, Object> properties, List<String> policies, MAclImpl acl, String path,
-			String parentId) {
+			String internalPath, Map<String, Object> properties, List<String> policies, MAccessControlListImpl acl,
+			String path, String parentId) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -82,7 +84,7 @@ public class MBaseObject {
 		this.path = path;
 		this.properties = properties;
 		this.policies = policies;
-		this.acl = acl;
+		this.acl = convertMongoAcl(acl);
 		this.createdAt = System.currentTimeMillis();
 		this.modifiedAt = System.currentTimeMillis();
 		this.parentId = parentId;
@@ -201,11 +203,11 @@ public class MBaseObject {
 		this.policies = policies;
 	}
 
-	public MAclImpl getAcl() {
+	public MAccessControlListImpl getAcl() {
 		return acl;
 	}
 
-	public void setAcl(MAclImpl acl) {
+	public void setAcl(MongoAclImpl acl) {
 		this.acl = acl;
 	}
 
@@ -225,4 +227,23 @@ public class MBaseObject {
 		this.parentId = parentId;
 	}
 
+	private MongoAclImpl convertMongoAcl(MAccessControlListImpl acl) {
+		if (acl != null) {
+			List<MAceImpl> list = new ArrayList<MAceImpl>(acl.getAces().size());
+			for (Ace ace : acl.getAces()) {
+				MongoAceImpl aces = new MongoAceImpl();
+				aces.setDirect(true);
+				aces.setPrincipalId(ace.getPrincipalId());
+				aces.setPremission(ace.getPermissions());
+				list.add(aces);
+			}
+			MongoAclImpl mAcl = new MongoAclImpl();
+			mAcl.setAces(list);
+			mAcl.setAclPropagation("objectonly");
+			mAcl.setExact(true);
+			return mAcl;
+		}
+		return null;
+
+	}
 }

@@ -55,7 +55,7 @@ import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.data.objects.MAclImpl;
+import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 
@@ -121,9 +121,9 @@ public class CmisNavigationService {
 				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true);
 			} else {
 				path = data.getInternalPath() + folderId + ",";
-				List<MAclImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+				List<MAccessControlListImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 				boolean objectOnly = true;
-				for (MAclImpl acl : mAcl) {
+				for (MAccessControlListImpl acl : mAcl) {
 					if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 							|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 						List<Ace> listAce = acl.getAces().stream().filter(t -> Arrays.stream(principalIds).parallel()
@@ -223,12 +223,12 @@ public class CmisNavigationService {
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
 			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(folderId), null);
 			String path = "," + folderId + ",";
-			List<MAclImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+			List<MAccessControlListImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 
 			List<MBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			for (MAclImpl acl : mAcl) {
+			for (MAccessControlListImpl acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 					List<Ace> listAce = acl.getAces().stream().filter(
@@ -398,12 +398,12 @@ public class CmisNavigationService {
 			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(folderId), null);
 			String path = "," + folderId + ",";
 
-			List<MAclImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+			List<MAccessControlListImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 
 			List<MBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			for (MAclImpl acl : mAcl) {
+			for (MAccessControlListImpl acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 					List<Ace> listAce = acl.getAces().stream().filter(
@@ -521,9 +521,9 @@ public class CmisNavigationService {
 					LOG.error("Unknown object id:{}", folderId);
 					throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
 				}
-				List<MAclImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+				List<MAccessControlListImpl> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 				boolean objectOnly = true;
-				for (MAclImpl acl : mAcl) {
+				for (MAccessControlListImpl acl : mAcl) {
 					if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 							|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 						List<Ace> listAce = acl.getAces().stream().filter(t -> Arrays.stream(principalIds).parallel()
@@ -599,8 +599,8 @@ public class CmisNavigationService {
 			return result;
 		}
 
-		public static List<MAclImpl> getParentAcl(String repositoryId, String dataPath, MAclImpl dataAcl) {
-			List<MAclImpl> acl = null;
+		public static List<MAccessControlListImpl> getParentAcl(String repositoryId, String dataPath, MAccessControlListImpl dataAcl) {
+			List<MAccessControlListImpl> acl = null;
 			String[] queryResult = dataPath.split(",");
 			List<MBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(t), null))
@@ -610,7 +610,7 @@ public class CmisNavigationService {
 				acl.add(dataAcl);
 			} else {
 				acl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<MAclImpl>toList());
+						.collect(Collectors.<MAccessControlListImpl>toList());
 			}
 			return acl;
 		}

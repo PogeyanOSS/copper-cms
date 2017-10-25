@@ -22,19 +22,17 @@ import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.data.MutablePrincipal;
 import org.apache.chemistry.opencmis.commons.data.Principal;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
-import org.mongodb.morphia.annotations.Entity;
 
-@Entity(noClassnameStored = true)
-public class MAce implements Ace {
+public class MAceImpl implements Ace {
 	private List<String> premission;
 	private String principalId;
 	private boolean isDirect;
 
-	public MAce() {
+	public MAceImpl() {
 
 	}
 
-	public MAce(String principalId, List<String> premission) {
+	public MAceImpl(String principalId, List<String> premission) {
 		this.premission = premission;
 		this.principalId = principalId;
 		this.isDirect = true;

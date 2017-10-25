@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
-import com.pogeyan.cmis.data.objects.MAclImpl;
+import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MToken;
@@ -165,7 +165,7 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static void updateAcl(String repositoryId, MAclImpl acl, MToken token, ObjectId objectId) {
+		public static void updateAcl(String repositoryId, MAccessControlListImpl acl, MToken token, ObjectId objectId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {

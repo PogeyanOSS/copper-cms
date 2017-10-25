@@ -23,9 +23,7 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
-import org.mongodb.morphia.annotations.Embedded;
 
-@Embedded
 public class MPropertyDefinition<T> implements PropertyDefinition<T> {
 	private static final long serialVersionUID = -872445236335651909L;
 	private String id;

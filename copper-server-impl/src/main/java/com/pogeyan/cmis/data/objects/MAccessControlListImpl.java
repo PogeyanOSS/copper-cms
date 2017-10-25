@@ -23,19 +23,17 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
-import org.mongodb.morphia.annotations.Entity;
 
-@Entity(noClassnameStored = true)
-public class MAclImpl implements Acl {
-	private List<MAce> ace;
+public class MAccessControlListImpl implements Acl {
+	private List<MAceImpl> ace;
 	private boolean exact;
 	private String aclPropagation;
 
-	public MAclImpl() {
+	public MAccessControlListImpl() {
 		this.aclPropagation = "";
 	}
 
-	public MAclImpl(List<MAce> ace, String aclPropagation, boolean exact) {
+	public MAccessControlListImpl(List<MAceImpl> ace, String aclPropagation, boolean exact) {
 		this.ace = ace;
 		this.exact = exact;
 		this.setAclPropagation(aclPropagation);
@@ -46,7 +44,11 @@ public class MAclImpl implements Acl {
 		return exact;
 	}
 
-	public void setAces(List<MAce> ace) {
+	public void setExact(boolean exact) {
+		this.exact = exact;
+	}
+
+	public void setAces(List<MAceImpl> ace) {
 		this.ace = ace;
 	}
 
@@ -54,7 +56,7 @@ public class MAclImpl implements Acl {
 	public List<Ace> getAces() {
 
 		List<Ace> listAce = new ArrayList<Ace>(ace.size());
-		for (MAce ace : ace) {
+		for (MAceImpl ace : ace) {
 			AccessControlEntryImpl ace2 = new AccessControlEntryImpl();
 			ace2.setPermissions(ace.getPermissions());
 			ace2.setExtensions(ace.getExtensions());

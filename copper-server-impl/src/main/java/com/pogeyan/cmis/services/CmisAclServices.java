@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.DBUtils;
 import com.pogeyan.cmis.MongoTypeValidator;
-import com.pogeyan.cmis.data.objects.MAce;
-import com.pogeyan.cmis.data.objects.MAclImpl;
+import com.pogeyan.cmis.data.objects.MAceImpl;
+import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MToken;
 
@@ -75,19 +75,19 @@ public class CmisAclServices {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
 			}
-			MToken token = new MToken(4, System.currentTimeMillis());
+			MToken token = new MToken(3, System.currentTimeMillis());
 			switch (aclPropagation) {
 			case REPOSITORYDETERMINED: {
-				MAclImpl newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
+				MAccessControlListImpl newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
 				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, new ObjectId(objectId));
 				break;
 			}
 			case OBJECTONLY:
-				MAclImpl newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
+				MAccessControlListImpl newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
 				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, new ObjectId(objectId));
 				break;
 			case PROPAGATE:
-				MAclImpl aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
+				MAccessControlListImpl aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
 				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, new ObjectId(objectId));
 				break;
 			}
@@ -98,14 +98,14 @@ public class CmisAclServices {
 			return newData.getAcl();
 		}
 
-		private static MAclImpl validateAcl(Acl addAces, Acl removeAces, MBaseObject object, List<String> id,
+		private static MAccessControlListImpl validateAcl(Acl addAces, Acl removeAces, MBaseObject object, List<String> id,
 				String aclPropagation) {
-			List<MAce> acess = new ArrayList<MAce>();
+			List<MAceImpl> acess = new ArrayList<MAceImpl>();
 			if (addAces != null) {
 				for (Ace dataAce : object.getAcl().getAces()) {
 					for (Ace ace : addAces.getAces()) {
 						if (dataAce.getPrincipalId().equalsIgnoreCase(ace.getPrincipalId())) {
-							MAce aclace = new MAce(ace.getPrincipalId(), ace.getPermissions());
+							MAceImpl aclace = new MAceImpl(ace.getPrincipalId(), ace.getPermissions());
 							acess.add(aclace);
 							id.add(ace.getPrincipalId());
 						}
@@ -127,24 +127,24 @@ public class CmisAclServices {
 				}
 			}
 
-			MAclImpl aclimpl = new MAclImpl(acess, aclPropagation, false);
+			MAccessControlListImpl aclimpl = new MAccessControlListImpl(acess, aclPropagation, false);
 			if (LOG.isDebugEnabled() && aclimpl != null) {
 				LOG.debug("ValidatedAcl: {}", aclimpl.getAces());
 			}
 			return aclimpl;
 		}
 
-		private static List<MAce> getAce(List<Ace> data, List<MAce> newList, List<String> id) {
+		private static List<MAceImpl> getAce(List<Ace> data, List<MAceImpl> newList, List<String> id) {
 			if (id.isEmpty()) {
 				for (Ace dataAce : data) {
-					MAce aclace = new MAce(dataAce.getPrincipalId(), dataAce.getPermissions());
+					MAceImpl aclace = new MAceImpl(dataAce.getPrincipalId(), dataAce.getPermissions());
 					newList.add(aclace);
 					id.add(dataAce.getPrincipalId());
 				}
 			} else {
 				for (Ace dataAce : data) {
 					if (!id.contains(dataAce.getPrincipalId())) {
-						MAce aclace = new MAce(dataAce.getPrincipalId(), dataAce.getPermissions());
+						MAceImpl aclace = new MAceImpl(dataAce.getPrincipalId(), dataAce.getPermissions());
 						newList.add(aclace);
 						id.add(dataAce.getPrincipalId());
 					}

@@ -56,9 +56,9 @@ public class MTypeObject implements TypeDefinition {
 	protected Boolean isControllableAcl;
 
 	@Embedded
-	protected MTypeMutability typeMutability;
+	protected MongoTypeMutability typeMutability;
 	@Embedded
-	protected Map<String, MPropertyDefinition<?>> propertyDefinition;
+	protected Map<String, MongoPropertyDefinition<?>> propertyDefinition;
 
 	public MTypeObject() {
 	}
@@ -84,8 +84,8 @@ public class MTypeObject implements TypeDefinition {
 		this.isIncludedInSupertypeQuery = isIncludedInSupertypeQuery;
 		this.isControllablePolicy = isControllablePolicy;
 		this.isControllableAcl = isControllableAcl;
-		this.typeMutability = typeMutability;
-		this.propertyDefinition = propertyDefinition;
+		this.typeMutability = convertMongoTypeMutability(typeMutability);
+		this.propertyDefinition = convertMongoPropertyDefinition(propertyDefinition);
 	}
 
 	@Override
@@ -176,8 +176,8 @@ public class MTypeObject implements TypeDefinition {
 	public Map<String, PropertyDefinition<?>> getPropertyDefinitions() {
 		Map<String, PropertyDefinition<?>> map = new LinkedHashMap<String, PropertyDefinition<?>>();
 		if (propertyDefinition != null) {
-			Set<Entry<String, MPropertyDefinition<?>>> data = propertyDefinition.entrySet();
-			for (Map.Entry<String, MPropertyDefinition<?>> propertiesValues : data) {
+			Set<Entry<String, MongoPropertyDefinition<?>>> data = propertyDefinition.entrySet();
+			for (Map.Entry<String, MongoPropertyDefinition<?>> propertiesValues : data) {
 				String id = propertiesValues.getKey();
 				MPropertyDefinition<?> valueName = propertiesValues.getValue();
 				String propertyType = valueName.getPropertyType().toString();
@@ -284,11 +284,55 @@ public class MTypeObject implements TypeDefinition {
 		this.isControllableAcl = isControllableAcl;
 	}
 
-	public void setPropertyDefinition(Map<String, MPropertyDefinition<?>> propertyDefinition) {
+	public void setPropertyDefinition(Map<String, MongoPropertyDefinition<?>> propertyDefinition) {
 		this.propertyDefinition = propertyDefinition;
 	}
 
-	public void setTypeMutability(MTypeMutability typeMutability) {
+	public void setTypeMutability(MongoTypeMutability typeMutability) {
 		this.typeMutability = typeMutability;
+	}
+
+	private MongoTypeMutability convertMongoTypeMutability(MTypeMutability mTypeMutability) {
+		if (mTypeMutability != null) {
+			MongoTypeMutability mongoTypeMutability = new MongoTypeMutability();
+			mongoTypeMutability.setCanCreate(mTypeMutability.canCreate());
+			mongoTypeMutability.setCanUpdate(mTypeMutability.canUpdate());
+			mongoTypeMutability.setCanUpdate(mTypeMutability.canDelete());
+			return mongoTypeMutability;
+		}
+		return null;
+
+	}
+
+	@SuppressWarnings("rawtypes")
+	private Map<String, MongoPropertyDefinition<?>> convertMongoPropertyDefinition(
+			Map<String, MPropertyDefinition<?>> propertyDefinition) {
+		if (propertyDefinition != null) {
+			Map<String, MongoPropertyDefinition<?>> mongoProperty = new LinkedHashMap<String, MongoPropertyDefinition<?>>();
+			Set<Entry<String, MPropertyDefinition<?>>> data = propertyDefinition.entrySet();
+			for (Entry<String, MPropertyDefinition<?>> propertiesValues : data) {
+				String id = propertiesValues.getKey();
+				MPropertyDefinition<?> valueName = propertiesValues.getValue();
+				MongoPropertyDefinition<?> mongo = new MongoPropertyDefinition();
+				mongo.setId(valueName.getId());
+				mongo.setLocalName(valueName.getLocalName());
+				mongo.setLocalNamespace(valueName.getLocalNamespace());
+				mongo.setDisplayName(valueName.getDisplayName());
+				mongo.setQueryName(valueName.getQueryName());
+				mongo.setDescription(valueName.getDescription());
+				mongo.setPropertyType(valueName.getPropertyType());
+				mongo.setCardinality(valueName.getCardinality());
+				mongo.setUpdatability(valueName.getUpdatability());
+				mongo.setIsInherited(valueName.isInherited());
+				mongo.setIsRequired(valueName.isRequired());
+				mongo.setIsQueryable(valueName.isQueryable());
+				mongo.setIsOrderable(valueName.isOrderable());
+				mongo.setIsOpenChoice(valueName.isOpenChoice());
+				mongoProperty.put(id, mongo);
+			}
+			return mongoProperty;
+		}
+		return null;
+
 	}
 }

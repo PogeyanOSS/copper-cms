@@ -65,7 +65,6 @@ import com.pogeyan.cmis.data.objects.MCmisRelationshipTypeDefinition;
 import com.pogeyan.cmis.data.objects.MCmisSecondaryTypeDefinition;
 import com.pogeyan.cmis.data.objects.MItemTypeDefinition;
 import com.pogeyan.cmis.data.objects.MPropertyDefinition;
-import com.pogeyan.cmis.data.objects.MToken;
 import com.pogeyan.cmis.data.objects.MTypeMutability;
 import com.pogeyan.cmis.data.objects.MTypeObject;
 
@@ -622,8 +621,7 @@ public class CmisTypeServices {
 			// repositoryId, type);
 			// localService.deleteFolder(parameters, repositoryId, type);
 			MBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type);
-			MToken token = new MToken(2, System.currentTimeMillis());
-			baseMorphiaDAO.delete(folderObject.getId(), false, token);
+			baseMorphiaDAO.delete(folderObject.getId(), true, null);
 			typeMorphiaDAO.delete(type);
 			if (LOG.isDebugEnabled()) {
 				LOG.info("Deleted type: {}", type);
@@ -908,19 +906,19 @@ public class CmisTypeServices {
 					result.setHasMoreItems(childrenList.size() > maxItems - skipCount);
 					List<TypeDefinition> resultTypes = childrenList.stream().map(
 							t -> getPropertyIncludeObject(repositoryId, t, docTypeMorphia, includePropertyDefinitions))
-							.collect(Collectors.<TypeDefinition>toList());
+							.collect(Collectors.<TypeDefinition> toList());
 					result.setList(resultTypes);
 				} else {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(childrenList.size()));
-					result.setList(Collections.<TypeDefinition>emptyList());
+					result.setList(Collections.<TypeDefinition> emptyList());
 				}
 
 			} else {
 				if (skipCount >= 6) {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(0));
-					result.setList(Collections.<TypeDefinition>emptyList());
+					result.setList(Collections.<TypeDefinition> emptyList());
 				} else {
 					List<TypeDefinition> resultTypes = new ArrayList<>();
 					resultTypes.add(getPropertyIncludeObject(repositoryId,
@@ -1472,10 +1470,10 @@ public class CmisTypeServices {
 		private static void addIndex(String repositoryId, Map<String, MPropertyDefinition<?>> getPropertyDefinitions) {
 			List<String> primaryIndex = getPropertyDefinitions.entrySet().stream()
 					.filter(map -> map.getValue().getLocalName().equalsIgnoreCase("primaryKey"))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
 			List<String> secondaryIndex = getPropertyDefinitions.entrySet().stream()
 					.filter(map -> map.getValue().getLocalName().equalsIgnoreCase("lk_" + map.getValue().getId()))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
 			secondaryIndex.parallelStream().collect(Collectors.toCollection(() -> primaryIndex));
 			String[] columnsToIndex = primaryIndex.toArray(new String[primaryIndex.size()]);
 			if (columnsToIndex.length > 0) {

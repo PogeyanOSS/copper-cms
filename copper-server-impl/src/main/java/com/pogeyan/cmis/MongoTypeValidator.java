@@ -51,8 +51,8 @@ import org.apache.chemistry.opencmis.server.support.TypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.data.objects.MAce;
-import com.pogeyan.cmis.data.objects.MAclImpl;
+import com.pogeyan.cmis.data.objects.MAceImpl;
+import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 
 /**
  * A helper class doing some consistency checks when new type definitions are
@@ -345,11 +345,11 @@ public final class MongoTypeValidator {
 			return newPropDef;
 		}
 
-		public static MAclImpl expandAclMakros(String user, Acl acl) {
+		public static MAccessControlListImpl expandAclMakros(String user, Acl acl) {
 			boolean mustCopy = false;
 
 			if (user == null || acl == null || acl.getAces() == null) {
-				return (MAclImpl) acl;
+				return (MAccessControlListImpl) acl;
 			}
 
 			List<Ace> implAce = acl.getAces();
@@ -363,12 +363,12 @@ public final class MongoTypeValidator {
 			if (mustCopy) {
 
 			}
-			List<MAce> list = new ArrayList<MAce>(acl.getAces().size());
+			List<MAceImpl> list = new ArrayList<MAceImpl>(acl.getAces().size());
 			for (Ace ace : acl.getAces()) {
-				MAce aces = new MAce(ace.getPrincipalId(), ace.getPermissions());
+				MAceImpl aces = new MAceImpl(ace.getPrincipalId(), ace.getPermissions());
 				list.add(aces);
 			}
-			MAclImpl Macl = new MAclImpl(list, "objectonly", false);
+			MAccessControlListImpl Macl = new MAccessControlListImpl(list, "objectonly", false);
 			return Macl;
 
 			// if (mustCopy) {

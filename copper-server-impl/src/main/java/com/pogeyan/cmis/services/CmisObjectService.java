@@ -102,8 +102,8 @@ import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
-import com.pogeyan.cmis.data.objects.MAce;
-import com.pogeyan.cmis.data.objects.MAclImpl;
+import com.pogeyan.cmis.data.objects.MAceImpl;
+import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MToken;
@@ -1230,7 +1230,7 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
-			MAclImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
+			MAccessControlListImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = MongoTypeValidator.impl.expandAclMakros(userName, removeAces);
 			MBaseObject parent = null;
 			List<String> secondaryObjectTypeIds = null;
@@ -1321,10 +1321,10 @@ public class CmisObjectService {
 			String folderName = (String) pd.getFirstValue();
 			List<String> permissions = new ArrayList<String>();
 			permissions.add("cmis:all");
-			List<MAce> aceList = new ArrayList<MAce>();
-			MAce ace = new MAce(userName, permissions);
+			List<MAceImpl> aceList = new ArrayList<MAceImpl>();
+			MAceImpl ace = new MAceImpl(userName, permissions);
 			aceList.add(ace);
-			MAclImpl aclImp = new MAclImpl();
+			MAccessControlListImpl aclImp = new MAccessControlListImpl();
 			aclImp.setAces(aceList);
 			aclImp.setAclPropagation("objectonly");
 			createFolderObject(repositoryId, parent, folderName, userName, null, typeId, props.getProperties(),
@@ -1337,7 +1337,7 @@ public class CmisObjectService {
 		private static MBaseObject createFolderObject(String repositoryId, MBaseObject parentData, String folderName,
 				String userName, List<String> secondaryObjectTypeId, String typeId,
 				Map<String, PropertyData<?>> properties, MBaseObjectDAO objectMorphiaDAO, List<String> policies,
-				MAclImpl addAces, Acl removeAces) throws CmisObjectNotFoundException, IllegalArgumentException {
+				MAccessControlListImpl addAces, Acl removeAces) throws CmisObjectNotFoundException, IllegalArgumentException {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("createFolder parentDataId: {} - folderName:{} - properties:{}", parentData.getId(),
@@ -1458,7 +1458,7 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addACEs != null && removeACEs != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addACEs.getAces(), removeACEs.getAces());
 			}
-			MAclImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addACEs);
+			MAccessControlListImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addACEs);
 			Acl aclRemove = MongoTypeValidator.impl.expandAclMakros(userName, removeACEs);
 			List<String> secondaryObjectTypeIds = null;
 			if (properties == null || properties.getProperties() == null) {
@@ -1571,7 +1571,7 @@ public class CmisObjectService {
 		public static MDocumentObject createDocumentObject(String repositoryId, MBaseObject parentData, String docname,
 				String username, List<String> secondaryObjectTypeIds, ContentStream contentStream, String typeId,
 				MDocumentObjectDAO documentMorphiaDAO, Map<String, PropertyData<?>> properties, List<String> policies,
-				MAclImpl addACEs, Acl removeACEs, VersioningState versioningState) throws IllegalArgumentException {
+				MAccessControlListImpl addACEs, Acl removeACEs, VersioningState versioningState) throws IllegalArgumentException {
 
 			LOG.info("Creating Document: {} within ParentFolder id: {} ", docname, parentData.getId());
 			MDocumentObject documentObject = null;
@@ -1679,7 +1679,7 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
-			MAclImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
+			MAccessControlListImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = MongoTypeValidator.impl.expandAclMakros(userName, removeAces);
 			List<String> secondaryObjectTypeIds = null;
 
@@ -1804,7 +1804,7 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
-			MAclImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
+			MAccessControlListImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = MongoTypeValidator.impl.expandAclMakros(userName, removeAces);
 			// Properties propertiesNew = properties;
 
@@ -1869,7 +1869,7 @@ public class CmisObjectService {
 		 */
 		private static MBaseObject createItemObject(String repositoryId, MBaseObject parentData, String itemName,
 				String username, List<String> secondaryObjectTypeIds, String typeId,
-				Map<String, PropertyData<?>> properties, List<String> policies, MAclImpl aclAdd, Acl aclRemove)
+				Map<String, PropertyData<?>> properties, List<String> policies, MAccessControlListImpl aclAdd, Acl aclRemove)
 				throws CmisObjectNotFoundException, IllegalArgumentException {
 
 			LOG.info("createItemObject parentDataId:", parentData.getId(), " - itemName:{}", itemName);
@@ -1937,7 +1937,7 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
-			MAclImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
+			MAccessControlListImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = MongoTypeValidator.impl.expandAclMakros(userName, removeAces);
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
@@ -2039,7 +2039,7 @@ public class CmisObjectService {
 		private static MBaseObject createRelationshipObject(String repositoryId, MBaseObject parentData, String name,
 				MBaseObject sourceObject, MBaseObject targetObject, List<String> secondaryObjectTypeId,
 				Map<String, PropertyData<?>> properties, String user, String typeId, List<String> policies,
-				MAclImpl aclAdd) throws CmisObjectNotFoundException, IllegalArgumentException {
+				MAccessControlListImpl aclAdd) throws CmisObjectNotFoundException, IllegalArgumentException {
 			LOG.info("CreateRelationship sourceObject:", sourceObject.getId(), " - targetObject:{}",
 					targetObject.getId());
 			// 0) folder id
@@ -2192,7 +2192,7 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
-			MAclImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
+			MAccessControlListImpl aclAdd = MongoTypeValidator.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = MongoTypeValidator.impl.expandAclMakros(userName, removeAces);
 			// Properties propertiesNew = properties;
 
@@ -2273,7 +2273,7 @@ public class CmisObjectService {
 		 */
 		private static MBaseObject createPolicyObject(String repositoryId, MBaseObject parentData, String policyName,
 				String username, List<String> secondaryObjectTypeIds, String typeId,
-				Map<String, PropertyData<?>> properties, List<String> polices, MAclImpl aclAdd, Acl aclRemove)
+				Map<String, PropertyData<?>> properties, List<String> polices, MAccessControlListImpl aclAdd, Acl aclRemove)
 				throws IllegalArgumentException {
 
 			LOG.info("createPolicy parentDataId:", parentData.getId(), " - policyName:{}", policyName);
@@ -2458,7 +2458,7 @@ public class CmisObjectService {
 
 		private static void updateChildPath(String repositoryId, String oldName, String newName, ObjectId id,
 				MBaseObjectDAO baseMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject,
-				String dataPath, MAclImpl dataAcl) {
+				String dataPath, MAccessControlListImpl dataAcl) {
 			LOG.info("update path for object: {}", id.toString());
 			String path = "," + id.toString() + ",";
 			List<MBaseObject> children = getDescendants(repositoryId, path, dataPath, dataAcl, navigationMorphiaDAO,
@@ -3083,7 +3083,7 @@ public class CmisObjectService {
 		private static void moveChildFolder(String repositoryId, String path, MBaseObjectDAO baseMorphiaDAO,
 				MNavigationServiceDAO navigationMorphiaDAO, MDocumentObjectDAO documentMorphiaDAO, String childPath,
 				String parentPath, ObjectId childId, ObjectId parentId, String cmisPath, IUserObject userObject,
-				String dataPath, MAclImpl dataAcl, Long modifiedTime) {
+				String dataPath, MAccessControlListImpl dataAcl, Long modifiedTime) {
 			LOG.info("moveChildFolder on childPath: {}", childPath);
 			parentPath = parentPath + parentId.toString() + ",";
 			MToken token = new MToken(1, System.currentTimeMillis());
@@ -3670,13 +3670,13 @@ public class CmisObjectService {
 				List<MBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(t), null))
 						.collect(Collectors.<MBaseObject>toList());
-				List<MAclImpl> mAcl = null;
+				List<MAccessControlListImpl> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<MAclImpl>toList());
+							.collect(Collectors.<MAccessControlListImpl>toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3739,26 +3739,26 @@ public class CmisObjectService {
 		}
 
 		private static List<MBaseObject> getDescendants(String repository, String path, String dataPath,
-				MAclImpl dataAcl, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject) {
+				MAccessControlListImpl dataAcl, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject) {
 
 			String[] queryResult = dataPath.split(",");
 			List<MBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, new ObjectId(t), null))
 					.collect(Collectors.<MBaseObject>toList());
 
-			List<MAclImpl> mAcl = null;
+			List<MAccessControlListImpl> mAcl = null;
 			if (folderChildren.size() == 1) {
 				mAcl = new ArrayList<>();
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<MAclImpl>toList());
+						.collect(Collectors.<MAccessControlListImpl>toList());
 			}
 
 			List<MBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			for (MAclImpl acl : mAcl) {
+			for (MAccessControlListImpl acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 					List<Ace> listAce = acl.getAces().stream().filter(
@@ -3781,26 +3781,26 @@ public class CmisObjectService {
 		}
 
 		private static List<MBaseObject> getChildrens(String repositoryId, String path, String dataPath,
-				MAclImpl dataAcl, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject) {
+				MAccessControlListImpl dataAcl, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject) {
 
 			String[] queryResult = dataPath.split(",");
 			List<MBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(t), null))
 					.collect(Collectors.<MBaseObject>toList());
 
-			List<MAclImpl> mAcl = null;
+			List<MAccessControlListImpl> mAcl = null;
 			if (folderChildren.size() == 1) {
 				mAcl = new ArrayList<>();
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<MAclImpl>toList());
+						.collect(Collectors.<MAccessControlListImpl>toList());
 			}
 
 			List<MBaseObject> children = new ArrayList<>();
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			for (MAclImpl acl : mAcl) {
+			for (MAccessControlListImpl acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 					List<Ace> listAce = acl.getAces().stream().filter(
