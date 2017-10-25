@@ -51,9 +51,9 @@ import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
-import com.pogeyan.cmis.auth.LoginAuthServiceFactory;
-import com.pogeyan.cmis.document.storage.StorageDocumentServiceFactory;
 import com.pogeyan.cmis.server.GatewayActor;
+import com.pogeyan.cmis.service.factory.LoginAuthServiceFactory;
+import com.pogeyan.cmis.service.factory.StorageServiceFactory;
 
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -67,10 +67,10 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_AUTH_STORE_CLASS = "authenticationManagerClass";
 	private static final String PROPERTY_FILE_STORE_CLASS = "storageManagerClass";
 	private static final String PROPERTY_ACTOR_CLASS = "actorManagerClass";
-	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.RepositoryManager";
+	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.factory.RepositoryManagerFactory";
 	private static final String DEFAULT_REPO_STORE_CLASS = "com.pogeyan.cmis.repo.MongoDBRepositoryStore";
 	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.ldap.auth.LDAPAuthFactory";
-	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.document.storage.FileSystemServiceFactory";
+	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.factory.StorageManagerFactory";
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
@@ -222,7 +222,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 				LOG.info("Initialized External Storage Services Factory Class: {}", fileStorageClassName);
 				Class<?> storageClassFactory = Class.forName(fileStorageClassName);
 				IStorageFactory fileFactory = (IStorageFactory) storageClassFactory.newInstance();
-				StorageDocumentServiceFactory.add(fileFactory);
+				StorageServiceFactory.add(fileFactory);
 			}
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e.toString(), e);

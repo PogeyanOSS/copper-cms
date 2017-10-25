@@ -25,15 +25,15 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MongoContentRangeInputStream extends FilterInputStream {
-	private static final Logger LOG = LoggerFactory.getLogger(MongoContentRangeInputStream.class);
+public class ContentRangeInputStream extends FilterInputStream {
+	private static final Logger LOG = LoggerFactory.getLogger(ContentRangeInputStream.class);
 	private static final int BUFFER_SIZE = 4096;
 
 	private long offset;
 	private long length;
 	private long remaining;
 
-	public MongoContentRangeInputStream(InputStream stream, BigInteger offset, BigInteger length) {
+	public ContentRangeInputStream(InputStream stream, BigInteger offset, BigInteger length) {
 		super(stream);
 
 		this.offset = offset != null ? offset.longValue() : 0;

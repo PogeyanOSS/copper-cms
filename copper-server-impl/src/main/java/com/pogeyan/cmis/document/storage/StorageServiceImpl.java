@@ -43,13 +43,13 @@ import com.pogeyan.cmis.api.storage.IRepositoryStoreSettings;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.*;
 
-public class FileSystemStorageService implements IStorageService {
-	private static final Logger LOG = LoggerFactory.getLogger(FileSystemStorageService.class);
+public class StorageServiceImpl implements IStorageService {
+	private static final Logger LOG = LoggerFactory.getLogger(StorageServiceImpl.class);
 
 	private static final int BUFFER_SIZE = 64 * 1024;
-	private FileSystemStoreSettings storeSettings;
+	private StorageStoreSettings storeSettings;
 
-	FileSystemStorageService() {
+	public StorageServiceImpl() {
 	}
 
 	@Override
@@ -361,8 +361,8 @@ public class FileSystemStorageService implements IStorageService {
 
 	@Override
 	public void setStoreSettings(IRepositoryStoreSettings storeSettings) {
-		if (storeSettings instanceof FileSystemStoreSettings) {
-			FileSystemStoreSettings fileStore = (FileSystemStoreSettings) storeSettings;
+		if (storeSettings instanceof StorageStoreSettings) {
+			StorageStoreSettings fileStore = (StorageStoreSettings) storeSettings;
 			String rootpath = fileStore.getFileLocation();
 			if (rootpath == null) {
 				LOG.error("Local storage path is undefined");
@@ -372,7 +372,7 @@ public class FileSystemStorageService implements IStorageService {
 			if (!directory.exists()) {
 				directory.mkdirs();
 			}
-			this.storeSettings = (FileSystemStoreSettings) storeSettings;
+			this.storeSettings = (StorageStoreSettings) storeSettings;
 		} else {
 			LOG.error("writeContent exception: {}", "Respository Setting details not valid");
 			throw new IllegalArgumentException("Respository Setting details not valid");

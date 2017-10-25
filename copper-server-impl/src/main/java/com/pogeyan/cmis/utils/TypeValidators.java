@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,8 +59,8 @@ import com.pogeyan.cmis.api.data.AccessControlListImplExt;
  * A helper class doing some consistency checks when new type definitions are
  * added to the system.
  */
-public final class MongoTypeValidator {
-	private static final Logger LOG = LoggerFactory.getLogger(MongoTypeValidator.class);
+public final class TypeValidators {
+	private static final Logger LOG = LoggerFactory.getLogger(TypeValidators.class);
 	private static final Object CMIS_USER = "cmis:user";
 
 	public static class impl {
@@ -89,7 +89,7 @@ public final class MongoTypeValidator {
 			checkBaseAndParentType(td);
 
 			if (null != td.getPropertyDefinitions()) {
-				MongoTypeValidator.impl.checkProperties(tm, td.getPropertyDefinitions().values());
+				TypeValidators.impl.checkProperties(tm, td.getPropertyDefinitions().values());
 			}
 		}
 
@@ -115,16 +115,16 @@ public final class MongoTypeValidator {
 			if (null == typeDef.getId()) {
 				typeDef.setId(UUID.randomUUID().toString());
 			} else {
-				if (!MongoNameValidator.impl.isValidId(typeDef.getId())) {
+				if (!NameValidator.impl.isValidId(typeDef.getId())) {
 					// if there are illegal characters adjust them
 					String newId = replaceInvalidCharacters(typeDef.getId());
 					typeDef.setId(newId);
 				}
 			}
-			if (!MongoNameValidator.impl.isValidQueryName(typeDef.getQueryName())) {
+			if (!NameValidator.impl.isValidQueryName(typeDef.getQueryName())) {
 				typeDef.setQueryName(typeDef.getId());
 			}
-			if (!MongoNameValidator.impl.isValidLocalName(typeDef.getLocalName())) {
+			if (!NameValidator.impl.isValidLocalName(typeDef.getLocalName())) {
 				typeDef.setLocalName(typeDef.getId());
 			}
 		}
@@ -176,9 +176,9 @@ public final class MongoTypeValidator {
 					LOG.error("property id cannot be null.");
 					throw new CmisInvalidArgumentException("property id cannot be null.");
 				}
-				if (!MongoNameValidator.impl.isValidId(pd2.getId())) {
-					LOG.error(MongoNameValidator.ERROR_ILLEGAL_NAME);
-					throw new CmisInvalidArgumentException(MongoNameValidator.ERROR_ILLEGAL_NAME);
+				if (!NameValidator.impl.isValidId(pd2.getId())) {
+					LOG.error(NameValidator.ERROR_ILLEGAL_NAME);
+					throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME);
 				}
 
 				// check query name syntax
@@ -186,9 +186,9 @@ public final class MongoTypeValidator {
 					LOG.error("property query name cannot be null.");
 					throw new CmisInvalidArgumentException("property query name cannot be null.");
 				}
-				if (!MongoNameValidator.impl.isValidQueryName(pd2.getQueryName())) {
-					LOG.error(MongoNameValidator.ERROR_ILLEGAL_NAME);
-					throw new CmisInvalidArgumentException(MongoNameValidator.ERROR_ILLEGAL_NAME);
+				if (!NameValidator.impl.isValidQueryName(pd2.getQueryName())) {
+					LOG.error(NameValidator.ERROR_ILLEGAL_NAME);
+					throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME);
 				}
 
 				// check local name syntax
@@ -196,9 +196,9 @@ public final class MongoTypeValidator {
 					LOG.error("property local name cannot be null.");
 					throw new CmisInvalidArgumentException("property local name cannot be null.");
 				}
-				if (!MongoNameValidator.impl.isValidLocalName(pd2.getLocalName())) {
-					LOG.error(MongoNameValidator.ERROR_ILLEGAL_NAME);
-					throw new CmisInvalidArgumentException(MongoNameValidator.ERROR_ILLEGAL_NAME);
+				if (!NameValidator.impl.isValidLocalName(pd2.getLocalName())) {
+					LOG.error(NameValidator.ERROR_ILLEGAL_NAME);
+					throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME);
 				}
 
 				for (TypeDefinitionContainer tdc : tdl) {
@@ -235,15 +235,15 @@ public final class MongoTypeValidator {
 			if (null == propDef.getId()) {
 				propDef.setId(UUID.randomUUID().toString());
 			} else {
-				if (!MongoNameValidator.impl.isValidId(propDef.getId())) {
+				if (!NameValidator.impl.isValidId(propDef.getId())) {
 					String newId = replaceInvalidCharacters(propDef.getId());
 					propDef.setId(newId);
 				}
 			}
-			if (!MongoNameValidator.impl.isValidQueryName(propDef.getQueryName())) {
+			if (!NameValidator.impl.isValidQueryName(propDef.getQueryName())) {
 				propDef.setQueryName(propDef.getId());
 			}
-			if (!MongoNameValidator.impl.isValidLocalName(propDef.getLocalName())) {
+			if (!NameValidator.impl.isValidLocalName(propDef.getLocalName())) {
 				propDef.setLocalName(propDef.getId());
 			}
 		}
@@ -252,7 +252,7 @@ public final class MongoTypeValidator {
 			// if there are illegal characters adjust them
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < id.length(); i++) {
-				if (MongoNameValidator.impl.isValidId(id.substring(i, i + 1))) {
+				if (NameValidator.impl.isValidId(id.substring(i, i + 1))) {
 					sb.append(id.charAt(i));
 				} else {
 					sb.append('_');
@@ -262,7 +262,7 @@ public final class MongoTypeValidator {
 		}
 
 		private static DocumentTypeDefinitionImpl completeTypeDoc(DocumentTypeDefinition type) {
-			DocumentTypeDefinitionImpl td = MongoTypeUtil.impl.cloneTypeDoc(type);
+			DocumentTypeDefinitionImpl td = TypeUtil.impl.cloneTypeDoc(type);
 			completeAbstractTypeDefinition(td);
 			td.setIsVersionable(type.isVersionable());
 			td.setContentStreamAllowed(type.getContentStreamAllowed());
@@ -276,13 +276,13 @@ public final class MongoTypeValidator {
 		}
 
 		private static FolderTypeDefinitionImpl completeTypeFolder(FolderTypeDefinition type) {
-			FolderTypeDefinitionImpl td = MongoTypeUtil.impl.cloneTypeFolder(type);
+			FolderTypeDefinitionImpl td = TypeUtil.impl.cloneTypeFolder(type);
 			completeAbstractTypeDefinition(td);
 			return td;
 		}
 
 		private static RelationshipTypeDefinitionImpl completeTypeRelationship(RelationshipTypeDefinition type) {
-			RelationshipTypeDefinitionImpl td = MongoTypeUtil.impl.cloneTypeRelationship(type);
+			RelationshipTypeDefinitionImpl td = TypeUtil.impl.cloneTypeRelationship(type);
 			completeAbstractTypeDefinition(td);
 			td.setAllowedSourceTypes(type.getAllowedSourceTypeIds());
 			td.setAllowedTargetTypes(type.getAllowedTargetTypeIds());
@@ -290,20 +290,20 @@ public final class MongoTypeValidator {
 		}
 
 		private static ItemTypeDefinitionImpl completeTypeItem(ItemTypeDefinition type) {
-			ItemTypeDefinitionImpl td = MongoTypeUtil.impl.cloneTypeItem(type);
+			ItemTypeDefinitionImpl td = TypeUtil.impl.cloneTypeItem(type);
 			td.initialize(type);
 			completeAbstractTypeDefinition(td);
 			return td;
 		}
 
 		private static SecondaryTypeDefinitionImpl completeTypeSecondary(SecondaryTypeDefinition type) {
-			SecondaryTypeDefinitionImpl td = MongoTypeUtil.impl.cloneTypeSecondary(type);
+			SecondaryTypeDefinitionImpl td = TypeUtil.impl.cloneTypeSecondary(type);
 			completeAbstractTypeDefinition(td);
 			return td;
 		}
 
 		private static PolicyTypeDefinitionImpl completeTypePolicy(PolicyTypeDefinition type) {
-			PolicyTypeDefinitionImpl td = MongoTypeUtil.impl.cloneTypePolicy(type);
+			PolicyTypeDefinitionImpl td = TypeUtil.impl.cloneTypePolicy(type);
 			completeAbstractTypeDefinition(td);
 			return null;
 		}
@@ -312,7 +312,7 @@ public final class MongoTypeValidator {
 		// fill all fields
 		// to make a complete definition
 		private static AbstractPropertyDefinition<?> completePropertyDef(PropertyDefinition<?> pdSrc) {
-			AbstractPropertyDefinition<?> newPropDef = MongoTypeUtil.impl.clonePropertyDefinition(pdSrc);
+			AbstractPropertyDefinition<?> newPropDef = TypeUtil.impl.clonePropertyDefinition(pdSrc);
 
 			if (null == newPropDef.getPropertyType()) {
 				throw new CmisInvalidArgumentException("Property " + pdSrc.getId() + "has no property type.");
@@ -419,9 +419,9 @@ public final class MongoTypeValidator {
 			}
 
 			// check name syntax
-			if (!MongoNameValidator.impl.isValidId(typeId)) {
-				LOG.error(MongoNameValidator.ERROR_ILLEGAL_ID);
-				throw new CmisInvalidArgumentException(MongoNameValidator.ERROR_ILLEGAL_ID);
+			if (!NameValidator.impl.isValidId(typeId)) {
+				LOG.error(NameValidator.ERROR_ILLEGAL_ID);
+				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_ID);
 			}
 
 			if (null != tm.getTypeById(typeId)) {
@@ -438,9 +438,9 @@ public final class MongoTypeValidator {
 				throw new CmisInvalidArgumentException("Query name cannot be null.");
 			}
 
-			if (!MongoNameValidator.impl.isValidQueryName(queryName)) {
-				LOG.error(MongoNameValidator.ERROR_ILLEGAL_NAME);
-				throw new CmisInvalidArgumentException(MongoNameValidator.ERROR_ILLEGAL_NAME);
+			if (!NameValidator.impl.isValidQueryName(queryName)) {
+				LOG.error(NameValidator.ERROR_ILLEGAL_NAME);
+				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME);
 			}
 
 			// check set query name is unique in the type system
@@ -458,9 +458,9 @@ public final class MongoTypeValidator {
 				throw new CmisInvalidArgumentException("Local name cannot be null.");
 			}
 
-			if (!MongoNameValidator.impl.isValidLocalName(localName)) {
-				LOG.error(MongoNameValidator.ERROR_ILLEGAL_NAME);
-				throw new CmisInvalidArgumentException(MongoNameValidator.ERROR_ILLEGAL_NAME);
+			if (!NameValidator.impl.isValidLocalName(localName)) {
+				LOG.error(NameValidator.ERROR_ILLEGAL_NAME);
+				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME);
 			}
 
 			for (TypeDefinitionContainer tdc : tm.getTypeDefinitionList()) {

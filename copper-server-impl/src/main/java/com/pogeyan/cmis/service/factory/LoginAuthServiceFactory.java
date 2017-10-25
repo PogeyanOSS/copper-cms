@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.auth;
+package com.pogeyan.cmis.service.factory;
 
 import java.util.HashMap;
 import java.util.Map;

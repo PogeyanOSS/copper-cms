@@ -64,8 +64,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
-import com.pogeyan.cmis.DatabaseManager;
-import com.pogeyan.cmis.RepositoryManager;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
@@ -76,6 +74,8 @@ import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
+import com.pogeyan.cmis.factory.RepositoryManagerFactory;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.services.CmisObjectService;
 import com.pogeyan.cmis.services.CmisTypeServices;
 
@@ -125,7 +125,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		}
 		// call DB and get the repositoryInfo
 		ObjectId rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName());
-		IRepository repository = RepositoryManager.getInstance().getRepositoryStore()
+		IRepository repository = RepositoryManagerFactory.getInstance().getRepositoryStore()
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
 				repository.getRepositoryName() == null ? "" : repository.getRepositoryName(), CmisVersion.CMIS_1_1,
@@ -146,7 +146,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		List<RepositoryInfo> infoDataList = new ArrayList<RepositoryInfo>() {
 			private static final long serialVersionUID = 1L;
 			{
-				List<IRepository> respositoryList = RepositoryManager.getInstance().getRepositoryStore()
+				List<IRepository> respositoryList = RepositoryManagerFactory.getInstance().getRepositoryStore()
 						.getRepositories(request.getRepositoryId());
 				if (respositoryList != null && !respositoryList.isEmpty()) {
 					for (IRepository repository : respositoryList) {
@@ -325,7 +325,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	private RepositoryInfo createRepositoryInfo(String repositoryId, String name, CmisVersion cmisVersion,
 			ObjectId rootFolderId, String description) {
 		LOG.info("MongoRepository rootFolderId:{}", rootFolderId);
-		MBaseObjectDAO baseMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MBaseObjectDAO.class);
 
 		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null

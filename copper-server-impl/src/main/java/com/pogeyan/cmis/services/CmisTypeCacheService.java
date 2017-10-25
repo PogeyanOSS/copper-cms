@@ -23,10 +23,10 @@ import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.impl.TypeCache;
 import org.bson.types.ObjectId;
 
-import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisTypeCacheService implements TypeCache {
 	private static Map<String, TypeCache> instances = new HashMap<String, TypeCache>();
@@ -55,7 +55,7 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public PropertyDefinition<?> getPropertyDefinition(String propId) {
-		MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+		MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MTypeManagerDAO.class);
 		Map<String, PropertyDefinition<?>> property = typeMorphiaDAO.getAllPropertyById(propId);
 		return property.get(propId);

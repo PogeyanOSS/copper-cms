@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.factory;
 
 import java.util.Map;
 
@@ -24,9 +24,9 @@ import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.IRepositoryManager;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
 
-public class RepositoryManager implements IRepositoryManager {
-	private static final Logger LOG = LoggerFactory.getLogger(RepositoryManager.class);
-	static RepositoryManager repo = null;
+public class RepositoryManagerFactory implements IRepositoryManager {
+	private static final Logger LOG = LoggerFactory.getLogger(RepositoryManagerFactory.class);
+	static RepositoryManagerFactory repo = null;
 	static IRepositoryStore repoStoreSetting = null;
 
 	public static IRepositoryManager getInstance() {
@@ -42,7 +42,7 @@ public class RepositoryManager implements IRepositoryManager {
 	@Override
 	public void init(IRepositoryStore repoStore) {
 		LOG.info("RepositoryManager initiallize: {} : {} ", repoStore);
-		repo = new RepositoryManager();
+		repo = new RepositoryManagerFactory();
 		repoStoreSetting = repoStore;
 	}
 

@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.utils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,11 +21,13 @@ import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.bson.types.ObjectId;
 
+import com.pogeyan.cmis.api.core.CopperCmsRepository;
 import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 
 public class DBUtils {
 	public static class Variables {
@@ -49,7 +51,7 @@ public class DBUtils {
 	public static class BaseDAO {
 		@SuppressWarnings("serial")
 		public static MBaseObject getByObjectId(String repositoryId, ObjectId objectId, String[] mappedColumns) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -66,7 +68,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static MBaseObject getByName(String repositoryId, String name, String parentId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -87,7 +89,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static MBaseObject getByNextVersionId(String repositoryId, ObjectId previousVersionObjectId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -105,7 +107,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static List<MBaseObject> getByTypeId(String repositoryId, String typeId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -119,7 +121,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static MBaseObject getByPath(String repositoryId, String path) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -136,7 +138,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static MBaseObject getRootFolder(String repositoryId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -153,7 +155,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static void updatePolicy(String repositoryId, List<String> polIds, ObjectId objectId, TokenImpl token) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
 				{
@@ -166,7 +168,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, ObjectId objectId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
 				{
@@ -180,7 +182,7 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static void updateBaseSecondaryTypeObject(String repositoryId, List<String> secondaryObjectTypes,
 				ObjectId objectId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
 				{
@@ -196,7 +198,7 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static MDocumentObject getDocumentByObjectId(String repositoryId, ObjectId objectId,
 				String[] mappedColumns) {
-			MDocumentObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -213,7 +215,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static MDocumentObject getDocumentByName(String repositoryId, String name, String parentId) {
-			MDocumentObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -235,7 +237,7 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static MDocumentObject getLatestVersion(String repositoryId, String referenceVersionObjectId,
 				boolean major) {
-			MDocumentObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -259,7 +261,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static List<MDocumentObject> getAllVersion(String repositoryId, String versionReferenceId) {
-			MDocumentObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -275,7 +277,7 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static MDocumentObject getByDocumentByPropertiesField(String repositoryId, String typeId,
 				String primaryKey, Object primaryKeyValue, String[] mappedColumns) {
-			MDocumentObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -295,7 +297,7 @@ public class DBUtils {
 	public static class RelationshipDAO {
 		@SuppressWarnings("serial")
 		public static List<MBaseObject> getRelationshipDocuments(String repositoryId, String typeId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -309,7 +311,7 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static List<MBaseObject> getRelationshipTargetIds(String repositoryId, String targetId,
 				String primaryKey, Object value) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -324,7 +326,7 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static List<MBaseObject> getRelationshipBySourceId(String repositoryId, String sourceId, int maxItems,
 				int skipCount, String[] mappedColumns) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
@@ -337,7 +339,7 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static List<MBaseObject> getRelationshipByTargetId(String repositoryId, String targetId, int maxItems,
 				int skipCount, String[] mappedColumns) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{

@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.utils;
 
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
@@ -50,7 +50,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyUriDefinit
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.RelationshipTypeDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.SecondaryTypeDefinitionImpl;
 
-public final class MongoTypeUtil {
+public final class TypeUtil {
 
 	public static class impl {
 

@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.document.storage;
+package com.pogeyan.cmis.service.factory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +24,8 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 
-public class StorageDocumentServiceFactory {
-	private static final Logger LOG = LoggerFactory.getLogger(StorageDocumentServiceFactory.class);
+public class StorageServiceFactory {
+	private static final Logger LOG = LoggerFactory.getLogger(StorageServiceFactory.class);
 
 	public static final String STORAGE = "storage";
 	static Map<String, IStorageFactory> storageFactory = new HashMap<String, IStorageFactory>();

@@ -13,17 +13,19 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.service.factory;
 
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pogeyan.cmis.api.database.IDBClientFactory;
 import com.pogeyan.cmis.data.mongo.MongoClientFactory;
+import com.pogeyan.cmis.factory.RepositoryManagerFactory;
 
-public class DatabaseManager {
-	private static final Logger LOG = LoggerFactory.getLogger(DatabaseManager.class);
+public class DatabaseServiceFactory {
+	private static final Logger LOG = LoggerFactory.getLogger(DatabaseServiceFactory.class);
 	public static final String MONGO = "mongo";
 	public static final String SQL = "sql";
 	static IDBClientFactory dbService = null;
@@ -34,7 +36,7 @@ public class DatabaseManager {
 				LOG.debug("Repository type{}", repositoryId);
 			}
 			
-			Map<String, String> db = RepositoryManager.getDatabaseDetails(repositoryId);
+			Map<String, String> db = RepositoryManagerFactory.getDatabaseDetails(repositoryId);
 			if (MONGO.equals(db.get("type"))) {
 				dbService = MongoClientFactory.createDatabaseService();
 			}

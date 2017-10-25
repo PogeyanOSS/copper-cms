@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.utils;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -37,7 +37,8 @@ import com.pogeyan.cmis.api.data.AccessControlListImplExt;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
-import com.pogeyan.cmis.document.storage.StorageDocumentServiceFactory;
+import com.pogeyan.cmis.factory.RepositoryManagerFactory;
+import com.pogeyan.cmis.service.factory.StorageServiceFactory;
 
 public class CmisUtils {
 
@@ -170,8 +171,8 @@ public class CmisUtils {
 							LOG.error("getRenditions Object is null in {} repository!", repositoryId);
 							throw new CmisObjectNotFoundException("Object must not be null!");
 						}
-						Map<String, String> parameters = RepositoryManager.getFileDetails(repositoryId);
-						IStorageService localService = StorageDocumentServiceFactory.createStorageService(parameters);
+						Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+						IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 						if (documentData.getContentStreamFileName() != null) {
 							ContentStream contentStream = localService.getContent(
 									documentData.getContentStreamFileName(), so.getPath(),

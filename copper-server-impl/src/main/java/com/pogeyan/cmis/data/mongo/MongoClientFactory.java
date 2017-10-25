@@ -37,8 +37,6 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-import com.pogeyan.cmis.IDBClientFactory;
-import com.pogeyan.cmis.RepositoryManager;
 import com.pogeyan.cmis.api.data.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
@@ -46,10 +44,12 @@ import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
+import com.pogeyan.cmis.api.database.IDBClientFactory;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MTypeObject;
+import com.pogeyan.cmis.factory.RepositoryManagerFactory;
 
 public class MongoClientFactory implements IDBClientFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(MongoClientFactory.class.getName());
@@ -107,7 +107,7 @@ public class MongoClientFactory implements IDBClientFactory {
 
 	@Override
 	public void addIndex(String repositoryId, String[] columnsToIndex) {
-		IRepository repository = RepositoryManager.getInstance().getRepository(repositoryId);
+		IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 		String dataBaseName = repository.getDBName().get("connectionString");
 		List<String> properties = getClientProperties(dataBaseName);
 		if (LOG.isDebugEnabled()) {
@@ -124,7 +124,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {
 		Datastore clientDatastore = this.clientDatastores.get(repositoryId);
 		if (clientDatastore == null) {
-			IRepository repository = RepositoryManager.getInstance().getRepository(repositoryId);
+			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
 			List<String> properties = getClientProperties(dataBaseName);
 			LOG.info("ContentDB Name-" + properties.get(2));

@@ -13,26 +13,27 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.document.storage;
-
-import java.util.Map;
+package com.pogeyan.cmis.factory;
 
 import com.pogeyan.cmis.api.storage.IRepositoryStoreSettings;
+import com.pogeyan.cmis.api.storage.IStorageFactory;
+import com.pogeyan.cmis.api.storage.IStorageService;
+import com.pogeyan.cmis.document.storage.StorageServiceImpl;
+import com.pogeyan.cmis.document.storage.StorageStoreSettings;
 
-public class FileSystemStoreSettings implements IRepositoryStoreSettings {
-	private String fileLocation;
-
-	@Override
-	public String getType() {
-		return "local";
-	}
-
-	public String getFileLocation() {
-		return this.fileLocation;
-	}
+public class StorageManagerFactory implements IStorageFactory {
+	final StorageServiceImpl fileSystemService = new StorageServiceImpl();
+	final StorageStoreSettings fileStoreSetting = new StorageStoreSettings();
 
 	@Override
-	public void setStorageSetting(Map<String, String> dbSettings) {
-		this.fileLocation = dbSettings.get("location");
+	public IRepositoryStoreSettings getStorageSetting() {
+		return this.fileStoreSetting;
 	}
+
+	@Override
+	public IStorageService getStorageService() {
+		this.fileSystemService.setStoreSettings(this.fileStoreSetting);
+		return this.fileSystemService;
+	}
+
 }

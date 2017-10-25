@@ -33,9 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
-import com.pogeyan.cmis.DBUtils;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisRelationshipService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisNavigationService.class);

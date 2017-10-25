@@ -52,8 +52,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
-import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.api.data.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.CmisFolderTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.CmisPolicyTypeDefinitionImpl;
@@ -67,6 +65,8 @@ import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MTypeObject;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisTypeServices {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisTypeServices.class);
@@ -76,7 +76,7 @@ public class CmisTypeServices {
 		public static void addBaseType(String repositoryId) throws MongoException {
 			LOG.info("addBaseType for {}", repositoryId);
 			try {
-				MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+				MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				List<MTypeObject> getTypeObject = typeMorphiaDAO.getById(null);
 				if (getTypeObject != null) {
@@ -105,9 +105,10 @@ public class CmisTypeServices {
 					"cmis:folder", "Folder", BaseTypeId.CMIS_FOLDER, null, true, true, true, true, true, true, true,
 					type, folderProperty);
 			Map<String, PropertyDefinitionImpl<?>> documentProperty = getBaseDocumentProperty();
-			CmisDocumentTypeDefinitionImpl documentType = new CmisDocumentTypeDefinitionImpl("cmis:document", "cmis:document",
-					"cmis:document", "cmis:document", "cmis:document", "Document", BaseTypeId.CMIS_DOCUMENT, null, true,
-					true, true, true, true, true, true, type, documentProperty, true, ContentStreamAllowed.ALLOWED);
+			CmisDocumentTypeDefinitionImpl documentType = new CmisDocumentTypeDefinitionImpl("cmis:document",
+					"cmis:document", "cmis:document", "cmis:document", "cmis:document", "Document",
+					BaseTypeId.CMIS_DOCUMENT, null, true, true, true, true, true, true, true, type, documentProperty,
+					true, ContentStreamAllowed.ALLOWED);
 
 			MTypeObject itemType = new MTypeObject("cmis:item", "cmis:item", "cmis:item", "cmis:item", "cmis:item",
 					"Item", BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true, true, type,
@@ -190,29 +191,29 @@ public class CmisTypeServices {
 					"cmis:name", "cmis:name", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READWRITE, false, false, false, false, null);
 			list.put("cmis:name", name);
-			PropertyDefinitionImpl<?> objectId = new PropertyDefinitionImpl("cmis:objectId", "localName", "localNameSpace",
-					"cmis:objectId", "cmis:objectId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null);
+			PropertyDefinitionImpl<?> objectId = new PropertyDefinitionImpl("cmis:objectId", "localName",
+					"localNameSpace", "cmis:objectId", "cmis:objectId", "description", PropertyType.ID,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:objectId", objectId);
 			PropertyDefinitionImpl<?> objectTypeId = new PropertyDefinitionImpl("cmis:objectTypeId", "objectTypeId",
 					"objectTypeId", "cmis:objectTypeId", "cmis:objectTypeId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.ONCREATE, false, true, false, false, null);
 			list.put("cmis:objectTypeId", objectTypeId);
-			PropertyDefinitionImpl<?> baseTypeId = new PropertyDefinitionImpl("cmis:baseTypeId", "baseTypeId", "baseTypeId",
-					"cmis:baseTypeId", "cmis:baseTypeId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null);
+			PropertyDefinitionImpl<?> baseTypeId = new PropertyDefinitionImpl("cmis:baseTypeId", "baseTypeId",
+					"baseTypeId", "cmis:baseTypeId", "cmis:baseTypeId", "description", PropertyType.ID,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:baseTypeId", baseTypeId);
-			PropertyDefinitionImpl<?> createdBy = new PropertyDefinitionImpl("cmis:createdBy", "localName", "localNameSpace",
-					"cmis:createdBy", "cmis:createdBy", "description", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, true, true, null);
+			PropertyDefinitionImpl<?> createdBy = new PropertyDefinitionImpl("cmis:createdBy", "localName",
+					"localNameSpace", "cmis:createdBy", "cmis:createdBy", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null);
 			list.put("cmis:createdBy", createdBy);
 			PropertyDefinitionImpl<?> creationDate = new PropertyDefinitionImpl("cmis:creationDate", "localName",
 					"localNameSpace", "cmis:creationDate", "cmis:creationDate", "description", PropertyType.DATETIME,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null);
 			list.put("cmis:creationDate", creationDate);
-			PropertyDefinitionImpl<?> lastModifiedBy = new PropertyDefinitionImpl("cmis:lastModifiedBy", "lastModifiedBy",
-					"lastModifiedBy", "cmis:lastModifiedBy", "cmis:lastModifiedBy", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null);
+			PropertyDefinitionImpl<?> lastModifiedBy = new PropertyDefinitionImpl("cmis:lastModifiedBy",
+					"lastModifiedBy", "lastModifiedBy", "cmis:lastModifiedBy", "cmis:lastModifiedBy", "description",
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null);
 			list.put("cmis:lastModifiedBy", lastModifiedBy);
 			PropertyDefinitionImpl<?> lastModificationDate = new PropertyDefinitionImpl("cmis:lastModificationDate",
 					"localName", "localNameSpace", "cmis:lastModificationDate", "cmis:lastModificationDate",
@@ -247,14 +248,14 @@ public class CmisTypeServices {
 					"cmis:parentId", "cmis:parentId", "description", PropertyType.ID, Cardinality.SINGLE,
 					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:parentId", parentId);
-			PropertyDefinitionImpl allowedChildObjectTypeIds = new PropertyDefinitionImpl("cmis:allowedChildObjectTypeIds",
-					"localName", "localNameSpace", "cmis:allowedChildObjectTypeIds", "cmis:allowedChildObjectTypeIds",
-					"description", PropertyType.ID, Cardinality.MULTI, Updatability.READONLY, false, false, true, false,
-					null);
+			PropertyDefinitionImpl allowedChildObjectTypeIds = new PropertyDefinitionImpl(
+					"cmis:allowedChildObjectTypeIds", "localName", "localNameSpace", "cmis:allowedChildObjectTypeIds",
+					"cmis:allowedChildObjectTypeIds", "description", PropertyType.ID, Cardinality.MULTI,
+					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:allowedChildObjectTypeIds", allowedChildObjectTypeIds);
-			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace", "cmis:path",
-					"cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false,
-					false, true, false, null);
+			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
+					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
+					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:path", path);
 			return folderList;
 		}
@@ -273,8 +274,8 @@ public class CmisTypeServices {
 					"localNameSpace", "cmis:isLatestVersion", "cmis:isLatestVersion", "description",
 					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isLatestVersion", isLatestVersion);
-			PropertyDefinitionImpl<?> isMajorVersion = new PropertyDefinitionImpl("cmis:isMajorVersion", "Is Major Version",
-					"Is Major Version", "cmis:isMajorVersion", "cmis:isMajorVersion", "description",
+			PropertyDefinitionImpl<?> isMajorVersion = new PropertyDefinitionImpl("cmis:isMajorVersion",
+					"Is Major Version", "Is Major Version", "cmis:isMajorVersion", "cmis:isMajorVersion", "description",
 					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isMajorVersion", isMajorVersion);
 			PropertyDefinitionImpl<?> isLatestMajorVersion = new PropertyDefinitionImpl("cmis:isLatestMajorVersion",
@@ -295,24 +296,24 @@ public class CmisTypeServices {
 					"localNameSpace", "cmis:versionSeriesId", "cmis:versionSeriesId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:versionSeriesId", versionSeriesId);
-			PropertyDefinitionImpl<?> isVersionSeriesCheckedOut = new PropertyDefinitionImpl("cmis:isVersionSeriesCheckedOut",
-					"Is Verison Series Checked Out", "Is Verison Series Checked Out", "cmis:isVersionSeriesCheckedOut",
-					"cmis:isVersionSeriesCheckedOut", "description", PropertyType.BOOLEAN, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null);
+			PropertyDefinitionImpl<?> isVersionSeriesCheckedOut = new PropertyDefinitionImpl(
+					"cmis:isVersionSeriesCheckedOut", "Is Verison Series Checked Out", "Is Verison Series Checked Out",
+					"cmis:isVersionSeriesCheckedOut", "cmis:isVersionSeriesCheckedOut", "description",
+					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isVersionSeriesCheckedOut", isVersionSeriesCheckedOut);
-			PropertyDefinitionImpl<?> versionSeriesCheckedOutBy = new PropertyDefinitionImpl("cmis:versionSeriesCheckedOutBy",
-					"localName", "localNameSpace", "cmis:versionSeriesCheckedOutBy", "cmis:versionSeriesCheckedOutBy",
-					"description", PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false,
-					false, null);
-			documentList.put("cmis:versionSeriesCheckedOutBy", versionSeriesCheckedOutBy);
-			PropertyDefinitionImpl<?> versionSeriesCheckedOutId = new PropertyDefinitionImpl("cmis:versionSeriesCheckedOutId",
-					"Version Series Checked Out Id", "Version Series Checked Out Id", "cmis:versionSeriesCheckedOutId",
-					"cmis:versionSeriesCheckedOutId", "description", PropertyType.ID, Cardinality.SINGLE,
+			PropertyDefinitionImpl<?> versionSeriesCheckedOutBy = new PropertyDefinitionImpl(
+					"cmis:versionSeriesCheckedOutBy", "localName", "localNameSpace", "cmis:versionSeriesCheckedOutBy",
+					"cmis:versionSeriesCheckedOutBy", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READONLY, false, false, false, false, null);
-			documentList.put("cmis:versionSeriesCheckedOutId", versionSeriesCheckedOutId);
-			PropertyDefinitionImpl<?> checkinComment = new PropertyDefinitionImpl("cmis:checkinComment", "Checkin Comment",
-					"Checkin Comment", "cmis:checkinComment", "cmis:checkinComment", "description", PropertyType.STRING,
+			documentList.put("cmis:versionSeriesCheckedOutBy", versionSeriesCheckedOutBy);
+			PropertyDefinitionImpl<?> versionSeriesCheckedOutId = new PropertyDefinitionImpl(
+					"cmis:versionSeriesCheckedOutId", "Version Series Checked Out Id", "Version Series Checked Out Id",
+					"cmis:versionSeriesCheckedOutId", "cmis:versionSeriesCheckedOutId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
+			documentList.put("cmis:versionSeriesCheckedOutId", versionSeriesCheckedOutId);
+			PropertyDefinitionImpl<?> checkinComment = new PropertyDefinitionImpl("cmis:checkinComment",
+					"Checkin Comment", "Checkin Comment", "cmis:checkinComment", "cmis:checkinComment", "description",
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:checkinComment", checkinComment);
 			PropertyDefinitionImpl<?> contentStreamLength = new PropertyDefinitionImpl("cmis:contentStreamLength",
 					"Content Stream Length", "Content Stream Length", "cmis:contentStreamLength",
@@ -332,10 +333,10 @@ public class CmisTypeServices {
 					"description", PropertyType.ID, Cardinality.SINGLE, Updatability.READONLY, false, false, false,
 					false, null);
 			documentList.put("cmis:contentStreamId", contentStreamId);
-			PropertyDefinitionImpl<?> previousVersionObjectId = new PropertyDefinitionImpl("cmis:previousVersionObjectId",
-					"previous Version ObjectId", "previous Version ObjectId", "cmis:previousVersionObjectId",
-					"cmis:previousVersionObjectId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null);
+			PropertyDefinitionImpl<?> previousVersionObjectId = new PropertyDefinitionImpl(
+					"cmis:previousVersionObjectId", "previous Version ObjectId", "previous Version ObjectId",
+					"cmis:previousVersionObjectId", "cmis:previousVersionObjectId", "description", PropertyType.ID,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:previousVersionObjectId", previousVersionObjectId);
 
 			return documentList;
@@ -347,9 +348,9 @@ public class CmisTypeServices {
 		@SuppressWarnings("rawtypes")
 		public static Map<String, PropertyDefinitionImpl<?>> getBasepolicyProperty() {
 			Map<String, PropertyDefinitionImpl<?>> policy = getBaseProperty();
-			PropertyDefinitionImpl<?> policyText = new PropertyDefinitionImpl("cmis:policyText", "policyText", "policyText",
-					"cmis:policyText", "cmis:policyText", "policyText", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READWRITE, false, false, false, false, null);
+			PropertyDefinitionImpl<?> policyText = new PropertyDefinitionImpl("cmis:policyText", "policyText",
+					"policyText", "cmis:policyText", "cmis:policyText", "policyText", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, false, false, null);
 			policy.put("cmis:policyText", policyText);
 
 			return policy;
@@ -380,29 +381,29 @@ public class CmisTypeServices {
 					"cmis:name", "cmis:name", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READWRITE, false, false, true, false, null);
 			list.put("cmis:name", name);
-			PropertyDefinitionImpl<?> objectId = new PropertyDefinitionImpl("cmis:objectId", "localName", "localNameSpace",
-					"cmis:objectId", "cmis:objectId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, true, false, null);
+			PropertyDefinitionImpl<?> objectId = new PropertyDefinitionImpl("cmis:objectId", "localName",
+					"localNameSpace", "cmis:objectId", "cmis:objectId", "description", PropertyType.ID,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			list.put("cmis:objectId", objectId);
 			PropertyDefinitionImpl<?> objectTypeId = new PropertyDefinitionImpl("cmis:objectTypeId", "objectTypeId",
 					"objectTypeId", "cmis:objectTypeId", "cmis:objectTypeId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.ONCREATE, false, false, false, false, null);
 			list.put("cmis:objectTypeId", objectTypeId);
-			PropertyDefinitionImpl<?> baseTypeId = new PropertyDefinitionImpl("cmis:baseTypeId", "baseTypeId", "baseTypeId",
-					"cmis:baseTypeId", "cmis:baseTypeId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null);
+			PropertyDefinitionImpl<?> baseTypeId = new PropertyDefinitionImpl("cmis:baseTypeId", "baseTypeId",
+					"baseTypeId", "cmis:baseTypeId", "cmis:baseTypeId", "description", PropertyType.ID,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:baseTypeId", baseTypeId);
-			PropertyDefinitionImpl<?> createdBy = new PropertyDefinitionImpl("cmis:createdBy", "localName", "localNameSpace",
-					"cmis:createdBy", "cmis:createdBy", "description", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, true, false, null);
+			PropertyDefinitionImpl<?> createdBy = new PropertyDefinitionImpl("cmis:createdBy", "localName",
+					"localNameSpace", "cmis:createdBy", "cmis:createdBy", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			list.put("cmis:createdBy", createdBy);
 			PropertyDefinitionImpl<?> creationDate = new PropertyDefinitionImpl("cmis:creationDate", "localName",
 					"localNameSpace", "cmis:creationDate", "cmis:creationDate", "description", PropertyType.DATETIME,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			list.put("cmis:creationDate", creationDate);
-			PropertyDefinitionImpl<?> lastModifiedBy = new PropertyDefinitionImpl("cmis:lastModifiedBy", "lastModifiedBy",
-					"lastModifiedBy", "cmis:lastModifiedBy", "cmis:lastModifiedBy", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
+			PropertyDefinitionImpl<?> lastModifiedBy = new PropertyDefinitionImpl("cmis:lastModifiedBy",
+					"lastModifiedBy", "lastModifiedBy", "cmis:lastModifiedBy", "cmis:lastModifiedBy", "description",
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			list.put("cmis:lastModifiedBy", lastModifiedBy);
 			PropertyDefinitionImpl<?> lastModificationDate = new PropertyDefinitionImpl("cmis:lastModificationDate",
 					"localName", "localNameSpace", "cmis:lastModificationDate", "cmis:lastModificationDate",
@@ -472,8 +473,8 @@ public class CmisTypeServices {
 				throw new IllegalArgumentException("Type must have a valid parent id!");
 			}
 
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			if (typeMorphiaDAO.getById(Arrays.asList(type.getId())).size() > 0) {
 				object = typeMorphiaDAO.getById(Arrays.asList(type.getId())).get(0);
 			}
@@ -554,8 +555,8 @@ public class CmisTypeServices {
 				LOG.error("Type must have a valid parent id!");
 				throw new IllegalArgumentException("Type must have a valid parent id!");
 			}
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			if (typeMorphiaDAO.getById(Arrays.asList(type.getId())).size() > 0) {
 				object = typeMorphiaDAO.getById(Arrays.asList(type.getId())).get(0);
 			}
@@ -598,10 +599,10 @@ public class CmisTypeServices {
 			LOG.info("deleteType for type: {} , repository: {}", type, repositoryId);
 			MTypeObject object = null;
 
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
-			MBaseObjectDAO baseMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
+			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 
 			if (type == null) {
 				LOG.error(type, "Type is not available to delete");
@@ -637,8 +638,8 @@ public class CmisTypeServices {
 			}
 
 			MTypeObject typeDefinition = null;
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			if (typeMorphiaDAO.getById(Arrays.asList(typeId)).size() > 0) {
 				typeDefinition = typeMorphiaDAO.getById(Arrays.asList(typeId)).get(0);
 			}
@@ -679,41 +680,41 @@ public class CmisTypeServices {
 			List<MTypeObject> innerChild = new ArrayList<MTypeObject>();
 			innerChild.clear();
 			if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
-				MDocumentTypeManagerDAO docTypeMorphia = DatabaseManager.getInstance(repositoryId)
+				MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 				CmisDocumentTypeDefinitionImpl docType = docTypeMorphia.getByTypeId(typeDefinition.getId().toString());
-				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId, innerChild,
-						null);
+				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId,
+						innerChild, null);
 				CmisDocumentTypeDefinitionImpl documentType = getTypeDocumentObjectInstance(docType, list);
 
 				resultDocument = getDocumentTypeDefinition(documentType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultDocument);
 				typeDefinitionContainer.setChildren(null);
 			} else if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_FOLDER) {
-				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId, innerChild,
-						null);
+				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId,
+						innerChild, null);
 				MTypeObject folderType = getTypeObjectInstance(typeDefinition, list);
 
 				resultFolder = getFolderTypeDefinition(folderType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultFolder);
 				typeDefinitionContainer.setChildren(null);
 			} else if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_ITEM) {
-				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId, innerChild,
-						null);
+				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId,
+						innerChild, null);
 				MTypeObject itemType = getTypeObjectInstance(typeDefinition, list);
 				resultItem = getItemTypeDefinition(itemType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultItem);
 				typeDefinitionContainer.setChildren(null);
 			} else if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_POLICY) {
-				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId, innerChild,
-						null);
+				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId,
+						innerChild, null);
 				MTypeObject policyType = getTypeObjectInstance(typeDefinition, list);
 				resultPolicy = getPolicyTypeDefinition(policyType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultPolicy);
 				typeDefinitionContainer.setChildren(null);
 			} else if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_SECONDARY) {
-				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId, innerChild,
-						null);
+				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId,
+						innerChild, null);
 				MTypeObject secondaryType = getTypeObjectInstance(typeDefinition, list);
 				resultSecondary = getSecondaryTypeDefinition(secondaryType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultSecondary);
@@ -860,8 +861,8 @@ public class CmisTypeServices {
 			List<MTypeObject> innerChild = new ArrayList<MTypeObject>();
 			innerChild.clear();
 			MTypeObject typeDefinition = null;
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			if (typeMorphiaDAO.getById(Arrays.asList(typeId)).size() > 0) {
 				typeDefinition = typeMorphiaDAO.getById(Arrays.asList(typeId)).get(0);
 			}
@@ -879,8 +880,8 @@ public class CmisTypeServices {
 			int skip = skipCount == null ? 0 : skipCount.intValue();
 			int max = maxItems == null ? -1 : maxItems.intValue();
 			MTypeObject object = null;
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			if (typeId != null) {
 				if (typeMorphiaDAO.getById(Arrays.asList(typeId)).size() > 0) {
 					object = typeMorphiaDAO.getById(Arrays.asList(typeId)).get(0);
@@ -897,7 +898,7 @@ public class CmisTypeServices {
 				Boolean includePropertyDefinitions, int maxItems, int skipCount, MTypeManagerDAO typeMorphiaDAO,
 				MTypeObject object) {
 			TypeDefinitionListImpl result = new TypeDefinitionListImpl();
-			MDocumentTypeManagerDAO docTypeMorphia = DatabaseManager.getInstance(repositoryId)
+			MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			if (typeId != null) {
 				List<MTypeObject> childrenList = typeMorphiaDAO.getChildrenIds(typeId, maxItems, skipCount);
@@ -961,9 +962,9 @@ public class CmisTypeServices {
 				throws IllegalArgumentException, CmisInvalidArgumentException {
 			LOG.info("getTypeDescendants for type: {} , repository: {}", typeId, repositoryId);
 			boolean inclPropDefs = includePropertyDefinitions == null ? true : includePropertyDefinitions;
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
-			MDocumentTypeManagerDAO docTypeMorphia = DatabaseManager.getInstance(repositoryId)
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
+			MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			if (typeId != null) {
 				MTypeObject object = null;
@@ -1237,8 +1238,8 @@ public class CmisTypeServices {
 		public static List<MTypeObject> getTypeParent(String repositoryId, String parentId,
 				List<MTypeObject> innerChild) {
 			LOG.info("getTypeParent from repository: {}", repositoryId);
-			MTypeManagerDAO typeMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MTypeManagerDAO.class);
+			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			MTypeObject parent = null;
 			if (typeMorphiaDAO.getById(Arrays.asList(parentId)).size() > 0) {
 				parent = typeMorphiaDAO.getById(Arrays.asList(parentId)).get(0);
@@ -1335,8 +1336,8 @@ public class CmisTypeServices {
 		/**
 		 * returns the typeDefinition into MCmisRelationshipTypeDefinition
 		 */
-		private static CmisRelationshipTypeDefinitionImpl getRelationshipTypeDefinitionWithSourceTarget(MTypeObject result,
-				List<String> source, List<String> target) {
+		private static CmisRelationshipTypeDefinitionImpl getRelationshipTypeDefinitionWithSourceTarget(
+				MTypeObject result, List<String> source, List<String> target) {
 			CmisRelationshipTypeDefinitionImpl resultDocument = new CmisRelationshipTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1467,7 +1468,8 @@ public class CmisTypeServices {
 			return newType;
 		}
 
-		private static void addIndex(String repositoryId, Map<String, PropertyDefinitionImpl<?>> getPropertyDefinitions) {
+		private static void addIndex(String repositoryId,
+				Map<String, PropertyDefinitionImpl<?>> getPropertyDefinitions) {
 			List<String> primaryIndex = getPropertyDefinitions.entrySet().stream()
 					.filter(map -> map.getValue().getLocalName().equalsIgnoreCase("primaryKey"))
 					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
@@ -1477,7 +1479,7 @@ public class CmisTypeServices {
 			secondaryIndex.parallelStream().collect(Collectors.toCollection(() -> primaryIndex));
 			String[] columnsToIndex = primaryIndex.toArray(new String[primaryIndex.size()]);
 			if (columnsToIndex.length > 0) {
-				DatabaseManager.getInstance(repositoryId).addIndex(repositoryId, columnsToIndex);
+				DatabaseServiceFactory.getInstance(repositoryId).addIndex(repositoryId, columnsToIndex);
 			}
 		}
 

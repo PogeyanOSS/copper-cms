@@ -43,13 +43,13 @@ import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 
 public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
@@ -59,7 +59,7 @@ public class CmisDiscoveryService {
 				Boolean includeProperties, String filter, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
 			LOG.info("getContentChanges on change log token : {} , repository: {}", changeLogToken, repositoryId);
-			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {

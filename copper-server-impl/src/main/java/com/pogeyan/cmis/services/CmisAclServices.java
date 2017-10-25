@@ -32,11 +32,11 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.MongoTypeValidator;
 import com.pogeyan.cmis.api.data.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.utils.DBUtils;
+import com.pogeyan.cmis.utils.TypeValidators;
 
 public class CmisAclServices {
 
@@ -65,8 +65,8 @@ public class CmisAclServices {
 				CapabilityAcl capability, String userName) throws CmisObjectNotFoundException {
 			LOG.info("applyAcl on objectId: {} , repository: {}", objectId, repositoryId);
 			List<String> id = new ArrayList<String>();
-			Acl addAces = MongoTypeValidator.impl.expandAclMakros(userName, aclAdd);
-			Acl removeAces = MongoTypeValidator.impl.expandAclMakros(userName, aclRemove);
+			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
+			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}

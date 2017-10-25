@@ -13,9 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.utils;
 
-public final class MongoNameValidator {
+public final class NameValidator {
 
 	public static final String ERROR_ILLEGAL_ID = "Id contains illegal characters, allowed are "
 			+ "'a'..'z', 'A'..'Z', '0'..'9', '-', '_'";

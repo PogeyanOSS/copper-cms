@@ -39,15 +39,15 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.DatabaseManager;
-import com.pogeyan.cmis.RepositoryManager;
 import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
-import com.pogeyan.cmis.document.storage.StorageDocumentServiceFactory;
+import com.pogeyan.cmis.factory.RepositoryManagerFactory;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.service.factory.StorageServiceFactory;
+import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisVersioningServices {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisVersioningServices.class);
@@ -140,7 +140,7 @@ public class CmisVersioningServices {
 				Holder<Boolean> contentCopied, String userName) throws CmisObjectNotFoundException,
 				CmisUpdateConflictException, CmisNotSupportedException, CmisInvalidArgumentException {
 			LOG.info("checkOut on objectId: {} , repository: {}", objectId, repositoryId);
-			MDocumentObjectDAO baseMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MDocumentObjectDAO.class);
 			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 					new ObjectId(objectId.getValue()), null);
@@ -197,7 +197,7 @@ public class CmisVersioningServices {
 		public static ObjectId cancelCheckOut(String repositoryId, String objectId, ExtensionsData extension,
 				String userName) throws CmisUpdateConflictException, CmisUpdateConflictException {
 			LOG.info("Cancel checkOut on objectId: {} , repository: {}", objectId, repositoryId);
-			MDocumentObjectDAO documentMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
 			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, new ObjectId(objectId),
@@ -232,7 +232,7 @@ public class CmisVersioningServices {
 				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException {
 
 			LOG.info("checkIn PWC on objectId: {} , repository: {} ", objectId, repositoryId);
-			MDocumentObjectDAO baseMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MDocumentObjectDAO.class);
 			;
 			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
@@ -319,8 +319,8 @@ public class CmisVersioningServices {
 				}
 			}
 
-			Map<String, String> parameters = RepositoryManager.getFileDetails(repositoryId);
-			IStorageService localService = StorageDocumentServiceFactory.createStorageService(parameters);
+			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			if (contentStreamParam != null && contentStreamParam.getStream() != null) {
 				try {

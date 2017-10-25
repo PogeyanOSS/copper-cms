@@ -13,10 +13,26 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.document.storage;
 
-public interface IDBClientFactory {
-	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
+import java.util.Map;
 
-	void addIndex(String repositoryId, String[] columnsToIndex);
+import com.pogeyan.cmis.api.storage.IRepositoryStoreSettings;
+
+public class StorageStoreSettings implements IRepositoryStoreSettings {
+	private String fileLocation;
+
+	@Override
+	public String getType() {
+		return "local";
+	}
+
+	public String getFileLocation() {
+		return this.fileLocation;
+	}
+
+	@Override
+	public void setStorageSetting(Map<String, String> dbSettings) {
+		this.fileLocation = dbSettings.get("location");
+	}
 }

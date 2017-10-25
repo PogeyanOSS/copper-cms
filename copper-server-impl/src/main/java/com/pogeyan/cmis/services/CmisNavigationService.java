@@ -48,8 +48,6 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.DBUtils;
-import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
@@ -58,6 +56,8 @@ import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisNavigationService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisNavigationService.class);
@@ -92,7 +92,7 @@ public class CmisNavigationService {
 				throws CmisObjectNotFoundException {
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
-			MNavigationServiceDAO navigationMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
 			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(folderId), null);
 			if (data == null) {
@@ -217,9 +217,9 @@ public class CmisNavigationService {
 				ObjectInfoHandler objectInfos, IUserObject userObject) {
 			LOG.info("getDescendantsIntern with folderId: {} , for user: {} , repository: {}", folderId,
 					userObject.getUserDN(), repositoryId);
-			MDocumentObjectDAO docMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MDocumentObjectDAO.class);
-			MNavigationServiceDAO navigationMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO docMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentObjectDAO.class);
+			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
 			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(folderId), null);
 			String path = "," + folderId + ",";
@@ -391,9 +391,9 @@ public class CmisNavigationService {
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
 				ObjectInfoHandler objectInfos, IUserObject userObject) {
 			List<ObjectInFolderContainer> folderTree = null;
-			MDocumentObjectDAO docMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
-					MDocumentObjectDAO.class);
-			MNavigationServiceDAO navigationMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO docMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentObjectDAO.class);
+			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
 			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(folderId), null);
 			String path = "," + folderId + ",";
@@ -454,7 +454,7 @@ public class CmisNavigationService {
 
 			List<ObjectParentData> objectParent = new ArrayList<ObjectParentData>();
 			MBaseObject resultData = null;
-			DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId, MBaseObjectDAO.class);
+			DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId, MBaseObjectDAO.class);
 			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(objectId), null);
 			String[] queryResult = data.getInternalPath().split(",");
 			int i = queryResult.length - 1;
@@ -468,9 +468,11 @@ public class CmisNavigationService {
 								includeRelationships, user);
 						ObjectParentDataImpl parent = new ObjectParentDataImpl();
 						parent.setObject(objectData);
-						parent.setRelativePathSegment(i == 1 ? data.getName()
-								: DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(queryResult[i]), null)
-										.getName() + "/" + data.getName());
+						parent.setRelativePathSegment(
+								i == 1 ? data.getName()
+										: DBUtils.BaseDAO
+												.getByObjectId(repositoryId, new ObjectId(queryResult[i]), null)
+												.getName() + "/" + data.getName());
 						i--;
 						objectParent.add(parent);
 					}
@@ -500,7 +502,7 @@ public class CmisNavigationService {
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, int maxItems, int skipCount, ExtensionsData extension,
 				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisObjectNotFoundException {
-			MDocumentObjectDAO documentMorphiaDAO = DatabaseManager.getInstance(repositoryId)
+			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			List<MDocumentObject> document = new ArrayList<>();
 			ObjectListImpl results = new ObjectListImpl();
@@ -604,13 +606,13 @@ public class CmisNavigationService {
 			String[] queryResult = dataPath.split(",");
 			List<MBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(t), null))
-					.collect(Collectors.<MBaseObject>toList());
+					.collect(Collectors.<MBaseObject> toList());
 			if (folderChildren.size() == 1) {
 				acl = new ArrayList<>();
 				acl.add(dataAcl);
 			} else {
 				acl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt>toList());
+						.collect(Collectors.<AccessControlListImplExt> toList());
 			}
 			return acl;
 		}
