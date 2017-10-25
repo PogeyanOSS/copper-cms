@@ -40,6 +40,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AbstractPropertyDefinition;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AbstractTypeDefinition;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.DocumentTypeDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.FolderTypeDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ItemTypeDefinitionImpl;
@@ -51,8 +53,7 @@ import org.apache.chemistry.opencmis.server.support.TypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.data.objects.MAceImpl;
-import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
+import com.pogeyan.cmis.api.data.AccessControlListImplExt;
 
 /**
  * A helper class doing some consistency checks when new type definitions are
@@ -345,11 +346,11 @@ public final class MongoTypeValidator {
 			return newPropDef;
 		}
 
-		public static MAccessControlListImpl expandAclMakros(String user, Acl acl) {
+		public static AccessControlListImplExt expandAclMakros(String user, Acl acl) {
 			boolean mustCopy = false;
 
 			if (user == null || acl == null || acl.getAces() == null) {
-				return (MAccessControlListImpl) acl;
+				return (AccessControlListImplExt) acl;
 			}
 
 			List<Ace> implAce = acl.getAces();
@@ -361,16 +362,15 @@ public final class MongoTypeValidator {
 				}
 			}
 			if (mustCopy) {
-
 			}
-			List<MAceImpl> list = new ArrayList<MAceImpl>(acl.getAces().size());
+
+			List<Ace> list = new ArrayList<Ace>(acl.getAces().size());
 			for (Ace ace : acl.getAces()) {
-				MAceImpl aces = new MAceImpl(ace.getPrincipalId(), ace.getPermissions());
+				AccessControlEntryImpl aces = new AccessControlEntryImpl(
+						new AccessControlPrincipalDataImpl(ace.getPrincipalId()), ace.getPermissions());
 				list.add(aces);
 			}
-			MAccessControlListImpl Macl = new MAccessControlListImpl(list, "objectonly", false);
-			return Macl;
-
+			return new AccessControlListImplExt(list, "objectonly", false);
 			// if (mustCopy) {
 			// AccessControlListImpl result = new AccessControlListImpl();
 			// List<Ace> list = new ArrayList<Ace>(acl.getAces().size());

@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-public class MPropertyDefinition<T> implements PropertyDefinition<T> {
+public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private static final long serialVersionUID = -872445236335651909L;
 	private String id;
 	private String localName;
@@ -41,11 +41,11 @@ public class MPropertyDefinition<T> implements PropertyDefinition<T> {
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public MPropertyDefinition() {
+	public PropertyDefinitionImpl() {
 
 	}
 
-	public MPropertyDefinition(String id, String localName, String localNamespace, String displayName, String queryName,
+	public PropertyDefinitionImpl(String id, String localName, String localNamespace, String displayName, String queryName,
 			String description, PropertyType propertyType, Cardinality cardinality, Updatability updatability,
 			Boolean isInherited, Boolean isRequired, Boolean isQueryable, Boolean isOrderable, Boolean isOpenChoice) {
 		super();

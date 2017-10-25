@@ -19,8 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.bson.types.ObjectId;
+
+import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
-import com.pogeyan.cmis.data.objects.MToken;
 
 public interface MBaseObjectDAO {
 
@@ -29,7 +30,7 @@ public interface MBaseObjectDAO {
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(ObjectId objectId, boolean forceDelete, MToken token);
+	public void delete(ObjectId objectId, boolean forceDelete, TokenImpl token);
 
 	/**
 	 * Update Folder type objectIds for an object.

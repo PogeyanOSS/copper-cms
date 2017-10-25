@@ -27,8 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.DBUtils;
+import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
-import com.pogeyan.cmis.data.objects.MToken;
 
 public class CmisPolicyService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisPolicyService.class);
@@ -76,7 +76,7 @@ public class CmisPolicyService {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			MToken token = new MToken(3, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(3, System.currentTimeMillis());
 			polIds = data.getPolicies();
 			if (null == polIds || !(polIds.contains(policyId))) {
 				LOG.error("policyId:{},cannot be removed, because it is not applied to object:{} ", policyId, objectId);
@@ -109,7 +109,7 @@ public class CmisPolicyService {
 				LOG.error("Unknown policy id:{}", policyId);
 				throw new CmisObjectNotFoundException("Unknown policy id: " + policyId);
 			}
-			MToken token = new MToken(3, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(3, System.currentTimeMillis());
 			polIds = data.getPolicies();
 			if (null != polIds && polIds.contains(policyId)) {
 				LOG.error("policyId:{},cannot be added,  because it is already applied to object:{} ", policyId,

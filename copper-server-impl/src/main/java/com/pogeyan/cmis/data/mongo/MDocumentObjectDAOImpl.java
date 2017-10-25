@@ -27,9 +27,9 @@ import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
 import com.pogeyan.cmis.MChangeType;
+import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
-import com.pogeyan.cmis.data.objects.MToken;
 
 public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> implements MDocumentObjectDAO {
 
@@ -51,7 +51,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 
 	@Override
 	public void delete(ObjectId objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
-			MToken token) {
+			TokenImpl token) {
 		Query<MDocumentObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
 				.notEqual(MChangeType.DELETED.value());
 		if (forceDelete) {

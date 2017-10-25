@@ -13,17 +13,17 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
-public class MToken {
+public class TokenImpl {
 	int changetype;
 	Long time;
 
-	public MToken() {
+	public TokenImpl() {
 
 	}
 
-	public MToken(int changetype, Long time) {
+	public TokenImpl(int changetype, Long time) {
 		this.changetype = changetype;
 		this.time = time;
 	}

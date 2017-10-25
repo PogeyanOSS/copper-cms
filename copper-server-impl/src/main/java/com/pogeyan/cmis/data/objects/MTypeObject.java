@@ -33,6 +33,17 @@ import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.IndexOptions;
 import org.mongodb.morphia.annotations.Indexes;
 
+import com.pogeyan.cmis.api.data.CmisPropertyBooleanDefinitionImpl;
+import com.pogeyan.cmis.api.data.CmisPropertyDateTimeDefinitionImpl;
+import com.pogeyan.cmis.api.data.CmisPropertyDecimalDefinitionImpl;
+import com.pogeyan.cmis.api.data.CmisPropertyHtmlDefinitionImpl;
+import com.pogeyan.cmis.api.data.CmisPropertyIdDefinitionImpl;
+import com.pogeyan.cmis.api.data.CmisPropertyIntegerDefinitionImpl;
+import com.pogeyan.cmis.api.data.CmisPropertyStringDefinitionImpl;
+import com.pogeyan.cmis.api.data.CmisPropertyUriDefinitionImpl;
+import com.pogeyan.cmis.api.data.PropertyDefinitionImpl;
+import com.pogeyan.cmis.api.data.TypeMutabilityImpl;
+
 @Entity(value = "type", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
 public class MTypeObject implements TypeDefinition {
@@ -66,8 +77,8 @@ public class MTypeObject implements TypeDefinition {
 	public MTypeObject(String id, String localName, String localNamespace, String displayName, String queryName,
 			String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable, Boolean isFileable,
 			Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
-			Boolean isControllablePolicy, Boolean isControllableAcl, MTypeMutability typeMutability,
-			Map<String, MPropertyDefinition<?>> propertyDefinition) {
+			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
 		super();
 		this.id = id;
 		this.localName = localName;
@@ -179,38 +190,38 @@ public class MTypeObject implements TypeDefinition {
 			Set<Entry<String, MongoPropertyDefinition<?>>> data = propertyDefinition.entrySet();
 			for (Map.Entry<String, MongoPropertyDefinition<?>> propertiesValues : data) {
 				String id = propertiesValues.getKey();
-				MPropertyDefinition<?> valueName = propertiesValues.getValue();
+				PropertyDefinitionImpl<?> valueName = propertiesValues.getValue();
 				String propertyType = valueName.getPropertyType().toString();
 				if (propertyType.equalsIgnoreCase("string")) {
-					MCmisPropertyStringDefinition propertyValue = new MCmisPropertyStringDefinition(valueName);
+					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("boolean")) {
-					MCmisPropertyBooleanDefinition propertyValue = new MCmisPropertyBooleanDefinition(valueName);
+					CmisPropertyBooleanDefinitionImpl propertyValue = new CmisPropertyBooleanDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("id")) {
-					MCmisPropertyIdDefinition propertyValue = new MCmisPropertyIdDefinition(valueName);
+					CmisPropertyIdDefinitionImpl propertyValue = new CmisPropertyIdDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("datetime")) {
-					MCmisPropertyDateTimeDefinition propertyValue = new MCmisPropertyDateTimeDefinition(valueName);
+					CmisPropertyDateTimeDefinitionImpl propertyValue = new CmisPropertyDateTimeDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("decimal")) {
-					MCmisPropertyDecimalDefinition propertyValue = new MCmisPropertyDecimalDefinition(valueName);
+					CmisPropertyDecimalDefinitionImpl propertyValue = new CmisPropertyDecimalDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("html")) {
-					MCmisPropertyHtmlDefinition propertyValue = new MCmisPropertyHtmlDefinition(valueName);
+					CmisPropertyHtmlDefinitionImpl propertyValue = new CmisPropertyHtmlDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("uri")) {
-					MCmisPropertyUriDefinition propertyValue = new MCmisPropertyUriDefinition(valueName);
+					CmisPropertyUriDefinitionImpl propertyValue = new CmisPropertyUriDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("integer")) {
-					MCmisPropertyIntegerDefinition propertyValue = new MCmisPropertyIntegerDefinition(valueName);
+					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				}
@@ -220,7 +231,7 @@ public class MTypeObject implements TypeDefinition {
 	}
 
 	@Override
-	public MTypeMutability getTypeMutability() {
+	public TypeMutabilityImpl getTypeMutability() {
 		return this.typeMutability;
 	}
 
@@ -292,7 +303,7 @@ public class MTypeObject implements TypeDefinition {
 		this.typeMutability = typeMutability;
 	}
 
-	private MongoTypeMutability convertMongoTypeMutability(MTypeMutability mTypeMutability) {
+	private MongoTypeMutability convertMongoTypeMutability(TypeMutabilityImpl mTypeMutability) {
 		if (mTypeMutability != null) {
 			MongoTypeMutability mongoTypeMutability = new MongoTypeMutability();
 			mongoTypeMutability.setCanCreate(mTypeMutability.canCreate());
@@ -306,13 +317,13 @@ public class MTypeObject implements TypeDefinition {
 
 	@SuppressWarnings("rawtypes")
 	private Map<String, MongoPropertyDefinition<?>> convertMongoPropertyDefinition(
-			Map<String, MPropertyDefinition<?>> propertyDefinition) {
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
 		if (propertyDefinition != null) {
 			Map<String, MongoPropertyDefinition<?>> mongoProperty = new LinkedHashMap<String, MongoPropertyDefinition<?>>();
-			Set<Entry<String, MPropertyDefinition<?>>> data = propertyDefinition.entrySet();
-			for (Entry<String, MPropertyDefinition<?>> propertiesValues : data) {
+			Set<Entry<String, PropertyDefinitionImpl<?>>> data = propertyDefinition.entrySet();
+			for (Entry<String, PropertyDefinitionImpl<?>> propertiesValues : data) {
 				String id = propertiesValues.getKey();
-				MPropertyDefinition<?> valueName = propertiesValues.getValue();
+				PropertyDefinitionImpl<?> valueName = propertiesValues.getValue();
 				MongoPropertyDefinition<?> mongo = new MongoPropertyDefinition();
 				mongo.setId(valueName.getId());
 				mongo.setLocalName(valueName.getLocalName());

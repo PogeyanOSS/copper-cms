@@ -39,6 +39,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.pogeyan.cmis.IDBClientFactory;
 import com.pogeyan.cmis.RepositoryManager;
+import com.pogeyan.cmis.api.data.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
@@ -47,7 +48,6 @@ import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.data.objects.MBaseObject;
-import com.pogeyan.cmis.data.objects.MCmisDocumentTypeDefinition;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 import com.pogeyan.cmis.data.objects.MTypeObject;
 
@@ -97,7 +97,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		}
 		if (className.equals(MongoClientFactory.MDOCUMENTTYPEMANAGERDAO)) {
 			return (T) getContentDBMongoClient(repositoryId,
-					(t) -> new MDocumentTypeManagerDAOImpl(MCmisDocumentTypeDefinition.class, t));
+					(t) -> new MDocumentTypeManagerDAOImpl(CmisDocumentTypeDefinitionImpl.class, t));
 		}
 		if (className.equals(MongoClientFactory.MTYPEMANAGERDAO)) {
 			return (T) getContentDBMongoClient(repositoryId, (t) -> new MTypeManagerDAOImpl(MTypeObject.class, t));

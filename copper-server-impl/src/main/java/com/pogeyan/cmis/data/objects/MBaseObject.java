@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Field;
@@ -28,6 +30,8 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.IndexOptions;
 import org.mongodb.morphia.annotations.Indexes;
+
+import com.pogeyan.cmis.api.data.TokenImpl;
 
 @Entity(value = "objectData", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
@@ -44,7 +48,7 @@ public class MBaseObject {
 	private String modifiedBy;
 	private Long createdAt;
 	private Long modifiedAt;
-	private MToken token;
+	private TokenImpl token;
 	private String internalPath;
 	private String path;
 	private List<String> policies;
@@ -66,9 +70,9 @@ public class MBaseObject {
 	}
 
 	public MBaseObject(ObjectId id, String name, BaseTypeId baseId, String typeId, String fRepositoryId,
-			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, MToken token,
-			String internalPath, Map<String, Object> properties, List<String> policies, MAccessControlListImpl acl,
-			String path, String parentId) {
+			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
+			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
+			String parentId) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -175,11 +179,11 @@ public class MBaseObject {
 		this.properties = props;
 	}
 
-	public MToken getChangeToken() {
+	public TokenImpl getChangeToken() {
 		return this.token;
 	}
 
-	public void setChangeToken(MToken token) {
+	public void setChangeToken(TokenImpl token) {
 		this.token = token;
 	}
 
@@ -203,7 +207,7 @@ public class MBaseObject {
 		this.policies = policies;
 	}
 
-	public MAccessControlListImpl getAcl() {
+	public MongoAclImpl getAcl() {
 		return acl;
 	}
 
@@ -227,14 +231,14 @@ public class MBaseObject {
 		this.parentId = parentId;
 	}
 
-	private MongoAclImpl convertMongoAcl(MAccessControlListImpl acl) {
+	public static MongoAclImpl convertMongoAcl(Acl acl) {
 		if (acl != null) {
-			List<MAceImpl> list = new ArrayList<MAceImpl>(acl.getAces().size());
+			List<Ace> list = new ArrayList<Ace>(acl.getAces().size());
 			for (Ace ace : acl.getAces()) {
 				MongoAceImpl aces = new MongoAceImpl();
 				aces.setDirect(true);
-				aces.setPrincipalId(ace.getPrincipalId());
-				aces.setPremission(ace.getPermissions());
+				aces.setPrincipal(new AccessControlPrincipalDataImpl(ace.getPrincipalId()));
+				aces.setPermissions(ace.getPermissions());
 				list.add(aces);
 			}
 			MongoAclImpl mAcl = new MongoAclImpl();
@@ -243,7 +247,7 @@ public class MBaseObject {
 			mAcl.setExact(true);
 			return mAcl;
 		}
-		return null;
 
+		return null;
 	}
 }

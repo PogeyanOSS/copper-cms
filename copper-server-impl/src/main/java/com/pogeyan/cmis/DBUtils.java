@@ -18,14 +18,14 @@ package com.pogeyan.cmis;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.bson.types.ObjectId;
 
+import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
-import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
-import com.pogeyan.cmis.data.objects.MToken;
 
 public class DBUtils {
 	public static class Variables {
@@ -152,7 +152,7 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static void updatePolicy(String repositoryId, List<String> polIds, ObjectId objectId, MToken token) {
+		public static void updatePolicy(String repositoryId, List<String> polIds, ObjectId objectId, TokenImpl token) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
@@ -165,7 +165,7 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static void updateAcl(String repositoryId, MAccessControlListImpl acl, MToken token, ObjectId objectId) {
+		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, ObjectId objectId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {

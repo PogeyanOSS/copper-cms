@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.Map;
 
@@ -21,22 +21,20 @@ import org.apache.chemistry.opencmis.commons.definitions.FolderTypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 
 import com.pogeyan.cmis.data.objects.MTypeObject;
-import com.pogeyan.cmis.data.objects.MPropertyDefinition;
-import com.pogeyan.cmis.data.objects.MTypeMutability;
 
-public class MCmisFolderTypeDefinition extends MTypeObject implements FolderTypeDefinition {
+public class CmisFolderTypeDefinitionImpl extends MTypeObject implements FolderTypeDefinition {
 
 	private static final long serialVersionUID = 1L;
 
-	public MCmisFolderTypeDefinition() {
+	public CmisFolderTypeDefinitionImpl() {
 
 	}
 
-	public MCmisFolderTypeDefinition(String id, String localName, String localNamespace, String displayName,
+	public CmisFolderTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
 			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
-			Boolean isControllablePolicy, Boolean isControllableAcl, MTypeMutability typeMutability,
-			Map<String, MPropertyDefinition<?>> propertyDefinition) {
+			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
 		super(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent, isCreatable,
 				isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery, isControllablePolicy,
 				isControllableAcl, typeMutability, propertyDefinition);

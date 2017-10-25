@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-public class MCmisPropertyBooleanDefinition implements PropertyBooleanDefinition {
+public class CmisPropertyBooleanDefinitionImpl implements PropertyBooleanDefinition {
 
 	private static final long serialVersionUID = 1L;
 	private String id;
@@ -42,11 +42,11 @@ public class MCmisPropertyBooleanDefinition implements PropertyBooleanDefinition
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public MCmisPropertyBooleanDefinition() {
+	public CmisPropertyBooleanDefinitionImpl() {
 		super();
 	}
 
-	public MCmisPropertyBooleanDefinition(MPropertyDefinition<?> type) {
+	public CmisPropertyBooleanDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();

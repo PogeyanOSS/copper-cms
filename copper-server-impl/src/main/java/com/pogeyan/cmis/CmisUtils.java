@@ -20,15 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.RenditionData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
+import com.pogeyan.cmis.api.data.AccessControlListImplExt;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
@@ -44,6 +49,22 @@ public class CmisUtils {
 	public static final int THUMBNAIL_SIZE = 100;
 	public static final int ICON_SIZE = 32;
 
+	public static class Object {
+		public static Acl getAclFor(String principalId, String permission) {
+			List<String> permissions = new ArrayList<String>();
+			permissions.add(permission);
+			return getAclFor(principalId, permissions);
+		}
+		
+		public static Acl getAclFor(String principalId, List<String> permissions) {
+			List<Ace> aceList = new ArrayList<Ace>();
+			AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId), permissions);
+			aceList.add(ace);
+			AccessControlListImplExt aclImp = new AccessControlListImplExt(aceList);
+			return aclImp;
+		}
+	}
+	
 	public static class Rendition {
 
 		public static boolean hasRendition(MBaseObject so, String user, String repositoryId) {

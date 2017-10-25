@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.Map;
 
@@ -22,10 +22,8 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.ContentStreamAllowed;
 
 import com.pogeyan.cmis.data.objects.MTypeObject;
-import com.pogeyan.cmis.data.objects.MPropertyDefinition;
-import com.pogeyan.cmis.data.objects.MTypeMutability;
 
-public class MCmisDocumentTypeDefinition extends MTypeObject implements DocumentTypeDefinition {
+public class CmisDocumentTypeDefinitionImpl extends MTypeObject implements DocumentTypeDefinition {
 
 	private static final long serialVersionUID = 1L;
 	private Boolean isVersion;
@@ -41,15 +39,15 @@ public class MCmisDocumentTypeDefinition extends MTypeObject implements Document
 		return this.contentStream;
 	}
 
-	public MCmisDocumentTypeDefinition() {
+	public CmisDocumentTypeDefinitionImpl() {
 
 	}
 
-	public MCmisDocumentTypeDefinition(String id, String localName, String localNamespace, String displayName,
+	public CmisDocumentTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
 			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
-			Boolean isControllablePolicy, Boolean isControllableAcl, MTypeMutability typeMutability,
-			Map<String, MPropertyDefinition<?>> propertyDefinition, Boolean isVersion,
+			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition, Boolean isVersion,
 			ContentStreamAllowed contentStream) {
 		super(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent, isCreatable,
 				isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery, isControllablePolicy,

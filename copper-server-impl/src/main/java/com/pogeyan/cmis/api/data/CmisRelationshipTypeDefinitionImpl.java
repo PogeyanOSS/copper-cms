@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +21,9 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.commons.definitions.RelationshipTypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 
-public class MCmisRelationshipTypeDefinition extends MTypeObject implements RelationshipTypeDefinition {
+import com.pogeyan.cmis.data.objects.MTypeObject;
+
+public class CmisRelationshipTypeDefinitionImpl extends MTypeObject implements RelationshipTypeDefinition {
 
 	private static final long serialVersionUID = 1L;
 	private List<String> allowedSourceTypeIds;
@@ -37,25 +39,25 @@ public class MCmisRelationshipTypeDefinition extends MTypeObject implements Rela
 		return this.allowedTargetTypeIds;
 	}
 
-	public MCmisRelationshipTypeDefinition() {
+	public CmisRelationshipTypeDefinitionImpl() {
 
 	}
 
-	public MCmisRelationshipTypeDefinition(String id, String localName, String localNamespace, String displayName,
+	public CmisRelationshipTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
 			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
-			Boolean isControllablePolicy, Boolean isControllableAcl, MTypeMutability typeMutability,
-			Map<String, MPropertyDefinition<?>> propertyDefinition) {
+			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
 		super(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent, isCreatable,
 				isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery, isControllablePolicy,
 				isControllableAcl, typeMutability, propertyDefinition);
 	}
 
-	public MCmisRelationshipTypeDefinition(String id, String localName, String localNamespace, String displayName,
+	public CmisRelationshipTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
 			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
-			Boolean isControllablePolicy, Boolean isControllableAcl, MTypeMutability typeMutability,
-			Map<String, MPropertyDefinition<?>> propertyDefinition, List<String> allowedSourceTypeIds,
+			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition, List<String> allowedSourceTypeIds,
 			List<String> allowedTargetTypeIds) {
 		super(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent, isCreatable,
 				isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery, isControllablePolicy,

@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -26,7 +26,7 @@ import org.apache.chemistry.opencmis.commons.enums.DecimalPrecision;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-public class MCmisPropertyDecimalDefinition implements PropertyDecimalDefinition {
+public class CmisPropertyDecimalDefinitionImpl implements PropertyDecimalDefinition {
 
 	private static final long serialVersionUID = 1L;
 	private String id;
@@ -44,11 +44,11 @@ public class MCmisPropertyDecimalDefinition implements PropertyDecimalDefinition
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public MCmisPropertyDecimalDefinition() {
+	public CmisPropertyDecimalDefinitionImpl() {
 		super();
 	}
 
-	public MCmisPropertyDecimalDefinition(MPropertyDefinition<?> type) {
+	public CmisPropertyDecimalDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();

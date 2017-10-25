@@ -13,65 +13,29 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListImpl;
 
-public class MAccessControlListImpl implements Acl {
-	private List<MAceImpl> ace;
-	private boolean exact;
+public class AccessControlListImplExt extends AccessControlListImpl {
+	private static final long serialVersionUID = -2046311948241075878L;
 	private String aclPropagation;
+	
+	protected AccessControlListImplExt() {		
+	}
 
-	public MAccessControlListImpl() {
+	public AccessControlListImplExt(List<Ace> aces) {
+		super(aces);
 		this.aclPropagation = "";
 	}
-
-	public MAccessControlListImpl(List<MAceImpl> ace, String aclPropagation, boolean exact) {
-		this.ace = ace;
-		this.exact = exact;
+	
+	public AccessControlListImplExt(List<Ace> aces, String aclPropagation, boolean exact) {
+		super(aces);
+		this.setExact(exact);
 		this.setAclPropagation(aclPropagation);
-	}
-
-	@Override
-	public Boolean isExact() {
-		return exact;
-	}
-
-	public void setExact(boolean exact) {
-		this.exact = exact;
-	}
-
-	public void setAces(List<MAceImpl> ace) {
-		this.ace = ace;
-	}
-
-	@Override
-	public List<Ace> getAces() {
-
-		List<Ace> listAce = new ArrayList<Ace>(ace.size());
-		for (MAceImpl ace : ace) {
-			AccessControlEntryImpl ace2 = new AccessControlEntryImpl();
-			ace2.setPermissions(ace.getPermissions());
-			ace2.setExtensions(ace.getExtensions());
-			ace2.setPrincipal(new AccessControlPrincipalDataImpl(ace.getPrincipalId()));
-			listAce.add(ace2);
-		}
-		return listAce;
-	}
-
-	public List<CmisExtensionElement> getExtensions() {
-		return null;
-	}
-
-	public void setExtensions(List<CmisExtensionElement> extensions) {
-
 	}
 
 	public String getAclPropagation() {

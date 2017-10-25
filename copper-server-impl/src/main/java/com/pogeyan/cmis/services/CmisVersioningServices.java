@@ -42,11 +42,11 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.DBUtils;
 import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.RepositoryManager;
+import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
-import com.pogeyan.cmis.data.objects.MToken;
 import com.pogeyan.cmis.document.storage.StorageDocumentServiceFactory;
 
 public class CmisVersioningServices {
@@ -176,7 +176,7 @@ public class CmisVersioningServices {
 			 */
 
 			ObjectId id = new ObjectId();
-			MToken token = new MToken(1, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(1, System.currentTimeMillis());
 			MBaseObject baseObject = new MBaseObject(id, data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
 					"cmis:document", repositoryId, null, "", userName, userName, token, data.getInternalPath(),
 					data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(), data.getParentId());
@@ -214,7 +214,7 @@ public class CmisVersioningServices {
 
 			MDocumentObject document = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 					new ObjectId(data.getPreviousVersionObjectId()), null);
-			MToken deleteToken = new MToken(2, System.currentTimeMillis());
+			TokenImpl deleteToken = new TokenImpl(2, System.currentTimeMillis());
 			documentMorphiaDAO.delete(new ObjectId(objectId), null, false, false, deleteToken);
 			Map<String, Object> updateProps = new HashMap<String, Object>();
 			updateProps.put("isVersionSeriesCheckedOut", false);
@@ -222,7 +222,7 @@ public class CmisVersioningServices {
 			List<String> removeFields = new ArrayList<>();
 			removeFields.add("versionSeriesCheckedOutBy");
 			removeFields.add("versionSeriesCheckedOutId");
-			MToken updateToken = new MToken(1, System.currentTimeMillis());
+			TokenImpl updateToken = new TokenImpl(1, System.currentTimeMillis());
 			documentMorphiaDAO.delete(document.getId(), removeFields, false, true, updateToken);
 			return document.getId();
 		}
@@ -258,7 +258,7 @@ public class CmisVersioningServices {
 
 			MDocumentObject documentdata = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 					new ObjectId(data.getPreviousVersionObjectId()), null);
-			MToken token = new MToken(0, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(0, System.currentTimeMillis());
 			MBaseObject baseObject = new MBaseObject(id, documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
 					"cmis:document", repositoryId, null, "", documentdata.getCreatedBy(), userName, token,
 					data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
@@ -340,7 +340,7 @@ public class CmisVersioningServices {
 			updateProps.put("versionSeriesCheckedOutId", "");
 			updateProps.put("versionSeriesCheckedOutBy", "");
 			baseMorphiaDAO.update(documentdata.getId(), updateProps);
-			MToken deleteToken = new MToken(2, System.currentTimeMillis());
+			TokenImpl deleteToken = new TokenImpl(2, System.currentTimeMillis());
 			baseMorphiaDAO.delete(new ObjectId(objectId.getValue()), null, false, false, deleteToken);
 			return documentObject.getId();
 		}

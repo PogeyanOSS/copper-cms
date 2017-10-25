@@ -15,12 +15,12 @@
  */
 package com.pogeyan.cmis.api.data.services;
 
-import com.pogeyan.cmis.data.objects.MCmisDocumentTypeDefinition;
+import com.pogeyan.cmis.api.data.CmisDocumentTypeDefinitionImpl;
 
 public interface MDocumentTypeManagerDAO {
 	/**
 	 * Returns MCmisDocumentTypeDefinition values depending on TypeId
 	 */
-	public MCmisDocumentTypeDefinition getByTypeId(String typeId);
+	public CmisDocumentTypeDefinitionImpl getByTypeId(String typeId);
 
 }

@@ -13,24 +13,24 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.TypeMutability;
 
-public class MTypeMutability implements TypeMutability {
+public class TypeMutabilityImpl implements TypeMutability {
 
 	private Boolean canCreate;
 	private Boolean canUpdate;
 	private Boolean canDelete;
 
-	public MTypeMutability() {
+	public TypeMutabilityImpl() {
 
 	}
 
-	public MTypeMutability(Boolean canCreate, Boolean canUpdate, Boolean canDelete) {
+	public TypeMutabilityImpl(Boolean canCreate, Boolean canUpdate, Boolean canDelete) {
 		super();
 		this.canCreate = canCreate;
 		this.canUpdate = canUpdate;

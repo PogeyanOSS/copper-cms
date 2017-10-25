@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -26,7 +26,7 @@ import org.apache.chemistry.opencmis.commons.enums.DateTimeResolution;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-public class MCmisPropertyDateTimeDefinition implements PropertyDateTimeDefinition {
+public class CmisPropertyDateTimeDefinitionImpl implements PropertyDateTimeDefinition {
 
 	private static final long serialVersionUID = 1L;
 	private String id;
@@ -44,11 +44,11 @@ public class MCmisPropertyDateTimeDefinition implements PropertyDateTimeDefiniti
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public MCmisPropertyDateTimeDefinition() {
+	public CmisPropertyDateTimeDefinitionImpl() {
 		super();
 	}
 
-	public MCmisPropertyDateTimeDefinition(MPropertyDefinition<?> type) {
+	public CmisPropertyDateTimeDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();

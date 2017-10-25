@@ -13,26 +13,28 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.objects;
+package com.pogeyan.cmis.api.data;
 
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.commons.definitions.PolicyTypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 
-public class MCmisPolicyTypeDefinition extends MTypeObject implements PolicyTypeDefinition {
+import com.pogeyan.cmis.data.objects.MTypeObject;
+
+public class CmisPolicyTypeDefinitionImpl extends MTypeObject implements PolicyTypeDefinition {
 
 	private static final long serialVersionUID = 1L;
 
-	public MCmisPolicyTypeDefinition() {
+	public CmisPolicyTypeDefinitionImpl() {
 
 	}
 
-	public MCmisPolicyTypeDefinition(String id, String localName, String localNamespace, String displayName,
+	public CmisPolicyTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
 			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
-			Boolean isControllablePolicy, Boolean isControllableAcl, MTypeMutability typeMutability,
-			Map<String, MPropertyDefinition<?>> propertyDefinition) {
+			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
 		super(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent, isCreatable,
 				isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery, isControllablePolicy,
 				isControllableAcl, typeMutability, propertyDefinition);

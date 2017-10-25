@@ -46,9 +46,9 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.DatabaseManager;
 import com.pogeyan.cmis.MChangeType;
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.data.objects.MAccessControlListImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 
 public class CmisDiscoveryService {
@@ -88,10 +88,10 @@ public class CmisDiscoveryService {
 						.getLatestTokenChildrenSize(Long.parseLong(changeLogToken.getValue()));
 				for (MBaseObject object : latestChangesObjects) {
 					if (includeAcl) {
-						List<MAccessControlListImpl> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
+						List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
 								object.getInternalPath(), object.getAcl());
 						boolean objectOnly = true;
-						for (MAccessControlListImpl acl : mAcl) {
+						for (AccessControlListImplExt acl : mAcl) {
 							if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 								List<Ace> listAce = getListAce(acl, principalIds);
 								if (listAce.size() >= 1) {
@@ -161,7 +161,7 @@ public class CmisDiscoveryService {
 
 		}
 
-		private static List<Ace> getListAce(MAccessControlListImpl acl, String[] principalIds) {
+		private static List<Ace> getListAce(AccessControlListImplExt acl, String[] principalIds) {
 			List<Ace> listAce = acl.getAces().stream()
 					.filter(t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
 					.collect(Collectors.toList());
