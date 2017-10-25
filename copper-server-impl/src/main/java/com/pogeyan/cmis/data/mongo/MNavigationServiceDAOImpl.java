@@ -25,7 +25,7 @@ import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 
-import com.pogeyan.cmis.MChangeType;
+import com.pogeyan.cmis.api.data.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 
@@ -41,10 +41,10 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		Query<MBaseObject> query = null;
 		if (orderBy != null) {
 			query = createQuery().filter("internalPath", path).field("token.changetype")
-					.notEqual(MChangeType.DELETED.value()).order("-" + orderBy);
+					.notEqual(TokenChangeType.DELETED.value()).order("-" + orderBy);
 		} else {
 			query = createQuery().filter("internalPath", path).field("token.changetype")
-					.notEqual(MChangeType.DELETED.value());
+					.notEqual(TokenChangeType.DELETED.value());
 		}
 		if (maxItems > 0) {
 			query = query.offset(skipCount).limit(maxItems);
@@ -63,7 +63,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	@Override
 	public long getChildrenSize(String path, String[] principalIds, boolean aclPropagation) {
 		Query<MBaseObject> query = createQuery().filter("internalPath", path).field("token.changetype")
-				.notEqual(MChangeType.DELETED.value());
+				.notEqual(TokenChangeType.DELETED.value());
 		if (aclPropagation) {
 			query.or(getAclCriteria(principalIds, query));
 			return query.countAll();
@@ -77,13 +77,13 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		if (aclPropagation) {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("token.changetype")
-					.notEqual(MChangeType.DELETED.value());
+					.notEqual(TokenChangeType.DELETED.value());
 			query.or(getAclCriteria(principalIds, query));
 			return query.asList();
 		} else {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("token.changetype")
-					.notEqual(MChangeType.DELETED.value());
+					.notEqual(TokenChangeType.DELETED.value());
 			return query.asList();
 		}
 	}
@@ -93,13 +93,13 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		if (aclPropagation) {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("baseId")
-					.equalIgnoreCase("cmis:folder").field("token.changetype").notEqual(MChangeType.DELETED.value());
+					.equalIgnoreCase("cmis:folder").field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 			query.or(getAclCriteria(principalIds, query));
 			return query.asList();
 		} else {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("baseId")
-					.equalIgnoreCase("cmis:folder").field("token.changetype").notEqual(MChangeType.DELETED.value());
+					.equalIgnoreCase("cmis:folder").field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 			return query.asList();
 		}
 

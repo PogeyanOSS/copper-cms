@@ -13,15 +13,15 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis;
+package com.pogeyan.cmis.api.data;
 
 import org.apache.chemistry.opencmis.commons.enums.ChangeType;
 
-public enum MChangeType {
+public enum TokenChangeType {
 	CREATED(0), UPDATED(1), DELETED(2), SECURITY(3);
 	private final int value;
 
-	MChangeType(int v) {
+	TokenChangeType(int v) {
 		value = v;
 	}
 
@@ -30,7 +30,7 @@ public enum MChangeType {
 	}
 
 	public static ChangeType fromValue(int v) {
-		for (MChangeType c : MChangeType.values()) {
+		for (TokenChangeType c : TokenChangeType.values()) {
 			if (c.value == v) {
 				return ChangeType.fromValue(c.name().toLowerCase());
 			}

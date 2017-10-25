@@ -90,12 +90,12 @@ import com.pogeyan.cmis.CmisUtils;
 import com.pogeyan.cmis.CopperCmsRepository;
 import com.pogeyan.cmis.DBUtils;
 import com.pogeyan.cmis.DatabaseManager;
-import com.pogeyan.cmis.MChangeType;
 import com.pogeyan.cmis.MongoNameValidator;
 import com.pogeyan.cmis.MongoTypeValidator;
 import com.pogeyan.cmis.RepositoryManager;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.TokenChangeType;
 import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
@@ -334,7 +334,7 @@ public class CmisObjectService {
 				changeEventDate.setTimeInMillis(data.getChangeToken().getTime());
 
 				ChangeEventInfoDataImpl changeEvent = new ChangeEventInfoDataImpl(
-						MChangeType.fromValue(data.getChangeToken().getChangeType()), changeEventDate);
+						TokenChangeType.fromValue(data.getChangeToken().getChangeType()), changeEventDate);
 				result.setChangeEventInfo(changeEvent);
 			}
 

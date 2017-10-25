@@ -44,9 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.DatabaseManager;
-import com.pogeyan.cmis.MChangeType;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.data.objects.MBaseObject;
@@ -141,7 +141,7 @@ public class CmisDiscoveryService {
 					objectInfo);
 			odImpl.setProperties(props);
 			ChangeEventInfoDataImpl changeEventInfo = new ChangeEventInfoDataImpl();
-			changeEventInfo.setChangeType(MChangeType.fromValue(object.getChangeToken().getChangeType()));
+			changeEventInfo.setChangeType(TokenChangeType.fromValue(object.getChangeToken().getChangeType()));
 			GregorianCalendar eventTimestamp = new GregorianCalendar();
 			eventTimestamp.setTimeInMillis(object.getChangeToken().getTime());
 			changeEventInfo.setChangeTime(eventTimestamp);

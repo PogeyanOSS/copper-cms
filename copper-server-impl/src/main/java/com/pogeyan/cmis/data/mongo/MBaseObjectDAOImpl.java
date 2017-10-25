@@ -24,8 +24,8 @@ import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import com.pogeyan.cmis.MChangeType;
 import com.pogeyan.cmis.api.data.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.TokenChangeType;
 import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
@@ -40,7 +40,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implemen
 	@Override
 	public void delete(ObjectId objectId, boolean forceDelete, TokenImpl token) {
 		Query<MBaseObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(MChangeType.DELETED.value());
+				.notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
 			this.deleteByQuery(query);
 		} else {
@@ -56,7 +56,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implemen
 	public void update(ObjectId objectId, Map<String, Object> updateProps) {
 		UpdateOperations<MBaseObject> update = createUpdateOperations();
 		Query<MBaseObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(MChangeType.DELETED.value());
+				.notEqual(TokenChangeType.DELETED.value());
 		if (updateProps.get("acl") != null) {
 			MongoAclImpl mAcl = MBaseObject.convertMongoAcl((AccessControlListImplExt) updateProps.get("acl"));
 			updateProps.remove("acl");
@@ -77,7 +77,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implemen
 	@Override
 	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
 			int skipCount, String[] mappedColumns) {
-		Query<MBaseObject> query = createQuery().field("token.changetype").notEqual(MChangeType.DELETED.value());
+		Query<MBaseObject> query = createQuery().field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
 			query = query.field(entry.getKey()).equal(entry.getValue());
 		}

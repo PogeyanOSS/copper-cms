@@ -26,7 +26,7 @@ import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import com.pogeyan.cmis.MChangeType;
+import com.pogeyan.cmis.api.data.TokenChangeType;
 import com.pogeyan.cmis.api.data.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
@@ -39,7 +39,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 
 	@Override
 	public List<MDocumentObject> filter(Map<String, Object> fieldNames, String[] mappedColumns) {
-		Query<MDocumentObject> query = createQuery().field("token.changetype").notEqual(MChangeType.DELETED.value());
+		Query<MDocumentObject> query = createQuery().field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
 			query = query.field(entry.getKey()).equal(entry.getValue());
 		}
@@ -53,7 +53,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	public void delete(ObjectId objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
 			TokenImpl token) {
 		Query<MDocumentObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(MChangeType.DELETED.value());
+				.notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
 			this.deleteByQuery(query);
 		} else {
@@ -79,7 +79,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	public void update(ObjectId objectId, Map<String, Object> updateProps) {
 		UpdateOperations<MDocumentObject> update = createUpdateOperations();
 		Query<MDocumentObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(MChangeType.DELETED.value());
+				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : updateProps.entrySet()) {
 			update = update.set(entry.getKey(), entry.getValue());
 		}
@@ -92,11 +92,11 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 		Query<MDocumentObject> query = null;
 		if (folderId == null) {
 			query = createQuery().field("typeId").equalIgnoreCase("cmis:document").field("isPrivateWorkingCopy")
-					.equal(true).field("token.changetype").notEqual(MChangeType.DELETED.value());
+					.equal(true).field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 		} else {
 			query = createQuery().field("parentId").equal(folderId).field("typeId").equalIgnoreCase("cmis:document")
 					.field("isPrivateWorkingCopy").equal(true).field("token.changetype")
-					.notEqual(MChangeType.DELETED.value());
+					.notEqual(TokenChangeType.DELETED.value());
 		}
 		if (orderBy != null) {
 			query = query.order("-" + orderBy);
@@ -123,11 +123,11 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 		Query<MDocumentObject> query = null;
 		if (folderId == null) {
 			query = createQuery().field("typeId").equalIgnoreCase("cmis:document").field("isPrivateWorkingCopy")
-					.equal(true).field("token.changetype").notEqual(MChangeType.DELETED.value());
+					.equal(true).field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 		} else {
 			query = createQuery().field("parentId").equal(folderId).field("typeId").equalIgnoreCase("cmis:document")
 					.field("isPrivateWorkingCopy").equal(true).field("token.changetype")
-					.notEqual(MChangeType.DELETED.value());
+					.notEqual(TokenChangeType.DELETED.value());
 		}
 		if (aclPropagation) {
 			query.or(getAclCriteria(principalIds, query));
