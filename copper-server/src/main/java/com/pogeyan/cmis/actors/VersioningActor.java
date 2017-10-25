@@ -81,11 +81,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId objectId = new ObjectId(request.getObjectId());
+		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Holder<String> objectsId = new Holder<String>(objectId.toString());
-		ObjectId pwcId = CmisVersioningServices.Impl.checkOut(request.getRepositoryId(), objectsId, null, null,
+		String pwcId = CmisVersioningServices.Impl.checkOut(request.getRepositoryId(), objectsId, null, null,
 				request.getUserName());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), pwcId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
@@ -131,7 +131,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		 * :null)); }
 		 */
 
-		ObjectId versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), properties,
+		String versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), properties,
 				request.getContentStream(), objectIdHolder, major, checkinComment, null, request.getUserName());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), versionId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
@@ -153,7 +153,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		ObjectId docId = CmisVersioningServices.Impl.cancelCheckOut(request.getRepositoryId(), objectId, null,
+		String docId = CmisVersioningServices.Impl.cancelCheckOut(request.getRepositoryId(), objectId, null,
 				request.getUserName());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), docId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
@@ -213,7 +213,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String userName = request.getUserName();
 
 		ObjectData object = CmisVersioningServices.Impl.getObjectOfLatestVersion(request.getRepositoryId(), objectId,
-				versionSeriesId, true, filter, includeAllowableActions, null, renditionFilter, includePolicyIds,
+				versionSeriesId, true, filter, includeAllowableActions, null, includePolicyIds,
 				includeAcl, null, null, userName);
 
 		if (object == null) {

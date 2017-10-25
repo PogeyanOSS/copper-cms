@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
 import org.apache.chemistry.opencmis.commons.enums.ChangeType;
 
@@ -29,9 +29,9 @@ public enum TokenChangeType {
 		return value;
 	}
 
-	public static ChangeType fromValue(int v) {
+	public static ChangeType fromValue(TokenChangeType v) {
 		for (TokenChangeType c : TokenChangeType.values()) {
-			if (c.value == v) {
+			if (c == v) {
 				return ChangeType.fromValue(c.name().toLowerCase());
 			}
 		}

@@ -33,16 +33,16 @@ import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.IndexOptions;
 import org.mongodb.morphia.annotations.Indexes;
 
-import com.pogeyan.cmis.api.data.CmisPropertyBooleanDefinitionImpl;
-import com.pogeyan.cmis.api.data.CmisPropertyDateTimeDefinitionImpl;
-import com.pogeyan.cmis.api.data.CmisPropertyDecimalDefinitionImpl;
-import com.pogeyan.cmis.api.data.CmisPropertyHtmlDefinitionImpl;
-import com.pogeyan.cmis.api.data.CmisPropertyIdDefinitionImpl;
-import com.pogeyan.cmis.api.data.CmisPropertyIntegerDefinitionImpl;
-import com.pogeyan.cmis.api.data.CmisPropertyStringDefinitionImpl;
-import com.pogeyan.cmis.api.data.CmisPropertyUriDefinitionImpl;
-import com.pogeyan.cmis.api.data.PropertyDefinitionImpl;
-import com.pogeyan.cmis.api.data.TypeMutabilityImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyBooleanDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyDateTimeDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyDecimalDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyHtmlDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyIdDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyIntegerDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyStringDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisPropertyUriDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.TypeMutabilityImpl;
 
 @Entity(value = "type", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))

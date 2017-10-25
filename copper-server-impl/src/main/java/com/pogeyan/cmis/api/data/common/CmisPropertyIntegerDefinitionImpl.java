@@ -13,19 +13,20 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyIdDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyIntegerDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
 @SuppressWarnings("serial")
-public class CmisPropertyIdDefinitionImpl implements PropertyIdDefinition {
+public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinition {
 
 	private String id;
 	private String localName;
@@ -42,11 +43,11 @@ public class CmisPropertyIdDefinitionImpl implements PropertyIdDefinition {
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public CmisPropertyIdDefinitionImpl() {
+	public CmisPropertyIntegerDefinitionImpl() {
 		super();
 	}
 
-	public CmisPropertyIdDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyIntegerDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
@@ -135,12 +136,12 @@ public class CmisPropertyIdDefinitionImpl implements PropertyIdDefinition {
 	}
 
 	@Override
-	public List<String> getDefaultValue() {
+	public List<BigInteger> getDefaultValue() {
 		return null;
 	}
 
 	@Override
-	public List<Choice<String>> getChoices() {
+	public List<Choice<BigInteger>> getChoices() {
 		return null;
 	}
 
@@ -151,5 +152,15 @@ public class CmisPropertyIdDefinitionImpl implements PropertyIdDefinition {
 
 	@Override
 	public void setExtensions(List<CmisExtensionElement> extensions) {
+	}
+
+	@Override
+	public BigInteger getMinValue() {
+		return null;
+	}
+
+	@Override
+	public BigInteger getMaxValue() {
+		return null;
 	}
 }

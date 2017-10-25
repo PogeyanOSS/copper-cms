@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.mongo;
+package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
 import java.util.Map;
@@ -24,21 +24,21 @@ import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import com.pogeyan.cmis.api.data.AccessControlListImplExt;
-import com.pogeyan.cmis.api.data.TokenChangeType;
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.data.objects.MongoAclImpl;
 
-public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MBaseObjectDAO {
+public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements MBaseObjectDAO {
 
 	public MBaseObjectDAOImpl(Class<MBaseObject> entityClass, Datastore ds) {
 		super(entityClass, ds);
 	}
 
 	@Override
-	public void delete(ObjectId objectId, boolean forceDelete, TokenImpl token) {
+	public void delete(String objectId, boolean forceDelete, TokenImpl token) {
 		Query<MBaseObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
 				.notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
@@ -53,7 +53,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, ObjectId> implemen
 	}
 
 	@Override
-	public void update(ObjectId objectId, Map<String, Object> updateProps) {
+	public void update(String objectId, Map<String, Object> updateProps) {
 		UpdateOperations<MBaseObject> update = createUpdateOperations();
 		Query<MBaseObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
 				.notEqual(TokenChangeType.DELETED.value());

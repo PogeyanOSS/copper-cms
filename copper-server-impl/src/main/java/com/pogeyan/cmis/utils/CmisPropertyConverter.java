@@ -41,7 +41,6 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyUriImpl;
-import org.bson.types.ObjectId;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.data.objects.MBaseObject;
@@ -148,7 +147,7 @@ public class CmisPropertyConverter {
 				if (propDef == null && objectIds != null) {
 					for (String objectId : objectIds) {
 						MBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId,
-								new ObjectId(objectId), null);
+								objectId, null);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
 								object.getTypeId(), null);
 						innerObjectType.add(typeDef);
@@ -277,7 +276,7 @@ public class CmisPropertyConverter {
 			return null;
 		}
 
-		public static String getTypeIdForObject(String repositoryId, ObjectId objectId) {
+		public static String getTypeIdForObject(String repositoryId, String objectId) {
 			if (objectId == null) {
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}

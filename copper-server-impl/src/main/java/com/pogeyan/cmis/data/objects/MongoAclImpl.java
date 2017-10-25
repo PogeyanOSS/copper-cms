@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.mongodb.morphia.annotations.Entity;
 
-import com.pogeyan.cmis.api.data.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 
 @Entity(noClassnameStored = true)
 public class MongoAclImpl extends AccessControlListImplExt {

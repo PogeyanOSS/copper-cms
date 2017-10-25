@@ -2,7 +2,7 @@ package com.pogeyan.cmis.data.objects;
 
 import org.mongodb.morphia.annotations.Embedded;
 
-import com.pogeyan.cmis.api.data.PropertyDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
 
 @Embedded
 public class MongoPropertyDefinition<T> extends PropertyDefinitionImpl<T> {

@@ -13,20 +13,20 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
 import java.math.BigInteger;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyIntegerDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyStringDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
 @SuppressWarnings("serial")
-public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinition {
+public class CmisPropertyStringDefinitionImpl implements PropertyStringDefinition {
 
 	private String id;
 	private String localName;
@@ -43,11 +43,11 @@ public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinit
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public CmisPropertyIntegerDefinitionImpl() {
+	public CmisPropertyStringDefinitionImpl() {
 		super();
 	}
 
-	public CmisPropertyIntegerDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyStringDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
@@ -63,6 +63,11 @@ public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinit
 		this.isQueryable = type.isQueryable();
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
+	}
+
+	@Override
+	public BigInteger getMaxLength() {
+		return null;
 	}
 
 	@Override
@@ -136,12 +141,12 @@ public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinit
 	}
 
 	@Override
-	public List<BigInteger> getDefaultValue() {
+	public List<String> getDefaultValue() {
 		return null;
 	}
 
 	@Override
-	public List<Choice<BigInteger>> getChoices() {
+	public List<Choice<String>> getChoices() {
 		return null;
 	}
 
@@ -152,15 +157,5 @@ public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinit
 
 	@Override
 	public void setExtensions(List<CmisExtensionElement> extensions) {
-	}
-
-	@Override
-	public BigInteger getMinValue() {
-		return null;
-	}
-
-	@Override
-	public BigInteger getMaxValue() {
-		return null;
 	}
 }

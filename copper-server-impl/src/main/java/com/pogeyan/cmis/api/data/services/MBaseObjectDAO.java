@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.bson.types.ObjectId;
 
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 
 public interface MBaseObjectDAO {
@@ -30,12 +30,12 @@ public interface MBaseObjectDAO {
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(ObjectId objectId, boolean forceDelete, TokenImpl token);
+	public void delete(String objectId, boolean forceDelete, TokenImpl token);
 
 	/**
 	 * Update Folder type objectIds for an object.
 	 */
-	public void update(ObjectId objectId, Map<String, Object> updateProps);
+	public void update(String objectId, Map<String, Object> updateProps);
 
 	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
 			int skipCount, String[] mappedColumns);

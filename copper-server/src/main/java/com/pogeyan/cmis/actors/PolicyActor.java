@@ -27,7 +27,6 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
-import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
@@ -88,8 +87,8 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getPolicyId(), new ObjectId(objectId));
-		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), new ObjectId(objectId),
+		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getPolicyId(), objectId);
+		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");
@@ -110,9 +109,9 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		CmisPolicyService.Impl.removePolicy(request.getRepositoryId(), request.getPolicyId(), new ObjectId(objectId),
+		CmisPolicyService.Impl.removePolicy(request.getRepositoryId(), request.getPolicyId(), objectId,
 				request.getUserObject().getUserDN());
-		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), new ObjectId(objectId),
+		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");

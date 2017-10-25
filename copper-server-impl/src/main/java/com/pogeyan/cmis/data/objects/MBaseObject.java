@@ -31,13 +31,13 @@ import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.IndexOptions;
 import org.mongodb.morphia.annotations.Indexes;
 
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 
 @Entity(value = "objectData", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
 public class MBaseObject {
 	@Id
-	private ObjectId id;
+	private String id;
 	private String name;
 	private BaseTypeId baseId;
 	private String typeId;
@@ -69,12 +69,12 @@ public class MBaseObject {
 
 	}
 
-	public MBaseObject(ObjectId id, String name, BaseTypeId baseId, String typeId, String fRepositoryId,
+	public MBaseObject(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
 			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
 			String parentId) {
 		super();
-		this.id = id;
+		this.id = (new Object()).toString();
 		this.name = name;
 		this.baseId = baseId;
 		this.typeId = typeId;
@@ -94,12 +94,11 @@ public class MBaseObject {
 		this.parentId = parentId;
 	}
 
-	public ObjectId getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(ObjectId id) {
-
+	public void setId(String id) {
 		this.id = id;
 	}
 

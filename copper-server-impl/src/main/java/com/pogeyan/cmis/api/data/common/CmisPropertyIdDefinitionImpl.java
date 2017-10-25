@@ -13,22 +13,20 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyDateTimeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyIdDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
-import org.apache.chemistry.opencmis.commons.enums.DateTimeResolution;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-public class CmisPropertyDateTimeDefinitionImpl implements PropertyDateTimeDefinition {
+@SuppressWarnings("serial")
+public class CmisPropertyIdDefinitionImpl implements PropertyIdDefinition {
 
-	private static final long serialVersionUID = 1L;
 	private String id;
 	private String localName;
 	private String localNamespace;
@@ -44,11 +42,11 @@ public class CmisPropertyDateTimeDefinitionImpl implements PropertyDateTimeDefin
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public CmisPropertyDateTimeDefinitionImpl() {
+	public CmisPropertyIdDefinitionImpl() {
 		super();
 	}
 
-	public CmisPropertyDateTimeDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyIdDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
@@ -137,12 +135,12 @@ public class CmisPropertyDateTimeDefinitionImpl implements PropertyDateTimeDefin
 	}
 
 	@Override
-	public List<GregorianCalendar> getDefaultValue() {
+	public List<String> getDefaultValue() {
 		return null;
 	}
 
 	@Override
-	public List<Choice<GregorianCalendar>> getChoices() {
+	public List<Choice<String>> getChoices() {
 		return null;
 	}
 
@@ -153,10 +151,5 @@ public class CmisPropertyDateTimeDefinitionImpl implements PropertyDateTimeDefin
 
 	@Override
 	public void setExtensions(List<CmisExtensionElement> extensions) {
-	}
-
-	@Override
-	public DateTimeResolution getDateTimeResolution() {
-		return null;
 	}
 }

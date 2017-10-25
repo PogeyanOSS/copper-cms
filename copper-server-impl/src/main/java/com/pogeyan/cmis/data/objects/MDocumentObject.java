@@ -52,11 +52,12 @@ public class MDocumentObject extends MBaseObject {
 			String versionSeriesCheckedOutId, String checkinComment, Long contentStreamLength,
 			String contentStreamMimeType, String contentStreamFileName, String contentStreamId,
 			String previousVersionObjectId) {
-		super(baseObject.getId(), baseObject.getName(), baseObject.getBaseId(), baseObject.getTypeId(),
+		super(baseObject.getName(), baseObject.getBaseId(), baseObject.getTypeId(),
 				baseObject.getRepositoryId(), baseObject.getSecondaryTypeIds(), baseObject.getDescription(),
 				baseObject.getCreatedBy(), baseObject.getModifiedBy(), baseObject.getChangeToken(),
 				baseObject.getInternalPath(), baseObject.getProperties(), baseObject.getPolicies(), baseObject.getAcl(),
 				baseObject.getPath(), baseObject.getParentId());
+		this.setId(baseObject.getId());
 		this.isImmutable = isImmutable;
 		this.isLatestVersion = isLatestVersion;
 		this.isMajorVersion = isMajorVersion;

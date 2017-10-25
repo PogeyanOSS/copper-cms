@@ -28,7 +28,6 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,7 @@ public class CmisRelationshipService {
 		/**
 		 * CMIS getObjectRelationships.
 		 */
-		public static ObjectList getObjectRelationships(String repositoryId, ObjectId objectId,
+		public static ObjectList getObjectRelationships(String repositoryId, String objectId,
 				Boolean includeSubRelationshipTypes, RelationshipDirection relationshipDirection, String typeId,
 				String filter, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
 				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException, MongoException {

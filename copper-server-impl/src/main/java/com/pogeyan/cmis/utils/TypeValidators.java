@@ -53,7 +53,7 @@ import org.apache.chemistry.opencmis.server.support.TypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.api.data.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 
 /**
  * A helper class doing some consistency checks when new type definitions are

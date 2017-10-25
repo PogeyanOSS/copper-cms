@@ -13,27 +13,27 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
 public class TokenImpl {
-	int changetype;
+	TokenChangeType changeType;
 	Long time;
 
 	public TokenImpl() {
 
 	}
 
-	public TokenImpl(int changetype, Long time) {
-		this.changetype = changetype;
+	public TokenImpl(TokenChangeType changetype, Long time) {
+		this.changeType = changetype;
 		this.time = time;
 	}
 
-	public int getChangeType() {
-		return changetype;
+	public TokenChangeType getChangeType() {
+		return changeType;
 	}
 
-	public void setChangeType(int changetype) {
-		this.changetype = changetype;
+	public void setChangeType(TokenChangeType changetype) {
+		this.changeType = changetype;
 	}
 
 	public Long getTime() {

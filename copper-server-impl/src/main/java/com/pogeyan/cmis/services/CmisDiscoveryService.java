@@ -44,8 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.auth.IUserObject;
-import com.pogeyan.cmis.api.data.AccessControlListImplExt;
-import com.pogeyan.cmis.api.data.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.data.objects.MBaseObject;

@@ -22,7 +22,7 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.core.CopperCmsRepository;
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MBaseObject;
@@ -50,7 +50,7 @@ public class DBUtils {
 
 	public static class BaseDAO {
 		@SuppressWarnings("serial")
-		public static MBaseObject getByObjectId(String repositoryId, ObjectId objectId, String[] mappedColumns) {
+		public static MBaseObject getByObjectId(String repositoryId, String objectId, String[] mappedColumns) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -154,7 +154,7 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static void updatePolicy(String repositoryId, List<String> polIds, ObjectId objectId, TokenImpl token) {
+		public static void updatePolicy(String repositoryId, List<String> polIds, String objectId, TokenImpl token) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
@@ -167,7 +167,7 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, ObjectId objectId) {
+		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, String objectId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
@@ -181,7 +181,7 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static void updateBaseSecondaryTypeObject(String repositoryId, List<String> secondaryObjectTypes,
-				ObjectId objectId) {
+				String objectId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
@@ -196,7 +196,7 @@ public class DBUtils {
 
 	public static class DocumentDAO {
 		@SuppressWarnings("serial")
-		public static MDocumentObject getDocumentByObjectId(String repositoryId, ObjectId objectId,
+		public static MDocumentObject getDocumentByObjectId(String repositoryId, String objectId,
 				String[] mappedColumns) {
 			MDocumentObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);

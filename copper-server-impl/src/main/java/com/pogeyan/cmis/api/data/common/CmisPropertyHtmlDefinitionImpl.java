@@ -13,20 +13,19 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
-import java.math.BigInteger;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyStringDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyHtmlDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
 @SuppressWarnings("serial")
-public class CmisPropertyStringDefinitionImpl implements PropertyStringDefinition {
+public class CmisPropertyHtmlDefinitionImpl implements PropertyHtmlDefinition {
 
 	private String id;
 	private String localName;
@@ -43,11 +42,11 @@ public class CmisPropertyStringDefinitionImpl implements PropertyStringDefinitio
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public CmisPropertyStringDefinitionImpl() {
+	public CmisPropertyHtmlDefinitionImpl() {
 		super();
 	}
 
-	public CmisPropertyStringDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyHtmlDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
@@ -63,11 +62,6 @@ public class CmisPropertyStringDefinitionImpl implements PropertyStringDefinitio
 		this.isQueryable = type.isQueryable();
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
-	}
-
-	@Override
-	public BigInteger getMaxLength() {
-		return null;
 	}
 
 	@Override

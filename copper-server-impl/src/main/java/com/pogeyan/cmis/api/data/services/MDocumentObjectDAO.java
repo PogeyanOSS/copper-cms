@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.bson.types.ObjectId;
 
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 
 public interface MDocumentObjectDAO {
@@ -28,14 +28,14 @@ public interface MDocumentObjectDAO {
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(ObjectId objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
+	public void delete(String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
 			TokenImpl token);
 
 	/**
 	 * update MDocumentObject with multiple field with in single query depending
 	 * on ObjectId
 	 */
-	public void update(ObjectId objectId, Map<String, Object> updateProps);
+	public void update(String objectId, Map<String, Object> updateProps);
 
 	/**
 	 * get checked out documents.

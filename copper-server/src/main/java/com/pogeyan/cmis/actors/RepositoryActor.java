@@ -59,7 +59,6 @@ import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParseException;
 import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParser;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +123,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
 		// call DB and get the repositoryInfo
-		ObjectId rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName());
+		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName());
 		IRepository repository = RepositoryManagerFactory.getInstance().getRepositoryStore()
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
@@ -151,7 +150,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				if (respositoryList != null && !respositoryList.isEmpty()) {
 					for (IRepository repository : respositoryList) {
 						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId());
-						ObjectId rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
+						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
 								request.getUserName());
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
 								CmisVersion.CMIS_1_1, rootId,
@@ -323,14 +322,12 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	@SuppressWarnings("serial")
 	private RepositoryInfo createRepositoryInfo(String repositoryId, String name, CmisVersion cmisVersion,
-			ObjectId rootFolderId, String description) {
-		LOG.info("MongoRepository rootFolderId:{}", rootFolderId);
+			String rootFolderId, String description) {
+		LOG.info("createRepositoryInfo rootFolderId: {}", rootFolderId);
 		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MBaseObjectDAO.class);
-
 		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null
 				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime() : null);
-
 		// repository info
 		RepositoryInfoImpl repoInfo = new RepositoryInfoImpl();
 		repoInfo.setId(repositoryId == null ? "repository" : repositoryId);

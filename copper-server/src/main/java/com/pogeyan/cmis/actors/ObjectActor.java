@@ -50,7 +50,6 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.BulkUpdateObjectId
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,7 +148,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId objectId = new ObjectId(t.getObjectId());
+		String objectId = t.getObjectId();
 		boolean acessPermission = false;
 		MBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null);
 
@@ -169,12 +168,11 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Boolean includeAcl = t.getBooleanParameter(QueryGetRequest.PARAM_ACL);
 		boolean succinct = t.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = t.getDateTimeFormatParameter();
-		LOG.info("getObject->ObjectID{}", objectId);
 		ObjectData object = null;
 		if (returnVersion == ReturnVersion.LATEST || returnVersion == ReturnVersion.LASTESTMAJOR) {
-			object = CmisVersioningServices.Impl.getObjectOfLatestVersion(t.getRepositoryId(), objectId.toString(),
+			object = CmisVersioningServices.Impl.getObjectOfLatestVersion(t.getRepositoryId(), objectId,
 					null, returnVersion == ReturnVersion.LASTESTMAJOR, filter, includeAllowableActions, null,
-					renditionFilter, includePolicyIds, includeAcl, null, null, t.getUserObject().getUserDN());
+					includePolicyIds, includeAcl, null, null, t.getUserObject().getUserDN());
 		} else {
 			object = CmisObjectService.Impl.getObject(t.getRepositoryId(), objectId, filter, includeAllowableActions,
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null,
@@ -192,7 +190,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId objectId = new ObjectId(t.getObjectId());
+		String objectId = t.getObjectId();
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
 		String filter = t.getParameter(QueryGetRequest.PARAM_FILTER);
 		boolean succinct = t.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
@@ -222,14 +220,11 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId objectId = new ObjectId(t.getObjectId());
-		AllowableActions allowableActions = CmisObjectService.Impl.getAllowableActions(t.getRepositoryId(), objectId,
+		
+		AllowableActions allowableActions = CmisObjectService.Impl.getAllowableActions(t.getRepositoryId(), t.getObjectId(),
 				t.getUserObject().getUserDN());
-
 		JSONObject resultAllowableActions = JSONConverter.convert(allowableActions);
-
 		return resultAllowableActions;
-
 	}
 
 	private JSONArray getRenditions(QueryGetRequest t) throws CmisInvalidArgumentException, CmisRuntimeException {
@@ -237,7 +232,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId objectId = new ObjectId(t.getObjectId());
+		String objectId = t.getObjectId();
 		String renditionFilter = t.getParameter(QueryGetRequest.PARAM_RENDITION_FILTER);
 		BigInteger maxItems = t.getBigIntegerParameter(QueryGetRequest.PARAM_MAX_ITEMS);
 		BigInteger skipCount = t.getBigIntegerParameter(QueryGetRequest.PARAM_SKIP_COUNT);
@@ -256,7 +251,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 
 	private JSONObject createFolders(PostRequest request) throws CmisObjectNotFoundException, IllegalArgumentException,
 			CmisInvalidArgumentException, CmisRuntimeException {
-		ObjectId folderId = request.getObjectId() != null ? new ObjectId(request.getObjectId()) : null;
+		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
 		IUserGroupObject[] groupsId = request.getUserObject().getGroups();
@@ -268,7 +263,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
 		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
-		ObjectId newObjectId = CmisObjectService.Impl.createFolder(request.getRepositoryId(), folderId, prop,
+		String newObjectId = CmisObjectService.Impl.createFolder(request.getRepositoryId(), folderId, prop,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_FOLDER);
@@ -293,7 +288,8 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.getGroupPermission(permission, groupsId)) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId folderId = request.getObjectId() != null ? new ObjectId(request.getObjectId()) : null;
+		
+		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		VersioningState versioningState = request.getEnumParameter(QueryGetRequest.PARAM_VERSIONIG_STATE,
 				VersioningState.class);
 		// String token = request.getParameter(request.PARAM_TOKEN);
@@ -302,7 +298,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());		
 		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
-		ObjectId newObjectId = null;
+		String newObjectId = null;
 		if (request.getContentStream() == null) {
 			newObjectId = CmisObjectService.Impl.createDocument(request.getRepositoryId(), prop, folderId, null,
 					versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(),
@@ -335,7 +331,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.getGroupPermission(permission, groups)) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId folderId = request.getObjectId() != null ? new ObjectId(request.getObjectId()) : null;
+		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		VersioningState versioningState = request.getEnumParameter(QueryGetRequest.PARAM_VERSIONIG_STATE,
 				VersioningState.class);
 		// String token = request.getParameter(request.PARAM_TOKEN);
@@ -343,7 +339,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		String sourceId = request.getParameter(QueryGetRequest.PARAM_SOURCE_ID);
 		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
-		ObjectData sourceDoc = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), new ObjectId(sourceId),
+		ObjectData sourceDoc = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), sourceId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
 		PropertyData<?> sourceTypeId = sourceDoc.getProperties().getProperties().get(PropertyIds.OBJECT_TYPE_ID);
 		if (sourceTypeId == null || sourceTypeId.getFirstValue() == null) {
@@ -351,8 +347,8 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
-		ObjectId newObjectId = CmisObjectService.Impl.createDocumentFromSource(request.getRepositoryId(),
-				new ObjectId(sourceId), prop, folderId, versioningState, request.getPolicies(), aclImp,
+		String newObjectId = CmisObjectService.Impl.createDocumentFromSource(request.getRepositoryId(),
+				sourceId, prop, folderId, versioningState, request.getPolicies(), aclImp,
 				request.getRemoveAcl(), request.getUserObject().getUserDN());
 
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -377,13 +373,13 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
 
-		ObjectId folderId = request.getObjectId() != null ? new ObjectId(request.getObjectId()) : null;
+		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
 		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
-		ObjectId newObjectId = CmisObjectService.Impl.createItem(request.getRepositoryId(), prop, folderId,
+		String newObjectId = CmisObjectService.Impl.createItem(request.getRepositoryId(), prop, folderId,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -412,7 +408,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
 		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
-		ObjectId newObjectId = CmisObjectService.Impl.createPolicy(request.getRepositoryId(), prop, folderId,
+		String newObjectId = CmisObjectService.Impl.createPolicy(request.getRepositoryId(), prop, folderId,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -439,9 +435,9 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
-		ObjectId folderId = request.getObjectId() != null ? new ObjectId(request.getObjectId()) : null;
+		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
-		ObjectId newObjectId = CmisObjectService.Impl.createRelationship(request.getRepositoryId(), folderId, prop,
+		String newObjectId = CmisObjectService.Impl.createRelationship(request.getRepositoryId(), folderId, prop,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -510,7 +506,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId objectId = new ObjectId(request.getObjectId());
+		String objectId = request.getObjectId();
 		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), objectId);
 		String changeToken = request.getParameter(QueryGetRequest.CONTROL_CHANGE_TOKEN);
 		String token = request.getParameter(QueryGetRequest.PARAM_TOKEN);
@@ -522,7 +518,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				null, Collections.singletonList(objectId.toString()), request.getRepositoryId());
 		CmisObjectService.Impl.updateProperties(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
 				properties, null, null, request.getUserObject());
-		ObjectId newObjectId = (objectIdHolder.getValue() == null ? objectId : new ObjectId(objectIdHolder.getValue()));
+		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject().getUserDN(), request.getBaseTypeId());
 		if (object == null) {
@@ -612,7 +608,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
-		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), new ObjectId(newObjectId),
+		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_DOCUMENT);
 		if (object == null) {
 			MetricsInputs.markUploadErrorMeter();
@@ -645,7 +641,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 					request.getContentStream(), isLastChunk);
 		}
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
-		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), new ObjectId(newObjectId),
+		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_DOCUMENT);
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");
@@ -674,7 +670,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 
 		CmisObjectService.Impl.deleteContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder);
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
-		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), new ObjectId(newObjectId),
+		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_DOCUMENT);
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");

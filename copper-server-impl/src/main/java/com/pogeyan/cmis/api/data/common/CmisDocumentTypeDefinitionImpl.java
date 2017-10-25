@@ -13,30 +13,47 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.commons.definitions.PolicyTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.enums.ContentStreamAllowed;
 
 import com.pogeyan.cmis.data.objects.MTypeObject;
 
-public class CmisPolicyTypeDefinitionImpl extends MTypeObject implements PolicyTypeDefinition {
+public class CmisDocumentTypeDefinitionImpl extends MTypeObject implements DocumentTypeDefinition {
 
 	private static final long serialVersionUID = 1L;
+	private Boolean isVersion;
+	private ContentStreamAllowed contentStream;
 
-	public CmisPolicyTypeDefinitionImpl() {
+	@Override
+	public Boolean isVersionable() {
+		return this.isVersion;
+	}
+
+	@Override
+	public ContentStreamAllowed getContentStreamAllowed() {
+		return this.contentStream;
+	}
+
+	public CmisDocumentTypeDefinitionImpl() {
 
 	}
 
-	public CmisPolicyTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
+	public CmisDocumentTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
 			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
 			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
-			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition, Boolean isVersion,
+			ContentStreamAllowed contentStream) {
 		super(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent, isCreatable,
 				isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery, isControllablePolicy,
 				isControllableAcl, typeMutability, propertyDefinition);
+		this.isVersion = isVersion;
+		this.contentStream = contentStream;
 	}
+
 }

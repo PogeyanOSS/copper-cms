@@ -28,12 +28,12 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.api.data.AccessControlListImplExt;
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.utils.DBUtils;
 import com.pogeyan.cmis.utils.TypeValidators;
@@ -47,7 +47,7 @@ public class CmisAclServices {
 				ExtensionsData extension, ObjectInfoHandler objectInfos, String userName)
 				throws CmisObjectNotFoundException {
 			LOG.info("getAcl on objectId: {} , repository: {}", objectId, repositoryId);
-			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(objectId), null);
+			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
@@ -71,28 +71,28 @@ public class CmisAclServices {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
 
-			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(objectId), null);
+			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
 			}
-			TokenImpl token = new TokenImpl(3, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			switch (aclPropagation) {
 			case REPOSITORYDETERMINED: {
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, new ObjectId(objectId));
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
 				break;
 			}
 			case OBJECTONLY:
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, new ObjectId(objectId));
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
 				break;
 			case PROPAGATE:
 				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, new ObjectId(objectId));
+				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId);
 				break;
 			}
-			MBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(objectId), null);
+			MBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("newData after applyAcl: {}", newData.getAcl().getAces());
 			}

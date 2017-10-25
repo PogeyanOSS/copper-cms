@@ -13,20 +13,20 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyHtmlDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyBooleanDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-@SuppressWarnings("serial")
-public class CmisPropertyHtmlDefinitionImpl implements PropertyHtmlDefinition {
+public class CmisPropertyBooleanDefinitionImpl implements PropertyBooleanDefinition {
 
+	private static final long serialVersionUID = 1L;
 	private String id;
 	private String localName;
 	private String localNamespace;
@@ -42,11 +42,11 @@ public class CmisPropertyHtmlDefinitionImpl implements PropertyHtmlDefinition {
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public CmisPropertyHtmlDefinitionImpl() {
+	public CmisPropertyBooleanDefinitionImpl() {
 		super();
 	}
 
-	public CmisPropertyHtmlDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyBooleanDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
@@ -135,12 +135,12 @@ public class CmisPropertyHtmlDefinitionImpl implements PropertyHtmlDefinition {
 	}
 
 	@Override
-	public List<String> getDefaultValue() {
+	public List<Boolean> getDefaultValue() {
 		return null;
 	}
 
 	@Override
-	public List<Choice<String>> getChoices() {
+	public List<Choice<Boolean>> getChoices() {
 		return null;
 	}
 

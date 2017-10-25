@@ -22,11 +22,11 @@ import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.data.objects.MBaseObject;
 import com.pogeyan.cmis.utils.DBUtils;
 
@@ -40,7 +40,7 @@ public class CmisPolicyService {
 		public static List<ObjectData> getAppliedPolicies(String repositoryId, String objectId, String filter,
 				String username) throws CmisObjectNotFoundException {
 			LOG.info("getAppliedPolicies on objectId: {} , repository: {}", objectId, repositoryId);
-			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(objectId), null);
+			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
 				LOG.error("Unknown object id:{}", objectId);
@@ -49,7 +49,7 @@ public class CmisPolicyService {
 			List<String> polIds = data.getPolicies();
 			if (null != polIds && polIds.size() > 0) {
 				for (String polId : polIds) {
-					MBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(polId), null);
+					MBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
 							false, true, null, null, IncludeRelationships.NONE, username);
 
@@ -65,7 +65,7 @@ public class CmisPolicyService {
 		/**
 		 * removePolicy() method from cmis object.
 		 */
-		public static void removePolicy(String repositoryId, String policyId, ObjectId objectId, String userName)
+		public static void removePolicy(String repositoryId, String policyId, String objectId, String userName)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException {
 
 			LOG.info("removePolicy on objectId: {} , with policyId: {} , repository: {}", objectId, policyId,
@@ -76,7 +76,7 @@ public class CmisPolicyService {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			TokenImpl token = new TokenImpl(3, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			polIds = data.getPolicies();
 			if (null == polIds || !(polIds.contains(policyId))) {
 				LOG.error("policyId:{},cannot be removed, because it is not applied to object:{} ", policyId, objectId);
@@ -93,7 +93,7 @@ public class CmisPolicyService {
 		/**
 		 * applyPolicy() method for an object.
 		 */
-		public static void applyPolicy(String repositoryId, String policyId, ObjectId objectId)
+		public static void applyPolicy(String repositoryId, String policyId, String objectId)
 				throws CmisObjectNotFoundException, CmisInvalidArgumentException {
 
 			LOG.info("applyPolicy on objectId: {} , with policyId: {} , repository : {}", objectId, policyId,
@@ -104,12 +104,12 @@ public class CmisPolicyService {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			MBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, new ObjectId(policyId), null);
+			MBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null);
 			if (policy == null) {
 				LOG.error("Unknown policy id:{}", policyId);
 				throw new CmisObjectNotFoundException("Unknown policy id: " + policyId);
 			}
-			TokenImpl token = new TokenImpl(3, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			polIds = data.getPolicies();
 			if (null != polIds && polIds.contains(policyId)) {
 				LOG.error("policyId:{},cannot be added,  because it is already applied to object:{} ", policyId,

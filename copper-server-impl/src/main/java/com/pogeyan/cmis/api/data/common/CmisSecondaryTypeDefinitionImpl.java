@@ -13,26 +13,26 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.commons.definitions.ItemTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.SecondaryTypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 
 import com.pogeyan.cmis.data.objects.MTypeObject;
 
-public class ItemTypeDefinitionImpl extends MTypeObject implements ItemTypeDefinition {
+public class CmisSecondaryTypeDefinitionImpl extends MTypeObject implements SecondaryTypeDefinition {
 
-	private static final long serialVersionUID = -5676305782058634549L;
+	private static final long serialVersionUID = 1L;
 
-	public ItemTypeDefinitionImpl() {
+	public CmisSecondaryTypeDefinitionImpl() {
 
 	}
 
-	public ItemTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName, String queryName,
-			String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable, Boolean isFileable,
-			Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
+	public CmisSecondaryTypeDefinitionImpl(String id, String localName, String localNamespace, String displayName,
+			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
+			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
 			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutabilityImpl typeMutability,
 			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
 		super(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent, isCreatable,

@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.database.IDBClientFactory;
-import com.pogeyan.cmis.data.mongo.MongoClientFactory;
+import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
 import com.pogeyan.cmis.factory.RepositoryManagerFactory;
 
 public class DatabaseServiceFactory {

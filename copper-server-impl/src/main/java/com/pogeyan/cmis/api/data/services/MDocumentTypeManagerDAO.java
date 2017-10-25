@@ -15,7 +15,7 @@
  */
 package com.pogeyan.cmis.api.data.services;
 
-import com.pogeyan.cmis.api.data.CmisDocumentTypeDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
 
 public interface MDocumentTypeManagerDAO {
 	/**

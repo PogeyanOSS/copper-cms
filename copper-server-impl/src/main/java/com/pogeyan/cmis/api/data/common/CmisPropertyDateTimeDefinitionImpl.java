@@ -13,20 +13,22 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.api.data;
+package com.pogeyan.cmis.api.data.common;
 
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyUriDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDateTimeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
+import org.apache.chemistry.opencmis.commons.enums.DateTimeResolution;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-@SuppressWarnings("serial")
-public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
+public class CmisPropertyDateTimeDefinitionImpl implements PropertyDateTimeDefinition {
 
+	private static final long serialVersionUID = 1L;
 	private String id;
 	private String localName;
 	private String localNamespace;
@@ -42,11 +44,11 @@ public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 
-	public CmisPropertyUriDefinitionImpl() {
+	public CmisPropertyDateTimeDefinitionImpl() {
 		super();
 	}
 
-	public CmisPropertyUriDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyDateTimeDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
@@ -135,12 +137,12 @@ public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
 	}
 
 	@Override
-	public List<String> getDefaultValue() {
+	public List<GregorianCalendar> getDefaultValue() {
 		return null;
 	}
 
 	@Override
-	public List<Choice<String>> getChoices() {
+	public List<Choice<GregorianCalendar>> getChoices() {
 		return null;
 	}
 
@@ -151,5 +153,10 @@ public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
 
 	@Override
 	public void setExtensions(List<CmisExtensionElement> extensions) {
+	}
+
+	@Override
+	public DateTimeResolution getDateTimeResolution() {
+		return null;
 	}
 }

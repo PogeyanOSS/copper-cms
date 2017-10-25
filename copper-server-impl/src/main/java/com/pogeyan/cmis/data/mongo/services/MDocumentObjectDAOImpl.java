@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.mongo;
+package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
 import java.util.Map;
@@ -26,8 +26,8 @@ import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import com.pogeyan.cmis.api.data.TokenChangeType;
-import com.pogeyan.cmis.api.data.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.objects.MDocumentObject;
 
@@ -50,7 +50,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void delete(ObjectId objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
+	public void delete(String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
 			TokenImpl token) {
 		Query<MDocumentObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
 				.notEqual(TokenChangeType.DELETED.value());
@@ -76,7 +76,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void update(ObjectId objectId, Map<String, Object> updateProps) {
+	public void update(String objectId, Map<String, Object> updateProps) {
 		UpdateOperations<MDocumentObject> update = createUpdateOperations();
 		Query<MDocumentObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
 				.notEqual(TokenChangeType.DELETED.value());

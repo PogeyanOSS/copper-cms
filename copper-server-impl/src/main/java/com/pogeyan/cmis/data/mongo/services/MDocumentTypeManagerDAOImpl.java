@@ -13,14 +13,14 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.data.mongo;
+package com.pogeyan.cmis.data.mongo.services;
 
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
 
-import com.pogeyan.cmis.api.data.CmisDocumentTypeDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 
 public class MDocumentTypeManagerDAOImpl extends BasicDAO<CmisDocumentTypeDefinitionImpl, ObjectId>
