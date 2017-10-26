@@ -22,8 +22,6 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Field;
 import org.mongodb.morphia.annotations.Id;
@@ -48,7 +46,7 @@ public class MBaseObject {
 	private String modifiedBy;
 	private Long createdAt;
 	private Long modifiedAt;
-	private TokenImpl token;
+	private MongoToken token;
 	private String internalPath;
 	private String path;
 	private List<String> policies;
@@ -74,7 +72,7 @@ public class MBaseObject {
 			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
 			String parentId) {
 		super();
-		this.id = (new Object()).toString();
+		this.id = String.valueOf((new Object()).hashCode());
 		this.name = name;
 		this.baseId = baseId;
 		this.typeId = typeId;
@@ -83,7 +81,7 @@ public class MBaseObject {
 		this.description = description;
 		this.createdBy = createdBy;
 		this.modifiedBy = modifiedBy;
-		this.token = token;
+		this.token = convertMongoToken(token);
 		this.internalPath = internalPath;
 		this.path = path;
 		this.properties = properties;
@@ -182,7 +180,7 @@ public class MBaseObject {
 		return this.token;
 	}
 
-	public void setChangeToken(TokenImpl token) {
+	public void setChangeToken(MongoToken token) {
 		this.token = token;
 	}
 
@@ -236,7 +234,7 @@ public class MBaseObject {
 			for (Ace ace : acl.getAces()) {
 				MongoAceImpl aces = new MongoAceImpl();
 				aces.setDirect(true);
-				aces.setPrincipal(new AccessControlPrincipalDataImpl(ace.getPrincipalId()));
+				aces.setPrincipal(new MongoPrincipalImpl(ace.getPrincipalId()));
 				aces.setPermissions(ace.getPermissions());
 				list.add(aces);
 			}
@@ -248,5 +246,13 @@ public class MBaseObject {
 		}
 
 		return null;
+	}
+
+	public static MongoToken convertMongoToken(TokenImpl token) {
+		MongoToken mongoToken = new MongoToken();
+		mongoToken.setChangeType(token.getChangeType());
+		mongoToken.setTime(token.getTime());
+		return mongoToken;
+
 	}
 }

@@ -129,10 +129,9 @@ public class CmisObjectService {
 					return rootData.getId();
 				} else {
 					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
-					MBaseObject folderObject = new MBaseObject(CopperCmsRepository.ROOT_ID,
-							BaseTypeId.CMIS_FOLDER, "cmis:folder", repositoryId, null,
-							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, null, "/",
-							null);
+					MBaseObject folderObject = new MBaseObject(CopperCmsRepository.ROOT_ID, BaseTypeId.CMIS_FOLDER,
+							"cmis:folder", repositoryId, null, "Pogeyan MongoDB CMIS Repository", userName, userName,
+							token, ",", null, null, null, "/", null);
 					objectMorphiaDAO.commit(folderObject);
 					LOG.info("Root folder created in MongoDB: {} , repository: {} ", folderObject.getId(),
 							repositoryId);
@@ -1107,7 +1106,7 @@ public class CmisObjectService {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
-			
+
 			LOG.info("Get ObjectId: {} , repository: {}", objectId.toString(), repositoryId);
 			MBaseObject data = null;
 			try {
@@ -1442,9 +1441,9 @@ public class CmisObjectService {
 		 * folderID
 		 */
 		@SuppressWarnings("unchecked")
-		private static MDocumentObject createDocumentIntern(String repositoryId, Properties properties,
-				String folderId, ContentStream contentStream, VersioningState versioningState, List<String> policies,
-				Acl addACEs, Acl removeACEs, String userName)
+		private static MDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
+				ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addACEs,
+				Acl removeACEs, String userName)
 				throws CmisInvalidArgumentException, CmisConstraintException, IllegalArgumentException {
 			if (LOG.isDebugEnabled() && addACEs != null && removeACEs != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addACEs.getAces(), removeACEs.getAces());
@@ -1567,8 +1566,8 @@ public class CmisObjectService {
 			LOG.info("Creating Document: {} within ParentFolder id: {} ", docname, parentData.getId());
 			MDocumentObject documentObject = null;
 
-			ObjectId versionSeriesId = new ObjectId();
-			ObjectId versionReferenceId = new ObjectId();
+			String versionSeriesId = String.valueOf((new Object()).hashCode());
+			String versionReferenceId = String.valueOf((new Object()).hashCode());
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId);
 			MBaseObject baseObject = null;
 			Tuple2<String, String> p = null;
@@ -1586,20 +1585,20 @@ public class CmisObjectService {
 
 				if (versioningState == VersioningState.MAJOR) {
 					documentObject = new MDocumentObject(baseObject, false, true, true, true, false, "1.0",
-							versionSeriesId.toString(), versionReferenceId.toString(), false, null, null,
-							"Commit Document", null, null, null, null, null);
+							versionSeriesId, versionReferenceId, false, null, null, "Commit Document", null, null, null,
+							null, null);
 				} else if (versioningState == VersioningState.MINOR) {
 					documentObject = new MDocumentObject(baseObject, false, true, false, false, false, "1.0",
-							versionSeriesId.toString(), versionReferenceId.toString(), false, null, null,
-							"Commit Document", null, null, null, null, null);
+							versionSeriesId, versionReferenceId, false, null, null, "Commit Document", null, null, null,
+							null, null);
 				} else if (versioningState == VersioningState.NONE || versioningState == null) {
 					documentObject = new MDocumentObject(baseObject, false, true, false, false, false, "1.0",
-							versionSeriesId.toString(), versionReferenceId.toString(), false, null, null,
-							"Commit Document", null, null, null, null, null);
+							versionSeriesId, versionReferenceId, false, null, null, "Commit Document", null, null, null,
+							null, null);
 				} else if (versioningState == VersioningState.CHECKEDOUT) {
 					documentObject = new MDocumentObject(baseObject, false, true, true, true, false, "1.0",
-							versionSeriesId.toString(), versionReferenceId.toString(), false, null, null,
-							"Commit Document", null, null, null, null, null);
+							versionSeriesId, versionReferenceId, false, null, null, "Commit Document", null, null, null,
+							null, null);
 				}
 				if (contentStream != null) {
 					p = resolvePathForObject(parentData, contentStream.getFileName());
@@ -1621,8 +1620,7 @@ public class CmisObjectService {
 					validateAcl(repositoryId, removeACEs, baseObject.getId(), baseObject);
 				if (versioningState == VersioningState.CHECKEDOUT) {
 					Holder<String> objectsId = new Holder<String>(baseObject.getId().toString());
-					String pwcId = CmisVersioningServices.Impl.checkOut(repositoryId, objectsId, null, null,
-							username);
+					String pwcId = CmisVersioningServices.Impl.checkOut(repositoryId, objectsId, null, null, username);
 					documentObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, pwcId, null);
 				}
 				return documentObject;
@@ -1914,8 +1912,8 @@ public class CmisObjectService {
 		 * returns relationship Document
 		 */
 		@SuppressWarnings({ "unchecked", "unused" })
-		private static MBaseObject createRelationshipIntern(String repositoryId, String folderId,
-				Properties properties, List<String> policies, Acl addAces, Acl removeAces, String userName)
+		private static MBaseObject createRelationshipIntern(String repositoryId, String folderId, Properties properties,
+				List<String> policies, Acl addAces, Acl removeAces, String userName)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
@@ -2509,8 +2507,7 @@ public class CmisObjectService {
 				BigInteger offset, BigInteger length) throws CmisObjectNotFoundException {
 			LOG.info("getContentStream objectId: {} , repository: {}", objectId, repositoryId);
 			try {
-				MDocumentObject docDetails = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-						objectId, null);
+				MDocumentObject docDetails = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 				ContentStream contentStream = null;
@@ -2548,8 +2545,8 @@ public class CmisObjectService {
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
-			MDocumentObject object = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-					objectId.getValue().trim(), null);
+			MDocumentObject object = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue().trim(),
+					null);
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(object.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
 				throw new CmisUpdateConflictException("set content failed: changeToken does not match");
@@ -2856,7 +2853,8 @@ public class CmisObjectService {
 			}
 
 			// TODO: optimize here
-			// IStorageService localService = MongoStorageDocument.createStorageService(parameters);
+			// IStorageService localService =
+			// MongoStorageDocument.createStorageService(parameters);
 			// localService.deleteFolder(data.getPath());
 			baseMorphiaDAO.delete(folderId, false, token);
 			MBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
@@ -2901,7 +2899,7 @@ public class CmisObjectService {
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				LOG.error("RootFolder" + data.getId() + " have no move operation :{}", objectId.getValue());
 				throw new CmisNotSupportedException("RootFolder " + data.getId() + " have no move operation");
-			}			
+			}
 			MBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, targetFolderId, null);
 			if (null == soTarget) {
 				LOG.error("Unknown target folder:{}", targetFolderId);
@@ -2960,7 +2958,7 @@ public class CmisObjectService {
 				}
 
 			}
-			
+
 			Long modifiedTime = System.currentTimeMillis();
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, modifiedTime);
 			if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {

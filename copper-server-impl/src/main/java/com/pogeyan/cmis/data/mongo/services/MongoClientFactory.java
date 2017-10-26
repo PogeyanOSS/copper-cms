@@ -23,8 +23,15 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bson.Document;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.converters.SimpleValueConverter;
@@ -36,8 +43,10 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
@@ -72,6 +81,8 @@ public class MongoClientFactory implements IDBClientFactory {
 		objectServiceClass.put(MDocumentTypeManagerDAO.class, MongoClientFactory.MDOCUMENTTYPEMANAGERDAO);
 		objectServiceClass.put(MTypeManagerDAO.class, MongoClientFactory.MTYPEMANAGERDAO);
 		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
+		morphia.getMapper().getConverters().addConverter(new AceConverter());
+		morphia.getMapper().getConverters().addConverter(new AceConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -183,6 +194,72 @@ public class MongoClientFactory implements IDBClientFactory {
 			}
 
 			return ((BaseTypeId) value).value();
+		}
+	}
+
+	public static class AceConverter extends TypeConverter implements SimpleValueConverter {
+
+		public AceConverter() {
+			super(Ace.class);
+		}
+
+		@Override
+		public Object decode(final Class<?> targetClass, final Object fromDBObject, final MappedField optionalExtraInfo)
+				throws MappingException {
+			if (fromDBObject != null) {
+				JSONParser parser = new JSONParser();
+				JSONObject jsonObject = null;
+				try {
+					jsonObject = (JSONObject) parser.parse(fromDBObject.toString());
+					@SuppressWarnings("unchecked")
+					List<String> permissions = (List<String>) jsonObject.get("permissions");
+					JSONObject principal = (JSONObject) jsonObject.get("principal");
+					String principalId = (String) principal.get("principalId");
+					return new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId), permissions);
+				} catch (ParseException e) {
+					LOG.error("AceConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
+			}
+			return null;
+		}
+
+		@Override
+		public Object encode(final Object value, final MappedField optionalExtraInfo) {
+			return value;
+		}
+	}
+
+	public static class TokenConverter extends TypeConverter implements SimpleValueConverter {
+
+		public TokenConverter() {
+			super(TokenChangeType.class);
+		}
+
+		@Override
+		public Object decode(final Class<?> targetClass, final Object fromDBObject, final MappedField optionalExtraInfo)
+				throws MappingException {
+			if (fromDBObject != null) {
+				JSONParser parser = new JSONParser();
+				JSONObject jsonObject = null;
+				try {
+					jsonObject = (JSONObject) parser.parse(fromDBObject.toString());
+					@SuppressWarnings("unchecked")
+					List<String> permissions = (List<String>) jsonObject.get("permissions");
+					JSONObject principal = (JSONObject) jsonObject.get("principal");
+					String principalId = (String) principal.get("principalId");
+					return new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId), permissions);
+				} catch (ParseException e) {
+					LOG.error("AceConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
+			}
+			return null;
+		}
+
+		@Override
+		public Object encode(final Object value, final MappedField optionalExtraInfo) {
+			return value;
 		}
 	}
 

@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -33,7 +34,6 @@ import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
@@ -213,8 +213,8 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String userName = request.getUserName();
 
 		ObjectData object = CmisVersioningServices.Impl.getObjectOfLatestVersion(request.getRepositoryId(), objectId,
-				versionSeriesId, true, filter, includeAllowableActions, null, includePolicyIds,
-				includeAcl, null, null, userName);
+				versionSeriesId, true, filter, includeAllowableActions, renditionFilter, includePolicyIds, includeAcl,
+				null, null, userName);
 
 		if (object == null) {
 			throw new CmisRuntimeException("object is not present!");

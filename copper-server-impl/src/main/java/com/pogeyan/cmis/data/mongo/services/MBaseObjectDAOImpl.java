@@ -18,7 +18,6 @@ package com.pogeyan.cmis.data.mongo.services;
 import java.util.List;
 import java.util.Map;
 
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
@@ -39,12 +38,12 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 
 	@Override
 	public void delete(String objectId, boolean forceDelete, TokenImpl token) {
-		Query<MBaseObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(TokenChangeType.DELETED.value());
+		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
+				.field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
 			this.deleteByQuery(query);
 		} else {
-			UpdateOperations<MBaseObject> update = createUpdateOperations();
+			UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
 			update = update.set("token", token);
 			update = update.unset("properties");
 			update(query, update);
@@ -54,9 +53,9 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 
 	@Override
 	public void update(String objectId, Map<String, Object> updateProps) {
-		UpdateOperations<MBaseObject> update = createUpdateOperations();
-		Query<MBaseObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(TokenChangeType.DELETED.value());
+		UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
+		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
+				.field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 		if (updateProps.get("acl") != null) {
 			MongoAclImpl mAcl = MBaseObject.convertMongoAcl((AccessControlListImplExt) updateProps.get("acl"));
 			updateProps.remove("acl");
@@ -70,14 +69,15 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 
 	@Override
 	public MBaseObject getLatestToken() {
-		Query<MBaseObject> query = createQuery().order("-token.time").limit(-1);
+		Query<MBaseObject> query = createQuery().disableValidation().order("-token.time").limit(-1);
 		return query.get();
 	}
 
 	@Override
 	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
 			int skipCount, String[] mappedColumns) {
-		Query<MBaseObject> query = createQuery().field("token.changetype").notEqual(TokenChangeType.DELETED.value());
+		Query<MBaseObject> query = createQuery().disableValidation().field("token.changetype")
+				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
 			query = query.field(entry.getKey()).equal(entry.getValue());
 		}

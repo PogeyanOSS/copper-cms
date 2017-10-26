@@ -205,7 +205,8 @@ public class MTypeObject implements TypeDefinition {
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("datetime")) {
-					CmisPropertyDateTimeDefinitionImpl propertyValue = new CmisPropertyDateTimeDefinitionImpl(valueName);
+					CmisPropertyDateTimeDefinitionImpl propertyValue = new CmisPropertyDateTimeDefinitionImpl(
+							valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("decimal")) {

@@ -23,15 +23,16 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListI
 public class AccessControlListImplExt extends AccessControlListImpl {
 	private static final long serialVersionUID = -2046311948241075878L;
 	private String aclPropagation;
-	
-	protected AccessControlListImplExt() {		
+
+	protected AccessControlListImplExt() {
+		super();
 	}
 
 	public AccessControlListImplExt(List<Ace> aces) {
 		super(aces);
 		this.aclPropagation = "";
 	}
-	
+
 	public AccessControlListImplExt(List<Ace> aces, String aclPropagation, boolean exact) {
 		super(aces);
 		this.setExact(exact);

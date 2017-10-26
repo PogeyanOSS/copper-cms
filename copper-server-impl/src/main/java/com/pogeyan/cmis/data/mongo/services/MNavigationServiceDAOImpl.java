@@ -40,10 +40,10 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 			int skipCount, String orderBy, String[] mappedColumns) {
 		Query<MBaseObject> query = null;
 		if (orderBy != null) {
-			query = createQuery().filter("internalPath", path).field("token.changetype")
+			query = createQuery().disableValidation().filter("internalPath", path).field("token.changetype")
 					.notEqual(TokenChangeType.DELETED.value()).order("-" + orderBy);
 		} else {
-			query = createQuery().filter("internalPath", path).field("token.changetype")
+			query = createQuery().disableValidation().filter("internalPath", path).field("token.changetype")
 					.notEqual(TokenChangeType.DELETED.value());
 		}
 		if (maxItems > 0) {
@@ -62,7 +62,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 
 	@Override
 	public long getChildrenSize(String path, String[] principalIds, boolean aclPropagation) {
-		Query<MBaseObject> query = createQuery().filter("internalPath", path).field("token.changetype")
+		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath", path).field("token.changetype")
 				.notEqual(TokenChangeType.DELETED.value());
 		if (aclPropagation) {
 			query.or(getAclCriteria(principalIds, query));
@@ -76,13 +76,13 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	public List<MBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation) {
 		if (aclPropagation) {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("token.changetype")
+			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp).field("token.changetype")
 					.notEqual(TokenChangeType.DELETED.value());
 			query.or(getAclCriteria(principalIds, query));
 			return query.asList();
 		} else {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("token.changetype")
+			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp).field("token.changetype")
 					.notEqual(TokenChangeType.DELETED.value());
 			return query.asList();
 		}
@@ -92,13 +92,13 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	public List<MBaseObject> getFolderTreeIds(String path, String[] principalIds, boolean aclPropagation) {
 		if (aclPropagation) {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("baseId")
+			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp).field("baseId")
 					.equalIgnoreCase("cmis:folder").field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 			query.or(getAclCriteria(principalIds, query));
 			return query.asList();
 		} else {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().filter("internalPath =", exp).field("baseId")
+			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp).field("baseId")
 					.equalIgnoreCase("cmis:folder").field("token.changetype").notEqual(TokenChangeType.DELETED.value());
 			return query.asList();
 		}
@@ -106,7 +106,8 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	}
 
 	private Criteria[] getAclCriteria(String[] principalIds, Query<MBaseObject> query) {
-		Criteria[] checkAcl = Stream.of(principalIds).map(t -> query.criteria("acl.ace.principalId").equalIgnoreCase(t))
+		Criteria[] checkAcl = Stream.of(principalIds)
+				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
 				.toArray(s -> new Criteria[s]);
 		return checkAcl;
 	}

@@ -33,7 +33,7 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 
 	@Override
 	public List<MBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns) {
-		Query<MBaseObject> query = createQuery().filter("token.time >", changeLogToken);
+		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", changeLogToken);
 		if (maxItems > 0) {
 			query = query.limit(maxItems);
 		}
@@ -45,7 +45,7 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 
 	@Override
 	public long getLatestTokenChildrenSize(long latestChangeToken) {
-		Query<MBaseObject> query = createQuery().filter("token.time >", latestChangeToken);
+		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", latestChangeToken);
 		return query.countAll();
 	}
 

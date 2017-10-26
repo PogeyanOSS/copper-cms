@@ -39,7 +39,8 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 
 	@Override
 	public List<MDocumentObject> filter(Map<String, Object> fieldNames, String[] mappedColumns) {
-		Query<MDocumentObject> query = createQuery().field("token.changetype").notEqual(TokenChangeType.DELETED.value());
+		Query<MDocumentObject> query = createQuery().field("token.changetype")
+				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
 			query = query.field(entry.getKey()).equal(entry.getValue());
 		}
@@ -113,7 +114,8 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	private Criteria[] getAclCriteria(String[] principalIds, Query<MDocumentObject> query) {
-		Criteria[] checkAcl = Stream.of(principalIds).map(t -> query.criteria("acl.ace.principalId").equalIgnoreCase(t))
+		Criteria[] checkAcl = Stream.of(principalIds)
+				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
 				.toArray(s -> new Criteria[s]);
 		return checkAcl;
 	}
