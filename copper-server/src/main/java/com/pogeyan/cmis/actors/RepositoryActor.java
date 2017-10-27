@@ -74,9 +74,9 @@ import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
-import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.services.CmisObjectService;
-import com.pogeyan.cmis.services.CmisTypeServices;
+import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.services.CmisObjectService;
+import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(RepositoryActor.class);

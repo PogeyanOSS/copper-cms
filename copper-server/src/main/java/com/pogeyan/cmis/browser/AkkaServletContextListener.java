@@ -52,10 +52,10 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
+import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
+import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.server.GatewayActor;
-import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.service.factory.LoginAuthServiceFactory;
-import com.pogeyan.cmis.service.factory.StorageServiceFactory;
 
 import akka.actor.ActorSystem;
 import akka.actor.Props;

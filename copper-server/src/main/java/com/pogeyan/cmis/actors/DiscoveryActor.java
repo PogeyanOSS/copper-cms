@@ -32,8 +32,8 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.services.CmisDiscoveryService;
-import com.pogeyan.cmis.services.CmisTypeCacheService;
+import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
+import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 
 public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 

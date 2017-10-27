@@ -60,7 +60,7 @@ import com.pogeyan.cmis.browser.shared.ControlParser;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
 import com.pogeyan.cmis.browser.shared.POSTHttpServletRequestWrapper;
 import com.pogeyan.cmis.browser.shared.QueryStringHttpServletRequestWrapper;
-import com.pogeyan.cmis.services.CmisObjectService;
+import com.pogeyan.cmis.impl.services.CmisObjectService;
 
 public class ServletHelpers {
 

@@ -32,7 +32,7 @@ import com.pogeyan.cmis.api.auth.LoginRequestObject;
 import com.pogeyan.cmis.api.messages.LoginRequest;
 import com.pogeyan.cmis.api.messages.LoginResponse;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
-import com.pogeyan.cmis.service.factory.LoginAuthServiceFactory;
+import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
 
 public class LoginActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(LoginActor.class);

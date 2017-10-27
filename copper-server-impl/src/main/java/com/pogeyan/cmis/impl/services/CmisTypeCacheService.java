@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.services;
+package com.pogeyan.cmis.impl.services;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,9 +22,9 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.impl.TypeCache;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
+import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisTypeCacheService implements TypeCache {
 	private static Map<String, TypeCache> instances = new HashMap<String, TypeCache>();

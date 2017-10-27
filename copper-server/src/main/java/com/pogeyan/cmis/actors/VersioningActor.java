@@ -42,9 +42,9 @@ import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.services.CmisObjectService;
-import com.pogeyan.cmis.services.CmisTypeCacheService;
-import com.pogeyan.cmis.services.CmisVersioningServices;
+import com.pogeyan.cmis.impl.services.CmisObjectService;
+import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
+import com.pogeyan.cmis.impl.services.CmisVersioningServices;
 
 public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 

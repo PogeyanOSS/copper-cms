@@ -39,8 +39,8 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.services.CmisNavigationService;
-import com.pogeyan.cmis.services.CmisTypeCacheService;
+import com.pogeyan.cmis.impl.services.CmisNavigationService;
+import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 
 public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 

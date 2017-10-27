@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.services;
+package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
+import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisPolicyService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisPolicyService.class);

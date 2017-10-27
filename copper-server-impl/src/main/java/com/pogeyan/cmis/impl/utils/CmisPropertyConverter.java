@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.utils;
+package com.pogeyan.cmis.impl.utils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -44,7 +44,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyUriImpl;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.services.CmisTypeServices;
+import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class CmisPropertyConverter {
 	public static class Impl {

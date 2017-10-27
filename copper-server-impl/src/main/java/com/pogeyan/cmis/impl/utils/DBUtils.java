@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.utils;
+package com.pogeyan.cmis.impl.utils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,9 +25,9 @@ import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
+import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 
 public class DBUtils {
 	public static class Variables {

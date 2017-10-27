@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.services;
+package com.pogeyan.cmis.impl.services;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -97,15 +97,15 @@ import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
+import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
+import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
+import com.pogeyan.cmis.impl.utils.CmisUtils;
+import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.impl.utils.NameValidator;
+import com.pogeyan.cmis.impl.utils.TypeValidators;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
-import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.service.factory.StorageServiceFactory;
-import com.pogeyan.cmis.utils.CmisPropertyConverter;
-import com.pogeyan.cmis.utils.CmisUtils;
-import com.pogeyan.cmis.utils.DBUtils;
-import com.pogeyan.cmis.utils.NameValidator;
-import com.pogeyan.cmis.utils.TypeValidators;
 
 import scala.Tuple2;
 

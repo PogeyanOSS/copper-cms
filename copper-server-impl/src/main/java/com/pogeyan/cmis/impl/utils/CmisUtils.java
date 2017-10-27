@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.utils;
+package com.pogeyan.cmis.impl.utils;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
-import com.pogeyan.cmis.service.factory.StorageServiceFactory;
+import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 
 public class CmisUtils {
 

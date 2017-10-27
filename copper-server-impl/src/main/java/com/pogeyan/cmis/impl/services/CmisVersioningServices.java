@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.services;
+package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,11 +45,11 @@ import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
+import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.service.factory.StorageServiceFactory;
-import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisVersioningServices {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisVersioningServices.class);

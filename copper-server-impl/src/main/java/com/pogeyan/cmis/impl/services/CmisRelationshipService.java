@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.pogeyan.cmis.services;
+package com.pogeyan.cmis.impl.services;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisRelationshipService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisNavigationService.class);
