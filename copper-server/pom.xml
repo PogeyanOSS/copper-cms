@@ -48,6 +48,11 @@
 			<version>${app.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.pogeyan.cmis</groupId>
+			<artifactId>copper-server-mongo</artifactId>
+			<version>${app.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.4</version>

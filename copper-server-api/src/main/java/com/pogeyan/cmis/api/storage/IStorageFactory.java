@@ -17,7 +17,7 @@ package com.pogeyan.cmis.api.storage;
 
 public interface IStorageFactory {
 
-	public IRepositoryStoreSettings getStorageSetting();
+	public IRepositoryStorageSettings getStorageSetting();
 
 	public IStorageService getStorageService();
 }

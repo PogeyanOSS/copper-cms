@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.utils.DBUtils;
 
 public class CmisRelationshipService {
@@ -48,7 +48,7 @@ public class CmisRelationshipService {
 				String filter, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
 				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException, MongoException {
 			LOG.info("getObjectRelationships on object: {} , repository: {},", repositoryId, objectId);
-			MBaseObject so = null;
+			IBaseObject so = null;
 			try {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			} catch (Exception e) {
@@ -71,7 +71,7 @@ public class CmisRelationshipService {
 			}
 			ObjectListImpl result = new ObjectListImpl();
 			List<ObjectData> odList = null;
-			List<MBaseObject> totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
+			List<? extends IBaseObject> totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
 					so.getId().toString(), -1, -1, null);
 			if (relationshipDirection == RelationshipDirection.SOURCE) {
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,

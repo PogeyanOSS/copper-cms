@@ -51,7 +51,9 @@ import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
+import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
 import com.pogeyan.cmis.server.GatewayActor;
+import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.service.factory.LoginAuthServiceFactory;
 import com.pogeyan.cmis.service.factory.StorageServiceFactory;
 
@@ -84,15 +86,10 @@ public class AkkaServletContextListener implements ServletContextListener {
 		if (configFilename == null) {
 			configFilename = CONFIG_FILENAME;
 		}
-		try {
-			boolean factory = createServiceFactory(sce, configFilename);
-			if (!factory) {
-				throw new IllegalArgumentException("Repository manager class not initilaized");
-			}
-		} catch (Exception e) {
-			LOG.error("Service factory couldn't be created: {}", e.toString(), e);
-		}
+		
+		DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
 
+		LOG.info("Registering actors to main actor system");
 		system.actorOf(Props.create(GatewayActor.class), "gateway");
 		system.actorOf(Props.create(LoginActor.class), "login");
 		system.actorOf(Props.create(RepositoryActor.class), "repository");
@@ -103,6 +100,16 @@ public class AkkaServletContextListener implements ServletContextListener {
 		system.actorOf(Props.create(VersioningActor.class), "versioning");
 		system.actorOf(Props.create(AclActor.class), "acl");
 		system.actorOf(Props.create(DiscoveryActor.class), "discovery");
+		
+		LOG.info("Initializing service factory instances");
+		try {
+			boolean factory = createServiceFactory(sce, configFilename);
+			if (!factory) {
+				throw new IllegalArgumentException("Repository manager class not initilaized");
+			}
+		} catch (Exception e) {
+			LOG.error("Service factory couldn't be created: {}", e.toString(), e);
+		}
 		if (externalActorClassMap != null && !externalActorClassMap.isEmpty()) {
 			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
 		}

@@ -33,11 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
-import com.pogeyan.cmis.data.objects.MBaseObject;
-import com.pogeyan.cmis.data.objects.MDocumentObject;
-import com.pogeyan.cmis.factory.RepositoryManagerFactory;
 import com.pogeyan.cmis.service.factory.StorageServiceFactory;
 
 public class CmisUtils {
@@ -68,8 +68,8 @@ public class CmisUtils {
 	
 	public static class Rendition {
 
-		public static boolean hasRendition(MBaseObject so, String user, String repositoryId) {
-			MDocumentObject documentData = null;
+		public static boolean hasRendition(IBaseObject so, String user, String repositoryId) {
+			IDocumentObject documentData = null;
 			if (so.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 				return true;
 			}
@@ -149,7 +149,7 @@ public class CmisUtils {
 			return false;
 		}
 
-		public static List<RenditionData> getRenditions(String repositoryId, MBaseObject so, String renditionFilter,
+		public static List<RenditionData> getRenditions(String repositoryId, IBaseObject so, String renditionFilter,
 				long maxItems, long skipCount, String user) {
 
 			String tokenizer = "[\\s;]";
@@ -165,7 +165,7 @@ public class CmisUtils {
 					mimeType = "image/png";
 				} else {
 					try {
-						MDocumentObject documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+						IDocumentObject documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								so.getId(), null);
 						if (documentData == null) {
 							LOG.error("getRenditions Object is null in {} repository!", repositoryId);

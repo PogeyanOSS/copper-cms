@@ -22,7 +22,7 @@ import org.apache.chemistry.opencmis.commons.data.ContentStream;
 
 public interface IStorageService {
 
-	public void setStoreSettings(IRepositoryStoreSettings storeSettings);
+	public void setStoreSettings(IRepositoryStorageSettings storeSettings);
 
 	/**
 	 * Write a content.

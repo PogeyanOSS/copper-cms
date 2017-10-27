@@ -15,33 +15,38 @@
  */
 package com.pogeyan.cmis.service.factory;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.api.database.IDBClientFactory;
-import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
-import com.pogeyan.cmis.factory.RepositoryManagerFactory;
+import com.pogeyan.cmis.api.data.IDBClientFactory;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 
 public class DatabaseServiceFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseServiceFactory.class);
+	private static final Map<String, IDBClientFactory> dbFactory = new HashMap<>();
 	public static final String MONGO = "mongo";
 	public static final String SQL = "sql";
-	static IDBClientFactory dbService = null;
 
 	public static IDBClientFactory getInstance(String repositoryId) {
-		if (dbService == null) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Repository type{}", repositoryId);
-			}
-			
-			Map<String, String> db = RepositoryManagerFactory.getDatabaseDetails(repositoryId);
-			if (MONGO.equals(db.get("type"))) {
-				dbService = MongoClientFactory.createDatabaseService();
-			}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Repository type{}", repositoryId);
+		}
+
+		Map<String, String> db = RepositoryManagerFactory.getDatabaseDetails(repositoryId);
+		String dbType = db.get("type");
+		if (dbFactory.containsKey(dbType)) {
+			return dbFactory.get(dbType);
 		}
 		
-		return dbService;
+		return null;
+	}
+
+	public static void add(IDBClientFactory dbFactoryInstance) {
+		if (!dbFactory.containsKey(dbFactoryInstance.getType())) {
+			dbFactory.put(dbFactoryInstance.getType(), dbFactoryInstance);
+		}
 	}
 }

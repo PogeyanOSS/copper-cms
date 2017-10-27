@@ -48,7 +48,7 @@ import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 
 public class CmisDiscoveryService {
@@ -81,12 +81,12 @@ public class CmisDiscoveryService {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
 
-			List<MBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO
+			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO
 					.getLatestChanges(Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray);
 			if (latestChangesObjects.size() > 0) {
 				childrenCount = discoveryObjectMorphiaDAO
 						.getLatestTokenChildrenSize(Long.parseLong(changeLogToken.getValue()));
-				for (MBaseObject object : latestChangesObjects) {
+				for (IBaseObject object : latestChangesObjects) {
 					if (includeAcl) {
 						List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
 								object.getInternalPath(), object.getAcl());
@@ -127,7 +127,7 @@ public class CmisDiscoveryService {
 			return objList;
 		}
 
-		private static ObjectDataImpl getObjectDataImpl(String repositoryId, MBaseObject object,
+		private static ObjectDataImpl getObjectDataImpl(String repositoryId, IBaseObject object,
 				Set<String> filterCollection, Boolean includeProperties, Boolean includePolicyIds) {
 			ObjectDataImpl odImpl = new ObjectDataImpl();
 			if (!includeProperties) {

@@ -327,4 +327,8 @@ public class Helpers {
 		}
 		return filterArray.toArray(new String[filterArray.size()]);
 	}
+	
+	public static String getObjectId() {
+		return java.util.UUID.randomUUID().toString().replace("-", "");
+	}
 }

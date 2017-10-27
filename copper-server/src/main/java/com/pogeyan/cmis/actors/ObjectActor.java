@@ -63,7 +63,7 @@ import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
-import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.services.CmisObjectService;
 import com.pogeyan.cmis.services.CmisTypeCacheService;
 import com.pogeyan.cmis.services.CmisVersioningServices;
@@ -150,14 +150,13 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = t.getObjectId();
 		boolean acessPermission = false;
-		MBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null);
-
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null);
 		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
-
 		if (data != null && !data.getName().equals(ROOT) && acessPermission == false) {
 			throw new CmisInvalidArgumentException(
 					"{} does not have valid acces control permission to access this object", t.getUserName());
 		}
+		
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
 		String filter = t.getParameter(QueryGetRequest.PARAM_FILTER);
 		Boolean includeAllowableActions = t.getBooleanParameter(QueryGetRequest.PARAM_ALLOWABLE_ACTIONS);

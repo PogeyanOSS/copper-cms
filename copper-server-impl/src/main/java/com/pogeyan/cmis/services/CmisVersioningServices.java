@@ -35,17 +35,18 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisUpdateConflictExcept
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
-import com.pogeyan.cmis.data.objects.MBaseObject;
-import com.pogeyan.cmis.data.objects.MDocumentObject;
-import com.pogeyan.cmis.factory.RepositoryManagerFactory;
+import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.service.factory.StorageServiceFactory;
 import com.pogeyan.cmis.utils.DBUtils;
@@ -59,7 +60,7 @@ public class CmisVersioningServices {
 				String filter, Boolean includeAllowableActions, ExtensionsData extension, ObjectInfoHandler objectInfos,
 				String userName) throws CmisObjectNotFoundException, CmisUpdateConflictException {
 			LOG.info("getAllVersions on objectId: {} , repository: {}", objectId, repositoryId);
-			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
+			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
 					null);
 			List<ObjectData> objectData = new ArrayList<ObjectData>();
 			if (data == null) {
@@ -73,9 +74,9 @@ public class CmisVersioningServices {
 			// }
 
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
-			List<MDocumentObject> documentObject = DBUtils.DocumentDAO.getAllVersion(repositoryId, versionReferenceId);
+			List<? extends IDocumentObject> documentObject = DBUtils.DocumentDAO.getAllVersion(repositoryId, versionReferenceId);
 			Collections.reverse(documentObject);
-			for (MDocumentObject documentData : documentObject) {
+			for (IDocumentObject documentData : documentObject) {
 				ObjectData object = CmisObjectService.Impl.compileObjectData(documentData.getRepositoryId(),
 						documentData, filterCollection, includeAllowableActions, false, true, null, null, null,
 						userName);
@@ -92,7 +93,7 @@ public class CmisVersioningServices {
 				Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension, ObjectInfoHandler objectInfos,
 				String userName) throws CmisObjectNotFoundException {
 			LOG.info("getObjectOfLatestVersion on objectId: {} , repository: {}", objectId, repositoryId);
-			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
+			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
 					null);
 			if (data == null) {
 				LOG.error("unknown object Id:{}", objectId);
@@ -100,7 +101,7 @@ public class CmisVersioningServices {
 			}
 			String versionReferenceId = data.getVersionReferenceId();
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
-			MDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
+			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
 			if (docObj == null) {
 				LOG.error("error while getting latest version", objectId);
 				throw new CmisObjectNotFoundException("error while getting latest version " + objectId);
@@ -117,8 +118,8 @@ public class CmisVersioningServices {
 				String versionSeriesId, Boolean major, String filter, ExtensionsData extension, String userName)
 				throws CmisObjectNotFoundException {
 			LOG.info("getPropertiesOfLatestVersion on objectId: {}, repository: {}", objectId, repositoryId);
-			MBaseObject latestVersionDocument = null;
-			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
+			IBaseObject latestVersionDocument = null;
+			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
 					null);
 			if (data == null) {
 				LOG.error("unknown object Id:{}", objectId);
@@ -127,7 +128,7 @@ public class CmisVersioningServices {
 
 			String versionReferenceId = data.getVersionReferenceId();
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
-			MDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
+			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
 			latestVersionDocument = DBUtils.BaseDAO.getByObjectId(repositoryId, docObj.getId(), null);
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, latestVersionDocument,
 					filterCollection, true, false, true, null, null, null, userName);
@@ -141,9 +142,9 @@ public class CmisVersioningServices {
 				Holder<Boolean> contentCopied, String userName) throws CmisObjectNotFoundException,
 				CmisUpdateConflictException, CmisNotSupportedException, CmisInvalidArgumentException {
 			LOG.info("checkOut on objectId: {} , repository: {}", objectId, repositoryId);
-			MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+			MDocumentObjectDAO documentObjectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MDocumentObjectDAO.class);
-			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 					objectId.getValue(), null);
 			if (data == null) {
 				LOG.error("unknown object Id: {}", objectId);
@@ -176,20 +177,22 @@ public class CmisVersioningServices {
 			 * "only versionable document can be checked out"); }
 			 */
 
+			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+					MBaseObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
-			MBaseObject baseObject = new MBaseObject(data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
+			IBaseObject baseObject = baseObjectDAO.createObjectFacade(data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
 					"cmis:document", repositoryId, null, "", userName, userName, token, data.getInternalPath(),
 					data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(), data.getParentId());
-			MDocumentObject documentObject = new MDocumentObject(baseObject, false, false, false, false, true,
+			IDocumentObject documentObject = documentObjectDAO.createObjectFacade(baseObject, false, false, false, false, true,
 					data.getVersionLabel(), data.getVersionSeriesId(), data.getVersionReferenceId(), true, userName,
 					baseObject.getId(), "Commit Document", data.getContentStreamLength(), data.getContentStreamMimeType(),
 					data.getContentStreamFileName(), null, objectId.getValue());
-			baseMorphiaDAO.commit(documentObject);
+			documentObjectDAO.commit(documentObject);
 			Map<String, Object> updateProps = new HashMap<String, Object>();
 			updateProps.put("isVersionSeriesCheckedOut", true);
 			updateProps.put("versionSeriesCheckedOutId", documentObject.getId().toString());
 			updateProps.put("versionSeriesCheckedOutBy", userName);
-			baseMorphiaDAO.update(objectId.getValue(), updateProps);
+			documentObjectDAO.update(objectId.getValue(), updateProps);
 			LOG.info("PWC for document :{}", documentObject.getId());
 			return documentObject.getId();
 		}
@@ -200,7 +203,7 @@ public class CmisVersioningServices {
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
-			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
+			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId,
 					null);
 			if (data == null) {
 				LOG.error("unknown pwc object Id " + objectId);
@@ -212,7 +215,7 @@ public class CmisVersioningServices {
 				throw new CmisUpdateConflictException("pwc " + objectId + " is not private working copy.");
 			}
 
-			MDocumentObject document = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+			IDocumentObject document = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 					data.getPreviousVersionObjectId(), null);
 			TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			documentMorphiaDAO.delete(objectId, null, false, false, deleteToken);
@@ -231,10 +234,9 @@ public class CmisVersioningServices {
 				ContentStream contentStreamParam, Holder<String> objectId, Boolean majorParam, String checkinComment,
 				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException {
 			LOG.info("checkIn PWC on objectId: {} , repository: {} ", objectId, repositoryId);
-			MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+			MDocumentObjectDAO documentObjectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MDocumentObjectDAO.class);
-			;
-			MDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 					objectId.getValue(), null);
 			if (data == null) {
 				LOG.error("unknown object Id:{}, " + objectId);
@@ -246,7 +248,7 @@ public class CmisVersioningServices {
 				throw new CmisUpdateConflictException(objectId + "document is not versionable");
 			}
 
-			MDocumentObject documentObject = null;
+			IDocumentObject documentObject = null;
 			checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
 			if (data.getProperties() != null) {
 				properties.putAll(data.getProperties());
@@ -254,14 +256,16 @@ public class CmisVersioningServices {
 				properties.replace("cmis:lastModifiedBy", userName);
 			}
 
-			MDocumentObject documentdata = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+			IDocumentObject documentdata = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 					data.getPreviousVersionObjectId(), null);
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
-			MBaseObject baseObject = new MBaseObject(documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
+			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+					MBaseObjectDAO.class);
+			IBaseObject baseObject = baseObjectDAO.createObjectFacade(documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
 					"cmis:document", repositoryId, null, "", documentdata.getCreatedBy(), userName, token,
 					data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
 					data.getPath(), data.getParentId());
-			ObjectId versionSeriesId = new ObjectId();
+			String versionSeriesId = Helpers.getObjectId();
 			if (data.getIsVersionSeriesCheckedOut()) {
 				if (data.getIsPrivateWorkingCopy()) {
 					if (majorParam) {
@@ -270,14 +274,14 @@ public class CmisVersioningServices {
 						Double versionLabelMajor = Double.parseDouble(versionLabelArray[0]);
 						versionLabelMajor = versionLabelMajor + 1;
 						if (contentStreamParam == null) {
-							documentObject = new MDocumentObject(baseObject, false, true, true, true, false,
+							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true, false,
 									String.valueOf(versionLabelMajor), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
 									data.getContentStreamLength(), data.getContentStreamMimeType(),
 									data.getContentStreamFileName(), data.getContentStreamId(),
 									data.getPreviousVersionObjectId());
 						} else {
-							documentObject = new MDocumentObject(baseObject, false, true, true, true, false,
+							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true, false,
 									String.valueOf(versionLabelMajor), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
 									contentStreamParam.getLength(), contentStreamParam.getMimeType(),
@@ -295,14 +299,14 @@ public class CmisVersioningServices {
 						String verLabelMinorString = String.valueOf(versionLabelMinor);
 						verLabelMinorString = versionLabelArray[0] + "." + versionLabelMinor;
 						if (contentStreamParam == null) {
-							documentObject = new MDocumentObject(baseObject, false, true, false, false, false,
+							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false, false, false,
 									String.valueOf(verLabelMinorString), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
 									data.getContentStreamLength(), data.getContentStreamMimeType(),
 									data.getContentStreamFileName(), data.getContentStreamId(),
 									data.getPreviousVersionObjectId());
 						} else {
-							documentObject = new MDocumentObject(baseObject, false, true, false, false, false,
+							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false, false, false,
 									verLabelMinorString, versionSeriesId.toString(), data.getVersionReferenceId(),
 									false, null, null, checkinComment, contentStreamParam.getLength(),
 									contentStreamParam.getMimeType(), contentStreamParam.getFileName(),
@@ -310,7 +314,7 @@ public class CmisVersioningServices {
 						}
 					}
 
-					baseMorphiaDAO.commit(documentObject);
+					documentObjectDAO.commit(documentObject);
 					if (LOG.isDebugEnabled()) {
 						LOG.debug("checked in object: {}", documentObject.getId());
 					}
@@ -328,7 +332,7 @@ public class CmisVersioningServices {
 					LOG.error("File creation exception:  {}", e.getMessage());
 				}
 				updatecontentProps.put("contentStreamLength", contentStreamParam.getLength());
-				baseMorphiaDAO.update(documentObject.getId(), updatecontentProps);
+				documentObjectDAO.update(documentObject.getId(), updatecontentProps);
 			}
 
 			Map<String, Object> updateProps = new HashMap<String, Object>();
@@ -337,9 +341,9 @@ public class CmisVersioningServices {
 			updateProps.put("isVersionSeriesCheckedOut", false);
 			updateProps.put("versionSeriesCheckedOutId", "");
 			updateProps.put("versionSeriesCheckedOutBy", "");
-			baseMorphiaDAO.update(documentdata.getId(), updateProps);
+			documentObjectDAO.update(documentdata.getId(), updateProps);
 			TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
-			baseMorphiaDAO.delete(objectId.getValue(), null, false, false, deleteToken);
+			documentObjectDAO.delete(objectId.getValue(), null, false, false, deleteToken);
 			return documentObject.getId();
 		}		
 	}

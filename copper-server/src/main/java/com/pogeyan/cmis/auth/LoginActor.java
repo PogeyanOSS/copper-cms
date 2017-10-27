@@ -31,7 +31,7 @@ import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.auth.LoginRequestObject;
 import com.pogeyan.cmis.api.messages.LoginRequest;
 import com.pogeyan.cmis.api.messages.LoginResponse;
-import com.pogeyan.cmis.factory.RepositoryManagerFactory;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.service.factory.LoginAuthServiceFactory;
 
 public class LoginActor extends BaseClusterActor<BaseRequest, BaseResponse> {

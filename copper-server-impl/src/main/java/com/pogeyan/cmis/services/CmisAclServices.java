@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.utils.DBUtils;
 import com.pogeyan.cmis.utils.TypeValidators;
 
@@ -47,7 +47,7 @@ public class CmisAclServices {
 				ExtensionsData extension, ObjectInfoHandler objectInfos, String userName)
 				throws CmisObjectNotFoundException {
 			LOG.info("getAcl on objectId: {} , repository: {}", objectId, repositoryId);
-			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
@@ -71,7 +71,7 @@ public class CmisAclServices {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
 
-			MBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
@@ -92,14 +92,14 @@ public class CmisAclServices {
 				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId);
 				break;
 			}
-			MBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("newData after applyAcl: {}", newData.getAcl().getAces());
 			}
 			return newData.getAcl();
 		}
 
-		private static AccessControlListImplExt validateAcl(Acl addAces, Acl removeAces, MBaseObject object, List<String> id,
+		private static AccessControlListImplExt validateAcl(Acl addAces, Acl removeAces, IBaseObject object, List<String> id,
 				String aclPropagation) {
 			List<Ace> aces = new ArrayList<Ace>();
 			if (addAces != null) {

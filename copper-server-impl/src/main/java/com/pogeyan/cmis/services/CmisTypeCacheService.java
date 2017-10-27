@@ -22,7 +22,7 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.impl.TypeCache;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
-import com.pogeyan.cmis.data.objects.MBaseObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.service.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.utils.DBUtils;
 
@@ -47,7 +47,7 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public TypeDefinition getTypeDefinitionForObject(String objectId) {
-		MBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+		IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 		return CmisTypeServices.Impl.getTypeDefinition(this.repositoryId, object.getTypeId(), null);
 	}
 

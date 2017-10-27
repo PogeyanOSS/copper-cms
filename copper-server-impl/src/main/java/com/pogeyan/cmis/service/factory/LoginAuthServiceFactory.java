@@ -44,5 +44,4 @@ public class LoginAuthServiceFactory {
 	public static void add(IAuthFactory authFactoryCalss) {
 		authFactory.put(authFactoryCalss.getStoreSetting().getType(), authFactoryCalss);
 	}
-
 }
