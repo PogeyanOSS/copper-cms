@@ -25,7 +25,6 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
-import org.bson.types.ObjectId;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.BaseClusterActor;
@@ -34,7 +33,7 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.services.CmisRelationshipService;
+import com.pogeyan.cmis.impl.services.CmisRelationshipService;
 
 public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 
@@ -55,7 +54,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
-		ObjectId objectId = new ObjectId(request.getObjectId());
+		String objectId = request.getObjectId();
 		Boolean includeSubRelationshipTypes = request.getBooleanParameter(QueryGetRequest.PARAM_SUB_RELATIONSHIP_TYPES);
 		RelationshipDirection relationshipDirection = request
 				.getEnumParameter(QueryGetRequest.PARAM_RELATIONSHIP_DIRECTION, RelationshipDirection.class);

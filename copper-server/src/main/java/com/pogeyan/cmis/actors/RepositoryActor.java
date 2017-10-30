@@ -59,25 +59,24 @@ import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParseException;
 import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParser;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
-import com.pogeyan.cmis.data.DatabaseManager;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.repo.IRepository;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
-import com.pogeyan.cmis.data.dao.MBaseObjectDAO;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
-import com.pogeyan.cmis.services.CmisObjectService;
-import com.pogeyan.cmis.services.CmisTypeServices;
+import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.services.CmisObjectService;
+import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(RepositoryActor.class);
@@ -124,8 +123,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
 		// call DB and get the repositoryInfo
-		ObjectId rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName());
-		IRepository repository = RepositoryManager.getInstance().getRepositoryStore()
+		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName());
+		IRepository repository = RepositoryManagerFactory.getInstance().getRepositoryStore()
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
 				repository.getRepositoryName() == null ? "" : repository.getRepositoryName(), CmisVersion.CMIS_1_1,
@@ -146,12 +145,12 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		List<RepositoryInfo> infoDataList = new ArrayList<RepositoryInfo>() {
 			private static final long serialVersionUID = 1L;
 			{
-				List<IRepository> respositoryList = RepositoryManager.getInstance().getRepositoryStore()
+				List<IRepository> respositoryList = RepositoryManagerFactory.getInstance().getRepositoryStore()
 						.getRepositories(request.getRepositoryId());
 				if (respositoryList != null && !respositoryList.isEmpty()) {
 					for (IRepository repository : respositoryList) {
 						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId());
-						ObjectId rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
+						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
 								request.getUserName());
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
 								CmisVersion.CMIS_1_1, rootId,
@@ -323,14 +322,12 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	@SuppressWarnings("serial")
 	private RepositoryInfo createRepositoryInfo(String repositoryId, String name, CmisVersion cmisVersion,
-			ObjectId rootFolderId, String description) {
-		LOG.info("MongoRepository rootFolderId:{}", rootFolderId);
-		MBaseObjectDAO baseMorphiaDAO = DatabaseManager.getInstance(repositoryId).getObjectService(repositoryId,
+			String rootFolderId, String description) {
+		LOG.info("createRepositoryInfo rootFolderId: {}", rootFolderId);
+		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MBaseObjectDAO.class);
-
 		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null
 				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime() : null);
-
 		// repository info
 		RepositoryInfoImpl repoInfo = new RepositoryInfoImpl();
 		repoInfo.setId(repositoryId == null ? "repository" : repositoryId);

@@ -49,7 +49,6 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONStreamAware;
-import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.BaseMessage;
 import com.pogeyan.cmis.api.auth.IUserObject;
@@ -61,7 +60,7 @@ import com.pogeyan.cmis.browser.shared.ControlParser;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
 import com.pogeyan.cmis.browser.shared.POSTHttpServletRequestWrapper;
 import com.pogeyan.cmis.browser.shared.QueryStringHttpServletRequestWrapper;
-import com.pogeyan.cmis.services.CmisObjectService;
+import com.pogeyan.cmis.impl.services.CmisObjectService;
 
 public class ServletHelpers {
 
@@ -365,7 +364,7 @@ public class ServletHelpers {
 		ObjectData object = null;
 		// objectId will be null if path needs to be considered
 		if (objectId != null) {
-			object = CmisObjectService.Impl.getObject(repositoryId, new ObjectId(objectId),
+			object = CmisObjectService.Impl.getObject(repositoryId, objectId,
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
 					false, false, null, "", BaseTypeId.CMIS_FOLDER);
 		} else if (pathFragments != null) {

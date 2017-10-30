@@ -31,7 +31,8 @@ import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.auth.LoginRequestObject;
 import com.pogeyan.cmis.api.messages.LoginRequest;
 import com.pogeyan.cmis.api.messages.LoginResponse;
-import com.pogeyan.cmis.repo.impl.RepositoryManager;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
+import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
 
 public class LoginActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(LoginActor.class);
@@ -48,7 +49,7 @@ public class LoginActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private LoginResponse authenticate(LoginRequest t, HashMap<String, Object> baggage) {
 		LoginResponse response = new LoginResponse();
 		try {
-			Map<String, String> loginSettings = RepositoryManager.getLoginDetails(t.getRepositoryId());
+			Map<String, String> loginSettings = RepositoryManagerFactory.getLoginDetails(t.getRepositoryId());
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Login settings for repositoryId: {}", loginSettings.toString());
 			}
