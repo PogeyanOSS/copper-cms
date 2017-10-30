@@ -20,19 +20,19 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
 
-import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
+import com.pogeyan.cmis.data.mongo.MTypeDocumentObject;
 
-public class MDocumentTypeManagerDAOImpl extends BasicDAO<CmisDocumentTypeDefinitionImpl, ObjectId>
+public class MDocumentTypeManagerDAOImpl extends BasicDAO<MTypeDocumentObject, ObjectId>
 		implements MDocumentTypeManagerDAO {
 
-	public MDocumentTypeManagerDAOImpl(Class<CmisDocumentTypeDefinitionImpl> entityClass, Datastore ds) {
+	public MDocumentTypeManagerDAOImpl(Class<MTypeDocumentObject> entityClass, Datastore ds) {
 		super(entityClass, ds);
 	}
 
 	@Override
-	public CmisDocumentTypeDefinitionImpl getByTypeId(String typeId) {
-		Query<CmisDocumentTypeDefinitionImpl> query = createQuery().field("id").equal(typeId);
+	public MTypeDocumentObject getByTypeId(String typeId) {
+		Query<MTypeDocumentObject> query = createQuery().field("id").equal(typeId);
 		return query.get();
 	}
 

@@ -30,8 +30,9 @@ import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
-import com.pogeyan.cmis.data.mongo.MongoAclImpl;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
+import com.pogeyan.cmis.data.mongo.MongoAclImpl;
+import com.pogeyan.cmis.data.mongo.MongoToken;
 
 public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements MBaseObjectDAO {
 
@@ -42,12 +43,12 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	@Override
 	public void delete(String objectId, boolean forceDelete, TokenImpl token) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
-				.field("token.changetype").notEqual(TokenChangeType.DELETED.value());
+				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
 			this.deleteByQuery(query);
 		} else {
 			UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
-			update = update.set("token", token);
+			update = update.set("token", MBaseObject.convertMongoToken(token));
 			update = update.unset("properties");
 			update(query, update);
 		}
@@ -58,11 +59,16 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	public void update(String objectId, Map<String, Object> updateProps) {
 		UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
-				.field("token.changetype").notEqual(TokenChangeType.DELETED.value());
+				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (updateProps.get("acl") != null) {
 			MongoAclImpl mAcl = MBaseObject.convertMongoAcl((AccessControlListImplExt) updateProps.get("acl"));
 			updateProps.remove("acl");
 			updateProps.put("acl", mAcl);
+		}
+		if (updateProps.get("token") != null) {
+			MongoToken mToken = MBaseObject.convertMongoToken((TokenImpl) updateProps.get("token"));
+			updateProps.remove("token");
+			updateProps.put("token", mToken);
 		}
 		for (Map.Entry<String, Object> entry : updateProps.entrySet()) {
 			update = update.set(entry.getKey(), entry.getValue());
@@ -79,7 +85,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	@Override
 	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
 			int skipCount, String[] mappedColumns) {
-		Query<MBaseObject> query = createQuery().disableValidation().field("token.changetype")
+		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
 			query = query.field(entry.getKey()).equal(entry.getValue());
@@ -97,16 +103,14 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 
 	@Override
 	public void commit(IBaseObject entity) {
-		this.save((MBaseObject)entity);
+		this.save((MBaseObject) entity);
 	}
-	
+
 	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
 			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
 			String parentId) {
-		return new MBaseObject(name, baseId, typeId, fRepositoryId,
-				secondaryTypeIds, description, createdBy, modifiedBy, token,
-				internalPath, properties, policies, acl, path,
-				parentId);
+		return new MBaseObject(name, baseId, typeId, fRepositoryId, secondaryTypeIds, description, createdBy,
+				modifiedBy, token, internalPath, properties, policies, acl, path, parentId);
 	}
 }

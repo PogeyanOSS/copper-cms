@@ -37,4 +37,22 @@ public enum TokenChangeType {
 		}
 		throw new IllegalArgumentException("Illegal value");
 	}
+
+	public static int toValue(String v) {
+		for (TokenChangeType c : TokenChangeType.values()) {
+			if (c.name() == v) {
+				return c.value;
+			}
+		}
+		throw new IllegalArgumentException("Illegal value");
+	}
+
+	public static TokenChangeType getTokenValue(int v) {
+		for (TokenChangeType c : TokenChangeType.values()) {
+			if (c.value == v) {
+				return c;
+			}
+		}
+		throw new IllegalArgumentException("Illegal value");
+	}
 }

@@ -46,7 +46,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.pogeyan.cmis.api.data.IDBClientFactory;
-import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
@@ -56,9 +55,10 @@ import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
-import com.pogeyan.cmis.data.mongo.MDocumentObject;
-import com.pogeyan.cmis.data.mongo.MTypeObject;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
+import com.pogeyan.cmis.data.mongo.MDocumentObject;
+import com.pogeyan.cmis.data.mongo.MTypeDocumentObject;
+import com.pogeyan.cmis.data.mongo.MTypeObject;
 
 public class MongoClientFactory implements IDBClientFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(MongoClientFactory.class.getName());
@@ -82,7 +82,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		objectServiceClass.put(MTypeManagerDAO.class, MongoClientFactory.MTYPEMANAGERDAO);
 		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
 		morphia.getMapper().getConverters().addConverter(new AceConverter());
-		morphia.getMapper().getConverters().addConverter(new AceConverter());
+		morphia.getMapper().getConverters().addConverter(new TokenConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -93,7 +93,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	public String getType() {
 		return "mongo";
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass) {
@@ -113,7 +113,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		}
 		if (className.equals(MongoClientFactory.MDOCUMENTTYPEMANAGERDAO)) {
 			return (T) getContentDBMongoClient(repositoryId,
-					(t) -> new MDocumentTypeManagerDAOImpl(CmisDocumentTypeDefinitionImpl.class, t));
+					(t) -> new MDocumentTypeManagerDAOImpl(MTypeDocumentObject.class, t));
 		}
 		if (className.equals(MongoClientFactory.MTYPEMANAGERDAO)) {
 			return (T) getContentDBMongoClient(repositoryId, (t) -> new MTypeManagerDAOImpl(MTypeObject.class, t));
@@ -244,27 +244,12 @@ public class MongoClientFactory implements IDBClientFactory {
 		@Override
 		public Object decode(final Class<?> targetClass, final Object fromDBObject, final MappedField optionalExtraInfo)
 				throws MappingException {
-			if (fromDBObject != null) {
-				JSONParser parser = new JSONParser();
-				JSONObject jsonObject = null;
-				try {
-					jsonObject = (JSONObject) parser.parse(fromDBObject.toString());
-					@SuppressWarnings("unchecked")
-					List<String> permissions = (List<String>) jsonObject.get("permissions");
-					JSONObject principal = (JSONObject) jsonObject.get("principal");
-					String principalId = (String) principal.get("principalId");
-					return new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId), permissions);
-				} catch (ParseException e) {
-					LOG.error("AceConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
-					throw new MongoException(e.toString());
-				}
-			}
-			return null;
+			return TokenChangeType.getTokenValue(Integer.parseInt(fromDBObject.toString()));
 		}
 
 		@Override
 		public Object encode(final Object value, final MappedField optionalExtraInfo) {
-			return value;
+			return TokenChangeType.toValue(value.toString());
 		}
 	}
 

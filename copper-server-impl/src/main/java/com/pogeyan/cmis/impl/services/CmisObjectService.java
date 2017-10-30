@@ -1564,7 +1564,7 @@ public class CmisObjectService {
 				AccessControlListImplExt addACEs, Acl removeACEs, VersioningState versioningState)
 				throws IllegalArgumentException {
 			LOG.info("Creating Document: {} within ParentFolder id: {} ", docName, parentData.getId());
-			
+
 			IDocumentObject documentObject = null;
 			MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
@@ -1575,8 +1575,6 @@ public class CmisObjectService {
 			Tuple2<String, String> p = null;
 			IDocumentObject document = DBUtils.DocumentDAO.getDocumentByName(repositoryId, docName,
 					parentData.getId().toString());
-			MDocumentObjectDAO documentDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			if (document == null) {
 				TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
 				p = resolvePathForObject(parentData, docName);
@@ -1597,23 +1595,19 @@ public class CmisObjectService {
 							parentData.getId().toString());
 				}
 				if (versioningState == VersioningState.MAJOR) {
-					documentObject = documentDAO.createObjectFacade(baseObject, false, true, true, true, false, "1.0",
-							versionSeriesId, versionReferenceId, false, null, null, "Commit Document",
-							contentStream.getLength(), contentStream.getMimeType(), contentStream.getFileName(),
-							Helpers.getObjectId(), null);
+					documentObject = Helpers.getDocumentObject(documentMorphiaDAO, baseObject, true, true, true,
+							contentStream, versionSeriesId, versionReferenceId);
 				} else if (versioningState == VersioningState.MINOR) {
-					documentObject = documentDAO.createObjectFacade(baseObject, false, true, false, false, false, "1.0",
-							versionSeriesId, versionReferenceId, false, null, null, "Commit Document", null, null, null,
-							null, null);
+					documentObject = Helpers.getDocumentObject(documentMorphiaDAO, baseObject, true, false, false,
+							contentStream, versionSeriesId, versionReferenceId);
 				} else if (versioningState == VersioningState.NONE || versioningState == null) {
-					documentObject = documentDAO.createObjectFacade(baseObject, false, true, false, false, false, "1.0",
-							versionSeriesId, versionReferenceId, false, null, null, "Commit Document", null, null, null,
-							null, null);
+					documentObject = Helpers.getDocumentObject(documentMorphiaDAO, baseObject, true, false, false,
+							contentStream, versionSeriesId, versionReferenceId);
 				} else if (versioningState == VersioningState.CHECKEDOUT) {
-					documentObject = documentDAO.createObjectFacade(baseObject, false, true, true, true, false, "1.0",
-							versionSeriesId, versionReferenceId, false, null, null, "Commit Document", null, null, null,
-							null, null);
+					documentObject = Helpers.getDocumentObject(documentMorphiaDAO, baseObject, true, true, true,
+							contentStream, versionSeriesId, versionReferenceId);
 				}
+
 				documentMorphiaDAO.commit(documentObject);
 
 				if (LOG.isDebugEnabled()) {
@@ -2049,8 +2043,8 @@ public class CmisObjectService {
 				path = parentData.getInternalPath() + parentData.getId() + ",";
 				cmisPath = parentData.getPath() + "/" + name;
 			}
-			IBaseObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId, repositoryId,
-					secondaryObjectTypeId,
+			IBaseObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId,
+					repositoryId, secondaryObjectTypeId,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
 					user, user, token, path, custom, policies, aclAdd, cmisPath, parentData.getId().toString());
@@ -2292,8 +2286,8 @@ public class CmisObjectService {
 			}
 
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
-			IBaseObject result = baseMorphiaDAO.createObjectFacade(policyName, BaseTypeId.CMIS_POLICY, typeId, repositoryId,
-					secondaryObjectTypeIds,
+			IBaseObject result = baseMorphiaDAO.createObjectFacade(policyName, BaseTypeId.CMIS_POLICY, typeId,
+					repositoryId, secondaryObjectTypeIds,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
 					username, username, token, path, custom, polices, aclAdd, cmisPath, parentData.getId().toString());
@@ -2447,8 +2441,8 @@ public class CmisObjectService {
 				String dataPath, AccessControlListImplExt dataAcl) {
 			LOG.info("update path for object: {}", id.toString());
 			String path = "," + id.toString() + ",";
-			List<? extends IBaseObject> children = getDescendants(repositoryId, path, dataPath, dataAcl, navigationMorphiaDAO,
-					userObject);
+			List<? extends IBaseObject> children = getDescendants(repositoryId, path, dataPath, dataAcl,
+					navigationMorphiaDAO, userObject);
 			if (children.size() > 0) {
 				for (IBaseObject child : children) {
 					Map<String, Object> updatePath = new HashMap<>();
@@ -2715,8 +2709,8 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 				String path = "," + data.getId() + ",";
-				List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(), data.getAcl(),
-						navigationMorphiaDAO, userObject);
+				List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
+						data.getAcl(), navigationMorphiaDAO, userObject);
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("descendants for object {} : {}", data.getId(), children.toString());
 				}
@@ -2758,7 +2752,8 @@ public class CmisObjectService {
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
 				IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, data.getId(), null);
 				String versionRefId = doc.getVersionReferenceId();
-				List<? extends IDocumentObject> versionedDocument = DBUtils.DocumentDAO.getAllVersion(repositoryId, versionRefId);
+				List<? extends IDocumentObject> versionedDocument = DBUtils.DocumentDAO.getAllVersion(repositoryId,
+						versionRefId);
 				for (IDocumentObject document : versionedDocument) {
 					if (document.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(document.getContentStreamFileName(),
@@ -2842,8 +2837,8 @@ public class CmisObjectService {
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			// IStorageService localService = null;
 			String path = "," + folderId + ",";
-			List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(), data.getAcl(),
-					navigationMorphiaDAO, userObject);
+			List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
+					data.getAcl(), navigationMorphiaDAO, userObject);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("descendants for object {} : {}", data.getId(), children.toString());
 			}
@@ -2980,8 +2975,8 @@ public class CmisObjectService {
 							updateProps.toString());
 				}
 				String path = data.getInternalPath() + data.getId() + ",";
-				List<? extends IBaseObject> children = getChildrens(repositoryId, path, data.getInternalPath(), data.getAcl(),
-						navigationMorphiaDAO, userObject);
+				List<? extends IBaseObject> children = getChildrens(repositoryId, path, data.getInternalPath(),
+						data.getAcl(), navigationMorphiaDAO, userObject);
 				if (children != null && children.size() > 0) {
 					for (IBaseObject child : children) {
 						if (child.getBaseId() == BaseTypeId.CMIS_FOLDER) {
@@ -3075,8 +3070,8 @@ public class CmisObjectService {
 			updateProps.put("modifiedBy", userObject.getUserDN());
 			updateProps.put("token", token);
 			baseMorphiaDAO.update(childId, updateProps);
-			List<? extends IBaseObject> children = getChildrens(repositoryId, path, dataPath, dataAcl, navigationMorphiaDAO,
-					userObject);
+			List<? extends IBaseObject> children = getChildrens(repositoryId, path, dataPath, dataAcl,
+					navigationMorphiaDAO, userObject);
 			if (children != null && children.size() > 0) {
 				for (IBaseObject child : children) {
 					if (child.getBaseId() == BaseTypeId.CMIS_FOLDER) {
@@ -3648,14 +3643,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject>toList());
+						.collect(Collectors.<IBaseObject> toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt>toList());
+							.collect(Collectors.<AccessControlListImplExt> toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3721,7 +3716,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject>toList());
+					.collect(Collectors.<IBaseObject> toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3729,7 +3724,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt>toList());
+						.collect(Collectors.<AccessControlListImplExt> toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -3763,7 +3758,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject>toList());
+					.collect(Collectors.<IBaseObject> toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3771,7 +3766,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt>toList());
+						.collect(Collectors.<AccessControlListImplExt> toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();

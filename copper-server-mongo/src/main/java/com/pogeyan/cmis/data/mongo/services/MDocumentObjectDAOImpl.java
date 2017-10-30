@@ -28,11 +28,14 @@ import org.mongodb.morphia.query.UpdateOperations;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
 import com.pogeyan.cmis.data.mongo.MDocumentObject;
+import com.pogeyan.cmis.data.mongo.MongoAclImpl;
+import com.pogeyan.cmis.data.mongo.MongoToken;
 
 public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> implements MDocumentObjectDAO {
 
@@ -42,7 +45,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 
 	@Override
 	public List<MDocumentObject> filter(Map<String, Object> fieldNames, String[] mappedColumns) {
-		Query<MDocumentObject> query = createQuery().field("token.changetype")
+		Query<MDocumentObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
 			query = query.field(entry.getKey()).equal(entry.getValue());
@@ -56,21 +59,19 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	@Override
 	public void delete(String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
 			TokenImpl token) {
-		Query<MDocumentObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(TokenChangeType.DELETED.value());
+		Query<MDocumentObject> query = createQuery().disableValidation().field("id").equal(objectId)
+				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
 			this.deleteByQuery(query);
 		} else {
 			UpdateOperations<MDocumentObject> update = createUpdateOperations();
+			update = update.set("token", MBaseObject.convertMongoToken(token));
 			if (removefields) {
 				for (String field : removeProps) {
 					update = update.unset(field);
 				}
-				update = update.set("token", token);
 				update(query, update);
 			} else {
-
-				update = update.set("token", token);
 				update = update.unset("properties");
 				update(query, update);
 			}
@@ -82,8 +83,18 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	@Override
 	public void update(String objectId, Map<String, Object> updateProps) {
 		UpdateOperations<MDocumentObject> update = createUpdateOperations();
-		Query<MDocumentObject> query = createQuery().field("id").equal(objectId).field("token.changetype")
-				.notEqual(TokenChangeType.DELETED.value());
+		Query<MDocumentObject> query = createQuery().disableValidation().field("id").equal(objectId)
+				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
+		if (updateProps.get("acl") != null) {
+			MongoAclImpl mAcl = MBaseObject.convertMongoAcl((AccessControlListImplExt) updateProps.get("acl"));
+			updateProps.remove("acl");
+			updateProps.put("acl", mAcl);
+		}
+		if (updateProps.get("token") != null) {
+			MongoToken mToken = MBaseObject.convertMongoToken((TokenImpl) updateProps.get("token"));
+			updateProps.remove("token");
+			updateProps.put("token", mToken);
+		}
 		for (Map.Entry<String, Object> entry : updateProps.entrySet()) {
 			update = update.set(entry.getKey(), entry.getValue());
 		}
@@ -95,12 +106,13 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 			int maxItems, int skipCount, String orderBy) {
 		Query<MDocumentObject> query = null;
 		if (folderId == null) {
-			query = createQuery().field("typeId").equalIgnoreCase("cmis:document").field("isPrivateWorkingCopy")
-					.equal(true).field("token.changetype").notEqual(TokenChangeType.DELETED.value());
-		} else {
-			query = createQuery().field("parentId").equal(folderId).field("typeId").equalIgnoreCase("cmis:document")
-					.field("isPrivateWorkingCopy").equal(true).field("token.changetype")
+			query = createQuery().disableValidation().field("typeId").equalIgnoreCase("cmis:document")
+					.field("isPrivateWorkingCopy").equal(true).field("token.changeType")
 					.notEqual(TokenChangeType.DELETED.value());
+		} else {
+			query = createQuery().disableValidation().field("parentId").equal(folderId).field("typeId")
+					.equalIgnoreCase("cmis:document").field("isPrivateWorkingCopy").equal(true)
+					.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		}
 		if (orderBy != null) {
 			query = query.order("-" + orderBy);
@@ -127,12 +139,13 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	public long getCheckOutDocsSize(String folderId, String[] principalIds, boolean aclPropagation) {
 		Query<MDocumentObject> query = null;
 		if (folderId == null) {
-			query = createQuery().field("typeId").equalIgnoreCase("cmis:document").field("isPrivateWorkingCopy")
-					.equal(true).field("token.changetype").notEqual(TokenChangeType.DELETED.value());
-		} else {
-			query = createQuery().field("parentId").equal(folderId).field("typeId").equalIgnoreCase("cmis:document")
-					.field("isPrivateWorkingCopy").equal(true).field("token.changetype")
+			query = createQuery().disableValidation().field("typeId").equalIgnoreCase("cmis:document")
+					.field("isPrivateWorkingCopy").equal(true).field("token.changeType")
 					.notEqual(TokenChangeType.DELETED.value());
+		} else {
+			query = createQuery().disableValidation().field("parentId").equal(folderId).field("typeId")
+					.equalIgnoreCase("cmis:document").field("isPrivateWorkingCopy").equal(true)
+					.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		}
 		if (aclPropagation) {
 			query.or(getAclCriteria(principalIds, query));
@@ -144,20 +157,19 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 
 	@Override
 	public void commit(IDocumentObject entity) {
-		this.save((MDocumentObject)entity);
+		this.save((MDocumentObject) entity);
 	}
-	
-	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion, Boolean isMajorVersion,
-			Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel, String versionSeriesId,
-			String versionReferenceId, Boolean isVersionSeriesCheckedOut, String versionSeriesCheckedOutBy,
-			String versionSeriesCheckedOutId, String checkinComment, Long contentStreamLength,
-			String contentStreamMimeType, String contentStreamFileName, String contentStreamId,
-			String previousVersionObjectId){
-		return new MDocumentObject((MBaseObject)baseObject, isImmutable, isLatestVersion, isMajorVersion,
-				isLatestMajorVersion, isPrivateWorkingCopy, versionLabel, versionSeriesId,
-				versionReferenceId, isVersionSeriesCheckedOut, versionSeriesCheckedOutBy,
-				versionSeriesCheckedOutId, checkinComment, contentStreamLength,
-				contentStreamMimeType, contentStreamFileName, contentStreamId,
+
+	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion,
+			Boolean isMajorVersion, Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel,
+			String versionSeriesId, String versionReferenceId, Boolean isVersionSeriesCheckedOut,
+			String versionSeriesCheckedOutBy, String versionSeriesCheckedOutId, String checkinComment,
+			Long contentStreamLength, String contentStreamMimeType, String contentStreamFileName,
+			String contentStreamId, String previousVersionObjectId) {
+		return new MDocumentObject((MBaseObject) baseObject, isImmutable, isLatestVersion, isMajorVersion,
+				isLatestMajorVersion, isPrivateWorkingCopy, versionLabel, versionSeriesId, versionReferenceId,
+				isVersionSeriesCheckedOut, versionSeriesCheckedOutBy, versionSeriesCheckedOutId, checkinComment,
+				contentStreamLength, contentStreamMimeType, contentStreamFileName, contentStreamId,
 				previousVersionObjectId);
 	}
 }

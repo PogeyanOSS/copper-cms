@@ -22,6 +22,7 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeMutability;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.enums.ContentStreamAllowed;
 
 import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
 
@@ -47,10 +48,11 @@ public interface MTypeManagerDAO {
 	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId);
 
 	public <T extends TypeDefinition> void commit(T entity);
-	
-	public TypeDefinition createObjectFacade(String id, String localName, String localNamespace, String displayName, String queryName,
-			String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable, Boolean isFileable,
-			Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
+
+	public TypeDefinition createObjectFacade(String id, String localName, String localNamespace, String displayName,
+			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
+			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
 			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutability typeMutability,
-			Map<String, PropertyDefinitionImpl<?>> propertyDefinition);
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition, Boolean isVersion,
+			ContentStreamAllowed contentStream);
 }

@@ -31,10 +31,14 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.commons.lang3.StringUtils;
 
 import com.pogeyan.cmis.api.auth.IUserGroupObject;
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 
 import akka.actor.ActorRef;
 import akka.pattern.Patterns;
@@ -154,14 +158,13 @@ public class Helpers {
 		return byteArrayOutputStream.toByteArray();
 	}
 
-	/*public static boolean isInDevMode() {
-		final String value = System.getenv("MODE");
-		if (value != null) {
-			return value.equalsIgnoreCase("1");
-		}
-	
-		return false;
-	}*/
+	/*
+	 * public static boolean isInDevMode() { final String value =
+	 * System.getenv("MODE"); if (value != null) { return
+	 * value.equalsIgnoreCase("1"); }
+	 * 
+	 * return false; }
+	 */
 
 	public static boolean isPerfMode() {
 		final String value = System.getenv("PERF");
@@ -234,7 +237,7 @@ public class Helpers {
 
 	public static String[] getPrincipalIds(IUserObject userObject) {
 		List<String> principalIds = Stream.of(userObject.getGroups()).map(t -> t.getGroupDN())
-				.collect(Collectors.<String>toList());
+				.collect(Collectors.<String> toList());
 		principalIds.add(userObject.getUserDN());
 		return principalIds.toArray(new String[principalIds.size()]);
 	}
@@ -311,7 +314,7 @@ public class Helpers {
 
 	public static String[] getFilterArray(Set<String> filterCollection, boolean check) {
 		List<String> filterArray = filterCollection.stream().map(t -> getQueryName(t))
-				.collect(Collectors.<String>toList());
+				.collect(Collectors.<String> toList());
 		filterArray.add("acl");
 		if (check) {
 			List<String> docProps = getDocumentProperties();
@@ -327,8 +330,23 @@ public class Helpers {
 		}
 		return filterArray.toArray(new String[filterArray.size()]);
 	}
-	
+
 	public static String getObjectId() {
 		return java.util.UUID.randomUUID().toString().replace("-", "");
+	}
+
+	public static IDocumentObject getDocumentObject(MDocumentObjectDAO documentMorphiaDAO, IBaseObject baseObject,
+			Boolean isLatestVersion, Boolean isMajorVersion, Boolean isLatestMajorVersion, ContentStream contentStream,
+			String versionSeriesId, String versionReferenceId) {
+		if (contentStream != null) {
+			return documentMorphiaDAO.createObjectFacade(baseObject, false, isLatestVersion, isMajorVersion,
+					isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false, null, null,
+					"Commit Document", contentStream.getLength(), contentStream.getMimeType(),
+					contentStream.getFileName(), Helpers.getObjectId(), null);
+		} else {
+			return documentMorphiaDAO.createObjectFacade(baseObject, false, isLatestVersion, isMajorVersion,
+					isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false, null, null,
+					"Commit Document", null, null, null, null, null);
+		}
 	}
 }

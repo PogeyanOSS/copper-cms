@@ -69,10 +69,10 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_AUTH_STORE_CLASS = "authenticationManagerClass";
 	private static final String PROPERTY_FILE_STORE_CLASS = "storageManagerClass";
 	private static final String PROPERTY_ACTOR_CLASS = "actorManagerClass";
-	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.factory.RepositoryManagerFactory";
+	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.api.repo.RepositoryManagerFactory";
 	private static final String DEFAULT_REPO_STORE_CLASS = "com.pogeyan.cmis.repo.MongoDBRepositoryStore";
 	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.ldap.auth.LDAPAuthFactory";
-	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.factory.StorageManagerFactory";
+	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.impl.storage.FileSystemStorageFactory";
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
@@ -86,7 +86,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		if (configFilename == null) {
 			configFilename = CONFIG_FILENAME;
 		}
-		
+
 		DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
 
 		LOG.info("Registering actors to main actor system");
@@ -100,7 +100,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		system.actorOf(Props.create(VersioningActor.class), "versioning");
 		system.actorOf(Props.create(AclActor.class), "acl");
 		system.actorOf(Props.create(DiscoveryActor.class), "discovery");
-		
+
 		LOG.info("Initializing service factory instances");
 		try {
 			boolean factory = createServiceFactory(sce, configFilename);

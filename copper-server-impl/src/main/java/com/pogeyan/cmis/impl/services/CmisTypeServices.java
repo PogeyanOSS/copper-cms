@@ -102,34 +102,34 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> folderProperty = getBaseFolderProperty();
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			TypeDefinition folderType = typeManagerDAO.createObjectFacade("cmis:folder", "cmis:folder", "cmis:folder", "cmis:folder",
-					"cmis:folder", "Folder", BaseTypeId.CMIS_FOLDER, null, true, true, true, true, true, true, true,
-					type, folderProperty);
+			TypeDefinition folderType = typeManagerDAO.createObjectFacade("cmis:folder", "cmis:folder", "cmis:folder",
+					"cmis:folder", "cmis:folder", "Folder", BaseTypeId.CMIS_FOLDER, null, true, true, true, true, true,
+					true, true, type, folderProperty, null, null);
 			Map<String, PropertyDefinitionImpl<?>> documentProperty = getBaseDocumentProperty();
-			CmisDocumentTypeDefinitionImpl documentType = new CmisDocumentTypeDefinitionImpl("cmis:document",
-					"cmis:document", "cmis:document", "cmis:document", "cmis:document", "Document",
+			DocumentTypeDefinition documentType = (DocumentTypeDefinition) typeManagerDAO.createObjectFacade(
+					"cmis:document", "cmis:document", "cmis:document", "cmis:document", "cmis:document", "Document",
 					BaseTypeId.CMIS_DOCUMENT, null, true, true, true, true, true, true, true, type, documentProperty,
 					true, ContentStreamAllowed.ALLOWED);
 
-			TypeDefinition itemType = typeManagerDAO.createObjectFacade("cmis:item", "cmis:item", "cmis:item", "cmis:item", "cmis:item",
-					"Item", BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true, true, type,
-					getBaseProperty());
+			TypeDefinition itemType = typeManagerDAO.createObjectFacade("cmis:item", "cmis:item", "cmis:item",
+					"cmis:item", "cmis:item", "Item", BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true,
+					true, type, getBaseProperty(), null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> relationShipProperty = getBaserelationShipProperty();
-			TypeDefinition realtionShipType = typeManagerDAO.createObjectFacade("cmis:relationship", "cmis:relationship",
-					"cmis:relationship", "cmis:relationship", "cmis:relationship", "Relationship",
+			TypeDefinition realtionShipType = typeManagerDAO.createObjectFacade("cmis:relationship",
+					"cmis:relationship", "cmis:relationship", "cmis:relationship", "cmis:relationship", "Relationship",
 					BaseTypeId.CMIS_RELATIONSHIP, null, true, false, true, true, true, true, true, type,
-					relationShipProperty);
+					relationShipProperty, null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> policyProperty = getBasepolicyProperty();
-			TypeDefinition policyType = typeManagerDAO.createObjectFacade("cmis:policy", "cmis:policy", "cmis:policy", "cmis:policy",
-					"cmis:policy", "Policy", BaseTypeId.CMIS_POLICY, null, true, true, true, true, true, true, true,
-					type, policyProperty);
+			TypeDefinition policyType = typeManagerDAO.createObjectFacade("cmis:policy", "cmis:policy", "cmis:policy",
+					"cmis:policy", "cmis:policy", "Policy", BaseTypeId.CMIS_POLICY, null, true, true, true, true, true,
+					true, true, type, policyProperty, null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> SecondaryTypeProperty = getBaseSecondaryTypeProperty();
-			TypeDefinition secondaryType = typeManagerDAO.createObjectFacade("cmis:secondary", "cmis:secondary", "cmis:secondary",
-					"cmis:secondary", "cmis:secondary", "Secondary Type", BaseTypeId.CMIS_SECONDARY, null, false, false,
-					true, true, true, false, false, type, SecondaryTypeProperty);
+			TypeDefinition secondaryType = typeManagerDAO.createObjectFacade("cmis:secondary", "cmis:secondary",
+					"cmis:secondary", "cmis:secondary", "cmis:secondary", "Secondary Type", BaseTypeId.CMIS_SECONDARY,
+					null, false, false, true, true, true, false, false, type, SecondaryTypeProperty, null, null);
 
 			// Map<String, MPropertyDefinition<?>>
 			// customMgtSecondaryTypeProperty =
@@ -156,7 +156,8 @@ public class CmisTypeServices {
 			// false, type,
 			// customDestructionSecondaryTypeProperty);
 			//
-			// TypeDefinition holdsecondaryType = new TypeDefinition("cmis:rm:hold",
+			// TypeDefinition holdsecondaryType = new
+			// TypeDefinition("cmis:rm:hold",
 			// "cmis:rm:hold", "cmis:rm:hold",
 			// "cmis:rm:hold", "cmis:rm:hold", "Custom Secondary Type",
 			// BaseTypeId.CMIS_SECONDARY,
@@ -164,7 +165,8 @@ public class CmisTypeServices {
 			// false, type, null);
 			//
 			// TypeDefinition repsecondaryType = new
-			// TypeDefinition("cmis:rm:repMgtRetention", "cmis:rm:repMgtRetention",
+			// TypeDefinition("cmis:rm:repMgtRetention",
+			// "cmis:rm:repMgtRetention",
 			// "cmis:rm:repMgtRetention", "cmis:rm:repMgtRetention",
 			// "cmis:rm:repMgtRetention",
 			// "Custom Secondary Type", BaseTypeId.CMIS_SECONDARY,
@@ -506,7 +508,8 @@ public class CmisTypeServices {
 			addIndex(repositoryId, Mproperty);
 			if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
-				CmisDocumentTypeDefinitionImpl newType = getDocumentTypeDefinition(doctype, Mproperty, typeMutability);
+				DocumentTypeDefinition newType = getDocumentTypeDefinition(typeManagerDAO, doctype, Mproperty,
+						typeMutability);
 				typeManagerDAO.commit(newType);
 				try {
 					createFolderForType(type, userName, repositoryId);
@@ -581,7 +584,8 @@ public class CmisTypeServices {
 			addIndex(repositoryId, Mproperty);
 			if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
-				CmisDocumentTypeDefinitionImpl newType = getDocumentTypeDefinition(doctype, Mproperty, typeMutability);
+				DocumentTypeDefinition newType = getDocumentTypeDefinition(typeManagerDAO, doctype, Mproperty,
+						typeMutability);
 				typeManagerDAO.commit(newType);
 			} else {
 				TypeDefinition newType = getTypeDefinitionManager(typeManagerDAO, type, Mproperty, typeMutability);
@@ -685,7 +689,7 @@ public class CmisTypeServices {
 			if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 				MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
-				CmisDocumentTypeDefinitionImpl docType = docTypeMorphia.getByTypeId(typeDefinition.getId().toString());
+				DocumentTypeDefinition docType = docTypeMorphia.getByTypeId(typeDefinition.getId().toString());
 				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId,
 						innerChild, null);
 				CmisDocumentTypeDefinitionImpl documentType = getTypeDocumentObjectInstance(docType, list);
@@ -794,16 +798,18 @@ public class CmisTypeServices {
 							}, LinkedHashMap::new));
 				}
 				if (typeDefinition.getParentTypeId() != null) {
-					List<TypeDefinition> childTypes = getTypeParent(repositoryId, typeDefinition.getParentTypeId(),
-							innerChild);
-					if (childTypes != null) {
-						for (TypeDefinition parentObject : childTypes) {
-							if (parentObject.getPropertyDefinitions() != null) {
-								Map<String, PropertyDefinition<?>> property = parentObject.getPropertyDefinitions();
-								parentPropertyDefinition = property.entrySet().stream().collect(Collectors.toMap(
-										p -> p.getKey(), p -> getPropertyDefinition(p.getValue(), true), (u, v) -> {
-											throw new IllegalStateException(String.format("Duplicate key %s", u));
-										}, LinkedHashMap::new));
+					if (innerChild != null) {
+						List<TypeDefinition> childTypes = getTypeParent(repositoryId, typeDefinition.getParentTypeId(),
+								innerChild);
+						if (childTypes != null) {
+							for (TypeDefinition parentObject : childTypes) {
+								if (parentObject.getPropertyDefinitions() != null) {
+									Map<String, PropertyDefinition<?>> property = parentObject.getPropertyDefinitions();
+									parentPropertyDefinition = property.entrySet().stream().collect(Collectors.toMap(
+											p -> p.getKey(), p -> getPropertyDefinition(p.getValue(), true), (u, v) -> {
+												throw new IllegalStateException(String.format("Duplicate key %s", u));
+											}, LinkedHashMap::new));
+								}
 							}
 						}
 					}
@@ -826,19 +832,19 @@ public class CmisTypeServices {
 
 		private static TypeDefinition getTypeObjectInstance(TypeDefinition typeDefinition,
 				Map<String, PropertyDefinitionImpl<?>> list, MTypeManagerDAO typeManagerDAO) {
-			TypeDefinition type = typeManagerDAO.createObjectFacade(typeDefinition.getId(), typeDefinition.getLocalName(),
-					typeDefinition.getLocalNamespace(), typeDefinition.getDisplayName(), typeDefinition.getQueryName(),
-					typeDefinition.getDescription(), typeDefinition.getBaseTypeId(), typeDefinition.getParentTypeId(),
-					typeDefinition.isCreatable(), typeDefinition.isFileable(), typeDefinition.isQueryable(),
-					typeDefinition.isFulltextIndexed(), typeDefinition.isIncludedInSupertypeQuery(),
-					typeDefinition.isControllablePolicy(), typeDefinition.isControllableAcl(),
-					typeDefinition.getTypeMutability(), list);
+			TypeDefinition type = typeManagerDAO.createObjectFacade(typeDefinition.getId(),
+					typeDefinition.getLocalName(), typeDefinition.getLocalNamespace(), typeDefinition.getDisplayName(),
+					typeDefinition.getQueryName(), typeDefinition.getDescription(), typeDefinition.getBaseTypeId(),
+					typeDefinition.getParentTypeId(), typeDefinition.isCreatable(), typeDefinition.isFileable(),
+					typeDefinition.isQueryable(), typeDefinition.isFulltextIndexed(),
+					typeDefinition.isIncludedInSupertypeQuery(), typeDefinition.isControllablePolicy(),
+					typeDefinition.isControllableAcl(), typeDefinition.getTypeMutability(), list, null, null);
 			return type;
 
 		}
 
 		private static CmisDocumentTypeDefinitionImpl getTypeDocumentObjectInstance(
-				CmisDocumentTypeDefinitionImpl typeDefinition, Map<String, PropertyDefinitionImpl<?>> list) {
+				DocumentTypeDefinition typeDefinition, Map<String, PropertyDefinitionImpl<?>> list) {
 			CmisDocumentTypeDefinitionImpl type = new CmisDocumentTypeDefinitionImpl(typeDefinition.getId(),
 					typeDefinition.getLocalName(), typeDefinition.getLocalNamespace(), typeDefinition.getDisplayName(),
 					typeDefinition.getQueryName(), typeDefinition.getDescription(), typeDefinition.getBaseTypeId(),
@@ -902,7 +908,8 @@ public class CmisTypeServices {
 			MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			if (typeId != null) {
-				List<? extends TypeDefinition> childrenList = typeManagerDAO.getChildrenIds(typeId, maxItems, skipCount);
+				List<? extends TypeDefinition> childrenList = typeManagerDAO.getChildrenIds(typeId, maxItems,
+						skipCount);
 				if (childrenList.size() > 0) {
 					result.setNumItems(BigInteger.valueOf(childrenList.size()));
 					result.setHasMoreItems(childrenList.size() > maxItems - skipCount);
@@ -1018,9 +1025,11 @@ public class CmisTypeServices {
 			if (typeManagerDAO.getById(Arrays.asList(typeId)).size() > 0) {
 				result = typeManagerDAO.getById(Arrays.asList(typeId)).get(0);
 				if (result.getBaseTypeId().value().equals("cmis:document")) {
-					CmisDocumentTypeDefinitionImpl docResult = docTypeMorphia.getByTypeId(typeId);
-					typeDefinitionContainer = getDocTypeDefContainer(
-							getDocTypeObject(repositoryId, docResult, includePropertyDefinitions));
+					DocumentTypeDefinition docResult = docTypeMorphia.getByTypeId(typeId);
+					Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(docResult, repositoryId, null,
+							null);
+					typeDefinitionContainer = getDocTypeDefContainer(getDocTypeObject(repositoryId,
+							getTypeDocumentObjectInstance(docResult, list), includePropertyDefinitions));
 				} else {
 					typeDefinitionContainer = getTypeDefContainer(
 							getTypeObject(repositoryId, result, includePropertyDefinitions),
@@ -1054,7 +1063,7 @@ public class CmisTypeServices {
 				Boolean includePropertyDefinitions) {
 			List<TypeDefinitionContainer> object = new ArrayList<TypeDefinitionContainer>();
 			TypeDefinition folder = typeManagerDAO.getById(Arrays.asList("cmis:folder")).get(0);
-			CmisDocumentTypeDefinitionImpl document = docTypeMorphia.getByTypeId("cmis:document");
+			DocumentTypeDefinition document = docTypeMorphia.getByTypeId("cmis:document");
 			TypeDefinition policy = typeManagerDAO.getById(Arrays.asList("cmis:policy")).get(0);
 			TypeDefinition relationship = typeManagerDAO.getById(Arrays.asList("cmis:relationship")).get(0);
 			TypeDefinition item = typeManagerDAO.getById(Arrays.asList("cmis:item")).get(0);
@@ -1082,8 +1091,8 @@ public class CmisTypeServices {
 		}
 
 		private static TypeDefinitionContainerImpl getTypeDefinitionContainerImpl(String repositoryId,
-				TypeDefinition object, MTypeManagerDAO typeManagerDAO, MDocumentTypeManagerDAO docTypeMorphia, int depth,
-				Boolean includePropertyDefinitions) {
+				TypeDefinition object, MTypeManagerDAO typeManagerDAO, MDocumentTypeManagerDAO docTypeMorphia,
+				int depth, Boolean includePropertyDefinitions) {
 			TypeDefinitionContainerImpl typeItemDefinitionContainer = getTypeDefContainer(
 					getTypeObject(repositoryId, object, includePropertyDefinitions), object.getBaseTypeId().value());
 			List<TypeDefinitionContainer> innerItemChild = new ArrayList<TypeDefinitionContainer>();
@@ -1094,8 +1103,8 @@ public class CmisTypeServices {
 		}
 
 		private static TypeDefinitionContainerImpl getDocTypeDefinitionContainerImpl(String repositoryId,
-				CmisDocumentTypeDefinitionImpl object, MTypeManagerDAO typeManagerDAO,
-				MDocumentTypeManagerDAO docTypeMorphia, int depth, Boolean includePropertyDefinitions) {
+				DocumentTypeDefinition object, MTypeManagerDAO typeManagerDAO, MDocumentTypeManagerDAO docTypeMorphia,
+				int depth, Boolean includePropertyDefinitions) {
 			TypeDefinitionContainerImpl typeItemDefinitionContainer = getDocTypeDefContainer(
 					getDocTypeObject(repositoryId, object, includePropertyDefinitions));
 			List<TypeDefinitionContainer> innerItemChild = new ArrayList<TypeDefinitionContainer>();
@@ -1139,7 +1148,7 @@ public class CmisTypeServices {
 				TypeDefinition child, MDocumentTypeManagerDAO docTypeMorphia, Boolean includePropertyDefinitions) {
 			TypeDefinitionContainerImpl typeDefinitionContainer = null;
 			if (child.getBaseTypeId().value().equals("cmis:document")) {
-				CmisDocumentTypeDefinitionImpl docType = docTypeMorphia.getByTypeId(child.getId());
+				DocumentTypeDefinition docType = docTypeMorphia.getByTypeId(child.getId());
 				typeDefinitionContainer = getDocTypeDefContainer(
 						getDocTypeObject(repositoryId, docType, includePropertyDefinitions));
 			} else {
@@ -1188,7 +1197,7 @@ public class CmisTypeServices {
 		}
 
 		private static CmisDocumentTypeDefinitionImpl getDocTypeObject(String repositoryId,
-				CmisDocumentTypeDefinitionImpl object, Boolean includePropertyDefinitions) {
+				DocumentTypeDefinition object, Boolean includePropertyDefinitions) {
 			List<TypeDefinition> innerChildObject = new ArrayList<TypeDefinition>();
 			innerChildObject.clear();
 			Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(object, repositoryId, innerChildObject,
@@ -1446,13 +1455,14 @@ public class CmisTypeServices {
 					type.isQueryable() == null ? false : type.isQueryable(),
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
-					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty);
+					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty, null, null);
 			return newType;
 		}
 
-		private static CmisDocumentTypeDefinitionImpl getDocumentTypeDefinition(DocumentTypeDefinition type,
-				Map<String, PropertyDefinitionImpl<?>> Mproperty, TypeMutabilityImpl typeMutability) {
-			CmisDocumentTypeDefinitionImpl newType = new CmisDocumentTypeDefinitionImpl(type.getId(),
+		private static DocumentTypeDefinition getDocumentTypeDefinition(MTypeManagerDAO typeManagerDAO,
+				DocumentTypeDefinition type, Map<String, PropertyDefinitionImpl<?>> Mproperty,
+				TypeMutabilityImpl typeMutability) {
+			DocumentTypeDefinition newType = (DocumentTypeDefinition) typeManagerDAO.createObjectFacade(type.getId(),
 					type.getLocalName() == null ? "localName" : type.getLocalName(),
 					type.getLocalNamespace() == null ? "localNameSpace" : type.getLocalNamespace(),
 					type.getDisplayName() == null ? "displayName" : type.getDisplayName(),

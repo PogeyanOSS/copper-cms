@@ -23,6 +23,7 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeMutability;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.enums.ContentStreamAllowed;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -31,6 +32,7 @@ import org.mongodb.morphia.query.Query;
 import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.TypeMutabilityImpl;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
+import com.pogeyan.cmis.data.mongo.MTypeDocumentObject;
 import com.pogeyan.cmis.data.mongo.MTypeObject;
 
 public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> implements MTypeManagerDAO {
@@ -92,9 +94,18 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,
 			Boolean isFileable, Boolean isQueryable, Boolean isFulltextIndexed, Boolean isIncludedInSupertypeQuery,
 			Boolean isControllablePolicy, Boolean isControllableAcl, TypeMutability typeMutability,
-			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
-		return new MTypeObject(id, localName, localNamespace, displayName, queryName, description, baseTypeId, parent,
-				isCreatable, isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery,
-				isControllablePolicy, isControllableAcl, (TypeMutabilityImpl)typeMutability, propertyDefinition);
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition, Boolean isVersion,
+			ContentStreamAllowed contentStream) {
+		if (isVersion != null || contentStream != null) {
+			return new MTypeDocumentObject(id, localName, localNamespace, displayName, queryName, description,
+					baseTypeId, parent, isCreatable, isFileable, isQueryable, isFulltextIndexed,
+					isIncludedInSupertypeQuery, isControllablePolicy, isControllableAcl,
+					(TypeMutabilityImpl) typeMutability, propertyDefinition, isVersion, contentStream);
+		} else {
+			return new MTypeObject(id, localName, localNamespace, displayName, queryName, description, baseTypeId,
+					parent, isCreatable, isFileable, isQueryable, isFulltextIndexed, isIncludedInSupertypeQuery,
+					isControllablePolicy, isControllableAcl, (TypeMutabilityImpl) typeMutability, propertyDefinition);
+		}
+
 	}
 }
