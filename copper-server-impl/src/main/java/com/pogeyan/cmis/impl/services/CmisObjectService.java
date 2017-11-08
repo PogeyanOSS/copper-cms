@@ -106,7 +106,7 @@ import com.pogeyan.cmis.impl.utils.NameValidator;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
-
+import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import scala.Tuple2;
 
 public class CmisObjectService {
@@ -1284,7 +1284,8 @@ public class CmisObjectService {
 						parent.getInternalPath());
 			}
 
-			IBaseObject result = createFolderObject(repositoryId, parent, folderName, userName, secondaryObjectTypeIds,
+			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
+			IBaseObject result = createFolderObject(repositoryId, parent, (String)objectIdProperty.getFirstValue(), folderName, userName, secondaryObjectTypeIds,
 					typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd, aclRemove);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
@@ -1316,15 +1317,16 @@ public class CmisObjectService {
 			String folderName = (String) pd.getFirstValue();
 			AccessControlListImplExt aclImp = (AccessControlListImplExt) CmisUtils.Object.getAclFor(userName,
 					"cmis:all");
-			createFolderObject(repositoryId, parent, folderName, userName, null, typeId, props.getProperties(),
+			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
+			createFolderObject(repositoryId, parent, (String)objectIdProperty.getFirstValue(), folderName, userName, null, typeId, props.getProperties(),
 					objectMorphiaDAO, null, aclImp, null);
 		}
 
 		/**
 		 * inserting FolderObject into MongoDB
 		 */
-		private static IBaseObject createFolderObject(String repositoryId, IBaseObject parentData, String folderName,
-				String userName, List<String> secondaryObjectTypeId, String typeId,
+		private static IBaseObject createFolderObject(String repositoryId, IBaseObject parentData, String objectId,
+				String folderName, String userName, List<String> secondaryObjectTypeId, String typeId,
 				Map<String, PropertyData<?>> properties, MBaseObjectDAO objectMorphiaDAO, List<String> policies,
 				AccessControlListImplExt addAces, Acl removeAces)
 				throws CmisObjectNotFoundException, IllegalArgumentException {
@@ -1365,6 +1367,14 @@ public class CmisObjectService {
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
 					userName, userName, token, path, custom, policies, addAces, cmisPath,
 					parentData.getId().toString());
+
+			if (result instanceof ISettableBaseObject) {
+				ISettableBaseObject settableBaseObject = (ISettableBaseObject) result;
+				if (objectId != null && !objectId.isEmpty()) {
+					settableBaseObject.setId(objectId);
+				}
+			}
+
 			objectMorphiaDAO.commit(result);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("createFolderObject successful using objectMorphiaDAO: {}, {}", result.getId(),
@@ -1527,9 +1537,11 @@ public class CmisObjectService {
 						parent.getInternalPath());
 			}
 
-			IDocumentObject result = createDocumentObject(repositoryId, parent, documentName, userName,
-					secondaryObjectTypeIds, contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies,
-					aclAdd, aclRemove, versioningState);
+			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
+			IDocumentObject result = createDocumentObject(repositoryId, parent,
+					(String) objectIdProperty.getFirstValue(), documentName, userName, secondaryObjectTypeIds,
+					contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies, aclAdd, aclRemove,
+					versioningState);
 
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			LOG.info("FileDetails for repositoryId: {} is {} ", repositoryId, parameters);
@@ -1558,11 +1570,11 @@ public class CmisObjectService {
 		/**
 		 * inserting documentOject into mongoDB
 		 */
-		public static IDocumentObject createDocumentObject(String repositoryId, IBaseObject parentData, String docName,
-				String username, List<String> secondaryObjectTypeIds, ContentStream contentStream, String typeId,
-				MDocumentObjectDAO documentMorphiaDAO, Map<String, PropertyData<?>> properties, List<String> policies,
-				AccessControlListImplExt addACEs, Acl removeACEs, VersioningState versioningState)
-				throws IllegalArgumentException {
+		public static IDocumentObject createDocumentObject(String repositoryId, IBaseObject parentData, String objectId,
+				String docName, String username, List<String> secondaryObjectTypeIds, ContentStream contentStream,
+				String typeId, MDocumentObjectDAO documentMorphiaDAO, Map<String, PropertyData<?>> properties,
+				List<String> policies, AccessControlListImplExt addACEs, Acl removeACEs,
+				VersioningState versioningState) throws IllegalArgumentException {
 			LOG.info("Creating Document: {} within ParentFolder id: {} ", docName, parentData.getId());
 
 			IDocumentObject documentObject = null;
@@ -1594,6 +1606,14 @@ public class CmisObjectService {
 							username, username, token, p._1(), custom, policies, addACEs, p._2(),
 							parentData.getId().toString());
 				}
+
+				if (baseObject instanceof ISettableBaseObject) {
+					ISettableBaseObject settableBaseObject = (ISettableBaseObject) baseObject;
+					if (objectId != null && !objectId.isEmpty()) {
+						settableBaseObject.setId(objectId);
+					}
+				}
+
 				if (versioningState == VersioningState.MAJOR) {
 					documentObject = Helpers.getDocumentObject(documentMorphiaDAO, baseObject, true, true, true,
 							contentStream, versionSeriesId, versionReferenceId);
@@ -1746,9 +1766,11 @@ public class CmisObjectService {
 						BigInteger.valueOf(sourceResult.getContentStreamLength()));
 			}
 
-			IDocumentObject result = createDocumentObject(repositoryId, parent, documentName, userName,
-					secondaryObjectTypeIds, contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies,
-					aclAdd, aclRemove, versioningState);
+			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
+			IDocumentObject result = createDocumentObject(repositoryId, parent,
+					(String) objectIdProperty.getFirstValue(), documentName, userName, secondaryObjectTypeIds,
+					contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies, aclAdd, aclRemove,
+					versioningState);
 			if (contentStream != null) {
 				try {
 					localService.writeContent(result.getId().toString(), sourceResult.getContentStreamFileName(),
@@ -1845,7 +1867,8 @@ public class CmisObjectService {
 						parent.getInternalPath());
 			}
 
-			IBaseObject result = createItemObject(repositoryId, parent, itemName, userName, secondaryObjectTypeIds,
+			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
+			IBaseObject result = createItemObject(repositoryId, parent, (String)objectIdProperty.getFirstValue(), itemName, userName, secondaryObjectTypeIds,
 					typeId, props.getProperties(), policies, aclAdd, aclRemove);
 			return result;
 		}
@@ -1853,8 +1876,8 @@ public class CmisObjectService {
 		/**
 		 * inserting itemObject into mongoDB
 		 */
-		private static IBaseObject createItemObject(String repositoryId, IBaseObject parentData, String itemName,
-				String username, List<String> secondaryObjectTypeIds, String typeId,
+		private static IBaseObject createItemObject(String repositoryId, IBaseObject parentData, String objectId,
+				String itemName, String username, List<String> secondaryObjectTypeIds, String typeId,
 				Map<String, PropertyData<?>> properties, List<String> policies, AccessControlListImplExt aclAdd,
 				Acl aclRemove) throws CmisObjectNotFoundException, IllegalArgumentException {
 
@@ -1885,9 +1908,16 @@ public class CmisObjectService {
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
 					username, username, token, path, custom, policies, aclAdd, cmisPath, parentData.getId().toString());
-			baseMorphiaDAO.commit(result);
-			LOG.info("Item: {} Created", result.getName());
 
+			if (result instanceof ISettableBaseObject) {
+				ISettableBaseObject settableBaseObject = (ISettableBaseObject) result;
+				if (objectId != null && !objectId.isEmpty()) {
+					settableBaseObject.setId(objectId);
+				}
+			}
+
+			baseMorphiaDAO.commit(result);
+			LOG.info("Item: {} created", result.getName());
 			if (aclRemove != null)
 				validateAcl(repositoryId, aclRemove, result.getId(), result);
 			return result;
@@ -2366,7 +2396,8 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
+					? props.getProperties().get("cmis:description").getFirstValue().toString()
+					: null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -2991,7 +3022,8 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName() : child.getName();
+									? docObject.getContentStreamFileName()
+									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3086,7 +3118,8 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName() : child.getName();
+								? docObject.getContentStreamFileName()
+								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3643,14 +3676,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject> toList());
+						.collect(Collectors.<IBaseObject>toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt> toList());
+							.collect(Collectors.<AccessControlListImplExt>toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3716,7 +3749,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3724,7 +3757,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -3758,7 +3791,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3766,7 +3799,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
