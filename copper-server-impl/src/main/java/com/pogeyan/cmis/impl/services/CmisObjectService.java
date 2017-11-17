@@ -85,6 +85,9 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
@@ -104,9 +107,7 @@ import com.pogeyan.cmis.impl.utils.CmisUtils;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.NameValidator;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
-import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.api.data.IDocumentObject;
-import com.pogeyan.cmis.api.data.ISettableBaseObject;
+
 import scala.Tuple2;
 
 public class CmisObjectService {
@@ -296,7 +297,7 @@ public class CmisObjectService {
 				ObjectInfoHandler objectInfos, String renditionFilter, IncludeRelationships includeRelationships,
 				String userName) throws IllegalArgumentException {
 
-			LOG.info("CompileObjectData for: {} , repository: {}" + data.getId(), repositoryId);
+			LOG.info("CompileObjectData for: {} , repository: {}", data.getId(), repositoryId);
 
 			ObjectDataImpl result = new ObjectDataImpl();
 			ObjectInfoImpl objectInfo = new ObjectInfoImpl();
@@ -1126,43 +1127,99 @@ public class CmisObjectService {
 			return data;
 		}
 
+		@SuppressWarnings("unchecked")
 		private static void readCustomProperties(String repositoryId, IBaseObject data, PropertiesImpl props,
 				TypeDefinition typeId, Set<String> filter) {
 
-			Map<String, Object> custom = data.getProperties();
-			LOG.info("Custom Properties: {} , objectId: {} , repository: {}", custom.toString(), data.getId(),
+			HashMap<String, Object> customProps = new HashMap<String, Object>();
+			// Map<String, Object> custom = data.getProperties();
+			LOG.info("Custom Properties: {} , objectId: {} , repository: {}", customProps.toString(), data.getId(),
 					repositoryId);
-			custom = custom.entrySet().stream()
-					.filter(map -> (!(map.getKey().equalsIgnoreCase("cmis:name")
-							|| map.getKey().equalsIgnoreCase("cmis:lastModifiedBy")
-							|| map.getKey().equalsIgnoreCase("cmis:objectTypeId")
-							|| map.getKey().equalsIgnoreCase("cmis:createdBy")
-							|| map.getKey().equalsIgnoreCase("cmis:path")
-							|| map.getKey().equalsIgnoreCase("cmis:description")
-							|| map.getKey().equalsIgnoreCase("cmis:changeToken")
-							|| map.getKey().equalsIgnoreCase("cmis:allowedChildObjectTypeIds")
-							|| map.getKey().equalsIgnoreCase("cmis:parentId")
-							|| map.getKey().equalsIgnoreCase("cmis:baseTypeId")
-							|| map.getKey().equalsIgnoreCase("cmis:objectId")
-							|| map.getKey().equalsIgnoreCase("cmis:lastModificationDate")
-							|| map.getKey().equalsIgnoreCase("cmis:creationDate")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamLength")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamFileName")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamMimeType")
-							|| map.getKey().equalsIgnoreCase("cmis:checkinComment")
-							|| map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutBy")
-							|| map.getKey().equalsIgnoreCase("cmis:versionLabel")
-							|| map.getKey().equalsIgnoreCase("cmis:isMajorVersion")
-							|| map.getKey().equalsIgnoreCase("cmis:isLatestVersion")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamId")
-							|| map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutId")
-							|| map.getKey().equalsIgnoreCase("cmis:versionSeriesId")
-							|| map.getKey().equalsIgnoreCase("cmis:isImmutable"))))
-					.collect(Collectors.toMap(p -> p.getKey(),
-							p -> typeId.getPropertyDefinitions().get(p.getKey()).getPropertyType()));
+			/*
+			 * custom = custom.entrySet().stream() .filter(map ->
+			 * (!(map.getKey().equalsIgnoreCase("cmis:name") ||
+			 * map.getKey().equalsIgnoreCase("cmis:lastModifiedBy") ||
+			 * map.getKey().equalsIgnoreCase("cmis:objectTypeId") ||
+			 * map.getKey().equalsIgnoreCase("cmis:createdBy") ||
+			 * map.getKey().equalsIgnoreCase("cmis:path") ||
+			 * map.getKey().equalsIgnoreCase("cmis:description") ||
+			 * map.getKey().equalsIgnoreCase("cmis:changeToken") ||
+			 * map.getKey().equalsIgnoreCase("cmis:allowedChildObjectTypeIds")
+			 * || map.getKey().equalsIgnoreCase("cmis:parentId") ||
+			 * map.getKey().equalsIgnoreCase("cmis:baseTypeId") ||
+			 * map.getKey().equalsIgnoreCase("cmis:objectId") ||
+			 * map.getKey().equalsIgnoreCase("cmis:lastModificationDate") ||
+			 * map.getKey().equalsIgnoreCase("cmis:creationDate") ||
+			 * map.getKey().equalsIgnoreCase("cmis:contentStreamLength") ||
+			 * map.getKey().equalsIgnoreCase("cmis:contentStreamFileName") ||
+			 * map.getKey().equalsIgnoreCase("cmis:contentStreamMimeType") ||
+			 * map.getKey().equalsIgnoreCase("cmis:checkinComment") ||
+			 * map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutBy")
+			 * || map.getKey().equalsIgnoreCase("cmis:versionLabel") ||
+			 * map.getKey().equalsIgnoreCase("cmis:isMajorVersion") ||
+			 * map.getKey().equalsIgnoreCase("cmis:isLatestVersion") ||
+			 * map.getKey().equalsIgnoreCase("cmis:contentStreamId") ||
+			 * map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutId")
+			 * || map.getKey().equalsIgnoreCase("cmis:versionSeriesId") ||
+			 * map.getKey().equalsIgnoreCase("cmis:isImmutable")) &&
+			 * typeId.getPropertyDefinitions().get(map.getKey()) != null))
+			 * .collect(Collectors.toMap(p -> p.getKey(), p ->
+			 * typeId.getPropertyDefinitions().get(p.getKey()).getPropertyType()
+			 * ));
+			 */
 
-			if (custom.size() > 0) {
-				Set<Map.Entry<String, Object>> customData = custom.entrySet();
+			data.getProperties().entrySet().forEach(map -> {
+				if (!(map.getKey().equalsIgnoreCase("cmis:name") || map.getKey().equalsIgnoreCase("cmis:lastModifiedBy")
+						|| map.getKey().equalsIgnoreCase("cmis:objectTypeId")
+						|| map.getKey().equalsIgnoreCase("cmis:createdBy") || map.getKey().equalsIgnoreCase("cmis:path")
+						|| map.getKey().equalsIgnoreCase("cmis:description")
+						|| map.getKey().equalsIgnoreCase("cmis:changeToken")
+						|| map.getKey().equalsIgnoreCase("cmis:allowedChildObjectTypeIds")
+						|| map.getKey().equalsIgnoreCase("cmis:parentId")
+						|| map.getKey().equalsIgnoreCase("cmis:baseTypeId")
+						|| map.getKey().equalsIgnoreCase("cmis:objectId")
+						|| map.getKey().equalsIgnoreCase("cmis:lastModificationDate")
+						|| map.getKey().equalsIgnoreCase("cmis:creationDate")
+						|| map.getKey().equalsIgnoreCase("cmis:contentStreamLength")
+						|| map.getKey().equalsIgnoreCase("cmis:contentStreamFileName")
+						|| map.getKey().equalsIgnoreCase("cmis:contentStreamMimeType")
+						|| map.getKey().equalsIgnoreCase("cmis:checkinComment")
+						|| map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutBy")
+						|| map.getKey().equalsIgnoreCase("cmis:versionLabel")
+						|| map.getKey().equalsIgnoreCase("cmis:isMajorVersion")
+						|| map.getKey().equalsIgnoreCase("cmis:isLatestVersion")
+						|| map.getKey().equalsIgnoreCase("cmis:contentStreamId")
+						|| map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutId")
+						|| map.getKey().equalsIgnoreCase("cmis:versionSeriesId")
+						|| map.getKey().equalsIgnoreCase("cmis:isImmutable"))) {
+
+					if (typeId.getPropertyDefinitions().get(map.getKey()) == null) {
+						if (data.getSecondaryTypeIds() != null) {
+							MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+									.getObjectService(repositoryId, MTypeManagerDAO.class);
+							List<? extends TypeDefinition> secondaryObject = typeMorphiaDAO
+									.getById(data.getSecondaryTypeIds());
+							secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
+								Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
+								secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {
+									if (t.getValue().getId().equals(map.getKey())) {
+										customProps.put(t.getKey(), t.getValue().getPropertyType());
+									}
+								});
+							});
+						} else {
+							LOG.error("Unknown propertiesTypes:{}", map.getKey());
+							throw new IllegalArgumentException("Property '" + map.getKey() + "' is unknown!");
+						}
+					} else {
+						customProps.put(map.getKey(),
+								typeId.getPropertyDefinitions().get(map.getKey()).getPropertyType());
+					}
+				}
+			});
+
+			if (customProps.size() > 0) {
+				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
 					String id = customValues.getKey();
 					Object valueOfType = data.getProperties().get(id);
@@ -1190,8 +1247,13 @@ public class CmisObjectService {
 						String decodedValue = StringEscapeUtils.unescapeHtml4(value);
 						addPropertyHtml(repositoryId, props, typeId, filter, id, decodedValue);
 					} else if (propertyType == PropertyType.STRING) {
-						String value = convertInstanceOfObject(valueOfType, String.class);
-						addPropertyString(repositoryId, props, typeId, filter, id, value);
+						if (valueOfType instanceof String) {
+							String value = convertInstanceOfObject(valueOfType, String.class);
+							addPropertyString(repositoryId, props, typeId, filter, id, value);
+						} else if (valueOfType instanceof List<?>) {
+							List<String> value = convertInstanceOfObject(valueOfType, List.class);
+							addPropertyString(repositoryId, props, typeId, filter, id, value);
+						}
 					} else if (propertyType == PropertyType.URI) {
 						String value = convertInstanceOfObject(valueOfType, String.class);
 						addPropertyUri(repositoryId, props, typeId, filter, id, value);
@@ -1285,8 +1347,10 @@ public class CmisObjectService {
 			}
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
-			IBaseObject result = createFolderObject(repositoryId, parent, (String)objectIdProperty.getFirstValue(), folderName, userName, secondaryObjectTypeIds,
-					typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd, aclRemove);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userName,
+					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
+					aclRemove);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			try {
@@ -1318,8 +1382,9 @@ public class CmisObjectService {
 			AccessControlListImplExt aclImp = (AccessControlListImplExt) CmisUtils.Object.getAclFor(userName,
 					"cmis:all");
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
-			createFolderObject(repositoryId, parent, (String)objectIdProperty.getFirstValue(), folderName, userName, null, typeId, props.getProperties(),
-					objectMorphiaDAO, null, aclImp, null);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			createFolderObject(repositoryId, parent, objectId, folderName, userName, null, typeId,
+					props.getProperties(), objectMorphiaDAO, null, aclImp, null);
 		}
 
 		/**
@@ -1410,8 +1475,9 @@ public class CmisObjectService {
 						BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
 						double doubleValue = value.doubleValue();
 						custom.put(valueName.getId(), doubleValue);
-					} else if (type.getPropertyDefinitions().get(valueName.getId()).getPropertyType()
-							.equals(PropertyType.HTML)) {
+					} else if (type.getPropertyDefinitions().get(valueName.getId()) != null
+							&& type.getPropertyDefinitions().get(valueName.getId()).getPropertyType()
+									.equals(PropertyType.HTML)) {
 						String value = convertInstanceOfObject(valueName.getFirstValue(), String.class);
 						String encodedValue = htmlEncode(value);
 						custom.put(valueName.getId(), encodedValue);
@@ -1538,10 +1604,10 @@ public class CmisObjectService {
 			}
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
-			IDocumentObject result = createDocumentObject(repositoryId, parent,
-					(String) objectIdProperty.getFirstValue(), documentName, userName, secondaryObjectTypeIds,
-					contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies, aclAdd, aclRemove,
-					versioningState);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			IDocumentObject result = createDocumentObject(repositoryId, parent, objectId, documentName, userName,
+					secondaryObjectTypeIds, contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies,
+					aclAdd, aclRemove, versioningState);
 
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			LOG.info("FileDetails for repositoryId: {} is {} ", repositoryId, parameters);
@@ -1767,10 +1833,10 @@ public class CmisObjectService {
 			}
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
-			IDocumentObject result = createDocumentObject(repositoryId, parent,
-					(String) objectIdProperty.getFirstValue(), documentName, userName, secondaryObjectTypeIds,
-					contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies, aclAdd, aclRemove,
-					versioningState);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			IDocumentObject result = createDocumentObject(repositoryId, parent, objectId, documentName, userName,
+					secondaryObjectTypeIds, contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies,
+					aclAdd, aclRemove, versioningState);
 			if (contentStream != null) {
 				try {
 					localService.writeContent(result.getId().toString(), sourceResult.getContentStreamFileName(),
@@ -1868,8 +1934,9 @@ public class CmisObjectService {
 			}
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
-			IBaseObject result = createItemObject(repositoryId, parent, (String)objectIdProperty.getFirstValue(), itemName, userName, secondaryObjectTypeIds,
-					typeId, props.getProperties(), policies, aclAdd, aclRemove);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			IBaseObject result = createItemObject(repositoryId, parent, objectId, itemName, userName,
+					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove);
 			return result;
 		}
 
@@ -1891,7 +1958,11 @@ public class CmisObjectService {
 				cmisPath = "/" + itemName;
 			} else {
 				path = parentData.getInternalPath() + parentData.getId() + ",";
-				cmisPath = parentData.getPath() + "/" + itemName;
+				if (parentData.getPath().equals("/")) {
+					cmisPath = "/" + itemName;
+				} else {
+					cmisPath = parentData.getPath() + "/" + itemName;
+				}
 			}
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -2273,9 +2344,10 @@ public class CmisObjectService {
 						parent.getInternalPath());
 
 			}
-
-			IBaseObject result = createPolicyObject(repositoryId, parent, policyName, userName, secondaryObjectTypeIds,
-					typeId, props.getProperties(), policies, aclAdd, aclRemove);
+			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			IBaseObject result = createPolicyObject(repositoryId, parent, objectId, policyName, userName,
+					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove);
 
 			return result;
 		}
@@ -2283,8 +2355,8 @@ public class CmisObjectService {
 		/**
 		 * Inserting CMISPolicyObject into MongoDB
 		 */
-		private static IBaseObject createPolicyObject(String repositoryId, IBaseObject parentData, String policyName,
-				String username, List<String> secondaryObjectTypeIds, String typeId,
+		private static IBaseObject createPolicyObject(String repositoryId, IBaseObject parentData, String objectId,
+				String policyName, String username, List<String> secondaryObjectTypeIds, String typeId,
 				Map<String, PropertyData<?>> properties, List<String> polices, AccessControlListImplExt aclAdd,
 				Acl aclRemove) throws IllegalArgumentException {
 
@@ -2321,6 +2393,13 @@ public class CmisObjectService {
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
 					username, username, token, path, custom, polices, aclAdd, cmisPath, parentData.getId().toString());
+
+			if (result instanceof ISettableBaseObject) {
+				ISettableBaseObject settableBaseObject = (ISettableBaseObject) result;
+				if (objectId != null && !objectId.isEmpty()) {
+					settableBaseObject.setId(objectId);
+				}
+			}
 			baseMorphiaDAO.commit(result);
 			LOG.info("Policy {} created", result.getName());
 			if (aclRemove != null)
@@ -2396,8 +2475,7 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString()
-					: null;
+					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -3022,8 +3100,7 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName()
-									: child.getName();
+									? docObject.getContentStreamFileName() : child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3118,8 +3195,7 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName()
-								: child.getName();
+								? docObject.getContentStreamFileName() : child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3330,13 +3406,20 @@ public class CmisObjectService {
 		/**
 		 * Adding the propertyString properties
 		 */
+		@SuppressWarnings("unchecked")
 		private static void addPropertyString(String repositoryId, PropertiesImpl props, TypeDefinition typeId,
-				Set<String> filter, String id, String value) {
+				Set<String> filter, String id, Object value) {
 			if (!checkAddProperty(repositoryId, props, typeId, filter, id)) {
 				return;
 			}
 			// props.addProperty(new PropertyStringImpl(id, value));
-			PropertyStringImpl pd = new PropertyStringImpl(id, value);
+			PropertyStringImpl pd = null;
+
+			if (value instanceof List) {
+				pd = new PropertyStringImpl(id, (List<String>) value);
+			} else {
+				pd = new PropertyStringImpl(id, (String) value);
+			}
 			pd.setDisplayName(id);
 			pd.setQueryName(id);
 			props.addProperty(pd);
@@ -3521,7 +3604,7 @@ public class CmisObjectService {
 			}
 
 			if (queryName == null) {
-				LOG.error("Unknown property:{} " + id);
+				LOG.error("Unknown property:{} ", id);
 				throw new IllegalArgumentException("Unknown property: " + id);
 			}
 
