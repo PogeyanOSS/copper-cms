@@ -15,7 +15,6 @@
  */
 package com.pogeyan.cmis.repo;
 
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
@@ -25,7 +24,7 @@ import org.mongodb.morphia.query.UpdateResults;
 import com.pogeyan.cmis.repo.MRepository;
 import com.pogeyan.cmis.repo.MRepositoryDAO;
 
-public class MRepositoryDAOImpl extends BasicDAO<MRepository, ObjectId> implements MRepositoryDAO {
+public class MRepositoryDAOImpl extends BasicDAO<MRepository, String> implements MRepositoryDAO {
 
 	public MRepositoryDAOImpl(Class<MRepository> entityClass, Datastore ds) {
 		super(entityClass, ds);
@@ -45,5 +44,4 @@ public class MRepositoryDAOImpl extends BasicDAO<MRepository, ObjectId> implemen
 		UpdateResults results = update(query, update);
 		return results;
 	}
-
 }

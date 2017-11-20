@@ -154,6 +154,15 @@ Apache OpenCMIS Workbench is a java application that allows to browse through th
 
 > Download Apache OpenCMIS Workbench from this [link](http://chemistry.apache.org/java/download.html).
 
+## Docker image
+
+* Build docker image as follows (from the root location)
+```docker build -t copper-cms:latest -f build/Dockerfile .```
+
+* For customizations, inherit the image ```copper-cms:latest``` and define custom definitions.
+
+> Note: Currently the Dockerfile is using openjdk:8-alpine as the base image.
+
 Issues
 ------
 

@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.repo;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,15 +24,17 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.converters.SimpleValueConverter;
+import org.mongodb.morphia.converters.StringConverter;
 import org.mongodb.morphia.converters.TypeConverter;
 import org.mongodb.morphia.mapping.MappedField;
 import org.mongodb.morphia.mapping.MappingException;
 import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.codehaus.jackson.map.ObjectMapper;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.MongoClient;
-import com.pogeyan.cmis.repo.MRepositoryDAOImpl;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
 
@@ -74,13 +77,30 @@ public class MongoDBRepositoryStore implements IRepositoryStore {
 		List<String> properties = readingMongoCilentProperties(envVariables);
 		int port = Integer.valueOf(properties.get(1));
 		if (adminMongoClient == null) {
-			LOG.info("Initializing MasterDB client: {}", adminMongoClient);
+			LOG.info("Initializing MasterDB client: {}", properties);
 			adminMongoClient = new MongoClient(properties.get(0), port);
 			morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
+			morphia.getMapper().getConverters().addConverter(new UserFieldConverter());
 			adminMongoStore = morphia.createDatastore(adminMongoClient, properties.get(2));
 		}
 
 		return adminMongoStore;
+	}
+
+	/**
+	 * Finds all substrings in MongoCilent connection details from the
+	 * corresponding Environmental property.
+	 */
+	private List<String> readingMongoCilentProperties(String s) {
+
+		List<String> properties = new ArrayList<String>();
+		String[] result = s.split(";");
+		String[] resultHost = result[0].split(":");
+		properties.add(resultHost[0]);
+		properties.add(resultHost[1]);
+		properties.add(result[1]);
+		return properties;
+
 	}
 
 	public static class BaseTypeIdConverter extends TypeConverter implements SimpleValueConverter {
@@ -109,19 +129,29 @@ public class MongoDBRepositoryStore implements IRepositoryStore {
 		}
 	}
 
-	/**
-	 * Finds all substrings in MongoCilent connection details from the
-	 * corresponding Environmental property.
-	 */
-	public List<String> readingMongoCilentProperties(String s) {
+	public static class UserFieldConverter extends StringConverter {
+		static ObjectMapper jsonMapper = new ObjectMapper();
 
-		List<String> properties = new ArrayList<String>();
-		String[] result = s.split(";");
-		String[] resultHost = result[0].split(":");
-		properties.add(resultHost[0]);
-		properties.add(resultHost[1]);
-		properties.add(result[1]);
-		return properties;
+		@Override
+		public Object decode(final Class targetClass, final Object fromDBObject, final MappedField optionalExtraInfo) {
+			if (fromDBObject == null) {
+				return null;
+			}
+
+			if (targetClass.equals(fromDBObject.getClass())) {
+				return fromDBObject;
+			}
+
+			if (fromDBObject instanceof List) {
+				try {
+					return jsonMapper.writeValueAsString(fromDBObject);
+				} catch (IOException e) {
+					return null;
+				}
+			}
+
+			return super.decode(targetClass, fromDBObject);
+		}
 
 	}
 }

@@ -25,7 +25,6 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.IndexOptions;
 import org.mongodb.morphia.annotations.Indexes;
-
 import com.pogeyan.cmis.api.repo.IRepository;
 
 @Entity(value = "repository", noClassnameStored = true)
@@ -36,8 +35,7 @@ public class MRepository implements IRepository {
 	private String repositoryName;
 	private Map<String, String> db;
 	private String description;
-	@Embedded
-	private MRepositoryFile file;
+	private Map<String, String> file;
 	@Embedded
 	private Map<String, String> login = new HashMap<String, String>();
 	boolean isDisabled;
@@ -45,15 +43,14 @@ public class MRepository implements IRepository {
 	public MRepository() {
 	}
 
-	public MRepository(String repositoryId, String repositoryName, Map<String, String> dBName, MRepositoryFile file,
-			Map<String, String> login, boolean isDisabled) {
+	public MRepository(String repositoryId, String repositoryName, Map<String, String> dBName, Map<String, String> file,
+			Map<String, String> login) {
 		super();
 		this.repositoryId = repositoryId;
 		this.repositoryName = repositoryName;
 		db = dBName;
 		this.file = file;
 		this.login = login;
-		this.isDisabled = isDisabled;
 	}
 
 	@Override
@@ -85,24 +82,10 @@ public class MRepository implements IRepository {
 
 	@Override
 	public Map<String, String> getFile() {
-		Map<String, String> fileDetails = new HashMap<>();
-		if (file.getType().equals("local")) {
-			fileDetails.put("storage", file.getType());
-			fileDetails.put("location", file.getLocation());
-		} else if (file.getType().equals("aws")) {
-			fileDetails.put("storage", file.getType());
-			fileDetails.put("bucket", file.getBucket());
-			fileDetails.put("accessKeyId", file.getAccessKeyId());
-			fileDetails.put("secretAccessKey", file.getSecretAccessKey());
-			fileDetails.put("region", file.getRegion());
-			fileDetails.put("kms_id", file.getKms_id());
-			fileDetails.put("kms_region", file.getKms_region());
-			fileDetails.put("encryption", file.getEncryption());
-		}
-		return fileDetails;
+		return this.file;
 	}
 
-	public void setFile(MRepositoryFile file) {
+	public void setFile(Map<String, String> file) {
 		this.file = file;
 	}
 

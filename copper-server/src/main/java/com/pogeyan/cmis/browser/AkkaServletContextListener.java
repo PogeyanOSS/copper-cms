@@ -144,6 +144,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 			}
 			stream = new FileInputStream(new File(filePath));
 		} catch (FileNotFoundException e) {
+			LOG.warn("REPOSITORY_PROPERTY_FILE_LOCATION is not found due to: {}", e.getMessage());
+			LOG.info("Loading default extensions");
 			return initializeExtensions(DEFAULT_CLASS, DEFAULT_REPO_STORE_CLASS, DEFAULT_AUTH_STORE_CLASS,
 					DEFAULT_FILE_STORE_CLASS, null);
 		}

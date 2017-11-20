@@ -15,15 +15,15 @@
  */
 package com.pogeyan.cmis.repo;
 
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.dao.DAO;
 import org.mongodb.morphia.query.UpdateResults;
 
-public interface MRepositoryDAO extends DAO<MRepository, ObjectId> {
+import com.pogeyan.cmis.api.repo.IRepository;
+
+public interface MRepositoryDAO {
 	/**
 	 * Returns MRepository values depending on repositoryId
 	 */
-	public MRepository getByRepositoryId(String repositoryId);
+	public IRepository getByRepositoryId(String repositoryId);
 
 	public UpdateResults disableRepository(String repositoryId);
 
