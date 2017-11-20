@@ -2498,8 +2498,12 @@ public class CmisObjectService {
 						double doubleValue = value.doubleValue();
 						updatecontentProps.put("properties." + valueName.getId(), doubleValue);
 					} else {
-						if (!valueName.getFirstValue().toString().equals("")) {
-							updatecontentProps.put("properties." + valueName.getId(), valueName.getFirstValue());
+						if (!valueName.getValues().toString().equals("")) {
+							if (valueName.getValues().size() > 1) {
+								updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
+							} else {
+								updatecontentProps.put("properties." + valueName.getId(), valueName.getFirstValue());
+							}
 							if (valueName.getId().equalsIgnoreCase("cmis:name")) {
 								updatecontentProps.put("name", valueName.getFirstValue());
 								updatecontentProps.put("path", gettingPath(data.getPath(), valueName.getFirstValue()));
