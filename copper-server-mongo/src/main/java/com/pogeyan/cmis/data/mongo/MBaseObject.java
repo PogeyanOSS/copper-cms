@@ -22,6 +22,7 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Field;
 import org.mongodb.morphia.annotations.Id;
@@ -73,7 +74,7 @@ public class MBaseObject implements IBaseObject {
 			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
 			String parentId) {
 		super();
-		this.id = String.valueOf((new Object()).hashCode());
+		this.id = (new ObjectId()).toString();
 		this.name = name;
 		this.baseId = baseId;
 		this.typeId = typeId;
