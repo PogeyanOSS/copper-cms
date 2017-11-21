@@ -1646,8 +1646,8 @@ public class CmisObjectService {
 			IDocumentObject documentObject = null;
 			MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
-			String versionSeriesId = String.valueOf((new Object()).hashCode());
-			String versionReferenceId = String.valueOf((new Object()).hashCode());
+			String versionSeriesId = Helpers.getObjectId();
+			String versionReferenceId = Helpers.getObjectId();
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId);
 			IBaseObject baseObject = null;
 			Tuple2<String, String> p = null;
