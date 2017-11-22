@@ -15,7 +15,6 @@
  */
 package com.pogeyan.cmis.data.mongo.services;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +45,8 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 		if (typeId == null) {
 			List<ObjectId> getid = this.findIds();
 			if (getid.size() > 0) {
-				return new ArrayList<MTypeObject>();
+				Query<MTypeObject> query = createQuery();
+				return query.asList();
 			} else {
 				return null;
 			}

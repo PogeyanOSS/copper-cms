@@ -137,7 +137,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		contentMongoClient.createIndex(new BasicDBObject(indexIds));
 	}
 
-	private <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {
+	public <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {
 		Datastore clientDatastore = this.clientDatastores.get(repositoryId);
 		if (clientDatastore == null) {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
