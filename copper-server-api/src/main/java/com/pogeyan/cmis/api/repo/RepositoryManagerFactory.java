@@ -37,7 +37,7 @@ public class RepositoryManagerFactory implements IRepositoryManager {
 
 	@Override
 	public void init(IRepositoryStore repoStore) {
-		LOG.info("RepositoryManager initiallize: {} : {} ", repoStore);
+		LOG.info("RepositoryManager initiallize: {}", repoStore);
 		repo = new RepositoryManagerFactory();
 		repoStoreSetting = repoStore;
 	}

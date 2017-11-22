@@ -1,0 +1,26 @@
+version: "2"
+
+services:
+  mongodb:
+    container_name: mongodb
+    image: mongo:3.2
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+  coppercms:
+    container_name: copper-cms
+    image: copper-cms:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - cmis-files:/files
+    environment:
+      - PORT=8080
+      - CMIS_REPO_JSON_LOCATION=/usr/local/tomcat/conf/repo.json
+    links:
+      - mongodb
+
+volumes:
+    mongo-data:
+    cmis-files:
