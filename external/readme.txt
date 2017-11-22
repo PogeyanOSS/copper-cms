@@ -1,0 +1,1 @@
+pull external extensions in this folder. This folder will be ignored by parent cmis-server.
