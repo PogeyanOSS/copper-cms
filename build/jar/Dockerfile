@@ -5,6 +5,7 @@ ENV COPPER_CMS_PATH=/opt/cmis
 
 RUN mkdir -p ${COPPER_CMS_PATH}
 ADD copper-server/target/copper-${COPPER_CMS_VERSION}.jar ${COPPER_CMS_PATH}
+ADD build/repo.json ${COPPER_CMS_PATH}
 
 WORKDIR ${COPPER_CMS_PATH}
 

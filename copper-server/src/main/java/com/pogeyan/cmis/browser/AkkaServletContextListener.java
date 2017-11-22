@@ -71,7 +71,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_ACTOR_CLASS = "actorManagerClass";
 	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.api.repo.RepositoryManagerFactory";
 	private static final String DEFAULT_REPO_STORE_CLASS = "com.pogeyan.cmis.repo.MongoDBRepositoryStore";
-	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.ldap.auth.LDAPAuthFactory";
+	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.local.repo.LocalRepoAuthFactory";
 	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.impl.storage.FileSystemStorageFactory";
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 

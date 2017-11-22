@@ -156,8 +156,14 @@ Apache OpenCMIS Workbench is a java application that allows to browse through th
 
 ## Docker image
 
+There are two flavors of the docker image, JAR and WAR modes. 
+
+> The JAR mode is an embedded Tomcat 7 deployment.
+
 * Build docker image as follows (from the root location)
-```docker build -t copper-cms:latest -f build/Dockerfile .```
+```docker build -t copper-cms:latest -f build/jar/Dockerfile .```
+* Run the docker image as follows,
+```docker-compose -f build/jar/docker-compose.yml up -d```
 
 * For customizations, inherit the image ```copper-cms:latest``` and define custom definitions.
 

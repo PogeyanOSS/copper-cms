@@ -1,0 +1,30 @@
+[
+    {
+        "repositoryId": "TestRepo",
+        "repositoryName": "TestRepo",
+        "db": {
+            "type": "mongo",
+            "connectionString": "mongodb:27017;ContentDB"
+        },
+        "description": "TestRepo",
+        "file": {
+            "storage": "local",
+            "location": "/files"
+        },
+        "login": {
+            "type": "local",
+            "users": [
+                {
+                    "userDetails": "admin:admin123",
+                    "permission": "cmis:all",
+                    "groups": [
+                        {
+                            "groupName": "admin",
+                            "permission": "cmis:all"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+]
