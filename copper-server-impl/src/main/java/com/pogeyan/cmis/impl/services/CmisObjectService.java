@@ -1483,87 +1483,75 @@ public class CmisObjectService {
 					continue;
 				}
 				if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("GregorianCalendar")) {
-					if (!valueName.getFirstValue().toString().equals("")) {
-						if (valueName.getValues().size() == 1) {
-							GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
-									GregorianCalendar.class);
+					if (valueName.getValues().size() == 1) {
+						GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
+								GregorianCalendar.class);
+						Long time = value.getTimeInMillis();
+						custom.put(valueName.getId(), time.longValue());
+					} else {
+						List<Long> valueList = new ArrayList<>();
+						valueName.getValues().forEach(v -> {
+							GregorianCalendar value = convertInstanceOfObject(v, GregorianCalendar.class);
 							Long time = value.getTimeInMillis();
-							custom.put(valueName.getId(), time.longValue());
-						} else {
-							List<Long> valueList = new ArrayList<>();
-							valueName.getValues().forEach(v -> {
-								GregorianCalendar value = convertInstanceOfObject(v, GregorianCalendar.class);
-								Long time = value.getTimeInMillis();
-								valueList.add(time.longValue());
-							});
-							custom.put(valueName.getId(), valueList);
-						}
+							valueList.add(time.longValue());
+						});
+						custom.put(valueName.getId(), valueList);
 					}
 
 				} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigInteger")) {
-					if (!valueName.getFirstValue().toString().equals("")) {
-						if (valueName.getValues().size() == 1) {
-							BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
-									BigInteger.class);
-							int value = valueBigInteger.intValue();
-							custom.put(valueName.getId(), value);
-						} else {
-							List<Integer> valueList = new ArrayList<>();
-							valueName.getValues().forEach(v -> {
-								BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
-								valueList.add(valueBigInteger.intValue());
-							});
-							custom.put(valueName.getId(), valueList);
-						}
+					if (valueName.getValues().size() == 1) {
+						BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
+								BigInteger.class);
+						int value = valueBigInteger.intValue();
+						custom.put(valueName.getId(), value);
+					} else {
+						List<Integer> valueList = new ArrayList<>();
+						valueName.getValues().forEach(v -> {
+							BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
+							valueList.add(valueBigInteger.intValue());
+						});
+						custom.put(valueName.getId(), valueList);
 					}
 
 				} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigDecimal")) {
-					if (!valueName.getFirstValue().toString().equals("")) {
-						if (valueName.getValues().size() == 1) {
+					if (valueName.getValues().size() == 1) {
+						BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
+						double doubleValue = value.doubleValue();
+						custom.put(valueName.getId(), doubleValue);
+					} else {
+						List<Double> valueList = new ArrayList<>();
+						valueName.getValues().forEach(v -> {
 							BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
-							double doubleValue = value.doubleValue();
-							custom.put(valueName.getId(), doubleValue);
-						} else {
-							List<Double> valueList = new ArrayList<>();
-							valueName.getValues().forEach(v -> {
-								BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
-								valueList.add(value.doubleValue());
-							});
-							custom.put(valueName.getId(), valueList);
-						}
+							valueList.add(value.doubleValue());
+						});
+						custom.put(valueName.getId(), valueList);
 					}
 
 				} else if (type.getPropertyDefinitions().get(valueName.getId()) != null && type.getPropertyDefinitions()
 						.get(valueName.getId()).getPropertyType().equals(PropertyType.HTML)) {
-					if (!valueName.getFirstValue().toString().equals("")) {
-						if (valueName.getValues().size() == 1) {
+					if (valueName.getValues().size() == 1) {
+						String value = convertInstanceOfObject(valueName.getFirstValue(), String.class);
+						String encodedValue = htmlEncode(value);
+						custom.put(valueName.getId(), encodedValue);
+					} else {
+						List<String> valueList = new ArrayList<>();
+						valueName.getValues().forEach(v -> {
 							String value = convertInstanceOfObject(valueName.getFirstValue(), String.class);
-							String encodedValue = htmlEncode(value);
-							custom.put(valueName.getId(), encodedValue);
-						} else {
-							List<String> valueList = new ArrayList<>();
-							valueName.getValues().forEach(v -> {
-								String value = convertInstanceOfObject(valueName.getFirstValue(), String.class);
-								valueList.add(htmlEncode(value));
-							});
-							custom.put(valueName.getId(), valueList);
-						}
+							valueList.add(htmlEncode(value));
+						});
+						custom.put(valueName.getId(), valueList);
 					}
 
 				} else {
-					if (!valueName.getFirstValue().toString().equals("")) {
-						if (valueName.getValues().size() == 1)
-							custom.put(valueName.getId(), valueName.getFirstValue());
-						else {
-							custom.put(valueName.getId(), valueName.getValues());
-						}
+					if (valueName.getValues().size() == 1)
+						custom.put(valueName.getId(), valueName.getFirstValue());
+					else {
+						custom.put(valueName.getId(), valueName.getValues());
 					}
 				}
-
 			}
 			LOG.info("Custom Properties: {}", custom.toString());
 			return custom;
-
 		}
 
 		/**
@@ -2554,83 +2542,74 @@ public class CmisObjectService {
 					PropertyData<?> valueName = customValues.getValue();
 					if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("GregorianCalendar")) {
 
-						if (!valueName.getFirstValue().toString().equals("")) {
-							if (valueName.getValues().size() == 1) {
-								GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
-										GregorianCalendar.class);
+						if (valueName.getValues().size() == 1) {
+							GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
+									GregorianCalendar.class);
+							Long time = value.getTimeInMillis();
+							updatecontentProps.put("properties." + valueName.getId(), time.longValue());
+						} else {
+							List<Long> valueList = new ArrayList<>();
+							valueName.getValues().forEach(v -> {
+								GregorianCalendar value = convertInstanceOfObject(v, GregorianCalendar.class);
 								Long time = value.getTimeInMillis();
-								updatecontentProps.put("properties." + valueName.getId(), time.longValue());
-							} else {
-								List<Long> valueList = new ArrayList<>();
-								valueName.getValues().forEach(v -> {
-									GregorianCalendar value = convertInstanceOfObject(v, GregorianCalendar.class);
-									Long time = value.getTimeInMillis();
-									valueList.add(time.longValue());
-								});
-								updatecontentProps.put("properties." + valueName.getId(), valueList);
-							}
+								valueList.add(time.longValue());
+							});
+							updatecontentProps.put("properties." + valueName.getId(), valueList);
 						}
 
 					} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigInteger")) {
 
-						if (!valueName.getFirstValue().toString().equals("")) {
-							if (valueName.getValues().size() == 1) {
-								BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
-										BigInteger.class);
-								int value = valueBigInteger.intValue();
-								updatecontentProps.put("properties." + valueName.getId(), value);
-							} else {
-								List<Integer> valueList = new ArrayList<>();
-								valueName.getValues().forEach(v -> {
-									BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
-									valueList.add(valueBigInteger.intValue());
-								});
-								updatecontentProps.put("properties." + valueName.getId(), valueList);
-							}
+						if (valueName.getValues().size() == 1) {
+							BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
+									BigInteger.class);
+							int value = valueBigInteger.intValue();
+							updatecontentProps.put("properties." + valueName.getId(), value);
+						} else {
+							List<Integer> valueList = new ArrayList<>();
+							valueName.getValues().forEach(v -> {
+								BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
+								valueList.add(valueBigInteger.intValue());
+							});
+							updatecontentProps.put("properties." + valueName.getId(), valueList);
 						}
 
 					} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigDecimal")) {
 
-						if (!valueName.getFirstValue().toString().equals("")) {
-							if (valueName.getValues().size() == 1) {
+						if (valueName.getValues().size() == 1) {
+							BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
+							double doubleValue = value.doubleValue();
+							updatecontentProps.put("properties." + valueName.getId(), doubleValue);
+						} else {
+							List<Double> valueList = new ArrayList<>();
+							valueName.getValues().forEach(v -> {
 								BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
-								double doubleValue = value.doubleValue();
-								updatecontentProps.put("properties." + valueName.getId(), doubleValue);
-							} else {
-								List<Double> valueList = new ArrayList<>();
-								valueName.getValues().forEach(v -> {
-									BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(),
-											BigDecimal.class);
-									valueList.add(value.doubleValue());
-								});
-								updatecontentProps.put("properties." + valueName.getId(), valueList);
-							}
+								valueList.add(value.doubleValue());
+							});
+							updatecontentProps.put("properties." + valueName.getId(), valueList);
 						}
 
 					} else {
-						if (!valueName.getFirstValue().toString().equals("")) {
-							if (valueName.getValues().size() == 1) {
-								updatecontentProps.put("properties." + valueName.getId(), valueName.getFirstValue());
-							} else {
-								updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
-							}
-							if (valueName.getId().equalsIgnoreCase("cmis:name")) {
-								updatecontentProps.put("name", valueName.getFirstValue());
-								updatecontentProps.put("path", gettingPath(data.getPath(), valueName.getFirstValue()));
-								if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
-									try {
-										localService.rename(data.getPath(),
-												gettingPath(data.getPath(), valueName.getFirstValue()));
-									} catch (Exception e) {
-										LOG.error("Folder Rename exception:  {}", e.getMessage());
-										throw new IllegalArgumentException(e.getMessage());
-									}
 
-									updateChildPath(repositoryId, data.getName(), valueName.getFirstValue().toString(),
-											id, baseMorphiaDAO, navigationMorphiaDAO, userObject,
-											data.getInternalPath(), data.getAcl());
+						if (valueName.getValues().size() == 1) {
+							updatecontentProps.put("properties." + valueName.getId(), valueName.getFirstValue());
+						} else {
+							updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
+						}
+						if (valueName.getId().equalsIgnoreCase("cmis:name")) {
+							updatecontentProps.put("name", valueName.getFirstValue());
+							updatecontentProps.put("path", gettingPath(data.getPath(), valueName.getFirstValue()));
+							if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
+								try {
+									localService.rename(data.getPath(),
+											gettingPath(data.getPath(), valueName.getFirstValue()));
+								} catch (Exception e) {
+									LOG.error("Folder Rename exception:  {}", e.getMessage());
+									throw new IllegalArgumentException(e.getMessage());
 								}
 
+								updateChildPath(repositoryId, data.getName(), valueName.getFirstValue().toString(), id,
+										baseMorphiaDAO, navigationMorphiaDAO, userObject, data.getInternalPath(),
+										data.getAcl());
 							}
 						}
 					}
@@ -3360,10 +3339,8 @@ public class CmisObjectService {
 			if (secondaryObjectType != null) {
 				secondaryObjectTypeIds = secondaryObjectType.getValues();
 			} else {
-				if (data != null) {
-					if (data.getSecondaryTypeIds() != null) {
-						secondaryObjectTypeIds = data.getSecondaryTypeIds();
-					}
+				if (data != null && data.getSecondaryTypeIds() != null) {
+					secondaryObjectTypeIds = data.getSecondaryTypeIds();
 				}
 			}
 
@@ -3508,25 +3485,6 @@ public class CmisObjectService {
 				LOG.debug("Added propertyId: {} , repository: {}", id, repositoryId);
 			}
 		}
-
-		/**
-		 * Adding the propertyIdList properties
-		 */
-		/*
-		 * private static void addPropertyIdList(String repositoryId,
-		 * PropertiesImpl props, TypeDefinition typeId, Set<String> filter,
-		 * String id, List<String> value) { if (!checkAddProperty(repositoryId,
-		 * props, typeId, filter, id)) { return; }
-		 * 
-		 * PropertyIdImpl pd = new PropertyIdImpl(id, value);
-		 * pd.setDisplayName(id); pd.setQueryName(id);
-		 * 
-		 * props.addProperty(pd); if (LOG.isDebugEnabled()) {
-		 * LOG.debug("Added propertyIdList: {} , Repository: {}", id,
-		 * repositoryId); }
-		 * 
-		 * }
-		 */
 
 		/**
 		 * Adding the propertyString properties
