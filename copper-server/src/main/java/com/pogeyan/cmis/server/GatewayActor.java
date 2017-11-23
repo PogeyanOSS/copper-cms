@@ -74,7 +74,6 @@ public class GatewayActor extends UntypedActor {
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof BaseMessage) {
 			BaseMessage bm = (BaseMessage) message;
-			LOG.info("Message received for: {}", bm.getMessageId());
 			if (bm.getTypeName().equals("entry")) {
 				String senderName = this.getTypeName(this.getSender());
 				if (LOG.isDebugEnabled()) {

@@ -369,8 +369,8 @@ public class ServletHelpers {
 					false, false, null, "", BaseTypeId.CMIS_FOLDER);
 		} else if (pathFragments != null) {
 			object = CmisObjectService.Impl.getObjectByPath(repositoryId, getPath(pathFragments),
-					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId,cmis:secondaryObjectTypeIds", false,
-					IncludeRelationships.NONE, "cmis:none", false, false, null, "");
+					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
+					false, false, null, "");
 		} else {
 			return null;
 		}

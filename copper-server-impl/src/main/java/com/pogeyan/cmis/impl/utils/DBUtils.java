@@ -18,6 +18,7 @@ package com.pogeyan.cmis.impl.utils;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.bson.types.ObjectId;
 
@@ -51,25 +52,26 @@ public class DBUtils {
 	public static class BaseDAO {
 		@SuppressWarnings("serial")
 		public static IBaseObject getByObjectId(String repositoryId, String objectId, String[] mappedColumns) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.OBJECTID, objectId);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, mappedColumns);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0,
+					mappedColumns);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
 		@SuppressWarnings("serial")
 		public static IBaseObject getByName(String repositoryId, String name, String parentId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.NAME, name);
@@ -83,47 +85,47 @@ public class DBUtils {
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
 		@SuppressWarnings("serial")
 		public static IBaseObject getByNextVersionId(String repositoryId, ObjectId previousVersionObjectId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.PREVIOUSVERSIONOBJECTID, previousVersionObjectId);
 
 				}
 			};
-			
+
 			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
 		@SuppressWarnings("serial")
 		public static List<? extends IBaseObject> getByTypeId(String repositoryId, String typeId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.TYPEID, typeId);
 
 				}
 			};
-			
+
 			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
 		}
 
 		@SuppressWarnings("serial")
 		public static IBaseObject getByPath(String repositoryId, String path) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.PATH, path);
@@ -133,14 +135,14 @@ public class DBUtils {
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
 		@SuppressWarnings("serial")
 		public static IBaseObject getRootFolder(String repositoryId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.NAME, CopperCmsRepository.ROOT_ID);
@@ -151,14 +153,14 @@ public class DBUtils {
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
 		@SuppressWarnings("serial")
 		public static void updatePolicy(String repositoryId, List<String> polIds, String objectId, TokenImpl token) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
 				{
 					put(Variables.POLICIES, polIds);
@@ -170,8 +172,8 @@ public class DBUtils {
 
 		@SuppressWarnings("serial")
 		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, String objectId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
 				{
 					put(Variables.ACL, acl);
@@ -184,11 +186,12 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static void updateBaseSecondaryTypeObject(String repositoryId, List<String> secondaryObjectTypes,
 				String objectId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
 				{
 					put(Variables.SECONDARYTYPEIDS, secondaryObjectTypes);
+					put("properties." + PropertyIds.SECONDARY_OBJECT_TYPE_IDS, secondaryObjectTypes);
 
 				}
 			};
@@ -207,12 +210,12 @@ public class DBUtils {
 					put(Variables.OBJECTID, objectId);
 				}
 			};
-			
+
 			List<? extends IDocumentObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, mappedColumns);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
@@ -233,7 +236,7 @@ public class DBUtils {
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
@@ -254,12 +257,12 @@ public class DBUtils {
 
 				}
 			};
-			
+
 			List<? extends IDocumentObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
-			
+
 			return null;
 		}
 
@@ -274,7 +277,7 @@ public class DBUtils {
 
 				}
 			};
-			
+
 			return objectMorphiaDAO.filter(fieldsNamesAndValues, null);
 		}
 
@@ -290,7 +293,7 @@ public class DBUtils {
 
 				}
 			};
-			
+
 			List<? extends IDocumentObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, mappedColumns);
 			if (result.size() > 0) {
 				return result.get(0);
@@ -302,8 +305,8 @@ public class DBUtils {
 	public static class RelationshipDAO {
 		@SuppressWarnings("serial")
 		public static List<? extends IBaseObject> getRelationshipDocuments(String repositoryId, String typeId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.TYPEID, typeId);
@@ -316,37 +319,37 @@ public class DBUtils {
 		@SuppressWarnings("serial")
 		public static List<? extends IBaseObject> getRelationshipTargetIds(String repositoryId, String targetId,
 				String primaryKey, Object value) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.TYPEID, targetId);
 					put("properties." + primaryKey, value);
 				}
 			};
-			
+
 			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipBySourceId(String repositoryId, String sourceId, int maxItems,
-				int skipCount, String[] mappedColumns) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+		public static List<? extends IBaseObject> getRelationshipBySourceId(String repositoryId, String sourceId,
+				int maxItems, int skipCount, String[] mappedColumns) {
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put("properties.cmis:sourceId", sourceId);
 				}
 			};
-			
+
 			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns);
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipByTargetId(String repositoryId, String targetId, int maxItems,
-				int skipCount, String[] mappedColumns) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-					MBaseObjectDAO.class);
+		public static List<? extends IBaseObject> getRelationshipByTargetId(String repositoryId, String targetId,
+				int maxItems, int skipCount, String[] mappedColumns) {
+			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put("properties.cmis:targetId", targetId);
