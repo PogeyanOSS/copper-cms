@@ -15,23 +15,26 @@
  */
 package com.pogeyan.cmis.impl.storage;
 
+import java.util.Map;
+
 import com.pogeyan.cmis.api.storage.IRepositoryStorageSettings;
 import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 
 public class FileSystemStorageFactory implements IStorageFactory {
 	final FileSystemStorageService fileSystemService = new FileSystemStorageService();
-	final FileSystemStorageStoreSettings fileStoreSetting = new FileSystemStorageStoreSettings();
 
 	@Override
-	public IRepositoryStorageSettings getStorageSetting() {
-		return this.fileStoreSetting;
+	public IStorageService getStorageService(Map<String, String> parameters) {
+		FileSystemStorageStoreSettings fileStoreSetting = new FileSystemStorageStoreSettings(
+				parameters.get("location"));
+		this.fileSystemService.setStoreSettings((IRepositoryStorageSettings) fileStoreSetting);
+		return this.fileSystemService;
 	}
 
 	@Override
-	public IStorageService getStorageService() {
-		this.fileSystemService.setStoreSettings(this.fileStoreSetting);
-		return this.fileSystemService;
+	public String getType() {
+		return "local";
 	}
 
 }
