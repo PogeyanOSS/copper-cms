@@ -32,17 +32,17 @@ public class StorageServiceFactory {
 
 	static public IStorageService createStorageService(Map<String, String> parameters) {
 		String storageType = parameters.get(STORAGE);
-		LOG.debug("DB FileSytem Setting type{}", storageType);
+		LOG.debug("DB FileSytem Setting type: {}", storageType);
 		IStorageService store = null;
 		if (storageFactory.get(storageType) != null) {
-			storageFactory.get(storageType).getStorageSetting().setStorageSetting(parameters);
-			return storageFactory.get(storageType).getStorageService();
+			return storageFactory.get(storageType).getStorageService(parameters);
 		}
+		
 		return store;
 	}
 
 	public static void add(IStorageFactory storageServiceFactory) {
-		storageFactory.put(storageServiceFactory.getStorageSetting().getType(), storageServiceFactory);
+		storageFactory.put(storageServiceFactory.getType(), storageServiceFactory);
 	}
 
 }

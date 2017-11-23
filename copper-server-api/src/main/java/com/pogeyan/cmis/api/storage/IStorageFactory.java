@@ -15,9 +15,10 @@
  */
 package com.pogeyan.cmis.api.storage;
 
+import java.util.Map;
+
 public interface IStorageFactory {
-
-	public IRepositoryStorageSettings getStorageSetting();
-
-	public IStorageService getStorageService();
+	public IStorageService getStorageService(Map<String, String> parameters);
+	
+	public String getType();
 }

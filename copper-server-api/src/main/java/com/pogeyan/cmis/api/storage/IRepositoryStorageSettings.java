@@ -15,10 +15,5 @@
  */
 package com.pogeyan.cmis.api.storage;
 
-import java.util.Map;
-
 public interface IRepositoryStorageSettings {
-	public String getType();
-
-	public void setStorageSetting(Map<String, String> dbSettings);
 }

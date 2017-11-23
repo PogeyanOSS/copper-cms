@@ -15,24 +15,17 @@
  */
 package com.pogeyan.cmis.impl.storage;
 
-import java.util.Map;
-
 import com.pogeyan.cmis.api.storage.IRepositoryStorageSettings;
 
 public class FileSystemStorageStoreSettings implements IRepositoryStorageSettings {
 	private String fileLocation;
 
-	@Override
-	public String getType() {
-		return "local";
+	FileSystemStorageStoreSettings(String fileLocation) {
+		this.fileLocation = fileLocation;
 	}
 
 	public String getFileLocation() {
 		return this.fileLocation;
 	}
 
-	@Override
-	public void setStorageSetting(Map<String, String> dbSettings) {
-		this.fileLocation = dbSettings.get("location");
-	}
 }
