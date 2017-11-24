@@ -31,11 +31,12 @@ import org.mongodb.morphia.annotations.IndexOptions;
 import org.mongodb.morphia.annotations.Indexes;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 
 @Entity(value = "objectData", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
-public class MBaseObject implements IBaseObject {
+public class MBaseObject implements IBaseObject, ISettableBaseObject {
 	@Id
 	private String id;
 	private String name;
