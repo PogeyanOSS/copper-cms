@@ -99,7 +99,7 @@ public class CmisPropertyConverter {
 		}
 
 		public static Properties createUpdateProperties(Map<String, List<String>> propertiesdata, String typeId,
-				List<String> secondaryTypeIds, List<String> objectIds, String repositoryId) {
+				List<String> secondaryTypeIds, List<String> objectIds, String repositoryId, IBaseObject data) {
 			List<TypeDefinition> secondaryTypes = new ArrayList<>();
 			List<TypeDefinition> objectType = new ArrayList<>();
 			List<TypeDefinition> innerObjectType = new ArrayList<>();
@@ -146,8 +146,7 @@ public class CmisPropertyConverter {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null && objectIds != null) {
 					for (String objectId : objectIds) {
-						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId,
-								objectId, null);
+						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
 								object.getTypeId(), null);
 						innerObjectType.add(typeDef);
@@ -158,6 +157,16 @@ public class CmisPropertyConverter {
 					}
 				}
 				if (propDef == null) {
+					if (secondaryTypes.isEmpty()) {
+						for (String secTypeId : data.getSecondaryTypeIds()) {
+							TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId,
+									null);
+							secondaryTypes.add(typeDef);
+							if (typeDef == null) {
+								throw new CmisInvalidArgumentException("Invalid secondary type: " + secTypeId);
+							}
+						}
+					}
 					propDef = getPropertyDefinition(secondaryTypes, property.getKey());
 				}
 				if (propDef == null) {
