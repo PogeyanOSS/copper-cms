@@ -43,12 +43,17 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * filterExpression supports eq, le, ge, gt, le, lt, startswith, endswith
-	 * example filter: "properties.orderId eq '100' and properties.orderName eq 'exampleData' or startswith(name, 'fd')"
+	 * (non-Javadoc) filterExpression supports eq, le, ge, gt, le, lt,
+	 * startswith, endswith example filter:
+	 * "properties.orderId eq '100' and properties.orderName eq 'exampleData' or startswith(name, 'fd')"
 	 * example order: "name asc, repositoryId"
-	 * @see com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getChildren(java.lang.String, java.lang.String[], boolean, int, int, java.lang.String, java.lang.String[], java.lang.String)
+	 * 
+	 * @see
+	 * com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getChildren(java
+	 * .lang.String, java.lang.String[], boolean, int, int, java.lang.String,
+	 * java.lang.String[], java.lang.String)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<MBaseObject> getChildren(String path, String[] principalIds, boolean aclPropagation, int maxItems,
 			int skipCount, String orderBy, String[] mappedColumns, String filterExpression) {
@@ -87,6 +92,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private boolean isOrderByParsable(String orderByExpressionQuery) {
 		try {
 			OrderByExpression orderByExpression = UriParser.parseOrderBy(null, null, orderByExpressionQuery);

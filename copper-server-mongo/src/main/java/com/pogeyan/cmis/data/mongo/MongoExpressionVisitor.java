@@ -22,7 +22,6 @@ import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
 import org.apache.olingo.odata2.api.uri.expression.SortOrder;
 import org.apache.olingo.odata2.api.uri.expression.UnaryExpression;
 import org.apache.olingo.odata2.api.uri.expression.UnaryOperator;
-
 import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 
@@ -35,6 +34,10 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	@Override
 	public Object visitFilterExpression(FilterExpression filterExpression, String expressionString, Object expression) {
+		if (expression instanceof Criteria) {
+			this.query.and((Criteria) expression);
+			return this.query;
+		}
 		return expression;
 	}
 
@@ -51,19 +54,20 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		} else if (leftSide instanceof PropertyExpression) {
 
 			PropertyExpression leftOp = (PropertyExpression) leftSide;
+			PropertyExpression rightOp = (PropertyExpression) rightSide;
 			switch (operator) {
 			case EQ:
-				return this.query.criteria(leftOp.getUriLiteral()).equal(rightSide);
+				return this.query.criteria(leftOp.getUriLiteral()).equal(rightOp.getUriLiteral());
 			case NE:
-				return this.query.criteria(leftOp.getUriLiteral()).notEqual(rightSide);
+				return this.query.criteria(leftOp.getUriLiteral()).notEqual(rightOp.getUriLiteral());
 			case GE:
-				return this.query.criteria(leftOp.getUriLiteral()).greaterThanOrEq(rightSide);
+				return this.query.criteria(leftOp.getUriLiteral()).greaterThanOrEq(rightOp.getUriLiteral());
 			case GT:
-				return this.query.criteria(leftOp.getUriLiteral()).greaterThan(rightSide);
+				return this.query.criteria(leftOp.getUriLiteral()).greaterThan(rightOp.getUriLiteral());
 			case LE:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThanOrEq(rightSide);
+				return this.query.criteria(leftOp.getUriLiteral()).lessThanOrEq(rightOp.getUriLiteral());
 			case LT:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThan(rightSide);
+				return this.query.criteria(leftOp.getUriLiteral()).lessThan(rightOp.getUriLiteral());
 			default:
 				// Other operators are not supported for SQL Statements
 				throw new UnsupportedOperationException("Unsupported operator: " + operator.toUriLiteral());
@@ -127,7 +131,7 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 		PropertyExpression fieldOperand = (PropertyExpression) parameters.get(0);
 		String fieldValue = parameters.get(1).toString();
-		fieldValue = fieldValue.replaceAll("\'","");
+		fieldValue = fieldValue.replaceAll("\'", "");
 		switch (method) {
 		case STARTSWITH:
 			Pattern sw_pattern = Pattern.compile("^" + Pattern.quote(fieldValue), Pattern.CASE_INSENSITIVE);
