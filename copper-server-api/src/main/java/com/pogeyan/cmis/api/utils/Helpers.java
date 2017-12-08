@@ -351,7 +351,7 @@ public class Helpers {
 					"Commit Document", null, null, null, null, null);
 		}
 	}
-	
+
 	public static String splitFilterQuery(String filter) {
 		if (filter == null) {
 			return null;
@@ -361,17 +361,18 @@ public class Helpers {
 			return null;
 		}
 
-		if (filter.contains(";")) {
-			return filter.split(";")[1];
+		if (filter.contains(",")) {
+			filter = Arrays.asList(filter.split(",")).stream().filter(s -> StringUtils.containsWhitespace(s))
+					.map(s -> s.replace("::", ",")).collect(Collectors.joining(","));
 		}
-		
+
 		return filter;
 	}
-	
+
 	/**
 	 * Splits a filter statement into a collection of properties. If
-	 * <code>filter</code> is <code>null</code>, empty or one of the
-	 * properties is '*' , an empty collection will be returned.
+	 * <code>filter</code> is <code>null</code>, empty or one of the properties
+	 * is '*' , an empty collection will be returned.
 	 */
 	public static Set<String> splitFilter(String filter) {
 		if (filter == null) {
@@ -382,17 +383,15 @@ public class Helpers {
 			return null;
 		}
 
-		if (filter.contains(";")) {
-			filter = filter.split(";")[0];
-		}
-		
 		Set<String> result = new HashSet<String>();
 		for (String s : filter.split(",")) {
 			s = s.trim();
 			if (s.equals("*")) {
 				return null;
 			} else if (s.length() > 0) {
-				result.add(s);
+				if (!StringUtils.containsWhitespace(s)) {
+					result.add(s);
+				}
 			}
 		}
 

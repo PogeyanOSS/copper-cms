@@ -54,19 +54,20 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			}
 		} else if (leftSide instanceof PropertyExpression) {
 			PropertyExpression leftOp = (PropertyExpression) leftSide;
+			PropertyExpression rightOp = (PropertyExpression) rightSide;
 			switch (operator) {
 			case EQ:
-				return this.query.criteria(leftOp.getUriLiteral()).equal(rightSide.toString());
+				return this.query.criteria(leftOp.getUriLiteral()).equal(rightOp.getUriLiteral());
 			case NE:
-				return this.query.criteria(leftOp.getUriLiteral()).notEqual(rightSide.toString());
+				return this.query.criteria(leftOp.getUriLiteral()).notEqual(rightOp.getUriLiteral());
 			case GE:
-				return this.query.criteria(leftOp.getUriLiteral()).greaterThanOrEq(rightSide.toString());
+				return this.query.criteria(leftOp.getUriLiteral()).greaterThanOrEq(rightOp.getUriLiteral());
 			case GT:
-				return this.query.criteria(leftOp.getUriLiteral()).greaterThan(rightSide.toString());
+				return this.query.criteria(leftOp.getUriLiteral()).greaterThan(rightOp.getUriLiteral());
 			case LE:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThanOrEq(rightSide.toString());
+				return this.query.criteria(leftOp.getUriLiteral()).lessThanOrEq(rightOp.getUriLiteral());
 			case LT:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThan(rightSide.toString());
+				return this.query.criteria(leftOp.getUriLiteral()).lessThan(rightOp.getUriLiteral());
 			default:
 				// Other operators are not supported for SQL Statements
 				throw new UnsupportedOperationException("Unsupported operator: " + operator.toUriLiteral());
