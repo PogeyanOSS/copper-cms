@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -31,6 +32,7 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.commons.lang3.StringUtils;
 
@@ -348,5 +350,57 @@ public class Helpers {
 					isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false, null, null,
 					"Commit Document", null, null, null, null, null);
 		}
+	}
+	
+	public static String splitFilterQuery(String filter) {
+		if (filter == null) {
+			return null;
+		}
+
+		if (filter.trim().length() == 0) {
+			return null;
+		}
+
+		if (filter.contains(";")) {
+			return filter.split(";")[1];
+		}
+		
+		return filter;
+	}
+	
+	/**
+	 * Splits a filter statement into a collection of properties. If
+	 * <code>filter</code> is <code>null</code>, empty or one of the
+	 * properties is '*' , an empty collection will be returned.
+	 */
+	public static Set<String> splitFilter(String filter) {
+		if (filter == null) {
+			return null;
+		}
+
+		if (filter.trim().length() == 0) {
+			return null;
+		}
+
+		if (filter.contains(";")) {
+			filter = filter.split(";")[0];
+		}
+		
+		Set<String> result = new HashSet<String>();
+		for (String s : filter.split(",")) {
+			s = s.trim();
+			if (s.equals("*")) {
+				return null;
+			} else if (s.length() > 0) {
+				result.add(s);
+			}
+		}
+
+		// set a few base properties
+		// query name == id (for base type properties)
+		result.add(PropertyIds.OBJECT_ID);
+		result.add(PropertyIds.OBJECT_TYPE_ID);
+		result.add(PropertyIds.BASE_TYPE_ID);
+		return result;
 	}
 }

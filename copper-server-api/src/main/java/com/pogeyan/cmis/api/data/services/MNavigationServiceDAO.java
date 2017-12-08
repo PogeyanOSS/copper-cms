@@ -25,8 +25,8 @@ public interface MNavigationServiceDAO {
 	 * Returns List of MBaseObject childrens values depending on
 	 * ObjectId,maxItems,skipCount.
 	 */
-	public List<? extends IBaseObject> getChildrenIds(String path, String[] principalIds, boolean aclPropagation, int maxItems,
-			int skipCount, String orderBy, String[] mappedColumns);
+	public List<? extends IBaseObject> getChildren(String path, String[] principalIds, boolean aclPropagation, int maxItems,
+			int skipCount, String orderBy, String[] mappedColumns, String filterExpression);
 
 	/**
 	 * Get children size.

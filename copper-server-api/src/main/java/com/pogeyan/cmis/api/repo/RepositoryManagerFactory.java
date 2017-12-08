@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class RepositoryManagerFactory implements IRepositoryManager {
 	private static final Logger LOG = LoggerFactory.getLogger(RepositoryManagerFactory.class);
-	static RepositoryManagerFactory repo = null;
+	static RepositoryManagerFactory repo = new RepositoryManagerFactory();
 	static IRepositoryStore repoStoreSetting = null;
 
 	public static IRepositoryManager getInstance() {
@@ -38,7 +38,6 @@ public class RepositoryManagerFactory implements IRepositoryManager {
 	@Override
 	public void init(IRepositoryStore repoStore) {
 		LOG.info("RepositoryManager initiallize: {}", repoStore);
-		repo = new RepositoryManagerFactory();
 		repoStoreSetting = repoStore;
 	}
 

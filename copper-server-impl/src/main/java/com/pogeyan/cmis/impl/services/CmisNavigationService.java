@@ -18,13 +18,11 @@ package com.pogeyan.cmis.impl.services;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -98,9 +96,10 @@ public class CmisNavigationService {
 				LOG.error("Unknown object id: {}", folderId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
 			}
-			String[] filterArray = null;
+			
+			String[] filterArray = new String[] {};
 			// split filter
-			Set<String> filterCollection = splitFilter(filter);
+			Set<String> filterCollection = Helpers.splitFilter(filter);
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
@@ -113,8 +112,8 @@ public class CmisNavigationService {
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";
-				children = navigationMorphiaDAO.getChildrenIds(path, principalIds, true, maxItems, skipCount, orderBy,
-						filterArray);
+				children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
+						filterArray, Helpers.splitFilterQuery(filter));
 				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true);
 			} else {
 				path = data.getInternalPath() + folderId + ",";
@@ -126,8 +125,8 @@ public class CmisNavigationService {
 						List<Ace> listAce = acl.getAces().stream().filter(t -> Arrays.stream(principalIds).parallel()
 								.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
 						if (listAce.size() >= 1) {
-							children = navigationMorphiaDAO.getChildrenIds(path, principalIds, false, maxItems,
-									skipCount, orderBy, filterArray);
+							children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems,
+									skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter));
 							childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false);
 							objectOnly = false;
 							break;
@@ -137,8 +136,8 @@ public class CmisNavigationService {
 
 				// Acl Propagation ObjectOnly
 				if (objectOnly) {
-					children = navigationMorphiaDAO.getChildrenIds(path, principalIds, true, maxItems, skipCount,
-							orderBy, filterArray);
+					children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount,
+							orderBy, filterArray, Helpers.splitFilterQuery(filter));
 					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true);
 				}
 			}
@@ -291,7 +290,7 @@ public class CmisNavigationService {
 					if (child.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 						child = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, child.getId(), null);
 					}
-					Set<String> filterCollection = splitFilter(filter);
+					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child,
 							filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
 							includeRelationships, userObject.getUserDN());
@@ -341,7 +340,7 @@ public class CmisNavigationService {
 			IBaseObject folderParent = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			folderParent = DBUtils.BaseDAO.getByObjectId(repositoryId, data.getParentId(), null);
-			Set<String> filterCollection = splitFilter(filter);
+			Set<String> filterCollection = Helpers.splitFilter(filter);
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, folderParent,
 					filterCollection, includeAllowableActions, false, true, objectInfos, null, includeRelationships,
 					user);
@@ -444,7 +443,7 @@ public class CmisNavigationService {
 				String filter, ObjectInfoHandler objectInfos, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment,
 				String user) {
-			Set<String> filterCollection = splitFilter(filter);
+			Set<String> filterCollection = Helpers.splitFilter(filter);
 
 			List<ObjectParentData> objectParent = new ArrayList<ObjectParentData>();
 			IBaseObject resultData = null;
@@ -540,7 +539,7 @@ public class CmisNavigationService {
 			}
 			
 			for (IDocumentObject checkedOutDocs : document) {
-				Set<String> filterCollection = splitFilter(filter);
+				Set<String> filterCollection = Helpers.splitFilter(filter);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, checkedOutDocs,
 						filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
 						includeRelationships, userObject.getUserDN());
@@ -560,38 +559,6 @@ public class CmisNavigationService {
 						results.getNumItems().toString());
 			}
 			return results;
-		}
-
-		/**
-		 * Splits a filter statement into a collection of properties. If
-		 * <code>filter</code> is <code>null</code>, empty or one of the
-		 * properties is '*' , an empty collection will be returned.
-		 */
-		private static Set<String> splitFilter(String filter) {
-			if (filter == null) {
-				return null;
-			}
-
-			if (filter.trim().length() == 0) {
-				return null;
-			}
-
-			Set<String> result = new HashSet<String>();
-			for (String s : filter.split(",")) {
-				s = s.trim();
-				if (s.equals("*")) {
-					return null;
-				} else if (s.length() > 0) {
-					result.add(s);
-				}
-			}
-
-			// set a few base properties
-			// query name == id (for base type properties)
-			result.add(PropertyIds.OBJECT_ID);
-			result.add(PropertyIds.OBJECT_TYPE_ID);
-			result.add(PropertyIds.BASE_TYPE_ID);
-			return result;
 		}
 
 		public static List<AccessControlListImplExt> getParentAcl(String repositoryId, String dataPath,

@@ -4021,7 +4021,7 @@ public class CmisObjectService {
 							t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
-						children = navigationMorphiaDAO.getChildrenIds(path, principalIds, false, -1, -1, null, null);
+						children = navigationMorphiaDAO.getChildren(path, principalIds, false, -1, -1, null, null);
 						objectOnly = false;
 						break;
 					}
@@ -4030,7 +4030,7 @@ public class CmisObjectService {
 
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
-				children = navigationMorphiaDAO.getChildrenIds(path, principalIds, true, -1, -1, null, null);
+				children = navigationMorphiaDAO.getChildren(path, principalIds, true, -1, -1, null, null);
 
 			}
 			LOG.info("Children for path {} : {}", path, children);

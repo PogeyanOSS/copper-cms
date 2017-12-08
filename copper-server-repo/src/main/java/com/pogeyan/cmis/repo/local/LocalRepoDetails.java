@@ -40,38 +40,36 @@ public class LocalRepoDetails {
 
 	@SuppressWarnings("unchecked")
 	public void setRepoStore() {
-		if (repoStore != null) {
-			JSONParser parser = new JSONParser();
-			try {
-				String envVariable = System.getenv("CMIS_REPO_JSON_LOCATION");
-				if (envVariable == null) {
-					LOG.error("CMIS_REPO_JSON_LOCATION not defined, unable to initialize CMIS");
-					throw new CmisInvalidArgumentException(
-							"CMIS_REPO_JSON_LOCATION not defined, unable to initialize CMIS");
-				}
-				Object obj = parser.parse(new FileReader(envVariable));
-				JSONArray repoArray = (JSONArray) obj;
-				for (Object object : repoArray) {
-					JSONObject jsonObject = (JSONObject) object;
-					String repositoryId = (String) jsonObject.get("repositoryId");
-					String repositoryName = (String) jsonObject.get("repositoryName");
-					Map<String, String> DBName = (Map<String, String>) jsonObject.get("db");
-					String description = (String) jsonObject.get("description");
-					Map<String, String> fileDetails = (Map<String, String>) jsonObject.get("file");
-					JSONObject loginObjects = (JSONObject) jsonObject.get("login");
-					JSONArray loginDetails = (JSONArray) loginObjects.get("users");
-					Map<String, String> loginRepo = (Map<String, String>) jsonObject.get("login");
-					if (loginDetails != null) {
-						loginRepo.remove("users");
-						loginRepo.put("users", loginDetails.toString());
-					}
-					LocalRepo repo = new LocalRepo(repositoryId, repositoryName, DBName, description, fileDetails,
-							loginRepo);
-					repoStore.put(repositoryId, repo);
-				}
-			} catch (Exception e) {
-				LOG.error("reading json file exception: {}", ExceptionUtils.getStackTrace(e));
+		JSONParser parser = new JSONParser();
+		try {
+			String envVariable = System.getenv("CMIS_REPO_JSON_LOCATION");
+			if (envVariable == null) {
+				LOG.error("CMIS_REPO_JSON_LOCATION not defined, unable to initialize CMIS");
+				throw new CmisInvalidArgumentException(
+						"CMIS_REPO_JSON_LOCATION not defined, unable to initialize CMIS");
 			}
+			Object obj = parser.parse(new FileReader(envVariable));
+			JSONArray repoArray = (JSONArray) obj;
+			for (Object object : repoArray) {
+				JSONObject jsonObject = (JSONObject) object;
+				String repositoryId = (String) jsonObject.get("repositoryId");
+				String repositoryName = (String) jsonObject.get("repositoryName");
+				Map<String, String> DBName = (Map<String, String>) jsonObject.get("db");
+				String description = (String) jsonObject.get("description");
+				Map<String, String> fileDetails = (Map<String, String>) jsonObject.get("file");
+				JSONObject loginObjects = (JSONObject) jsonObject.get("login");
+				JSONArray loginDetails = (JSONArray) loginObjects.get("users");
+				Map<String, String> loginRepo = (Map<String, String>) jsonObject.get("login");
+				if (loginDetails != null) {
+					loginRepo.remove("users");
+					loginRepo.put("users", loginDetails.toString());
+				}
+				LocalRepo repo = new LocalRepo(repositoryId, repositoryName, DBName, description, fileDetails,
+						loginRepo);
+				repoStore.put(repositoryId, repo);
+			}
+		} catch (Exception e) {
+			LOG.error("reading json file exception: {}", ExceptionUtils.getStackTrace(e));
 		}
 	}
 }
