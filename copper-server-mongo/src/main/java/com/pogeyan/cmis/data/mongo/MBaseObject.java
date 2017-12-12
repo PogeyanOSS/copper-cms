@@ -32,6 +32,7 @@ import org.mongodb.morphia.annotations.Indexes;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 
 @Entity(value = "objectData", noClassnameStored = true)
@@ -233,6 +234,7 @@ public class MBaseObject implements IBaseObject, ISettableBaseObject {
 
 	public static MongoAclImpl convertMongoAcl(Acl acl) {
 		if (acl != null) {
+			AccessControlListImplExt acessControl = (AccessControlListImplExt) acl;
 			List<Ace> list = new ArrayList<Ace>(acl.getAces().size());
 			for (Ace ace : acl.getAces()) {
 				MongoAceImpl aces = new MongoAceImpl();
@@ -243,7 +245,7 @@ public class MBaseObject implements IBaseObject, ISettableBaseObject {
 			}
 			MongoAclImpl mAcl = new MongoAclImpl();
 			mAcl.setAces(list);
-			mAcl.setAclPropagation("objectonly");
+			mAcl.setAclPropagation(acessControl.getAclPropagation());
 			mAcl.setExact(true);
 			return mAcl;
 		}

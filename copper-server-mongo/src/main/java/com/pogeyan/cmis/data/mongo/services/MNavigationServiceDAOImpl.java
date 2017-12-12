@@ -114,20 +114,28 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<MBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation) {
-		if (aclPropagation) {
-			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp)
-					.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
-			query.or(getAclCriteria(principalIds, query));
-			return query.asList();
-		} else {
-			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp)
-					.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
-			return query.asList();
+	public List<MBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
+			String[] mappedColumns, String filterExpression) {
+		Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
+		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp)
+				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
+		if (!StringUtils.isEmpty(filterExpression)) {
+			try {
+				FilterExpression expression = UriParser.parseFilter(null, null, filterExpression);
+				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
+			} catch (ODataMessageException | ODataApplicationException e) {
+			}
 		}
+		if (mappedColumns != null && mappedColumns.length > 0) {
+			query = query.retrievedFields(true, mappedColumns);
+		}
+		if (aclPropagation) {
+			query.or(getAclCriteria(principalIds, query));
+		}
+		return query.asList();
+
 	}
 
 	@Override
