@@ -54,20 +54,30 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			}
 		} else if (leftSide instanceof PropertyExpression) {
 			PropertyExpression leftOp = (PropertyExpression) leftSide;
-			PropertyExpression rightOp = (PropertyExpression) rightSide;
+			String rightSideValue = null;
+			if (rightSide instanceof PropertyExpression) {
+				PropertyExpression rightOp = (PropertyExpression) rightSide;
+				rightSideValue = rightOp.getUriLiteral();
+			} else if (rightSide instanceof LiteralExpression) {
+				LiteralExpression rightOp = (LiteralExpression) rightSide;
+				rightSideValue = rightOp.getUriLiteral();
+			} else if (rightSide instanceof String) {
+				rightSideValue = rightSide.toString();
+			}
 			switch (operator) {
 			case EQ:
-				return this.query.criteria(leftOp.getUriLiteral()).equal(rightOp.getUriLiteral());
+				return this.query.criteria(leftOp.getUriLiteral()).equal(getStringObjectValue(rightSideValue));
 			case NE:
-				return this.query.criteria(leftOp.getUriLiteral()).notEqual(rightOp.getUriLiteral());
+				return this.query.criteria(leftOp.getUriLiteral()).notEqual(getStringObjectValue(rightSideValue));
 			case GE:
-				return this.query.criteria(leftOp.getUriLiteral()).greaterThanOrEq(rightOp.getUriLiteral());
+				return this.query.criteria(leftOp.getUriLiteral())
+						.greaterThanOrEq(getNumberObjectValue(rightSideValue));
 			case GT:
-				return this.query.criteria(leftOp.getUriLiteral()).greaterThan(rightOp.getUriLiteral());
+				return this.query.criteria(leftOp.getUriLiteral()).greaterThan(getNumberObjectValue(rightSideValue));
 			case LE:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThanOrEq(rightOp.getUriLiteral());
+				return this.query.criteria(leftOp.getUriLiteral()).lessThanOrEq(getNumberObjectValue(rightSideValue));
 			case LT:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThan(rightOp.getUriLiteral());
+				return this.query.criteria(leftOp.getUriLiteral()).lessThan(getNumberObjectValue(rightSideValue));
 			default:
 				// Other operators are not supported for SQL Statements
 				throw new UnsupportedOperationException("Unsupported operator: " + operator.toUriLiteral());
@@ -105,6 +115,28 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		return this.query.order(orderByQuery);
 	}
 
+	public Object getNumberObjectValue(String value) {
+		Object convertValue;
+		try {
+			convertValue = Integer.parseInt(value);
+		} catch (Exception e) {
+			if (Pattern.matches("([0-9]*)\\.([0-9]*)", value.toString())) {
+				convertValue = Double.parseDouble(value);
+			} else {
+				convertValue = Long.parseLong(value);
+			}
+		}
+		return convertValue;
+	}
+
+	public Object getStringObjectValue(String value) {
+		if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+			return (Object) Boolean.parseBoolean(value);
+		} else {
+			return (Object) value;
+		}
+	}
+
 	@Override
 	public Object visitOrder(OrderExpression orderExpression, Object filterResult, SortOrder sortOrder) {
 		if (filterResult instanceof PropertyExpression) {
@@ -122,6 +154,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	public Object visitLiteral(LiteralExpression literal, EdmLiteral edmLiteral) {
 		if (EdmSimpleTypeKind.String.getEdmSimpleTypeInstance().equals(edmLiteral.getType())) {
 			return "'" + edmLiteral.getLiteral() + "'";
+		} else if (EdmSimpleTypeKind.Boolean.getEdmSimpleTypeInstance().equals(edmLiteral.getType())) {
+			return "" + edmLiteral.getLiteral() + "";
 		} else {
 			return "'" + edmLiteral.getLiteral() + "'";
 		}
@@ -138,8 +172,9 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		fieldValue = fieldValue.replaceAll("\'", "");
 		switch (method) {
 		case STARTSWITH:
-			Pattern sw_pattern = Pattern.compile("^" + Pattern.quote(fieldValue), Pattern.CASE_INSENSITIVE);
+			Pattern sw_pattern = Pattern.compile("/^" + fieldValue + "/", Pattern.CASE_INSENSITIVE);
 			return this.query.filter(fieldOperand.getUriLiteral(), sw_pattern);
+
 		case ENDSWITH:
 			Pattern ew_pattern = Pattern.compile(Pattern.quote(fieldValue) + "$", Pattern.CASE_INSENSITIVE);
 			return this.query.filter(fieldOperand.getPropertyName(), ew_pattern);
