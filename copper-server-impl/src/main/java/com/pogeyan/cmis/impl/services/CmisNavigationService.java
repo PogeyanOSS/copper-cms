@@ -266,10 +266,12 @@ public class CmisNavigationService {
 			ObjectInFolderList childList = getChildernList(repositoryId, children, folderId, includePathSegments,
 					filter, includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
 					docMorphia);
+			List<String> listOfParentIds = new ArrayList<>();
 			if (0 != childList.getObjects().size()) {
 				for (ObjectInFolderData child : childList.getObjects()) {
 					ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
 					String childId = child.getObject().getId();
+					listOfParentIds.add(childId);
 					List<ObjectInFolderContainer> subChildren = getDescendants(repositoryId, children, childId,
 							includePathSegments, filter, includeAllowableActions, objectInfos, renditionFilter,
 							includeRelationships, userObject, docMorphia);
@@ -278,6 +280,31 @@ public class CmisNavigationService {
 						oifc.setChildren(subChildren);
 					}
 					childrenOfFolderId.add(oifc);
+				}
+				for (String parentId : listOfParentIds) {
+					for (IBaseObject id : children) {
+						if (parentId != id.getId()) {
+							ObjectInFolderList childLists = getChildernList(repositoryId, Arrays.asList(id), null,
+									includePathSegments, filter, includeAllowableActions, objectInfos, renditionFilter,
+									includeRelationships, userObject, docMorphia);
+							for (ObjectInFolderData child : childLists.getObjects()) {
+								ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
+								oifc.setObject(child);
+								childrenOfFolderId.add(oifc);
+							}
+						}
+					}
+				}
+			} else {
+				if (children.size() > 0) {
+					ObjectInFolderList childLists = getChildernList(repositoryId, children, null, includePathSegments,
+							filter, includeAllowableActions, objectInfos, renditionFilter, includeRelationships,
+							userObject, docMorphia);
+					for (ObjectInFolderData child : childLists.getObjects()) {
+						ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
+						oifc.setObject(child);
+						childrenOfFolderId.add(oifc);
+					}
 				}
 			}
 			return childrenOfFolderId;
@@ -290,7 +317,7 @@ public class CmisNavigationService {
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			for (IBaseObject child : children) {
-				if (child.getParentId().equals(folderId)) {
+				if (child.getParentId().equals(folderId) || folderId == null) {
 					ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 					if (includePathSegments != null && includePathSegments) {
 						oifd.setPathSegment(child.getName());
