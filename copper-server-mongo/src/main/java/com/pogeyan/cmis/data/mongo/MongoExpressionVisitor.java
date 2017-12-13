@@ -172,7 +172,7 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		fieldValue = fieldValue.replaceAll("\'", "");
 		switch (method) {
 		case STARTSWITH:
-			Pattern sw_pattern = Pattern.compile("/^" + fieldValue + "/", Pattern.CASE_INSENSITIVE);
+			Pattern sw_pattern = Pattern.compile("^" + fieldValue, Pattern.CASE_INSENSITIVE);
 			return this.query.filter(fieldOperand.getUriLiteral(), sw_pattern);
 
 		case ENDSWITH:
