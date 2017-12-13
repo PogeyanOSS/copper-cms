@@ -99,25 +99,43 @@ public class CmisAclServices {
 			return newData.getAcl();
 		}
 
-		private static AccessControlListImplExt validateAcl(Acl addAces, Acl removeAces, IBaseObject object, List<String> id,
-				String aclPropagation) {
+		private static AccessControlListImplExt validateAcl(Acl addAces, Acl removeAces, IBaseObject object,
+				List<String> id, String aclPropagation) {
 			List<Ace> aces = new ArrayList<Ace>();
 			if (addAces != null) {
-				for (Ace dataAce : object.getAcl().getAces()) {
+				if (object.getAcl() != null) {
+					for (Ace dataAce : object.getAcl().getAces()) {
+						for (Ace ace : addAces.getAces()) {
+							if (dataAce.getPrincipalId().equalsIgnoreCase(ace.getPrincipalId())) {
+								AccessControlEntryImpl ace1 = new AccessControlEntryImpl(
+										new AccessControlPrincipalDataImpl(ace.getPrincipalId()), ace.getPermissions());
+								aces.add(ace1);
+								id.add(ace.getPrincipalId());
+							}
+						}
+					}
+					aces = getAce(object.getAcl().getAces(), aces, id);
+				} else {
 					for (Ace ace : addAces.getAces()) {
-						if (dataAce.getPrincipalId().equalsIgnoreCase(ace.getPrincipalId())) {
+						AccessControlEntryImpl ace1 = new AccessControlEntryImpl(
+								new AccessControlPrincipalDataImpl(ace.getPrincipalId()), ace.getPermissions());
+						aces.add(ace1);
+						id.add(ace.getPrincipalId());
+					}
+				}
+				aces = getAce(addAces.getAces(), aces, id);
+			}
+			if (removeAces != null) {
+				if (object.getAcl() != null) {
+					if (aces.isEmpty()) {
+						for (Ace ace : object.getAcl().getAces()) {
 							AccessControlEntryImpl ace1 = new AccessControlEntryImpl(
 									new AccessControlPrincipalDataImpl(ace.getPrincipalId()), ace.getPermissions());
 							aces.add(ace1);
 							id.add(ace.getPrincipalId());
 						}
+						aces = getAce(object.getAcl().getAces(), aces, id);
 					}
-				}
-				
-				aces = getAce(object.getAcl().getAces(), aces, id);
-				aces = getAce(addAces.getAces(), aces, id);
-
-				if (removeAces != null) {
 					for (Ace ace : removeAces.getAces()) {
 						int i = 0;
 						for (String userId : id) {
@@ -134,7 +152,7 @@ public class CmisAclServices {
 			if (LOG.isDebugEnabled() && aclimpl != null) {
 				LOG.debug("ValidatedAcl: {}", aclimpl.getAces());
 			}
-			
+
 			return aclimpl;
 		}
 

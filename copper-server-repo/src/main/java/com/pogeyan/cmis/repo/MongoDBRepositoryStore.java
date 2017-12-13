@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.converters.SimpleValueConverter;
@@ -31,9 +32,7 @@ import org.mongodb.morphia.mapping.MappingException;
 import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 
-import com.mongodb.BasicDBList;
 import com.mongodb.MongoClient;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
