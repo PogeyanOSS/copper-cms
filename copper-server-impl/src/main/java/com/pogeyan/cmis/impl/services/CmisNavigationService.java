@@ -109,7 +109,14 @@ public class CmisNavigationService {
 			List<? extends IBaseObject> children = new ArrayList<>();
 			long childrenCount = 0;
 			if (orderBy != null) {
-				orderBy = com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy);
+				String[] ordervalue = orderBy.split("\\s+");
+				orderBy = com.pogeyan.cmis.api.utils.Helpers.getQueryName(ordervalue[0]);
+				if (ordervalue.length > 1) {
+					orderBy = orderBy + " " + ordervalue[1];
+				} else {
+					LOG.error("Unknown orderBy given: {}", orderBy);
+					throw new CmisObjectNotFoundException("Unknown orderBy given: " + orderBy);
+				}
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";

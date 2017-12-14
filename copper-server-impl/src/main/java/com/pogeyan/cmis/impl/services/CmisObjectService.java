@@ -2199,7 +2199,11 @@ public class CmisObjectService {
 				cmisPath = "/" + name;
 			} else {
 				path = parentData.getInternalPath() + parentData.getId() + ",";
-				cmisPath = parentData.getPath() + "/" + name;
+				if (parentData.getPath().equals("/")) {
+					cmisPath = "/" + name;
+				} else {
+					cmisPath = parentData.getPath() + "/" + name;
+				}
 			}
 			IBaseObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId,
 					repositoryId, secondaryObjectTypeId,
