@@ -30,7 +30,5 @@
   <artifactId>external</artifactId>
   <name>External</name>
   <packaging>pom</packaging>
-  <modules>
-    <module>rcg-cmis-ext</module>
-  </modules>
+  <modules></modules>
 </project>
