@@ -112,10 +112,9 @@ public class CmisNavigationService {
 				String[] ordervalue = orderBy.split("\\s+");
 				orderBy = com.pogeyan.cmis.api.utils.Helpers.getQueryName(ordervalue[0]);
 				if (ordervalue.length > 1) {
-					orderBy = orderBy + " " + ordervalue[1];
-				} else {
-					LOG.error("Unknown orderBy given: {}", orderBy);
-					throw new CmisObjectNotFoundException("Unknown orderBy given: " + orderBy);
+					orderBy = orderBy + " " + Arrays.stream(ordervalue).skip(1).map(t -> {
+						return com.pogeyan.cmis.api.utils.Helpers.getQueryName(t);
+					}).collect(Collectors.joining(" "));
 				}
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
@@ -634,13 +633,13 @@ public class CmisNavigationService {
 			if (queryResult.length > 0) {
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject> toList());
+						.collect(Collectors.<IBaseObject>toList());
 				if (folderChildren.size() == 1) {
 					acl = new ArrayList<>();
 					acl.add(dataAcl);
 				} else {
 					acl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt> toList());
+							.collect(Collectors.<AccessControlListImplExt>toList());
 				}
 			} else {
 				acl = new ArrayList<>();
