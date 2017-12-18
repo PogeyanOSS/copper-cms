@@ -1422,20 +1422,8 @@ public class CmisObjectService {
 				LOG.debug("createFolder parentDataId: {} - folderName:{} - properties:{}", parentData.getId(),
 						folderName, properties);
 			}
-			String path = null;
-			String parentPath = parentData.getInternalPath();
-			String cmisPath = null;
-			if (parentPath == null) {
-				path = "," + parentData.getId() + ",";
-				cmisPath = "/" + folderName;
-			} else {
-				path = parentData.getInternalPath() + parentData.getId() + ",";
-				if (parentData.getPath().equals("/")) {
-					cmisPath = "/" + folderName;
-				} else {
-					cmisPath = parentData.getPath() + "/" + folderName;
-				}
-			}
+
+			Tuple2<String, String> p = resolvePathForObject(parentData, folderName);
 
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId);
 			IBaseObject folderObject = DBUtils.BaseDAO.getByName(repositoryId, folderName,
@@ -1452,7 +1440,7 @@ public class CmisObjectService {
 					secondaryObjectTypeId,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
-					userName, userName, token, path, custom, policies, addAces, cmisPath,
+					userName, userName, token, p._1(), custom, policies, addAces, p._2(),
 					parentData.getId().toString());
 
 			if (result instanceof ISettableBaseObject) {
@@ -2007,20 +1995,8 @@ public class CmisObjectService {
 
 			LOG.info("createItemObject parentDataId:", parentData.getId(), " - itemName:{}", itemName);
 			// 0) folder id
-			String path = null;
-			String parentPath = parentData.getInternalPath();
-			String cmisPath = null;
-			if (parentPath == null) {
-				path = "," + parentData.getId() + ",";
-				cmisPath = "/" + itemName;
-			} else {
-				path = parentData.getInternalPath() + parentData.getId() + ",";
-				if (parentData.getPath().equals("/")) {
-					cmisPath = "/" + itemName;
-				} else {
-					cmisPath = parentData.getPath() + "/" + itemName;
-				}
-			}
+			Tuple2<String, String> p = resolvePathForObject(parentData, itemName);
+
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
@@ -2035,7 +2011,7 @@ public class CmisObjectService {
 					secondaryObjectTypeIds,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
-					username, username, token, path, custom, policies, aclAdd, cmisPath, parentData.getId().toString());
+					username, username, token, p._1(), custom, policies, aclAdd, p._2(), parentData.getId().toString());
 
 			if (result instanceof ISettableBaseObject) {
 				ISettableBaseObject settableBaseObject = (ISettableBaseObject) result;
@@ -2191,25 +2167,13 @@ public class CmisObjectService {
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
-			String path = null;
-			String parentPath = parentData.getInternalPath();
-			String cmisPath = null;
-			if (parentPath == null) {
-				path = "," + parentData.getId() + ",";
-				cmisPath = "/" + name;
-			} else {
-				path = parentData.getInternalPath() + parentData.getId() + ",";
-				if (parentData.getPath().equals("/")) {
-					cmisPath = "/" + name;
-				} else {
-					cmisPath = parentData.getPath() + "/" + name;
-				}
-			}
+			Tuple2<String, String> p = resolvePathForObject(parentData, name);
+
 			IBaseObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId,
 					repositoryId, secondaryObjectTypeId,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
-					user, user, token, path, custom, policies, aclAdd, cmisPath, parentData.getId().toString());
+					user, user, token, p._1(), custom, policies, aclAdd, p._2(), parentData.getId().toString());
 			if (result.equals(null)) {
 				LOG.error("Unknown ItemObject:{}", result);
 				throw new CmisObjectNotFoundException("Impossible to create folder properties");
@@ -2423,20 +2387,7 @@ public class CmisObjectService {
 
 			LOG.info("createPolicy parentDataId:", parentData.getId(), " - policyName:{}", policyName);
 			// 0) folder id
-			String path = null;
-			String parentPath = parentData.getInternalPath();
-			String cmisPath = null;
-			if (parentPath == null) {
-				path = "," + parentData.getId() + ",";
-				cmisPath = "/" + policyName;
-			} else {
-				path = parentData.getInternalPath() + parentData.getId() + ",";
-				if (parentData.getPath().equals("/")) {
-					cmisPath = "/" + policyName;
-				} else {
-					cmisPath = parentData.getPath() + "/" + policyName;
-				}
-			}
+			Tuple2<String, String> p = resolvePathForObject(parentData, policyName);
 
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -2453,7 +2404,7 @@ public class CmisObjectService {
 					repositoryId, secondaryObjectTypeIds,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
-					username, username, token, path, custom, polices, aclAdd, cmisPath, parentData.getId().toString());
+					username, username, token, p._1(), custom, polices, aclAdd, p._2(), parentData.getId().toString());
 
 			if (result instanceof ISettableBaseObject) {
 				ISettableBaseObject settableBaseObject = (ISettableBaseObject) result;
@@ -2544,78 +2495,86 @@ public class CmisObjectService {
 			for (Map.Entry<String, PropertyData<?>> customValues : customData) {
 				if (!(customValues.getKey().equals("cmis:secondaryObjectTypeIds"))) {
 					PropertyData<?> valueName = customValues.getValue();
-					if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("GregorianCalendar")) {
+					if (!valueName.getValues().isEmpty()) {
+						if (valueName.getFirstValue().getClass().getSimpleName()
+								.equalsIgnoreCase("GregorianCalendar")) {
 
-						if (valueName.getValues().size() == 1) {
-							GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
-									GregorianCalendar.class);
-							Long time = value.getTimeInMillis();
-							updatecontentProps.put("properties." + valueName.getId(), time.longValue());
-						} else {
-							List<Long> valueList = new ArrayList<>();
-							valueName.getValues().forEach(v -> {
-								GregorianCalendar value = convertInstanceOfObject(v, GregorianCalendar.class);
+							if (valueName.getValues().size() == 1) {
+								GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
+										GregorianCalendar.class);
 								Long time = value.getTimeInMillis();
-								valueList.add(time.longValue());
-							});
-							updatecontentProps.put("properties." + valueName.getId(), valueList);
-						}
+								updatecontentProps.put("properties." + valueName.getId(), time.longValue());
+							} else {
+								List<Long> valueList = new ArrayList<>();
+								valueName.getValues().forEach(v -> {
+									GregorianCalendar value = convertInstanceOfObject(v, GregorianCalendar.class);
+									Long time = value.getTimeInMillis();
+									valueList.add(time.longValue());
+								});
+								updatecontentProps.put("properties." + valueName.getId(), valueList);
+							}
 
-					} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigInteger")) {
+						} else if (valueName.getFirstValue().getClass().getSimpleName()
+								.equalsIgnoreCase("BigInteger")) {
 
-						if (valueName.getValues().size() == 1) {
-							BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
-									BigInteger.class);
-							int value = valueBigInteger.intValue();
-							updatecontentProps.put("properties." + valueName.getId(), value);
-						} else {
-							List<Integer> valueList = new ArrayList<>();
-							valueName.getValues().forEach(v -> {
-								BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
-								valueList.add(valueBigInteger.intValue());
-							});
-							updatecontentProps.put("properties." + valueName.getId(), valueList);
-						}
+							if (valueName.getValues().size() == 1) {
+								BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
+										BigInteger.class);
+								int value = valueBigInteger.intValue();
+								updatecontentProps.put("properties." + valueName.getId(), value);
+							} else {
+								List<Integer> valueList = new ArrayList<>();
+								valueName.getValues().forEach(v -> {
+									BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
+									valueList.add(valueBigInteger.intValue());
+								});
+								updatecontentProps.put("properties." + valueName.getId(), valueList);
+							}
 
-					} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigDecimal")) {
+						} else if (valueName.getFirstValue().getClass().getSimpleName()
+								.equalsIgnoreCase("BigDecimal")) {
 
-						if (valueName.getValues().size() == 1) {
-							BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
-							double doubleValue = value.doubleValue();
-							updatecontentProps.put("properties." + valueName.getId(), doubleValue);
-						} else {
-							List<Double> valueList = new ArrayList<>();
-							valueName.getValues().forEach(v -> {
+							if (valueName.getValues().size() == 1) {
 								BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
-								valueList.add(value.doubleValue());
-							});
-							updatecontentProps.put("properties." + valueName.getId(), valueList);
-						}
+								double doubleValue = value.doubleValue();
+								updatecontentProps.put("properties." + valueName.getId(), doubleValue);
+							} else {
+								List<Double> valueList = new ArrayList<>();
+								valueName.getValues().forEach(v -> {
+									BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(),
+											BigDecimal.class);
+									valueList.add(value.doubleValue());
+								});
+								updatecontentProps.put("properties." + valueName.getId(), valueList);
+							}
 
-					} else {
-
-						if (valueName.getValues().size() == 1) {
-							updatecontentProps.put("properties." + valueName.getId(), valueName.getFirstValue());
 						} else {
-							updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
-						}
-						if (valueName.getId().equalsIgnoreCase("cmis:name")) {
-							updatecontentProps.put("name", valueName.getFirstValue());
-							updatecontentProps.put("path", gettingPath(data.getPath(), valueName.getFirstValue()));
-							if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
-								try {
-									localService.rename(data.getPath(),
-											gettingPath(data.getPath(), valueName.getFirstValue()));
-								} catch (Exception e) {
-									LOG.error("Folder Rename exception:  {}", e.getMessage());
-									throw new IllegalArgumentException(e.getMessage());
-								}
 
-								updateChildPath(repositoryId, data.getName(), valueName.getFirstValue().toString(), id,
-										baseMorphiaDAO, navigationMorphiaDAO, userObject, data.getInternalPath(),
-										data.getAcl());
+							if (valueName.getValues().size() == 1) {
+								updatecontentProps.put("properties." + valueName.getId(), valueName.getFirstValue());
+							} else {
+								updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
+							}
+							if (valueName.getId().equalsIgnoreCase("cmis:name")) {
+								updatecontentProps.put("name", valueName.getFirstValue());
+								updatecontentProps.put("path", gettingPath(data.getPath(), valueName.getFirstValue()));
+								if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
+									try {
+										localService.rename(data.getPath(),
+												gettingPath(data.getPath(), valueName.getFirstValue()));
+									} catch (Exception e) {
+										LOG.error("Folder Rename exception:  {}", e.getMessage());
+										throw new IllegalArgumentException(e.getMessage());
+									}
+
+									updateChildPath(repositoryId, data.getName(), valueName.getFirstValue().toString(),
+											id, baseMorphiaDAO, navigationMorphiaDAO, userObject,
+											data.getInternalPath(), data.getAcl());
+								}
 							}
 						}
+					} else {
+						updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
 					}
 				}
 			}
@@ -3889,14 +3848,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject> toList());
+						.collect(Collectors.<IBaseObject>toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt> toList());
+							.collect(Collectors.<AccessControlListImplExt>toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3962,7 +3921,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3970,7 +3929,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -4004,7 +3963,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -4012,7 +3971,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
