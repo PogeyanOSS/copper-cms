@@ -83,10 +83,6 @@ public class CmisPropertyConverter {
 			// create properties
 			PropertiesImpl result = new PropertiesImpl();
 			for (Map.Entry<String, List<String>> property : properties.entrySet()) {
-//				if (property.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS)) {
-//					continue;
-//				}
-
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null) {
 					propDef = getPropertyDefinition(secondaryTypes, property.getKey());
