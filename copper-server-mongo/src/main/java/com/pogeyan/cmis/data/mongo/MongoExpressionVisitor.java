@@ -178,6 +178,11 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		case ENDSWITH:
 			Pattern ew_pattern = Pattern.compile(Pattern.quote(fieldValue) + "$", Pattern.CASE_INSENSITIVE);
 			return this.query.filter(fieldOperand.getPropertyName(), ew_pattern);
+		
+		case SUBSTRING:
+			Pattern iew_pattern = Pattern.compile("^" + Pattern.quote(fieldValue) + "$", Pattern.CASE_INSENSITIVE);
+			return this.query.filter(fieldOperand.getUriLiteral(), iew_pattern);
+			
 		default:
 			// Other operators are not supported for SQL Statements
 			throw new UnsupportedOperationException("Unsupported operator: " + method.toUriLiteral());

@@ -143,12 +143,22 @@ public class MongoClientFactory implements IDBClientFactory {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
 			List<String> properties = getClientProperties(dataBaseName);
-			LOG.info("ContentDB Name-" + properties.get(2));
-			LOG.info("HostId" + properties.get(0));
 			int port = Integer.valueOf(properties.get(1));
-			clientDatastore = morphia.createDatastore(getMongoClient(repositoryId, properties.get(0), port),
-					properties.get(2));
+
+			String[] columnsToIndex = new String[] { "name", "path" };
+			Map<Object, Object> indexIds = new HashMap<>();
+			Stream<String> indexId = Arrays.stream(columnsToIndex);
+			indexId.forEach(x -> indexIds.put(x, 1));
+
+			MongoClient mongoClient = getMongoClient(repositoryId, properties.get(0), port);
+			MongoCollection<Document> objectDataCollection = mongoClient.getDatabase(properties.get(2))
+					.getCollection("objectData");
+			objectDataCollection.createIndex(new BasicDBObject(indexIds));
+			clientDatastore = morphia.createDatastore(mongoClient, properties.get(2));
 			this.clientDatastores.put(repositoryId, clientDatastore);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(2));
+			}
 		}
 
 		return fun.apply(clientDatastore);
