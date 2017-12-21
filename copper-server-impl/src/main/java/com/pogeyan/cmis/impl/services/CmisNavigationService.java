@@ -109,13 +109,11 @@ public class CmisNavigationService {
 			List<? extends IBaseObject> children = new ArrayList<>();
 			long childrenCount = 0;
 			if (orderBy != null) {
-				String[] ordervalue = orderBy.split("\\s+");
-				orderBy = com.pogeyan.cmis.api.utils.Helpers.getQueryName(ordervalue[0]);
-				if (ordervalue.length > 1) {
-					orderBy = orderBy + " " + Arrays.stream(ordervalue).skip(1).map(t -> {
-						return com.pogeyan.cmis.api.utils.Helpers.getQueryName(t);
-					}).collect(Collectors.joining(" "));
-				}
+				String[] orderQuery = orderBy.split(",");
+				orderBy = Arrays.stream(orderQuery)
+						.map(t -> com.pogeyan.cmis.api.utils.Helpers.getQueryName(t.split("\\s+")[0]) + " "
+								+ t.split("\\s+")[1])
+						.collect(Collectors.joining(","));
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";
@@ -633,13 +631,13 @@ public class CmisNavigationService {
 			if (queryResult.length > 0) {
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject>toList());
+						.collect(Collectors.<IBaseObject> toList());
 				if (folderChildren.size() == 1) {
 					acl = new ArrayList<>();
 					acl.add(dataAcl);
 				} else {
 					acl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt>toList());
+							.collect(Collectors.<AccessControlListImplExt> toList());
 				}
 			} else {
 				acl = new ArrayList<>();
