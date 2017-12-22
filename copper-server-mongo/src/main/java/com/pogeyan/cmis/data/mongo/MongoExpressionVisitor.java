@@ -195,7 +195,7 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), ew_pattern);
 
 		case SUBSTRING:
-			Pattern iew_pattern = Pattern.compile("^" + Pattern.quote(fieldValue) + "$", Pattern.CASE_INSENSITIVE);
+			Pattern iew_pattern = Pattern.compile(Pattern.quote(fieldValue), Pattern.CASE_INSENSITIVE);
 			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), iew_pattern);
 
 		default:

@@ -150,9 +150,6 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 					ctx.complete();
 				});
 			}
-
-			// start async context and forward to servlet actor
-
 		} catch (Exception e) {
 			MetricsInputs.markBindingServletErrorMeter();
 			if (e instanceof CmisUnauthorizedException) {

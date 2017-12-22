@@ -67,7 +67,6 @@ public class GatewayActor extends UntypedActor {
 						}
 					});
 		}
-
 	}
 
 	@Override

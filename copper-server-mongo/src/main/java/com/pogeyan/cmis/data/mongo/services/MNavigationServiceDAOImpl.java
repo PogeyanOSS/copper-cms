@@ -154,6 +154,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 				FilterExpression expression = UriParser.parseFilter(null, null, filterExpression);
 				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
 			} catch (ODataMessageException | ODataApplicationException e) {
+				e.printStackTrace();
 			}
 		}
 		if (mappedColumns != null && mappedColumns.length > 0) {

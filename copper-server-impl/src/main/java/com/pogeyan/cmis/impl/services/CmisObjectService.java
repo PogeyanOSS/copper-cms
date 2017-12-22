@@ -296,9 +296,6 @@ public class CmisObjectService {
 				boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly,
 				ObjectInfoHandler objectInfos, String renditionFilter, IncludeRelationships includeRelationships,
 				String userName) throws IllegalArgumentException {
-
-			LOG.info("CompileObjectData for: {} , repository: {}", data.getId(), repositoryId);
-
 			ObjectDataImpl result = new ObjectDataImpl();
 			ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 			result.setProperties(compileProperties(repositoryId, data, filter, objectInfo));
@@ -371,7 +368,6 @@ public class CmisObjectService {
 				throw new IllegalArgumentException("ObjectInfoImpl instance must not be null!");
 			}
 
-			LOG.info("CompileProperties for ObjectId: {} , repository: {}", data.getId(), repositoryId);
 			// copy filter
 			Set<String> filter = (orgfilter == null ? null : new HashSet<String>(orgfilter));
 
@@ -384,7 +380,7 @@ public class CmisObjectService {
 				} else {
 					typeId = data.getTypeId();
 				}
-				LOG.info("compileProperties typeId: {}", typeId);
+				
 				if (objectInfo != null) {
 					objectInfo.setBaseType(BaseTypeId.CMIS_FOLDER);
 					objectInfo.setTypeId(typeId);
@@ -412,7 +408,6 @@ public class CmisObjectService {
 				} else {
 					typeId = data.getTypeId();
 				}
-				LOG.info("compileProperties typeId: {}", typeId);
 				if (objectInfo != null) {
 					objectInfo.setBaseType(BaseTypeId.CMIS_DOCUMENT);
 					objectInfo.setTypeId(typeId);
@@ -437,7 +432,6 @@ public class CmisObjectService {
 				} else {
 					typeId = data.getTypeId();
 				}
-				LOG.info("compileProperties typeId: {}", typeId);
 				if (objectInfo != null) {
 					objectInfo.setBaseType(BaseTypeId.CMIS_ITEM);
 					objectInfo.setTypeId(typeId);
@@ -464,7 +458,6 @@ public class CmisObjectService {
 				} else {
 					typeId = data.getTypeId();
 				}
-				LOG.info("compileProperties typeId: {}", typeId);
 				if (objectInfo != null) {
 					objectInfo.setBaseType(BaseTypeId.CMIS_RELATIONSHIP);
 					objectInfo.setTypeId(typeId);
@@ -487,7 +480,6 @@ public class CmisObjectService {
 				} else {
 					typeId = data.getTypeId();
 				}
-				LOG.info("compileProperties typeId: {}", typeId);
 				if (objectInfo != null) {
 					objectInfo.setBaseType(BaseTypeId.CMIS_POLICY);
 					objectInfo.setTypeId(typeId);
@@ -511,7 +503,6 @@ public class CmisObjectService {
 				} else {
 					typeId = data.getTypeId();
 				}
-				LOG.info("compileProperties typeId: {}", typeId);
 				if (objectInfo != null) {
 					objectInfo.setBaseType(BaseTypeId.CMIS_SECONDARY);
 					objectInfo.setTypeId(typeId);
@@ -589,6 +580,10 @@ public class CmisObjectService {
 
 				addPropertyId(repositoryId, result, type, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS,
 						data.getSecondaryTypeIds() == null ? null : data.getSecondaryTypeIds());
+				
+				addPropertyString(repositoryId, result, type, filter, PropertyIds.PATH,
+						data.getPath() == null ? "" : data.getPath());
+
 				// directory or file
 				if (data.getTypeId().equalsIgnoreCase("CMIS:FOLDER") || data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 					LOG.info("compileProperties isDirectory");
@@ -598,10 +593,6 @@ public class CmisObjectService {
 							BaseTypeId.CMIS_FOLDER.value());
 					if (typeId != null) {
 						addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_TYPE_ID, typeId);
-					}
-					if (data.getPath() != null) {
-						addPropertyString(repositoryId, result, type, filter, PropertyIds.PATH,
-								data.getPath() == null ? "" : data.getPath());
 					}
 					if (data.getParentId() == null) {
 						addPropertyId(repositoryId, result, type, filter, PropertyIds.PARENT_ID, null);
@@ -615,11 +606,9 @@ public class CmisObjectService {
 					// folder properties
 
 					LOG.info("compileProperties hasParent: {}", objectInfo.hasParent());
-
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null);
 				} else if ((data.getTypeId().equalsIgnoreCase("CMIS:DOCUMENT")
 						|| data.getBaseId() == BaseTypeId.CMIS_DOCUMENT)) {
-					LOG.info("compileProperties isDocument");
 					// base type and type name
 					// base type and type name
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.BASE_TYPE_ID,
@@ -960,8 +949,8 @@ public class CmisObjectService {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
-			LOG.info(" getRenditions on object: {}, repository: {}", objectId.toString(), repositoryId);
-
+			
+			LOG.info("getRenditions on object: {}, repository: {}", objectId.toString(), repositoryId);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
@@ -3294,8 +3283,6 @@ public class CmisObjectService {
 				LOG.error("Unknown TypeId:{}", type);
 				throw new CmisObjectNotFoundException("Type '" + type.getId() + "' is unknown!");
 			}
-
-			LOG.info("CompilewriteProperties- repository: {} , typeDefintion: {}", repositoryId, type.toString());
 
 			List<?> secondaryObjectTypeIds = null;
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);

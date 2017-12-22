@@ -78,12 +78,10 @@ public class CmisTypeServices {
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				List<? extends TypeDefinition> getTypeObject = typeManagerDAO.getById(null);
 				if (getTypeObject != null) {
-					LOG.info("Added BaseType Successfully for repository: {}", repositoryId);
 				} else {
 					List<TypeDefinition> baseType = upset(repositoryId);
 					for (TypeDefinition tm : baseType) {
 						typeManagerDAO.commit(tm);
-						LOG.info("Added BaseType Successfully");
 					}
 				}
 			} catch (MongoException e) {
@@ -636,8 +634,6 @@ public class CmisTypeServices {
 		}
 
 		public static TypeDefinition getTypeDefinition(String repositoryId, String typeId, ExtensionsData extension) {
-			LOG.info("getTypeDefinition for type: {} , repository: {}", typeId, repositoryId);
-
 			if (typeId == null) {
 				LOG.error("typeId should not be null");
 				throw new IllegalArgumentException("Type must be set!");
@@ -1247,7 +1243,6 @@ public class CmisTypeServices {
 		 */
 		public static List<TypeDefinition> getTypeParent(String repositoryId, String parentId,
 				List<TypeDefinition> innerChild) {
-			LOG.info("getTypeParent from repository: {}", repositoryId);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			TypeDefinition parent = null;
@@ -1255,15 +1250,15 @@ public class CmisTypeServices {
 				parent = typeManagerDAO.getById(Arrays.asList(parentId)).get(0);
 			}
 			if (parent != null) {
+				LOG.info("getTypeParent from repository: {}, parentTypeId: {}", repositoryId, parent.getId());
 				if (parent.getParentTypeId() == null) {
-					LOG.info("Parent Type {}", parent.getId());
 					innerChild.add(parent);
 				} else {
-					LOG.info("Parent Type {}", parent.getId());
 					innerChild.add(parent);
 					return getTypeParent(repositoryId, parent.getParentTypeId(), innerChild);
 				}
 			}
+			
 			return innerChild;
 		}
 
