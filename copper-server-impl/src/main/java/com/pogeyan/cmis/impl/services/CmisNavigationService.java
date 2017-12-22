@@ -344,7 +344,7 @@ public class CmisNavigationService {
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			for (IBaseObject child : children) {
-				if (child.getParentId().equals(folderId) || folderId == null) {
+				if (child.getParentId() != null && child.getParentId().equals(folderId) || folderId == null) {
 					ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 					if (includePathSegments != null && includePathSegments) {
 						oifd.setPathSegment(child.getName());
