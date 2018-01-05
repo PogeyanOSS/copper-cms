@@ -1559,8 +1559,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -2505,7 +2504,8 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
+					? props.getProperties().get("cmis:description").getFirstValue().toString()
+					: null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -2574,34 +2574,6 @@ public class CmisObjectService {
 							} else {
 								updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
 							}
-							// if
-							// (valueName1.getId().equalsIgnoreCase("cmis:name"))
-							// {
-							// updatecontentProps.put("name",
-							// valueName1.getFirstValue());
-							// updatecontentProps.put("path",
-							// gettingPath(data.getPath(),
-							// valueName1.getFirstValue()));
-							// if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
-							// try {
-							// localService.rename(data.getPath(),
-							// gettingPath(data.getPath(),
-							// valueName1.getFirstValue()));
-							// } catch (Exception e) {
-							// LOG.error("Folder Rename exception: {}",
-							// e.getMessage());
-							// throw new
-							// IllegalArgumentException(e.getMessage());
-							// }
-							//
-							// updateChildPath(repositoryId, data.getName(),
-							// valueName1.getFirstValue().toString(), id,
-							// baseMorphiaDAO,
-							// navigationMorphiaDAO, userObject,
-							// data.getInternalPath(),
-							// data.getAcl());
-							// }
-							// }
 						}
 					} else {
 						updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
@@ -3188,7 +3160,8 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName() : child.getName();
+									? docObject.getContentStreamFileName()
+									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3283,7 +3256,8 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName() : child.getName();
+								? docObject.getContentStreamFileName()
+								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3376,30 +3350,7 @@ public class CmisObjectService {
 						|| (propTypes.getId().equals("cmis:objectId")))) {
 					result.addProperty(prop);
 				}
-				//
-				// addedProps.add(prop.getId());
 			}
-
-			// check if required properties are missing
-			// for (PropertyDefinition<?> propDef :
-			// type.getPropertyDefinitions().values()) {propTypes
-			// if (!addedProps.contains(propDef.getId()) &&
-			// propDef.getUpdatability() != Updatability.READONLY) {
-			// if (!addPropertyDefault(result, propDef) && propDef.isRequired())
-			// {
-			// LOG.error("Unknown propertiesTypes:{}", propDef.getId());
-			// throw new CmisObjectNotFoundException("Property '" +
-			// propDef.getId() + "' is required!");
-			// }
-			// }
-			// }
-
-			// addPropertyId(repositoryId, result, type, null,
-			// PropertyIds.OBJECT_TYPE_ID, type.getId());
-			// addPropertyString(repositoryId, result, type, null,
-			// PropertyIds.CREATED_BY, userDN);
-			// addPropertyString(repositoryId, result, type, null,
-			// PropertyIds.LAST_MODIFIED_BY, userDN);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("compileWriteProperties -data: {}", result.toString());
@@ -3886,14 +3837,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject> toList());
+						.collect(Collectors.<IBaseObject>toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt> toList());
+							.collect(Collectors.<AccessControlListImplExt>toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3959,7 +3910,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3967,7 +3918,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -4001,7 +3952,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -4009,7 +3960,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
