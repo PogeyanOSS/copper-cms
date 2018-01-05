@@ -2563,7 +2563,7 @@ public abstract class AbstractSessionTest extends AbstractCmisTest {
 
                 // cmis:objectId
                 cpd = new CmisPropertyDefintion(PropertyIds.OBJECT_ID, false, PropertyType.ID, Cardinality.SINGLE,
-                        Updatability.READONLY, null, null);
+                        Updatability.ONCREATE, null, null);
                 addResult(results, cpd.check(type));
 
                 // cmis:baseTypeId

@@ -183,6 +183,7 @@ public class MTypeObject implements TypeDefinition {
 		return this.isControllableAcl;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Map<String, PropertyDefinition<?>> getPropertyDefinitions() {
 		Map<String, PropertyDefinition<?>> map = new LinkedHashMap<String, PropertyDefinition<?>>();
@@ -195,36 +196,28 @@ public class MTypeObject implements TypeDefinition {
 				if (propertyType.equalsIgnoreCase("string")) {
 					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName);
 					map.put(id, propertyValue);
-
 				} else if (propertyType.equalsIgnoreCase("boolean")) {
 					CmisPropertyBooleanDefinitionImpl propertyValue = new CmisPropertyBooleanDefinitionImpl(valueName);
 					map.put(id, propertyValue);
-
 				} else if (propertyType.equalsIgnoreCase("id")) {
 					CmisPropertyIdDefinitionImpl propertyValue = new CmisPropertyIdDefinitionImpl(valueName);
 					map.put(id, propertyValue);
-
 				} else if (propertyType.equalsIgnoreCase("datetime")) {
 					CmisPropertyDateTimeDefinitionImpl propertyValue = new CmisPropertyDateTimeDefinitionImpl(
 							valueName);
 					map.put(id, propertyValue);
-
 				} else if (propertyType.equalsIgnoreCase("decimal")) {
 					CmisPropertyDecimalDefinitionImpl propertyValue = new CmisPropertyDecimalDefinitionImpl(valueName);
 					map.put(id, propertyValue);
-
 				} else if (propertyType.equalsIgnoreCase("html")) {
 					CmisPropertyHtmlDefinitionImpl propertyValue = new CmisPropertyHtmlDefinitionImpl(valueName);
 					map.put(id, propertyValue);
-
 				} else if (propertyType.equalsIgnoreCase("uri")) {
 					CmisPropertyUriDefinitionImpl propertyValue = new CmisPropertyUriDefinitionImpl(valueName);
 					map.put(id, propertyValue);
-
 				} else if (propertyType.equalsIgnoreCase("integer")) {
 					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName);
 					map.put(id, propertyValue);
-
 				}
 			}
 		}
@@ -312,7 +305,7 @@ public class MTypeObject implements TypeDefinition {
 			mongoTypeMutability.setCanUpdate(mTypeMutability.canDelete());
 			return mongoTypeMutability;
 		}
-		
+
 		return null;
 	}
 
@@ -340,6 +333,7 @@ public class MTypeObject implements TypeDefinition {
 				mongo.setIsQueryable(valueName.isQueryable());
 				mongo.setIsOrderable(valueName.isOrderable());
 				mongo.setIsOpenChoice(valueName.isOpenChoice());
+				mongo.setChoice(valueName.getChoices());
 				mongoProperty.put(id, mongo);
 			}
 			return mongoProperty;

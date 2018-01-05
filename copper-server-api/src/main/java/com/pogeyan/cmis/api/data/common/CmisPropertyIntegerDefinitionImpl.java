@@ -16,6 +16,7 @@
 package com.pogeyan.cmis.api.data.common;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
@@ -24,9 +25,10 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyIntegerDefiniti
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
 
 @SuppressWarnings("serial")
-public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinition {
+public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefinition {
 
 	private String id;
 	private String localName;
@@ -42,6 +44,7 @@ public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinit
 	private Boolean isQueryable;
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
+	private List<?> choice;
 
 	public CmisPropertyIntegerDefinitionImpl() {
 		super();
@@ -63,6 +66,7 @@ public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinit
 		this.isQueryable = type.isQueryable();
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
+		this.choice = type.getChoices();
 	}
 
 	@Override
@@ -140,9 +144,23 @@ public class CmisPropertyIntegerDefinitionImpl implements PropertyIntegerDefinit
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Choice<BigInteger>> getChoices() {
-		return null;
+		List<Choice<BigInteger>> choiceList = null;
+		if (choice != null) {
+			choiceList = new ArrayList<>();
+			for (Object obj : choice) {
+				Choice<?> ch = (Choice<?>) obj;
+				ChoiceImpl<BigInteger> singleChoice = new ChoiceImpl<BigInteger>();
+				singleChoice.setDisplayName(ch.getDisplayName());
+				singleChoice.setValue((List<BigInteger>) ch.getValue());
+				List<?> childChoice = ch.getChoice();
+				singleChoice.setChoice((List<Choice<BigInteger>>) childChoice);
+				choiceList.add(singleChoice);
+			}
+		}
+		return choiceList;
 	}
 
 	@Override

@@ -131,6 +131,7 @@ public class MongoDBRepositoryStore implements IRepositoryStore {
 	public static class UserFieldConverter extends StringConverter {
 		static ObjectMapper jsonMapper = new ObjectMapper();
 
+		@SuppressWarnings("rawtypes")
 		@Override
 		public Object decode(final Class targetClass, final Object fromDBObject, final MappedField optionalExtraInfo) {
 			if (fromDBObject == null) {

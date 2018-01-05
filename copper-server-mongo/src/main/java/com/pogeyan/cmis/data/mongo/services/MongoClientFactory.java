@@ -17,6 +17,7 @@ package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +25,12 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.definitions.Choice;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
+import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bson.Document;
 import org.json.simple.JSONObject;
@@ -73,6 +77,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
 	private Morphia morphia = new Morphia();
 
+	@SuppressWarnings("rawtypes")
 	public MongoClientFactory() {
 		objectServiceClass.put(MBaseObjectDAO.class, MongoClientFactory.MBASEOBJECTDAOIMPL);
 		objectServiceClass.put(MDiscoveryServiceDAO.class, MongoClientFactory.MDISCOVERYSERVICEDAO);
@@ -83,6 +88,8 @@ public class MongoClientFactory implements IDBClientFactory {
 		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
 		morphia.getMapper().getConverters().addConverter(new AceConverter());
 		morphia.getMapper().getConverters().addConverter(new TokenConverter());
+		morphia.getMapper().getConverters().addConverter(new ChoiceImplConverter());
+		morphia.getMapper().getConverters().addConverter(new ChoiceObjectConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -260,6 +267,120 @@ public class MongoClientFactory implements IDBClientFactory {
 		@Override
 		public Object encode(final Object value, final MappedField optionalExtraInfo) {
 			return TokenChangeType.toValue(value.toString());
+		}
+	}
+
+	public static class ChoiceImplConverter<T> extends TypeConverter implements SimpleValueConverter {
+
+		public ChoiceImplConverter() {
+			super(ChoiceImpl.class);
+		}
+
+		@Override
+		public Object decode(final Class<?> targetClass, final Object fromDBObject, final MappedField optionalExtraInfo)
+				throws MappingException {
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object encode(final Object fromDBObject, final MappedField optionalExtraInfo) {
+			if (fromDBObject != null) {
+				ChoiceImpl<T> ch = (ChoiceImpl<T>) fromDBObject;
+				JSONObject json = new JSONObject();
+				json.put("displayName", ch.getDisplayName());
+				json.put("value", ch.getValue());
+				if (ch.getChoice() != null && !ch.getChoice().isEmpty()) {
+					JSONArray array = new JSONArray();
+					for (Choice<T> internalch : ch.getChoice()) {
+						setInternalChoice(array, internalch);
+					}
+					json.put("choice", array);
+				}
+				return json;
+			}
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		private JSONArray setInternalChoice(JSONArray internalMongoChoice, Choice<T> ch) {
+			JSONObject json = new JSONObject();
+			json.put("displayName", ch.getDisplayName());
+			json.put("value", ch.getValue());
+			if (ch.getChoice() != null && !ch.getChoice().isEmpty()) {
+				JSONArray array = new JSONArray();
+				for (Choice<T> internalch : ch.getChoice()) {
+					setInternalChoice(array, internalch);
+				}
+				json.put("choice", array);
+			}
+			internalMongoChoice.add(json);
+			return internalMongoChoice;
+
+		}
+
+	}
+
+	public static class ChoiceObjectConverter<T> extends TypeConverter implements SimpleValueConverter {
+
+		public ChoiceObjectConverter() {
+			super(Choice.class);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object decode(final Class<?> targetClass, final Object fromDBObject, final MappedField optionalExtraInfo)
+				throws MappingException {
+			if (fromDBObject != null) {
+				JSONParser parser = new JSONParser();
+				try {
+					JSONObject jsonObject = (JSONObject) parser.parse(fromDBObject.toString());
+					ChoiceImpl<T> choice = new ChoiceImpl<T>();
+					List<T> value = (List<T>) jsonObject.get("value");
+					org.json.simple.JSONArray cildChoice = (org.json.simple.JSONArray) jsonObject.get("choice");
+					String displayName = (String) jsonObject.get("displayName");
+					choice.setDisplayName(displayName);
+					choice.setValue(value);
+					if (cildChoice != null && cildChoice.size() > 0) {
+						List<Choice<T>> ch = new ArrayList<>();
+						for (Object obj : cildChoice) {
+							setChoiceChildren(ch, (JSONObject) obj);
+						}
+						choice.setChoice(ch);
+					}
+
+					return choice;
+				} catch (ParseException e) {
+					LOG.error("AceConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
+			}
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		private List<Choice<T>> setChoiceChildren(List<Choice<T>> ch, JSONObject jsonObject) {
+			ChoiceImpl<T> choice = new ChoiceImpl<T>();
+			List<T> value = (List<T>) jsonObject.get("value");
+			org.json.simple.JSONArray cildChoice = (org.json.simple.JSONArray) jsonObject.get("choice");
+			String displayName = (String) jsonObject.get("displayName");
+			choice.setDisplayName(displayName);
+			choice.setValue(value);
+			if (cildChoice != null && cildChoice.size() > 0) {
+				List<Choice<T>> cho = new ArrayList<>();
+				for (Object obj : cildChoice) {
+					setChoiceChildren(cho, (JSONObject) obj);
+				}
+				choice.setChoice(cho);
+			}
+			ch.add(choice);
+			return ch;
+
+		}
+
+		@Override
+		public Object encode(final Object value, final MappedField optionalExtraInfo) {
+			return null;
 		}
 	}
 

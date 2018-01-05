@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.api.data.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
@@ -23,8 +24,9 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyBooleanDefiniti
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
 
-public class CmisPropertyBooleanDefinitionImpl implements PropertyBooleanDefinition {
+public class CmisPropertyBooleanDefinitionImpl<T> implements PropertyBooleanDefinition {
 
 	private static final long serialVersionUID = 1L;
 	private String id;
@@ -41,6 +43,7 @@ public class CmisPropertyBooleanDefinitionImpl implements PropertyBooleanDefinit
 	private Boolean isQueryable;
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
+	private List<?> choice;
 
 	public CmisPropertyBooleanDefinitionImpl() {
 		super();
@@ -62,6 +65,7 @@ public class CmisPropertyBooleanDefinitionImpl implements PropertyBooleanDefinit
 		this.isQueryable = type.isQueryable();
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
+		this.choice = type.getChoices();
 	}
 
 	@Override
@@ -139,9 +143,23 @@ public class CmisPropertyBooleanDefinitionImpl implements PropertyBooleanDefinit
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Choice<Boolean>> getChoices() {
-		return null;
+		List<Choice<Boolean>> choiceList = null;
+		if (choice != null) {
+			choiceList = new ArrayList<>();
+			for (Object obj : choice) {
+				Choice<?> ch = (Choice<?>) obj;
+				ChoiceImpl<Boolean> singleChoice = new ChoiceImpl<Boolean>();
+				singleChoice.setDisplayName(ch.getDisplayName());
+				singleChoice.setValue((List<Boolean>) ch.getValue());
+				List<?> childChoice = ch.getChoice();
+				singleChoice.setChoice((List<Choice<Boolean>>) childChoice);
+				choiceList.add(singleChoice);
+			}
+		}
+		return choiceList;
 	}
 
 	@Override
