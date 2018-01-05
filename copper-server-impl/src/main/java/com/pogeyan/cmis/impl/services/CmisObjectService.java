@@ -380,7 +380,7 @@ public class CmisObjectService {
 				} else {
 					typeId = data.getTypeId();
 				}
-				
+
 				if (objectInfo != null) {
 					objectInfo.setBaseType(BaseTypeId.CMIS_FOLDER);
 					objectInfo.setTypeId(typeId);
@@ -580,9 +580,6 @@ public class CmisObjectService {
 
 				addPropertyId(repositoryId, result, type, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS,
 						data.getSecondaryTypeIds() == null ? null : data.getSecondaryTypeIds());
-				
-				addPropertyString(repositoryId, result, type, filter, PropertyIds.PATH,
-						data.getPath() == null ? "" : data.getPath());
 
 				// directory or file
 				if (data.getTypeId().equalsIgnoreCase("CMIS:FOLDER") || data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
@@ -601,6 +598,8 @@ public class CmisObjectService {
 						addPropertyId(repositoryId, result, type, filter, PropertyIds.PARENT_ID, data.getParentId());
 						objectInfo.setHasParent(true);
 					}
+					addPropertyString(repositoryId, result, type, filter, PropertyIds.PATH,
+							data.getPath() == null ? "" : data.getPath());
 					// String path = getRepositoryPath(file);
 
 					// folder properties
@@ -664,6 +663,8 @@ public class CmisObjectService {
 						addPropertyBoolean(repositoryId, result, type, filter, PropertyIds.IS_PRIVATE_WORKING_COPY,
 								documentObject.getIsPrivateWorkingCopy() == null ? false
 										: documentObject.getIsPrivateWorkingCopy());
+						addPropertyString(repositoryId, result, type, filter, PropertyIds.PATH,
+								data.getPath() == null ? "" : data.getPath());
 						// if (context.getCmisVersion() != CmisVersion.CMIS_1_0)
 						// {
 						// addPropertyBoolean(repositoryId, result, type,
@@ -949,7 +950,7 @@ public class CmisObjectService {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
-			
+
 			LOG.info("getRenditions on object: {}, repository: {}", objectId.toString(), repositoryId);
 			IBaseObject data = null;
 			try {
@@ -3835,14 +3836,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject>toList());
+						.collect(Collectors.<IBaseObject> toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt>toList());
+							.collect(Collectors.<AccessControlListImplExt> toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3908,7 +3909,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject>toList());
+					.collect(Collectors.<IBaseObject> toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3916,7 +3917,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt>toList());
+						.collect(Collectors.<AccessControlListImplExt> toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -3950,7 +3951,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject>toList());
+					.collect(Collectors.<IBaseObject> toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3958,7 +3959,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt>toList());
+						.collect(Collectors.<AccessControlListImplExt> toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();

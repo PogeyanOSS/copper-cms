@@ -338,7 +338,10 @@ public class CmisTypeServices {
 					"cmis:previousVersionObjectId", "cmis:previousVersionObjectId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:previousVersionObjectId", previousVersionObjectId);
-
+			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
+					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
+					Updatability.READONLY, false, false, true, false, null);
+			documentList.put("cmis:path", path);
 			return documentList;
 		}
 
