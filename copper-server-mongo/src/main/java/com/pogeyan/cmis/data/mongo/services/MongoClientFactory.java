@@ -15,13 +15,14 @@
  */
 package com.pogeyan.cmis.data.mongo.services;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
@@ -289,7 +290,12 @@ public class MongoClientFactory implements IDBClientFactory {
 				ChoiceImpl<T> ch = (ChoiceImpl<T>) fromDBObject;
 				JSONObject json = new JSONObject();
 				json.put("displayName", ch.getDisplayName());
-				json.put("value", ch.getValue());
+				List<T> value = ch.getValue();
+				if (!value.isEmpty() && value.get(0) instanceof BigInteger) {
+					List<BigInteger> bigIntegerArray = (List<BigInteger>) value;
+					value = (List<T>) bigIntegerArray.stream().map(s -> s.intValue()).collect(Collectors.toList());
+				}
+				json.put("value", value);
 				if (ch.getChoice() != null && !ch.getChoice().isEmpty()) {
 					JSONArray array = new JSONArray();
 					for (Choice<T> internalch : ch.getChoice()) {
@@ -306,7 +312,12 @@ public class MongoClientFactory implements IDBClientFactory {
 		private JSONArray setInternalChoice(JSONArray internalMongoChoice, Choice<T> ch) {
 			JSONObject json = new JSONObject();
 			json.put("displayName", ch.getDisplayName());
-			json.put("value", ch.getValue());
+			List<T> value = ch.getValue();
+			if (!value.isEmpty() && value.get(0) instanceof BigInteger) {
+				List<BigInteger> bigIntegerArray = (List<BigInteger>) value;
+				value = (List<T>) bigIntegerArray.stream().map(s -> s.intValue()).collect(Collectors.toList());
+			}
+			json.put("value", value);
 			if (ch.getChoice() != null && !ch.getChoice().isEmpty()) {
 				JSONArray array = new JSONArray();
 				for (Choice<T> internalch : ch.getChoice()) {
