@@ -49,7 +49,7 @@ public abstract class AbstractRunner {
     public static final String TCK_REVISION_PARAMETER = "org.apache.chemistry.opencmis.tck.revision";
     public static final String USER_NAME = "admin";
     public static final String PASSWORD = "admin123";
-    public static final String BROWSER_URL="http://localhost:8080/MongoTest/";
+    public static final String BROWSER_URL="http://localhost:9089/MongoTest";
     public static final String REPOSITORY_ID="MongoTest";
     
 

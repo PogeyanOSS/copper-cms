@@ -90,8 +90,8 @@ public class PropertyFilterTest extends AbstractSessionTest {
             f = createResult(WARNING, "Document should not have the property " + PropertyIds.CONTENT_STREAM_MIME_TYPE
                     + "!");
             addResult(assertNull(doc2.getProperty(PropertyIds.CONTENT_STREAM_MIME_TYPE), null, f));
-            f = createResult(FAILURE, "Document should not have the property " + PropertyIds.PATH + "!");
-            addResult(assertNull(doc2.getProperty(PropertyIds.PATH), null, f));
+//            f = createResult(FAILURE, "Document should not have the property " + PropertyIds.PATH + "!");
+//            addResult(assertNull(doc2.getProperty(PropertyIds.PATH), null, f));
             f = createResult(FAILURE, "Document should not have the property " + INVALID_PROPERTY + "!");
             addResult(assertNull(doc2.getProperty(INVALID_PROPERTY), null, f));
 

@@ -110,10 +110,7 @@ public class CmisNavigationService {
 			long childrenCount = 0;
 			if (orderBy != null) {
 				String[] orderQuery = orderBy.split(",");
-				orderBy = Arrays.stream(orderQuery)
-						.map(t -> com.pogeyan.cmis.api.utils.Helpers.getQueryName(t.split("\\s+")[0]) + " "
-								+ t.split("\\s+")[1])
-						.collect(Collectors.joining(","));
+				orderBy = Arrays.stream(orderQuery).map(t -> getOrderByName(t)).collect(Collectors.joining(","));
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";
@@ -644,6 +641,15 @@ public class CmisNavigationService {
 				acl.add(dataAcl);
 			}
 			return acl;
+		}
+
+		private static String getOrderByName(String orderBy) {
+			if (orderBy.contains("\\s+")) {
+				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy.split("\\s+")[0]) + " "
+						+ orderBy.split("\\s+")[1];
+			} else {
+				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy);
+			}
 		}
 	}
 }

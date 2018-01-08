@@ -2583,9 +2583,13 @@ public class CmisObjectService {
 				if (secondaryObjectType != null) {
 					secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 				}
-				secondaryTypes.addAll(secondaryObjectTypeIds);
-				secondaryTypes = secondaryTypes.stream().distinct().collect(Collectors.toList());
-				DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryTypes, data.getId());
+				if (secondaryObjectTypeIds.isEmpty()) {
+					DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryObjectTypeIds, data.getId());
+				} else {
+					secondaryTypes.addAll(secondaryObjectTypeIds);
+					secondaryTypes = secondaryTypes.stream().distinct().collect(Collectors.toList());
+					DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryTypes, data.getId());
+				}
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("updateSecondaryProperties for {} , object: {}", id, secondaryTypes.toString());
 				}
@@ -2806,7 +2810,8 @@ public class CmisObjectService {
 			updatecontentProps.add("contentStreamLength");
 			updatecontentProps.add("contentStreamMimeType");
 			updatecontentProps.add("contentStreamFileName");
-			TokenImpl updateToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
+			updatecontentProps.add("contentStreamId");
+			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
 			if (LOG.isDebugEnabled()) {
