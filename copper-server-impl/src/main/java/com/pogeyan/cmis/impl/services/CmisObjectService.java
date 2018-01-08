@@ -1559,8 +1559,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -2476,9 +2475,27 @@ public class CmisObjectService {
 					&& Long.valueOf(data.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
 				throw new CmisUpdateConflictException("updateProperties failed: changeToken does not match");
 			}
+			// only for updating name
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+			PropertyData<?> customData = properties.getProperties().get("cmis:name");
+			if (customData != null && customData.getId().equalsIgnoreCase("cmis:name")) {
+				updatecontentProps.put("name", customData.getFirstValue());
+				updatecontentProps.put("path", gettingPath(data.getPath(), customData.getFirstValue()));
+				if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
+					try {
+						localService.rename(data.getPath(), gettingPath(data.getPath(), customData.getFirstValue()));
+					} catch (Exception e) {
+						LOG.error("Folder Rename exception:  {}", e.getMessage());
+						throw new IllegalArgumentException(e.getMessage());
+					}
+
+					updateChildPath(repositoryId, data.getName(), customData.getFirstValue().toString(), id,
+							baseMorphiaDAO, navigationMorphiaDAO, userObject, data.getInternalPath(), data.getAcl());
+				}
+			}
+
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef,
 					userObject.getUserDN() == null ? "" : userObject.getUserDN(), properties, data);
 			Long modifiedTime = System.currentTimeMillis();
@@ -2487,94 +2504,79 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
+					? props.getProperties().get("cmis:description").getFirstValue().toString()
+					: null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
-			Set<Map.Entry<String, PropertyData<?>>> customData = props.getProperties().entrySet();
-			for (Map.Entry<String, PropertyData<?>> customValues : customData) {
-				if (!(customValues.getKey().equals("cmis:secondaryObjectTypeIds"))) {
-					PropertyData<?> valueName = customValues.getValue();
-					if (!valueName.getValues().isEmpty()) {
-						if (valueName.getFirstValue().getClass().getSimpleName()
+			Set<Map.Entry<String, PropertyData<?>>> customData1 = props.getProperties().entrySet();
+			for (Map.Entry<String, PropertyData<?>> customValues1 : customData1) {
+				if (!(customValues1.getKey().equals("cmis:secondaryObjectTypeIds"))) {
+					PropertyData<?> valueName1 = customValues1.getValue();
+					if (!valueName1.getValues().isEmpty()) {
+						if (valueName1.getFirstValue().getClass().getSimpleName()
 								.equalsIgnoreCase("GregorianCalendar")) {
 
-							if (valueName.getValues().size() == 1) {
-								GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
+							if (valueName1.getValues().size() == 1) {
+								GregorianCalendar value = convertInstanceOfObject(valueName1.getFirstValue(),
 										GregorianCalendar.class);
 								Long time = value.getTimeInMillis();
-								updatecontentProps.put("properties." + valueName.getId(), time.longValue());
+								updatecontentProps.put("properties." + valueName1.getId(), time.longValue());
 							} else {
 								List<Long> valueList = new ArrayList<>();
-								valueName.getValues().forEach(v -> {
+								valueName1.getValues().forEach(v -> {
 									GregorianCalendar value = convertInstanceOfObject(v, GregorianCalendar.class);
 									Long time = value.getTimeInMillis();
 									valueList.add(time.longValue());
 								});
-								updatecontentProps.put("properties." + valueName.getId(), valueList);
+								updatecontentProps.put("properties." + valueName1.getId(), valueList);
 							}
 
-						} else if (valueName.getFirstValue().getClass().getSimpleName()
+						} else if (valueName1.getFirstValue().getClass().getSimpleName()
 								.equalsIgnoreCase("BigInteger")) {
 
-							if (valueName.getValues().size() == 1) {
-								BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
+							if (valueName1.getValues().size() == 1) {
+								BigInteger valueBigInteger = convertInstanceOfObject(valueName1.getFirstValue(),
 										BigInteger.class);
 								int value = valueBigInteger.intValue();
-								updatecontentProps.put("properties." + valueName.getId(), value);
+								updatecontentProps.put("properties." + valueName1.getId(), value);
 							} else {
 								List<Integer> valueList = new ArrayList<>();
-								valueName.getValues().forEach(v -> {
+								valueName1.getValues().forEach(v -> {
 									BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
 									valueList.add(valueBigInteger.intValue());
 								});
-								updatecontentProps.put("properties." + valueName.getId(), valueList);
+								updatecontentProps.put("properties." + valueName1.getId(), valueList);
 							}
 
-						} else if (valueName.getFirstValue().getClass().getSimpleName()
+						} else if (valueName1.getFirstValue().getClass().getSimpleName()
 								.equalsIgnoreCase("BigDecimal")) {
 
-							if (valueName.getValues().size() == 1) {
-								BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
+							if (valueName1.getValues().size() == 1) {
+								BigDecimal value = convertInstanceOfObject(valueName1.getFirstValue(),
+										BigDecimal.class);
 								double doubleValue = value.doubleValue();
-								updatecontentProps.put("properties." + valueName.getId(), doubleValue);
+								updatecontentProps.put("properties." + valueName1.getId(), doubleValue);
 							} else {
 								List<Double> valueList = new ArrayList<>();
-								valueName.getValues().forEach(v -> {
-									BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(),
+								valueName1.getValues().forEach(v -> {
+									BigDecimal value = convertInstanceOfObject(valueName1.getFirstValue(),
 											BigDecimal.class);
 									valueList.add(value.doubleValue());
 								});
-								updatecontentProps.put("properties." + valueName.getId(), valueList);
+								updatecontentProps.put("properties." + valueName1.getId(), valueList);
 							}
 
 						} else {
 
-							if (valueName.getValues().size() == 1) {
-								updatecontentProps.put("properties." + valueName.getId(), valueName.getFirstValue());
+							if (valueName1.getValues().size() == 1) {
+								updatecontentProps.put("properties." + valueName1.getId(), valueName1.getFirstValue());
 							} else {
-								updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
-							}
-							if (valueName.getId().equalsIgnoreCase("cmis:name")) {
-								updatecontentProps.put("name", valueName.getFirstValue());
-								updatecontentProps.put("path", gettingPath(data.getPath(), valueName.getFirstValue()));
-								if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
-									try {
-										localService.rename(data.getPath(),
-												gettingPath(data.getPath(), valueName.getFirstValue()));
-									} catch (Exception e) {
-										LOG.error("Folder Rename exception:  {}", e.getMessage());
-										throw new IllegalArgumentException(e.getMessage());
-									}
-
-									updateChildPath(repositoryId, data.getName(), valueName.getFirstValue().toString(),
-											id, baseMorphiaDAO, navigationMorphiaDAO, userObject,
-											data.getInternalPath(), data.getAcl());
-								}
+								updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
 							}
 						}
 					} else {
-						updatecontentProps.put("properties." + valueName.getId(), valueName.getValues());
+						updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
 					}
 				}
 			}
@@ -2600,6 +2602,7 @@ public class CmisObjectService {
 					LOG.debug("updateSecondaryProperties for {} , object: {}", id, secondaryTypes.toString());
 				}
 			}
+
 		}
 
 		private static void updateChildPath(String repositoryId, String oldName, String newName, String id,
@@ -3157,7 +3160,8 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName() : child.getName();
+									? docObject.getContentStreamFileName()
+									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3252,7 +3256,8 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName() : child.getName();
+								? docObject.getContentStreamFileName()
+								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3341,27 +3346,11 @@ public class CmisObjectService {
 				// prop.getId() + "' is readonly!");
 				// }
 
-				result.addProperty(prop);
-				// addedProps.add(prop.getId());
+				if (!((propTypes.getId().equals("cmis:objectTypeId")) || (propTypes.getId().equals("cmis:name"))
+						|| (propTypes.getId().equals("cmis:objectId")))) {
+					result.addProperty(prop);
+				}
 			}
-
-			// check if required properties are missing
-			// for (PropertyDefinition<?> propDef :
-			// type.getPropertyDefinitions().values()) {
-			// if (!addedProps.contains(propDef.getId()) &&
-			// propDef.getUpdatability() != Updatability.READONLY) {
-			// if (!addPropertyDefault(result, propDef) && propDef.isRequired())
-			// {
-			// LOG.error("Unknown propertiesTypes:{}", propDef.getId());
-			// throw new CmisObjectNotFoundException("Property '" +
-			// propDef.getId() + "' is required!");
-			// }
-			// }
-			// }
-
-			addPropertyId(repositoryId, result, type, null, PropertyIds.OBJECT_TYPE_ID, type.getId());
-			addPropertyString(repositoryId, result, type, null, PropertyIds.CREATED_BY, userDN);
-			addPropertyString(repositoryId, result, type, null, PropertyIds.LAST_MODIFIED_BY, userDN);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("compileWriteProperties -data: {}", result.toString());
