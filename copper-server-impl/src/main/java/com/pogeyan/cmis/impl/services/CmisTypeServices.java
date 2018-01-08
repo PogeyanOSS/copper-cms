@@ -78,12 +78,10 @@ public class CmisTypeServices {
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				List<? extends TypeDefinition> getTypeObject = typeManagerDAO.getById(null);
 				if (getTypeObject != null) {
-					LOG.info("Added BaseType Successfully for repository: {}", repositoryId);
 				} else {
 					List<TypeDefinition> baseType = upset(repositoryId);
 					for (TypeDefinition tm : baseType) {
 						typeManagerDAO.commit(tm);
-						LOG.info("Added BaseType Successfully");
 					}
 				}
 			} catch (MongoException e) {
@@ -340,7 +338,10 @@ public class CmisTypeServices {
 					"cmis:previousVersionObjectId", "cmis:previousVersionObjectId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:previousVersionObjectId", previousVersionObjectId);
-
+			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
+					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
+					Updatability.READONLY, false, false, true, false, null);
+			documentList.put("cmis:path", path);
 			return documentList;
 		}
 
@@ -636,8 +637,6 @@ public class CmisTypeServices {
 		}
 
 		public static TypeDefinition getTypeDefinition(String repositoryId, String typeId, ExtensionsData extension) {
-			LOG.info("getTypeDefinition for type: {} , repository: {}", typeId, repositoryId);
-
 			if (typeId == null) {
 				LOG.error("typeId should not be null");
 				throw new IllegalArgumentException("Type must be set!");
@@ -916,19 +915,19 @@ public class CmisTypeServices {
 					result.setHasMoreItems(childrenList.size() > maxItems - skipCount);
 					List<TypeDefinition> resultTypes = childrenList.stream().map(
 							t -> getPropertyIncludeObject(repositoryId, t, docTypeMorphia, includePropertyDefinitions))
-							.collect(Collectors.<TypeDefinition>toList());
+							.collect(Collectors.<TypeDefinition> toList());
 					result.setList(resultTypes);
 				} else {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(childrenList.size()));
-					result.setList(Collections.<TypeDefinition>emptyList());
+					result.setList(Collections.<TypeDefinition> emptyList());
 				}
 
 			} else {
 				if (skipCount >= 6) {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(0));
-					result.setList(Collections.<TypeDefinition>emptyList());
+					result.setList(Collections.<TypeDefinition> emptyList());
 				} else {
 					List<TypeDefinition> resultTypes = new ArrayList<>();
 					resultTypes.add(getPropertyIncludeObject(repositoryId,
@@ -1247,7 +1246,6 @@ public class CmisTypeServices {
 		 */
 		public static List<TypeDefinition> getTypeParent(String repositoryId, String parentId,
 				List<TypeDefinition> innerChild) {
-			LOG.info("getTypeParent from repository: {}", repositoryId);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			TypeDefinition parent = null;
@@ -1255,15 +1253,15 @@ public class CmisTypeServices {
 				parent = typeManagerDAO.getById(Arrays.asList(parentId)).get(0);
 			}
 			if (parent != null) {
+				LOG.info("getTypeParent from repository: {}, parentTypeId: {}", repositoryId, parent.getId());
 				if (parent.getParentTypeId() == null) {
-					LOG.info("Parent Type {}", parent.getId());
 					innerChild.add(parent);
 				} else {
-					LOG.info("Parent Type {}", parent.getId());
 					innerChild.add(parent);
 					return getTypeParent(repositoryId, parent.getParentTypeId(), innerChild);
 				}
 			}
+
 			return innerChild;
 		}
 
@@ -1423,7 +1421,7 @@ public class CmisTypeServices {
 			return resultSecondary;
 		}
 
-		@SuppressWarnings("rawtypes")
+		@SuppressWarnings({ "rawtypes" })
 		public static PropertyDefinitionImpl getPropertyDefinition(PropertyDefinition pro, Boolean inherited) {
 			// LOG.info("getPropertyDefinition from {}", pro);
 			PropertyDefinitionImpl<?> propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(),
@@ -1431,6 +1429,7 @@ public class CmisTypeServices {
 					pro.getPropertyType(), pro.getCardinality(), pro.getUpdatability(),
 					inherited == null ? pro.isInherited() : inherited, pro.isRequired(), pro.isQueryable(),
 					pro.isOrderable(), pro.isOpenChoice());
+			propertyDefinition.setChoice(pro.getChoices());
 			return propertyDefinition;
 		}
 
@@ -1474,20 +1473,21 @@ public class CmisTypeServices {
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
 					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty,
-					type.isVersionable() == null ? false : type.isVersionable(),
-					type.getContentStreamAllowed() == null ? ContentStreamAllowed.NOTALLOWED
-							: type.getContentStreamAllowed());
+					type.isVersionable() == null ? false : type.isVersionable(), type.getContentStreamAllowed() == null
+							? ContentStreamAllowed.NOTALLOWED : type.getContentStreamAllowed());
 			return newType;
 		}
 
 		private static void addIndex(String repositoryId,
 				Map<String, PropertyDefinitionImpl<?>> getPropertyDefinitions) {
 			List<String> primaryIndex = getPropertyDefinitions.entrySet().stream()
-					.filter(map -> map.getValue().getLocalName().equalsIgnoreCase("primaryKey"))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
+					.filter(map -> map.getValue() != null && map.getValue().getLocalName() != null
+							&& map.getValue().getLocalName().equalsIgnoreCase("primaryKey"))
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
 			List<String> secondaryIndex = getPropertyDefinitions.entrySet().stream()
-					.filter(map -> map.getValue().getLocalName().equalsIgnoreCase("lk_" + map.getValue().getId()))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
+					.filter(map -> map.getValue() != null && map.getValue().getLocalName() != null
+							&& map.getValue().getLocalName().equalsIgnoreCase("lk_" + map.getValue().getId()))
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
 			secondaryIndex.parallelStream().collect(Collectors.toCollection(() -> primaryIndex));
 			String[] columnsToIndex = primaryIndex.toArray(new String[primaryIndex.size()]);
 			if (columnsToIndex.length > 0) {

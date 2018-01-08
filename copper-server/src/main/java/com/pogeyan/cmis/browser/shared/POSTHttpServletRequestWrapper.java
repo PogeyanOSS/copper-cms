@@ -72,7 +72,7 @@ public final class POSTHttpServletRequestWrapper extends QueryStringHttpServletR
 				if (item.isFormField()) {
 					addParameter(item.getFieldName(), item.getString());
 				} else {
-					filename = item.getName();
+					filename = URLDecoder.decode(item.getName(),"UTF-8");
 					contentType = item.getContentType();
 					size = BigInteger.valueOf(item.getSize());
 					stream = item.getInputStream();

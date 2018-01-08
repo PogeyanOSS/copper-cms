@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.api.data.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
@@ -23,9 +24,10 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyUriDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
 
 @SuppressWarnings("serial")
-public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
+public class CmisPropertyUriDefinitionImpl<T> implements PropertyUriDefinition {
 
 	private String id;
 	private String localName;
@@ -41,6 +43,7 @@ public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
 	private Boolean isQueryable;
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
+	private List<?> choice;
 
 	public CmisPropertyUriDefinitionImpl() {
 		super();
@@ -62,6 +65,7 @@ public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
 		this.isQueryable = type.isQueryable();
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
+		this.choice = type.getChoices();
 	}
 
 	@Override
@@ -139,9 +143,23 @@ public class CmisPropertyUriDefinitionImpl implements PropertyUriDefinition {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Choice<String>> getChoices() {
-		return null;
+		List<Choice<String>> choiceList = null;
+		if (choice != null) {
+			choiceList = new ArrayList<>();
+			for (Object obj : choice) {
+				Choice<?> ch = (Choice<?>) obj;
+				ChoiceImpl<String> singleChoice = new ChoiceImpl<String>();
+				singleChoice.setDisplayName(ch.getDisplayName());
+				singleChoice.setValue((List<String>) ch.getValue());
+				List<?> childChoice = ch.getChoice();
+				singleChoice.setChoice((List<Choice<String>>) childChoice);
+				choiceList.add(singleChoice);
+			}
+		}
+		return choiceList;
 	}
 
 	@Override

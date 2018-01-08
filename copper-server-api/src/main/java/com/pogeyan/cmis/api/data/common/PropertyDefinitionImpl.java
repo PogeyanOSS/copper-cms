@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.api.data.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
@@ -23,6 +24,7 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
 
 public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private static final long serialVersionUID = -872445236335651909L;
@@ -40,14 +42,16 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private Boolean isQueryable;
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
+	private List<Choice<?>> choice;
 
 	public PropertyDefinitionImpl() {
 
 	}
 
-	public PropertyDefinitionImpl(String id, String localName, String localNamespace, String displayName, String queryName,
-			String description, PropertyType propertyType, Cardinality cardinality, Updatability updatability,
-			Boolean isInherited, Boolean isRequired, Boolean isQueryable, Boolean isOrderable, Boolean isOpenChoice) {
+	public PropertyDefinitionImpl(String id, String localName, String localNamespace, String displayName,
+			String queryName, String description, PropertyType propertyType, Cardinality cardinality,
+			Updatability updatability, Boolean isInherited, Boolean isRequired, Boolean isQueryable,
+			Boolean isOrderable, Boolean isOpenChoice) {
 		super();
 		this.id = id;
 		this.localName = localName;
@@ -150,9 +154,23 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Choice<T>> getChoices() {
-		return null;
+		List<Choice<T>> choiceList = null;
+		if (choice != null) {
+			choiceList = new ArrayList<>();
+			for (Choice<?> ch : choice) {
+				ChoiceImpl<T> singleChoice = new ChoiceImpl<T>();
+				singleChoice.setDisplayName(ch.getDisplayName());
+				singleChoice.setValue((List<T>) ch.getValue());
+				List<?> childChoice = ch.getChoice();
+				singleChoice.setChoice((List<Choice<T>>) childChoice);
+				choiceList.add(singleChoice);
+			}
+		}
+
+		return choiceList;
 	}
 
 	public void setId(String id) {
@@ -209,5 +227,10 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	public void setIsOpenChoice(Boolean isOpenChoice) {
 		this.isOpenChoice = isOpenChoice;
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	public void setChoice(List<?> list) {
+		this.choice = (List<Choice<?>>) list;
 	}
 }

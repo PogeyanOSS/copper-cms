@@ -16,6 +16,7 @@
 package com.pogeyan.cmis.api.data.common;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
@@ -25,8 +26,9 @@ import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.DecimalPrecision;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
 
-public class CmisPropertyDecimalDefinitionImpl implements PropertyDecimalDefinition {
+public class CmisPropertyDecimalDefinitionImpl<T> implements PropertyDecimalDefinition {
 
 	private static final long serialVersionUID = 1L;
 	private String id;
@@ -43,6 +45,7 @@ public class CmisPropertyDecimalDefinitionImpl implements PropertyDecimalDefinit
 	private Boolean isQueryable;
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
+	private List<?> choice;
 
 	public CmisPropertyDecimalDefinitionImpl() {
 		super();
@@ -64,6 +67,7 @@ public class CmisPropertyDecimalDefinitionImpl implements PropertyDecimalDefinit
 		this.isQueryable = type.isQueryable();
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
+		this.choice = type.getChoices();
 	}
 
 	@Override
@@ -141,9 +145,23 @@ public class CmisPropertyDecimalDefinitionImpl implements PropertyDecimalDefinit
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Choice<BigDecimal>> getChoices() {
-		return null;
+		List<Choice<BigDecimal>> choiceList = null;
+		if (choice != null) {
+			choiceList = new ArrayList<>();
+			for (Object obj : choice) {
+				Choice<?> ch = (Choice<?>) obj;
+				ChoiceImpl<BigDecimal> singleChoice = new ChoiceImpl<BigDecimal>();
+				singleChoice.setDisplayName(ch.getDisplayName());
+				singleChoice.setValue((List<BigDecimal>) ch.getValue());
+				List<?> childChoice = ch.getChoice();
+				singleChoice.setChoice((List<Choice<BigDecimal>>) childChoice);
+				choiceList.add(singleChoice);
+			}
+		}
+		return choiceList;
 	}
 
 	@Override

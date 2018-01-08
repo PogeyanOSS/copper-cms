@@ -15,18 +15,23 @@
  */
 package com.pogeyan.cmis.data.mongo.services;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.definitions.Choice;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
+import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bson.Document;
 import org.json.simple.JSONObject;
@@ -73,6 +78,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
 	private Morphia morphia = new Morphia();
 
+	@SuppressWarnings("rawtypes")
 	public MongoClientFactory() {
 		objectServiceClass.put(MBaseObjectDAO.class, MongoClientFactory.MBASEOBJECTDAOIMPL);
 		objectServiceClass.put(MDiscoveryServiceDAO.class, MongoClientFactory.MDISCOVERYSERVICEDAO);
@@ -83,6 +89,8 @@ public class MongoClientFactory implements IDBClientFactory {
 		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
 		morphia.getMapper().getConverters().addConverter(new AceConverter());
 		morphia.getMapper().getConverters().addConverter(new TokenConverter());
+		morphia.getMapper().getConverters().addConverter(new ChoiceImplConverter());
+		morphia.getMapper().getConverters().addConverter(new ChoiceObjectConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -143,12 +151,22 @@ public class MongoClientFactory implements IDBClientFactory {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
 			List<String> properties = getClientProperties(dataBaseName);
-			LOG.info("ContentDB Name-" + properties.get(2));
-			LOG.info("HostId" + properties.get(0));
 			int port = Integer.valueOf(properties.get(1));
-			clientDatastore = morphia.createDatastore(getMongoClient(repositoryId, properties.get(0), port),
-					properties.get(2));
+
+			String[] columnsToIndex = new String[] { "name", "path" };
+			Map<Object, Object> indexIds = new HashMap<>();
+			Stream<String> indexId = Arrays.stream(columnsToIndex);
+			indexId.forEach(x -> indexIds.put(x, 1));
+
+			MongoClient mongoClient = getMongoClient(repositoryId, properties.get(0), port);
+			MongoCollection<Document> objectDataCollection = mongoClient.getDatabase(properties.get(2))
+					.getCollection("objectData");
+			objectDataCollection.createIndex(new BasicDBObject(indexIds));
+			clientDatastore = morphia.createDatastore(mongoClient, properties.get(2));
 			this.clientDatastores.put(repositoryId, clientDatastore);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(2));
+			}
 		}
 
 		return fun.apply(clientDatastore);
@@ -250,6 +268,130 @@ public class MongoClientFactory implements IDBClientFactory {
 		@Override
 		public Object encode(final Object value, final MappedField optionalExtraInfo) {
 			return TokenChangeType.toValue(value.toString());
+		}
+	}
+
+	public static class ChoiceImplConverter<T> extends TypeConverter implements SimpleValueConverter {
+
+		public ChoiceImplConverter() {
+			super(ChoiceImpl.class);
+		}
+
+		@Override
+		public Object decode(final Class<?> targetClass, final Object fromDBObject, final MappedField optionalExtraInfo)
+				throws MappingException {
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object encode(final Object fromDBObject, final MappedField optionalExtraInfo) {
+			if (fromDBObject != null) {
+				ChoiceImpl<T> ch = (ChoiceImpl<T>) fromDBObject;
+				JSONObject json = new JSONObject();
+				json.put("displayName", ch.getDisplayName());
+				List<T> value = ch.getValue();
+				if (!value.isEmpty() && value.get(0) instanceof BigInteger) {
+					List<BigInteger> bigIntegerArray = (List<BigInteger>) value;
+					value = (List<T>) bigIntegerArray.stream().map(s -> s.intValue()).collect(Collectors.toList());
+				}
+				json.put("value", value);
+				if (ch.getChoice() != null && !ch.getChoice().isEmpty()) {
+					JSONArray array = new JSONArray();
+					for (Choice<T> internalch : ch.getChoice()) {
+						setInternalChoice(array, internalch);
+					}
+					json.put("choice", array);
+				}
+				return json;
+			}
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		private JSONArray setInternalChoice(JSONArray internalMongoChoice, Choice<T> ch) {
+			JSONObject json = new JSONObject();
+			json.put("displayName", ch.getDisplayName());
+			List<T> value = ch.getValue();
+			if (!value.isEmpty() && value.get(0) instanceof BigInteger) {
+				List<BigInteger> bigIntegerArray = (List<BigInteger>) value;
+				value = (List<T>) bigIntegerArray.stream().map(s -> s.intValue()).collect(Collectors.toList());
+			}
+			json.put("value", value);
+			if (ch.getChoice() != null && !ch.getChoice().isEmpty()) {
+				JSONArray array = new JSONArray();
+				for (Choice<T> internalch : ch.getChoice()) {
+					setInternalChoice(array, internalch);
+				}
+				json.put("choice", array);
+			}
+			internalMongoChoice.add(json);
+			return internalMongoChoice;
+
+		}
+
+	}
+
+	public static class ChoiceObjectConverter<T> extends TypeConverter implements SimpleValueConverter {
+
+		public ChoiceObjectConverter() {
+			super(Choice.class);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object decode(final Class<?> targetClass, final Object fromDBObject, final MappedField optionalExtraInfo)
+				throws MappingException {
+			if (fromDBObject != null) {
+				JSONParser parser = new JSONParser();
+				try {
+					JSONObject jsonObject = (JSONObject) parser.parse(fromDBObject.toString());
+					ChoiceImpl<T> choice = new ChoiceImpl<T>();
+					List<T> value = (List<T>) jsonObject.get("value");
+					org.json.simple.JSONArray cildChoice = (org.json.simple.JSONArray) jsonObject.get("choice");
+					String displayName = (String) jsonObject.get("displayName");
+					choice.setDisplayName(displayName);
+					choice.setValue(value);
+					if (cildChoice != null && cildChoice.size() > 0) {
+						List<Choice<T>> ch = new ArrayList<>();
+						for (Object obj : cildChoice) {
+							setChoiceChildren(ch, (JSONObject) obj);
+						}
+						choice.setChoice(ch);
+					}
+
+					return choice;
+				} catch (ParseException e) {
+					LOG.error("AceConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
+			}
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		private List<Choice<T>> setChoiceChildren(List<Choice<T>> ch, JSONObject jsonObject) {
+			ChoiceImpl<T> choice = new ChoiceImpl<T>();
+			List<T> value = (List<T>) jsonObject.get("value");
+			org.json.simple.JSONArray cildChoice = (org.json.simple.JSONArray) jsonObject.get("choice");
+			String displayName = (String) jsonObject.get("displayName");
+			choice.setDisplayName(displayName);
+			choice.setValue(value);
+			if (cildChoice != null && cildChoice.size() > 0) {
+				List<Choice<T>> cho = new ArrayList<>();
+				for (Object obj : cildChoice) {
+					setChoiceChildren(cho, (JSONObject) obj);
+				}
+				choice.setChoice(cho);
+			}
+			ch.add(choice);
+			return ch;
+
+		}
+
+		@Override
+		public Object encode(final Object value, final MappedField optionalExtraInfo) {
+			return null;
 		}
 	}
 

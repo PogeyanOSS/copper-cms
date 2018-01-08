@@ -66,18 +66,23 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			}
 			switch (operator) {
 			case EQ:
-				return this.query.criteria(leftOp.getUriLiteral()).equal(getStringObjectValue(rightSideValue));
+				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
+						.equal(getStringObjectValue(rightSideValue));
 			case NE:
-				return this.query.criteria(leftOp.getUriLiteral()).notEqual(getStringObjectValue(rightSideValue));
+				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
+						.notEqual(getStringObjectValue(rightSideValue));
 			case GE:
-				return this.query.criteria(leftOp.getUriLiteral())
+				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
 						.greaterThanOrEq(getNumberObjectValue(rightSideValue));
 			case GT:
-				return this.query.criteria(leftOp.getUriLiteral()).greaterThan(getNumberObjectValue(rightSideValue));
+				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
+						.greaterThan(getNumberObjectValue(rightSideValue));
 			case LE:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThanOrEq(getNumberObjectValue(rightSideValue));
+				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
+						.lessThanOrEq(getNumberObjectValue(rightSideValue));
 			case LT:
-				return this.query.criteria(leftOp.getUriLiteral()).lessThan(getNumberObjectValue(rightSideValue));
+				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
+						.lessThan(getNumberObjectValue(rightSideValue));
 			default:
 				// Other operators are not supported for SQL Statements
 				throw new UnsupportedOperationException("Unsupported operator: " + operator.toUriLiteral());
@@ -130,11 +135,21 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	}
 
 	public Object getStringObjectValue(String value) {
+		Object convertValue;
 		if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-			return (Object) Boolean.parseBoolean(value);
+			convertValue = Boolean.parseBoolean(value);
 		} else {
-			return (Object) value;
+			try {
+				convertValue = Integer.parseInt(value);
+			} catch (Exception e) {
+				if (Pattern.matches("([0-9]*)\\.([0-9]*)", value.toString())) {
+					convertValue = Double.parseDouble(value);
+				} else {
+					convertValue = value;
+				}
+			}
 		}
+		return convertValue;
 	}
 
 	@Override
@@ -157,7 +172,7 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		} else if (EdmSimpleTypeKind.Boolean.getEdmSimpleTypeInstance().equals(edmLiteral.getType())) {
 			return "" + edmLiteral.getLiteral() + "";
 		} else {
-			return "'" + edmLiteral.getLiteral() + "'";
+			return "" + edmLiteral.getLiteral() + "";
 		}
 	}
 
@@ -173,11 +188,16 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		switch (method) {
 		case STARTSWITH:
 			Pattern sw_pattern = Pattern.compile("^" + fieldValue, Pattern.CASE_INSENSITIVE);
-			return this.query.filter(fieldOperand.getUriLiteral(), sw_pattern);
+			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), sw_pattern);
 
 		case ENDSWITH:
 			Pattern ew_pattern = Pattern.compile(Pattern.quote(fieldValue) + "$", Pattern.CASE_INSENSITIVE);
-			return this.query.filter(fieldOperand.getPropertyName(), ew_pattern);
+			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), ew_pattern);
+
+		case SUBSTRING:
+			Pattern iew_pattern = Pattern.compile(Pattern.quote(fieldValue), Pattern.CASE_INSENSITIVE);
+			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), iew_pattern);
+
 		default:
 			// Other operators are not supported for SQL Statements
 			throw new UnsupportedOperationException("Unsupported operator: " + method.toUriLiteral());
@@ -197,5 +217,52 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	@Override
 	public Object visitUnary(UnaryExpression unaryExpression, UnaryOperator operator, Object operand) {
 		return null;
+	}
+
+	private static String getQueryName(String name) {
+		if (name.equalsIgnoreCase("cmis:path") || name.equalsIgnoreCase("cmis:description")
+				|| name.equalsIgnoreCase("cmis:parentId") || name.equalsIgnoreCase("cmis:contentStreamLength")
+				|| name.equalsIgnoreCase("cmis:contentStreamFileName")
+				|| name.equalsIgnoreCase("cmis:contentStreamMimeType") || name.equalsIgnoreCase("cmis:checkinComment")
+				|| name.equalsIgnoreCase("cmis:versionLabel") || name.equalsIgnoreCase("cmis:isMajorVersion")
+				|| name.equalsIgnoreCase("cmis:isLatestVersion") || name.equalsIgnoreCase("cmis:isLatestMajorVersion")
+				|| name.equalsIgnoreCase("cmis:name") || name.equalsIgnoreCase("cmis:isPrivateWorkingCopy")
+				|| name.equalsIgnoreCase("cmis:createdBy") || name.equalsIgnoreCase("cmis:contentStreamId")
+				|| name.equalsIgnoreCase("cmis:versionSeriesCheckedOutId")
+				|| name.equalsIgnoreCase("cmis:versionSeriesId")
+				|| name.equalsIgnoreCase("cmis:isVersionSeriesCheckedOut") || name.equalsIgnoreCase("cmis:isImmutable")
+				|| name.equalsIgnoreCase("cmis:modifiedBy")
+				|| name.equalsIgnoreCase("cmis:versionSeriesCheckedOutBy")) {
+			return getFieldName(name);
+		} else if (name.equalsIgnoreCase("cmis:objectId")) {
+			return "id";
+		} else if (name.equalsIgnoreCase("cmis:secondaryObjectTypeIds")) {
+			return "secondaryTypeIds";
+		} else if (name.equalsIgnoreCase("cmis:objectTypeId")) {
+			return "typeId";
+		} else if (name.equalsIgnoreCase("cmis:lastModifiedBy")) {
+			return "modifiedBy";
+		} else if (name.equalsIgnoreCase("cmis:creationDate")) {
+			return "createdAt";
+		} else if (name.equalsIgnoreCase("cmis:changeToken")) {
+			return "token";
+		} else if (name.equalsIgnoreCase("cmis:lastModificationDate")) {
+			return "modifiedAt";
+		} else if (name.equalsIgnoreCase("cmis:baseTypeId")) {
+			return "baseId";
+		} else if (name.equalsIgnoreCase("id")) {
+			return "id";
+		} else if (name.equalsIgnoreCase("operator")) {
+			return "operator";
+		} else {
+			return "properties." + name;
+		}
+	}
+
+	private static String getFieldName(Object value) {
+		String valueString = value.toString();
+		String[] values = valueString.split(":");
+		String stringValue = values[1].replaceAll("[-+.^:',{}]", "");
+		return stringValue;
 	}
 }
