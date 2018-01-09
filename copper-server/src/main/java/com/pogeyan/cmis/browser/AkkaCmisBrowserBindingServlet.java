@@ -376,6 +376,8 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			// send content
 			InputStream in = content.getStream();
 			try {
+				response.setHeader("Accept-Ranges", "bytes");
+				response.setIntHeader("Content-Length", (int)content.getLength());
 				OutputStream out = response.getOutputStream();
 				IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE);
 				IOUtils.closeQuietly(out);
