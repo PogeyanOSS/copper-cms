@@ -20,11 +20,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.olingo.odata2.api.exception.ODataApplicationException;
-import org.apache.olingo.odata2.api.exception.ODataMessageException;
-import org.apache.olingo.odata2.api.uri.UriParser;
-import org.apache.olingo.odata2.api.uri.expression.FilterExpression;
-import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
@@ -33,8 +28,14 @@ import org.mongodb.morphia.query.Query;
 
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
+import com.pogeyan.cmis.api.uri.UriParser;
+import com.pogeyan.cmis.api.uri.expression.ExceptionVisitExpression;
+import com.pogeyan.cmis.api.uri.expression.ExpressionParserException;
+import com.pogeyan.cmis.api.uri.expression.FilterExpression;
+import com.pogeyan.cmis.api.uri.expression.OrderByExpression;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
 import com.pogeyan.cmis.data.mongo.MongoExpressionVisitor;
+import com.pogeyan.cmis.impl.uri.expression.ExpressionParserInternalError;
 
 public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MNavigationServiceDAO {
 
@@ -53,8 +54,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 * "startswith (name::'a') and properties.orderId lt 100"
 	 * "properties.orderId le 100"
 	 * 
-	 * example order: "name asc, repositoryId" 
-	 * "name desc"
+	 * example order: "name asc, repositoryId" "name desc"
 	 * 
 	 * @see
 	 * com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getChildren(java
@@ -70,10 +70,10 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		if (!StringUtils.isEmpty(orderBy)) {
 			if (this.isOrderByParsable(orderBy)) {
 				try {
-					OrderByExpression orderByExpression = UriParser.parseOrderBy(null, null, orderBy);
+					OrderByExpression orderByExpression = UriParser.parseOrderBy(orderBy);
 					query = (Query<MBaseObject>) orderByExpression
 							.accept(new MongoExpressionVisitor<MBaseObject>(query));
-				} catch (ODataMessageException | ODataApplicationException e) {
+				} catch (ExpressionParserException | ExceptionVisitExpression e) {
 				}
 			} else {
 				query = query.order(orderBy);
@@ -81,9 +81,9 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		}
 		if (!StringUtils.isEmpty(filterExpression)) {
 			try {
-				FilterExpression expression = UriParser.parseFilter(null, null, filterExpression);
+				FilterExpression expression = UriParser.parseFilter(filterExpression);
 				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
-			} catch (ODataMessageException | ODataApplicationException e) {
+			} catch (ExpressionParserException | ExceptionVisitExpression e) {
 			}
 		}
 		if (maxItems > 0) {
@@ -103,9 +103,9 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	@SuppressWarnings("unused")
 	private boolean isOrderByParsable(String orderByExpressionQuery) {
 		try {
-			OrderByExpression orderByExpression = UriParser.parseOrderBy(null, null, orderByExpressionQuery);
+			OrderByExpression orderByExpression = UriParser.parseOrderBy(orderByExpressionQuery);
 			return true;
-		} catch (ODataMessageException e) {
+		} catch (ExpressionParserException e) {
 			return false;
 		}
 	}
@@ -124,8 +124,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 
 	/*
 	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt,
-	 * startswith, endswith. 
-	 * example filter:
+	 * startswith, endswith. example filter:
 	 * "properties.orderId eq 100 and name eq pogeyan or startswith (name::'a')"
 	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to
 	 * get all properties data in that object
@@ -134,8 +133,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 * "startswith (name::'a') and properties.orderId lt 100"
 	 * "properties.orderId le 100"
 	 * 
-	 * example order: "name asc, repositoryId",
-	 * "name desc"
+	 * example order: "name asc, repositoryId", "name desc"
 	 * 
 	 * @see
 	 * com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getDescendants(
@@ -151,10 +149,9 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (!StringUtils.isEmpty(filterExpression)) {
 			try {
-				FilterExpression expression = UriParser.parseFilter(null, null, filterExpression);
+				FilterExpression expression = UriParser.parseFilter(filterExpression);
 				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
-			} catch (ODataMessageException | ODataApplicationException e) {
-				e.printStackTrace();
+			} catch (ExpressionParserException | ExceptionVisitExpression e) {
 			}
 		}
 		if (mappedColumns != null && mappedColumns.length > 0) {
