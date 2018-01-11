@@ -5,26 +5,26 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.olingo.odata2.api.edm.EdmLiteral;
-import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
-import org.apache.olingo.odata2.api.edm.EdmTyped;
-import org.apache.olingo.odata2.api.uri.expression.BinaryExpression;
-import org.apache.olingo.odata2.api.uri.expression.BinaryOperator;
-import org.apache.olingo.odata2.api.uri.expression.ExpressionVisitor;
-import org.apache.olingo.odata2.api.uri.expression.FilterExpression;
-import org.apache.olingo.odata2.api.uri.expression.LiteralExpression;
-import org.apache.olingo.odata2.api.uri.expression.MemberExpression;
-import org.apache.olingo.odata2.api.uri.expression.MethodExpression;
-import org.apache.olingo.odata2.api.uri.expression.MethodOperator;
-import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
-import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
-import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
-import org.apache.olingo.odata2.api.uri.expression.SortOrder;
-import org.apache.olingo.odata2.api.uri.expression.UnaryExpression;
-import org.apache.olingo.odata2.api.uri.expression.UnaryOperator;
 import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
+
+import com.pogeyan.cmis.api.uri.expression.BinaryExpression;
+import com.pogeyan.cmis.api.uri.expression.BinaryOperator;
+import com.pogeyan.cmis.api.uri.expression.ExpressionVisitor;
+import com.pogeyan.cmis.api.uri.expression.FilterExpression;
+import com.pogeyan.cmis.api.uri.expression.LiteralExpression;
+import com.pogeyan.cmis.api.uri.expression.MemberExpression;
+import com.pogeyan.cmis.api.uri.expression.MethodExpression;
+import com.pogeyan.cmis.api.uri.expression.MethodOperator;
+import com.pogeyan.cmis.api.uri.expression.ObjectLiteral;
+import com.pogeyan.cmis.api.uri.expression.ObjectTypeKind;
+import com.pogeyan.cmis.api.uri.expression.OrderByExpression;
+import com.pogeyan.cmis.api.uri.expression.OrderExpression;
+import com.pogeyan.cmis.api.uri.expression.PropertyExpression;
+import com.pogeyan.cmis.api.uri.expression.SortOrder;
+import com.pogeyan.cmis.api.uri.expression.UnaryExpression;
+import com.pogeyan.cmis.api.uri.expression.UnaryOperator;
 
 public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	private Query<T> query;
@@ -166,14 +166,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	}
 
 	@Override
-	public Object visitLiteral(LiteralExpression literal, EdmLiteral edmLiteral) {
-		if (EdmSimpleTypeKind.String.getEdmSimpleTypeInstance().equals(edmLiteral.getType())) {
-			return "'" + edmLiteral.getLiteral() + "'";
-		} else if (EdmSimpleTypeKind.Boolean.getEdmSimpleTypeInstance().equals(edmLiteral.getType())) {
-			return "" + edmLiteral.getLiteral() + "";
-		} else {
-			return "" + edmLiteral.getLiteral() + "";
-		}
+	public Object visitLiteral(LiteralExpression literal, ObjectLiteral edmLiteral) {
+		return edmLiteral.getLiteral();
 	}
 
 	@Override
@@ -194,7 +188,7 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			Pattern ew_pattern = Pattern.compile(Pattern.quote(fieldValue) + "$", Pattern.CASE_INSENSITIVE);
 			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), ew_pattern);
 
-		case SUBSTRING:
+		case CONTAINS:
 			Pattern iew_pattern = Pattern.compile(Pattern.quote(fieldValue), Pattern.CASE_INSENSITIVE);
 			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), iew_pattern);
 
@@ -210,7 +204,7 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	}
 
 	@Override
-	public Object visitProperty(PropertyExpression propertyExpression, String uriLiteral, EdmTyped edmProperty) {
+	public Object visitProperty(PropertyExpression propertyExpression, String uriLiteral) {
 		return propertyExpression;
 	}
 
