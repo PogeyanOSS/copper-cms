@@ -366,25 +366,31 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			// send content
 			InputStream in = content.getStream();
 			try {
-				if (!(response.containsHeader("Content-Range"))) {
-					response.setStatus(HttpServletResponse.SC_OK);
-				} else {
-					String range = request.getHeader("Range");
-					String[] parts = range.split("=");
+				String range = request.getHeader("Range");
+				if (range != null) {
+					String[] ranges = range.split("=");
+					String[] parts = ranges[1].split("-");
 					if (parts.length > 1 && parts[1] != null) {
-						String[] ranges = parts[1].split("-");
-						String rangeStart = ranges[0];
-						String rangeEnd = ranges[1];
-						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-						response.setHeader("Accept-Ranges", "bytes");
-						response.setIntHeader("Content-Length",
-								Integer.parseInt(rangeEnd) + 1 - Integer.parseInt(rangeStart));
-						response.setHeader("Content-Range",
-								"bytes " + rangeStart + "-" + rangeEnd + "/" + content.getLength());
+						String rangeStart = parts[0];
+						String rangeEnd = parts[1];
+						if (Integer.parseInt(rangeStart) < content.getLength()
+								&& Integer.parseInt(rangeEnd) < content.getLength()) {
+							response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+							response.setHeader("Accept-Ranges", "bytes");
+							response.setIntHeader("Content-Length",
+									Integer.parseInt(rangeEnd) + 1 - Integer.parseInt(rangeStart));
+							response.setHeader("Content-Range",
+									"bytes " + rangeStart + "-" + rangeEnd + "/" + content.getLength());
+							long start = Long.parseLong(rangeStart);
+							in.skip(start);
+						} else {
+							response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+						}
 					} else {
-						LOG.error("Content range parts should not be null");
-						throw new CmisInvalidArgumentException("Content range parts should not be null.");
+						response.setStatus(HttpServletResponse.SC_OK);
 					}
+				} else {
+					response.setStatus(HttpServletResponse.SC_OK);
 				}
 				OutputStream out = response.getOutputStream();
 				IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE);
