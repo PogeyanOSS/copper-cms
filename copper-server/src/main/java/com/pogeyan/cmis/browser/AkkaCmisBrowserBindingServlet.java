@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
@@ -193,12 +194,10 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 				// To test different users and different password on test
 				// cases require to remove cache on 1 second
 				/*
-				 * if (Helpers.isTestMode()) {
-				 * //RedissonCacheFactory.get().put("login." + userName,
-				 * lr.getLoginDetails(), 5, TimeUnit.SECONDS); } else { // set
-				 * in map cache for 30 mins expiry
-				 * //RedissonCacheFactory.get().put("login." + userName,
-				 * lr.getLoginDetails(), 30, TimeUnit.MINUTES); }
+				 * if (Helpers.isTestMode()) { //RedissonCacheFactory.get().put("login." +
+				 * userName, lr.getLoginDetails(), 5, TimeUnit.SECONDS); } else { // set in map
+				 * cache for 30 mins expiry //RedissonCacheFactory.get().put("login." +
+				 * userName, lr.getLoginDetails(), 30, TimeUnit.MINUTES); }
 				 */
 				onSuccess.apply(lr.getLoginDetails());
 			} else {
@@ -216,10 +215,9 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 		genericActorRef.tell(loginMessage, ActorRef.noSender());
 
 		/*
-		 * String userName = callContextMap.get(BrowserConstants.USERNAME);
-		 * Object loginSession = RedissonCacheFactory.get().get("login." +
-		 * userName); if (loginSession == "") { } else {
-		 * onSuccess.apply(loginSession); }
+		 * String userName = callContextMap.get(BrowserConstants.USERNAME); Object
+		 * loginSession = RedissonCacheFactory.get().get("login." + userName); if
+		 * (loginSession == "") { } else { onSuccess.apply(loginSession); }
 		 */
 	}
 
@@ -330,26 +328,21 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			// length == null) {
 			response.setStatus(HttpServletResponse.SC_OK);
 			/*
-			 * } else {
-			 * response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT); if
-			 * (content.getBigLength() != null &&
-			 * content.getBigLength().signum() == 1) { BigInteger firstBytePos =
-			 * (offset == null ? BigInteger.ZERO : offset); BigInteger
-			 * lastBytePos =
-			 * firstBytePos.add(content.getBigLength().subtract(BigInteger.ONE))
-			 * ;
+			 * } else { response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT); if
+			 * (content.getBigLength() != null && content.getBigLength().signum() == 1) {
+			 * BigInteger firstBytePos = (offset == null ? BigInteger.ZERO : offset);
+			 * BigInteger lastBytePos =
+			 * firstBytePos.add(content.getBigLength().subtract(BigInteger.ONE)) ;
 			 * 
-			 * response.setHeader("Content-Range", "bytes " +
-			 * firstBytePos.toString() + "-" + lastBytePos.toString() + "/*"); }
-			 * }
+			 * response.setHeader("Content-Range", "bytes " + firstBytePos.toString() + "-"
+			 * + lastBytePos.toString() + "/*"); } }
 			 */
 			// String contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM;
 			response.setContentType(fileResponse.getContent().getMimeType());
 			/*
-			 * long length = content.getLength(); if (length <=
-			 * Integer.MAX_VALUE) { response.setContentLength((int) length); }
-			 * else { response.addHeader("Content-Length",
-			 * Long.toString(length)); }
+			 * long length = content.getLength(); if (length <= Integer.MAX_VALUE) {
+			 * response.setContentLength((int) length); } else {
+			 * response.addHeader("Content-Length", Long.toString(length)); }
 			 */
 
 			String contentFilename = content.getFileName();
@@ -373,6 +366,32 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			// send content
 			InputStream in = content.getStream();
 			try {
+				String range = request.getHeader("Range");
+				if (range != null) {
+					String[] ranges = range.split("=");
+					String[] parts = ranges[1].split("-");
+					if (parts.length > 1 && parts[1] != null) {
+						String rangeStart = parts[0];
+						String rangeEnd = parts[1];
+						if (Integer.parseInt(rangeStart) < content.getLength()
+								&& Integer.parseInt(rangeEnd) < content.getLength()) {
+							response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+							response.setHeader("Accept-Ranges", "bytes");
+							response.setIntHeader("Content-Length",
+									Integer.parseInt(rangeEnd) + 1 - Integer.parseInt(rangeStart));
+							response.setHeader("Content-Range",
+									"bytes " + rangeStart + "-" + rangeEnd + "/" + content.getLength());
+							long start = Long.parseLong(rangeStart);
+							in.skip(start);
+						} else {
+							response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+						}
+					} else {
+						response.setStatus(HttpServletResponse.SC_OK);
+					}
+				} else {
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
 				OutputStream out = response.getOutputStream();
 				IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE);
 				IOUtils.closeQuietly(out);
