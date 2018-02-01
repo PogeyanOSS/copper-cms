@@ -45,6 +45,7 @@ import com.pogeyan.cmis.actors.RepositoryActor;
 import com.pogeyan.cmis.actors.VersioningActor;
 import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
+import com.pogeyan.cmis.api.data.IObjectFlowFactory;
 import com.pogeyan.cmis.api.repo.IRepositoryManager;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
 import com.pogeyan.cmis.api.storage.IStorageFactory;
@@ -54,6 +55,7 @@ import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
+import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.server.GatewayActor;
 
@@ -69,6 +71,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_AUTH_STORE_CLASS = "authenticationManagerClass";
 	private static final String PROPERTY_FILE_STORE_CLASS = "storageManagerClass";
 	private static final String PROPERTY_ACTOR_CLASS = "actorManagerClass";
+	private static final String PROPERTY_OBJECT_FLOW_CLASS = "objectFlowManagerClass";
 	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.api.repo.RepositoryManagerFactory";
 	private static final String DEFAULT_REPO_STORE_CLASS = "com.pogeyan.cmis.repo.MongoDBRepositoryStore";
 	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.repo.local.LocalRepoAuthFactory";
@@ -147,7 +150,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.warn("REPOSITORY_PROPERTY_FILE_LOCATION is not found due to: {}", e.getMessage());
 			LOG.info("Loading default extensions");
 			return initializeExtensions(DEFAULT_CLASS, DEFAULT_REPO_STORE_CLASS, DEFAULT_AUTH_STORE_CLASS,
-					DEFAULT_FILE_STORE_CLASS, null);
+					DEFAULT_FILE_STORE_CLASS, null, null);
 		}
 
 		Properties props = new Properties();
@@ -182,19 +185,30 @@ public class AkkaServletContextListener implements ServletContextListener {
 			fileStorageClassName = DEFAULT_FILE_STORE_CLASS;
 		}
 		String externalActorClassName = props.getProperty(PROPERTY_ACTOR_CLASS);
+		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
 
 		return initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName, fileStorageClassName,
-				externalActorClassName);
+				externalActorClassName, ObjectFlowServiceClass);
 	}
 
 	private static boolean initializeExtensions(String className, String repoClassName, String authStoreClassName,
-			String fileStorageClassName, String externalActorClassName) {
+			String fileStorageClassName, String externalActorClassName, String ObjectFlowServiceClass) {
 		LOG.info("Initialized External Services Factory Classes");
 		if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
 			if (authFactoryClassinitializeExtensions(authStoreClassName)) {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (externalActorClassName != null) {
 						if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
+							if (ObjectFlowServiceClass != null) {
+								if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+									return true;
+								}
+							} else {
+								return true;
+							}
+						}
+					} else if (ObjectFlowServiceClass != null) {
+						if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
 							return true;
 						}
 					} else {
@@ -205,6 +219,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 
 		return false;
+
 	}
 
 	private static boolean authFactoryClassinitializeExtensions(String authFactoryClassName) {
@@ -250,6 +265,22 @@ public class AkkaServletContextListener implements ServletContextListener {
 				IActorService externalActorFactory = (IActorService) externalActorClassFactory.newInstance();
 				externalActorClassMap.put(externalActorFactory.getActorClass(), externalActorFactory.getServiceURL());
 			}
+		} catch (Exception e) {
+			LOG.error("Could not create a authentication services factory instance: {}", e.toString(), e);
+			return false;
+		}
+		return true;
+
+	}
+
+	private static boolean ObjectFlowFactoryClassinitializeExtensions(String ObjectFlowServiceClassName) {
+		try {
+
+			LOG.info("Initialized Object Flow Services Factory Class: {}", ObjectFlowServiceClassName);
+			Class<?> ObjectFlowServiceClassFactory = Class.forName(ObjectFlowServiceClassName);
+			IObjectFlowFactory ObjectFlowActorFactory = (IObjectFlowFactory) ObjectFlowServiceClassFactory
+					.newInstance();
+			ObjectFlowFactory.setObjectFlow(ObjectFlowActorFactory);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e.toString(), e);
 			return false;

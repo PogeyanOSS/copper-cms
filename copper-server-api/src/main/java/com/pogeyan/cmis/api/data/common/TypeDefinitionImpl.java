@@ -145,6 +145,7 @@ public class TypeDefinitionImpl implements TypeDefinition {
 		return this.isControllableAcl;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Map<String, PropertyDefinition<?>> getPropertyDefinitions() {
 		Map<String, PropertyDefinition<?>> map = new LinkedHashMap<String, PropertyDefinition<?>>();

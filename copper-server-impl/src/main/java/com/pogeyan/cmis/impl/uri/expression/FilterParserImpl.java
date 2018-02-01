@@ -478,6 +478,7 @@ public class FilterParserImpl implements FilterParser {
 	 * @return <code>true</code> if this is the last or only otherwise
 	 *         <code>false</code>
 	 */
+	@SuppressWarnings("unused")
 	private boolean isLastFilterElement(String propertyName) {
 		return curExpression.contains(propertyName + " ");
 	}

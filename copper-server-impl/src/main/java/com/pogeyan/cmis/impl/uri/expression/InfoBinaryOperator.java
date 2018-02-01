@@ -18,8 +18,6 @@
  ******************************************************************************/
 package com.pogeyan.cmis.impl.uri.expression;
 
-import java.util.List;
-
 import com.pogeyan.cmis.api.uri.expression.BinaryOperator;
 
 /**

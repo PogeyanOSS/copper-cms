@@ -87,8 +87,10 @@ import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.IObjectFlowService;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.ObjectFlowType;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
@@ -101,6 +103,7 @@ import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
 import com.pogeyan.cmis.impl.utils.CmisUtils;
@@ -1374,6 +1377,8 @@ public class CmisObjectService {
 
 				localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
 				LOG.info("Folder: {} created ", result.getName());
+				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
+				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			} catch (IOException e) {
 				objectMorphiaDAO.delete(folderId, true, null);
 				LOG.error("Folder creation exception: {}", e.getMessage());
@@ -1549,7 +1554,8 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the folderID
+		 * returns an documentObject for particular document based on the
+		 * folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -1651,6 +1657,8 @@ public class CmisObjectService {
 					localService.writeContent(result.getId().toString(), result.getContentStreamFileName(),
 							result.getPath(), contentStream);
 					LOG.info("Document {} Created", result.getName());
+					IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
+					invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
 					LOG.error("File creation exception:  {}", ex.getMessage());
@@ -2465,10 +2473,13 @@ public class CmisObjectService {
 					&& Long.valueOf(data.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
 				throw new CmisUpdateConflictException("updateProperties failed: changeToken does not match");
 			}
+
 			// only for updating name
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
+			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
 			PropertyData<?> customData = properties.getProperties().get("cmis:name");
 			if (customData != null && customData.getId().equalsIgnoreCase("cmis:name")) {
 				updatecontentProps.put("name", customData.getFirstValue());
@@ -2482,7 +2493,8 @@ public class CmisObjectService {
 					}
 
 					updateChildPath(repositoryId, data.getName(), customData.getFirstValue().toString(), id,
-							baseMorphiaDAO, navigationMorphiaDAO, userObject, data.getInternalPath(), data.getAcl());
+							baseMorphiaDAO, navigationMorphiaDAO, userObject, data.getInternalPath(), data.getAcl(),
+							objectFlowService);
 				}
 			}
 
@@ -2494,8 +2506,7 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString()
-					: null;
+					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -2601,7 +2612,7 @@ public class CmisObjectService {
 
 		private static void updateChildPath(String repositoryId, String oldName, String newName, String id,
 				MBaseObjectDAO baseMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject,
-				String dataPath, AccessControlListImplExt dataAcl) {
+				String dataPath, AccessControlListImplExt dataAcl, IObjectFlowService objectFlowService) {
 			LOG.info("update path for object: {}", id.toString());
 			String path = "," + id.toString() + ",";
 			List<? extends IBaseObject> children = getDescendants(repositoryId, path, dataPath, dataAcl,
@@ -2611,6 +2622,7 @@ public class CmisObjectService {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
 					baseMorphiaDAO.update(child.getId(), updatePath);
+					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED);
 				}
 			}
 		}
@@ -2628,7 +2640,6 @@ public class CmisObjectService {
 					}
 
 				}
-
 			}
 			return root;
 
@@ -2706,6 +2717,7 @@ public class CmisObjectService {
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 
 			IDocumentObject object = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue().trim(),
 					null);
@@ -2735,6 +2747,7 @@ public class CmisObjectService {
 				baseMorphiaDAO.update(id, updatecontentProps);
 
 			}
+			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("setContentStream, updateObjects for object: {},{}", id, updatecontentProps.toString());
 			}
@@ -2752,6 +2765,7 @@ public class CmisObjectService {
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			String id = objectId.getValue().trim();
 			IDocumentObject docDetails = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, id, null);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			Long modifiedTime = System.currentTimeMillis();
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
@@ -2781,6 +2795,7 @@ public class CmisObjectService {
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("appendContentStream, updateObjects for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2817,6 +2832,8 @@ public class CmisObjectService {
 			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("deleteContentStream, removeFields for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2871,6 +2888,9 @@ public class CmisObjectService {
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
+			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 			if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 				String path = "," + data.getId() + ",";
 				List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
@@ -2880,19 +2900,21 @@ public class CmisObjectService {
 				}
 
 				for (IBaseObject child : children) {
-					// if (child.getBaseId().equalsIgnoreCase("cmis:document"))
-					// {
-					// IDocumentObject doc =
-					// docMorphiaDAO.getByDocumentId(child.getId());
-					// boolean contentDeleted =
-					// localService.deleteContent(doc.getContentStreamFileName(),
-					// null);
-					// if (!contentDeleted) {
-					// LOG.error("Unknown ContentStreamID:{}", child.getId());
-					// throw new CmisStorageException("Deletion content faile
-					// d!");
-					// }
-					// }
+					if (child.getBaseId().toString().equalsIgnoreCase("cmis:document")) {
+						IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, child.getId(),
+								null);
+						// boolean contentDeleted =
+						// localService.deleteContent(doc.getContentStreamFileName(),
+						// null);
+						// if (!contentDeleted) {
+						// LOG.error("Unknown ContentStreamID:{}",
+						// child.getId());
+						// throw new CmisStorageException("Deletion content
+						// failed!");
+						// }
+
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+					}
 					baseMorphiaDAO.delete(child.getId(), false, token);
 				}
 				localService.deleteFolder(data.getPath());
@@ -2904,6 +2926,7 @@ public class CmisObjectService {
 				if (doc.getContentStreamFileName() != null) {
 					boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(), doc.getPath(),
 							doc.getContentStreamMimeType());
+					invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
 					if (!contentDeleted) {
 						// LOG.error("Unknown ContentStreamID:{}", doc.getId());
 						// throw new CmisStorageException("Deletion content
@@ -2922,6 +2945,7 @@ public class CmisObjectService {
 					if (document.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(document.getContentStreamFileName(),
 								document.getPath(), document.getContentStreamMimeType());
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}",
 							// doc.getId());
@@ -3155,8 +3179,7 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName()
-									: child.getName();
+									? docObject.getContentStreamFileName() : child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3251,8 +3274,7 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName()
-								: child.getName();
+								? docObject.getContentStreamFileName() : child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -4008,6 +4030,29 @@ public class CmisObjectService {
 				}
 			}
 			return null;
+		}
+
+		private static void invokeObjectFlowService(IObjectFlowService objectFlowService, IBaseObject doc,
+				ObjectFlowType invokeMethod) {
+			if (objectFlowService != null) {
+				try {
+					Boolean resultFlow = null;
+					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
+						resultFlow = objectFlowService.afterCreation(doc);
+					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
+						resultFlow = objectFlowService.afterUpdate(doc);
+					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
+						resultFlow = objectFlowService.afterDeletion(doc);
+					}
+					if (resultFlow == null || !resultFlow) {
+						LOG.error("File Queue Message not send properly");
+						throw new IllegalArgumentException("File Queue Message not send properly");
+					}
+				} catch (Exception ex) {
+					LOG.error("File Queue Exception:  {}", ex.getMessage());
+					throw new IllegalArgumentException(ex.getMessage());
+				}
+			}
 		}
 	}
 

@@ -18,7 +18,6 @@ import com.pogeyan.cmis.api.uri.expression.MemberExpression;
 import com.pogeyan.cmis.api.uri.expression.MethodExpression;
 import com.pogeyan.cmis.api.uri.expression.MethodOperator;
 import com.pogeyan.cmis.api.uri.expression.ObjectLiteral;
-import com.pogeyan.cmis.api.uri.expression.ObjectTypeKind;
 import com.pogeyan.cmis.api.uri.expression.OrderByExpression;
 import com.pogeyan.cmis.api.uri.expression.OrderExpression;
 import com.pogeyan.cmis.api.uri.expression.PropertyExpression;

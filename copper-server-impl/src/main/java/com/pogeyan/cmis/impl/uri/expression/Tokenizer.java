@@ -198,9 +198,10 @@ public class Tokenizer {
     return isBoolean;
   }
 
-  private void eatWhiteSpaces(final int oldPosition, char curCharacter) {
+  @SuppressWarnings("unused")
+private void eatWhiteSpaces(final int oldPosition, char curCharacter) {
     int lv_token_len;
-    String expression_sub;
+		String expression_sub;
     while ((curCharacter == ' ') && (curPosition < expressionLength)) {
       curPosition = curPosition + 1;
       if (curPosition < expressionLength) {

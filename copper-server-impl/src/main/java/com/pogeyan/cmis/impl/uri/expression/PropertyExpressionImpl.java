@@ -18,7 +18,6 @@
  ******************************************************************************/
 package com.pogeyan.cmis.impl.uri.expression;
 
-import com.pogeyan.cmis.api.uri.expression.CommonExpression;
 import com.pogeyan.cmis.api.uri.expression.ExpressionKind;
 import com.pogeyan.cmis.api.uri.expression.ExpressionVisitor;
 import com.pogeyan.cmis.api.uri.expression.PropertyExpression;
