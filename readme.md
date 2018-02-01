@@ -186,3 +186,68 @@ Please refer to each project's style guidelines and guidelines for submitting pa
  5. Submit a **Pull request** so that we can review your changes
 
 NOTE: Be sure to merge the latest from "upstream" before making a pull request!
+
+## Adding Aws Simple Queue Service ObjectFlow
+
+* Adding objectFlow factory classpath in repository.properties file.
+* Example - objectFlowManagerClass=com.pogeyan.cmis.aws.content.AwsObjectFlowFactory
+
+### Example repo json for ObectFlow
+
+```
+[
+    {
+        "repositoryId": "MongoTest",
+        "repositoryName": "MongoTest",
+        "db": {
+            "type": "mongo",
+            "connectionString": "127.0.0.1:27017;dd"
+        },
+        "description": "TestRepo",
+        "file": {
+        "storage": "aws",
+        "encryption": "false",
+        "bucket": "pogeyan.fv-tenantcms",
+        "accessKeyId": "AKIAIAKP55CXQLE4I6RA",
+        "secretAccessKey": "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",
+        "region": "ap-southeast-1",
+        "kms_id": "",
+        "kms_region": "",
+		"object_flow":[
+        {
+            "action": [
+                "objectCreated",
+                "objectUpdated",
+                "objectDeleted"
+            ],
+            "resource": "cmis:document",
+            "queueUrl": "https://sqs.ap-southeast-1.amazonaws.com/526821537466/SampleQueue"
+        },
+        {
+            "action": [
+                "objectUpdated:",
+                "objectDeleted:"
+            ],
+            "resource": "order",
+            "queueUrl": ""
+        }
+]
+        },
+        "login": {
+            "type": "local",
+            "users": [
+                {
+                    "userDetails": "admin:admin123",
+                    "permission": "cmis:all",
+                    "groups": [
+                        {
+                            "groupName": "admin",
+                            "permission": "cmis:all"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+]
+```

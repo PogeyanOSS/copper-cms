@@ -90,6 +90,7 @@ import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.IObjectFlowService;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.ObjectFlowType;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
@@ -1377,7 +1378,7 @@ public class CmisObjectService {
 				localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
 				LOG.info("Folder: {} created ", result.getName());
 				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-				UpdateDocumentQueue(objectFlowService, result, 0);
+				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			} catch (IOException e) {
 				objectMorphiaDAO.delete(folderId, true, null);
 				LOG.error("Folder creation exception: {}", e.getMessage());
@@ -1657,7 +1658,7 @@ public class CmisObjectService {
 							result.getPath(), contentStream);
 					LOG.info("Document {} Created", result.getName());
 					IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-					UpdateDocumentQueue(objectFlowService, result, 0);
+					invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
 					LOG.error("File creation exception:  {}", ex.getMessage());
@@ -2478,7 +2479,7 @@ public class CmisObjectService {
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-			UpdateDocumentQueue(objectFlowService, data, 1);
+			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
 			PropertyData<?> customData = properties.getProperties().get("cmis:name");
 			if (customData != null && customData.getId().equalsIgnoreCase("cmis:name")) {
 				updatecontentProps.put("name", customData.getFirstValue());
@@ -2621,7 +2622,7 @@ public class CmisObjectService {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
 					baseMorphiaDAO.update(child.getId(), updatePath);
-					UpdateDocumentQueue(objectFlowService, child, 1);
+					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED);
 				}
 			}
 		}
@@ -2639,7 +2640,6 @@ public class CmisObjectService {
 					}
 
 				}
-
 			}
 			return root;
 
@@ -2747,7 +2747,7 @@ public class CmisObjectService {
 				baseMorphiaDAO.update(id, updatecontentProps);
 
 			}
-			UpdateDocumentQueue(objectFlowService, object, 1);
+			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("setContentStream, updateObjects for object: {},{}", id, updatecontentProps.toString());
 			}
@@ -2795,7 +2795,7 @@ public class CmisObjectService {
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
-			UpdateDocumentQueue(objectFlowService, docDetails, 1);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("appendContentStream, updateObjects for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2833,7 +2833,7 @@ public class CmisObjectService {
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-			UpdateDocumentQueue(objectFlowService, docDetails, 2);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("deleteContentStream, removeFields for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2913,7 +2913,7 @@ public class CmisObjectService {
 						// failed!");
 						// }
 
-						UpdateDocumentQueue(objectFlowService, doc, 2);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
 					}
 					baseMorphiaDAO.delete(child.getId(), false, token);
 				}
@@ -2926,7 +2926,7 @@ public class CmisObjectService {
 				if (doc.getContentStreamFileName() != null) {
 					boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(), doc.getPath(),
 							doc.getContentStreamMimeType());
-					UpdateDocumentQueue(objectFlowService, doc, 2);
+					invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
 					if (!contentDeleted) {
 						// LOG.error("Unknown ContentStreamID:{}", doc.getId());
 						// throw new CmisStorageException("Deletion content
@@ -2945,7 +2945,7 @@ public class CmisObjectService {
 					if (document.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(document.getContentStreamFileName(),
 								document.getPath(), document.getContentStreamMimeType());
-						UpdateDocumentQueue(objectFlowService, doc, 2);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}",
 							// doc.getId());
@@ -4032,15 +4032,16 @@ public class CmisObjectService {
 			return null;
 		}
 
-		private static void UpdateDocumentQueue(IObjectFlowService objectFlowService, IBaseObject doc, int function) {
+		private static void invokeObjectFlowService(IObjectFlowService objectFlowService, IBaseObject doc,
+				ObjectFlowType invokeMethod) {
 			if (objectFlowService != null) {
 				try {
 					Boolean resultFlow = null;
-					if (function == 0) {
+					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterCreation(doc);
-					} else if (function == 1) {
+					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterUpdate(doc);
-					} else {
+					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterDeletion(doc);
 					}
 					if (resultFlow == null || !resultFlow) {
