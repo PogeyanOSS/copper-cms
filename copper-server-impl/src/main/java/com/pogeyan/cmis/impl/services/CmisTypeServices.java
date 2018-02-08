@@ -629,7 +629,9 @@ public class CmisTypeServices {
 			// repositoryId, type);
 			// localService.deleteFolder(parameters, repositoryId, type);
 			IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type);
-			baseMorphiaDAO.delete(folderObject.getId(), true, null);
+			if (folderObject != null) {
+				baseMorphiaDAO.delete(folderObject.getId(), true, null);
+			}
 			typeManagerDAO.delete(type);
 			if (LOG.isDebugEnabled()) {
 				LOG.info("Deleted type: {}", type);
