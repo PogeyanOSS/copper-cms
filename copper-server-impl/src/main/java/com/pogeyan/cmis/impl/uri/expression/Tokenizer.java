@@ -140,10 +140,6 @@ public class Tokenizer {
           break;
         }
 
-        boolean isBoolean = checkForBoolean(oldPosition, rem_expr);
-        if (isBoolean) {
-          break;
-        }
 
         boolean isLiteral = checkForLiteral(oldPosition, curCharacter, rem_expr);
         if (isLiteral) {
