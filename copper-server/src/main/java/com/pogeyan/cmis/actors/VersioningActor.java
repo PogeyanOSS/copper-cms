@@ -202,6 +202,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
+		boolean majorVersion = request.getBooleanParameter(QueryGetRequest.PARAM_MAJOR, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		String objectId = request.getObjectId();
 		String versionSeriesId = request.getParameter(QueryGetRequest.PARAM_VERSION_SERIES_ID);
@@ -213,8 +214,8 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String userName = request.getUserName();
 
 		ObjectData object = CmisVersioningServices.Impl.getObjectOfLatestVersion(request.getRepositoryId(), objectId,
-				versionSeriesId, true, filter, includeAllowableActions, renditionFilter, includePolicyIds, includeAcl,
-				null, null, userName);
+				versionSeriesId, majorVersion, filter, includeAllowableActions, renditionFilter, includePolicyIds,
+				includeAcl, null, null, userName);
 
 		if (object == null) {
 			throw new CmisRuntimeException("object is not present!");

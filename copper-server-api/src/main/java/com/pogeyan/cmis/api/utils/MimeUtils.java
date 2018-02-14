@@ -58,6 +58,7 @@ public final class MimeUtils {
 		add("application/rdf+xml", "rdf");
 		add("application/rss+xml", "rss");
 		add("application/zip", "zip");
+		add("application/json", "json");
 		add("application/vnd.android.package-archive", "apk");
 		add("application/vnd.cinderella", "cdy");
 		add("application/vnd.ms-pki.stl", "stl");
