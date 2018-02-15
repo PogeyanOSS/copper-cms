@@ -128,6 +128,7 @@ public class CmisObjectService {
 				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId);
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
+					addRootFolder(repositoryId);
 					return rootData.getId();
 				} else {
 					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -138,6 +139,7 @@ public class CmisObjectService {
 					objectDAO.commit(folderObject);
 					LOG.info("Root folder created in MongoDB: {} , repository: {} ", folderObject.getId(),
 							repositoryId);
+					addRootFolder(repositoryId);
 					return folderObject.getId();
 				}
 			} catch (MongoException e) {
@@ -4051,6 +4053,27 @@ public class CmisObjectService {
 				} catch (Exception ex) {
 					LOG.error("File Queue Exception:  {}", ex.getMessage());
 					throw new IllegalArgumentException(ex.getMessage());
+				}
+			}
+		}
+
+		private static void addRootFolder(String repositoryId) {
+			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+			if (parameters.get("root") != null) {
+				try {
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("localService calling createFolder: {}, {}",
+								localService.getClass().getName() != null ? localService.getClass().getName() : null,
+								parameters.get("root"));
+					}
+
+					localService.createFolder(parameters.get("root"), parameters.get("root"),
+							"/" + parameters.get("root"));
+					LOG.info("Root Folder: {} created ", parameters.get("root"));
+				} catch (IOException e) {
+					LOG.error("Folder creation exception: {}", e.getMessage());
+					throw new IllegalArgumentException(e.getMessage());
 				}
 			}
 		}
