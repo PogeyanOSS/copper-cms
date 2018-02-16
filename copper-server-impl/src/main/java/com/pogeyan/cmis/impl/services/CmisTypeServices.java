@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -59,6 +60,8 @@ import com.pogeyan.cmis.api.data.common.CmisRelationshipTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisSecondaryTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.ItemTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.common.TypeMutabilityImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
@@ -244,16 +247,16 @@ public class CmisTypeServices {
 		@SuppressWarnings("rawtypes")
 		private static Map<String, PropertyDefinitionImpl<?>> getBaseFolderProperty() {
 			Map<String, PropertyDefinitionImpl<?>> folderList = getBaseProperty();
-			PropertyDefinitionImpl parentId = new PropertyDefinitionImpl("cmis:parentId", "localName", "localNameSpace",
-					"cmis:parentId", "cmis:parentId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, true, false, null);
+			PropertyDefinitionImpl<?> parentId = new PropertyDefinitionImpl("cmis:parentId", "localName",
+					"localNameSpace", "cmis:parentId", "cmis:parentId", "description", PropertyType.ID,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:parentId", parentId);
-			PropertyDefinitionImpl allowedChildObjectTypeIds = new PropertyDefinitionImpl(
+			PropertyDefinitionImpl<?> allowedChildObjectTypeIds = new PropertyDefinitionImpl(
 					"cmis:allowedChildObjectTypeIds", "localName", "localNameSpace", "cmis:allowedChildObjectTypeIds",
 					"cmis:allowedChildObjectTypeIds", "description", PropertyType.ID, Cardinality.MULTI,
 					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:allowedChildObjectTypeIds", allowedChildObjectTypeIds);
-			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
+			PropertyDefinitionImpl<?> path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
 					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:path", path);
@@ -338,7 +341,7 @@ public class CmisTypeServices {
 					"cmis:previousVersionObjectId", "cmis:previousVersionObjectId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:previousVersionObjectId", previousVersionObjectId);
-			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
+			PropertyDefinitionImpl<?> path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
 					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READONLY, false, false, true, false, null);
 			documentList.put("cmis:path", path);
@@ -629,13 +632,46 @@ public class CmisTypeServices {
 			// repositoryId, type);
 			// localService.deleteFolder(parameters, repositoryId, type);
 			IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type);
+			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			if (folderObject != null) {
-				baseMorphiaDAO.delete(folderObject.getId(), true, null);
+				baseMorphiaDAO.delete(folderObject.getId(), false, token);
 			}
+
+			List<? extends TypeDefinition> childrenList = typeManagerDAO.getChildrenIds(type, 0, -1);
+			List<String> parentElement = new LinkedList<String>();
+			if (childrenList != null) {
+				parentElement = getDeleteTypeChildren(repositoryId, baseMorphiaDAO, typeManagerDAO, childrenList,
+						parentElement, token);
+			}
+			parentElement.stream().sorted(Collections.reverseOrder()).forEach(t -> typeManagerDAO.delete(t.toString()));
 			typeManagerDAO.delete(type);
-			if (LOG.isDebugEnabled()) {
+			if (LOG.isDebugEnabled())
+
+			{
 				LOG.info("Deleted type: {}", type);
 			}
+		}
+
+		private static List<String> getDeleteTypeChildren(String repositoryId, MBaseObjectDAO baseMorphiaDAO,
+				MTypeManagerDAO typeManagerDAO, List<? extends TypeDefinition> childrenList, List<String> parentElement,
+				TokenImpl token) {
+			if (childrenList != null) {
+				for (TypeDefinition children : childrenList) {
+					List<? extends TypeDefinition> child = typeManagerDAO.getChildrenIds(children.getId(), 0, -1);
+					if (child != null && child.size() > 0) {
+						parentElement.add(children.getId().toString());
+						getDeleteTypeChildren(repositoryId, baseMorphiaDAO, typeManagerDAO, child, parentElement,
+								token);
+					} else {
+						typeManagerDAO.delete(children.getId());
+						IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + children.getId());
+						if (folderObject != null) {
+							baseMorphiaDAO.delete(folderObject.getId(), false, token);
+						}
+					}
+				}
+			}
+			return parentElement;
 		}
 
 		public static TypeDefinition getTypeDefinition(String repositoryId, String typeId, ExtensionsData extension) {
@@ -675,7 +711,6 @@ public class CmisTypeServices {
 
 		}
 
-		@SuppressWarnings("rawtypes")
 		private static TypeDefinition gettingAllTypeDefinition(String repositoryId, TypeDefinition typeDefinition) {
 			CmisDocumentTypeDefinitionImpl resultDocument = null;
 			CmisFolderTypeDefinitionImpl resultFolder = null;
@@ -736,7 +771,7 @@ public class CmisTypeServices {
 				Map<String, PropertyDefinitionImpl<?>> list = new HashMap<>();
 				if (typeDefinition.getPropertyDefinitions() != null) {
 					Map<String, PropertyDefinition<?>> property = typeDefinition.getPropertyDefinitions();
-					for (PropertyDefinition pro : property.values()) {
+					for (PropertyDefinition<?> pro : property.values()) {
 						PropertyDefinitionImpl<?> propertyDefinition = getPropertyDefinition(pro, null);
 						if (propertyDefinition.getLocalNamespace().equalsIgnoreCase("sourceId")) {
 							if (!propertyDefinition.getId().equals("cmis:sourceId")) {
@@ -759,7 +794,7 @@ public class CmisTypeServices {
 						for (TypeDefinition parentObject : childTypes) {
 							if (parentObject.getPropertyDefinitions() != null) {
 								Map<String, PropertyDefinition<?>> property = parentObject.getPropertyDefinitions();
-								for (PropertyDefinition pro : property.values()) {
+								for (PropertyDefinition<?> pro : property.values()) {
 									PropertyDefinitionImpl<?> propertyDefinition = getPropertyDefinition(pro, true);
 									list.put(pro.getId(), propertyDefinition);
 								}
@@ -1424,7 +1459,7 @@ public class CmisTypeServices {
 		}
 
 		@SuppressWarnings({ "rawtypes" })
-		public static PropertyDefinitionImpl getPropertyDefinition(PropertyDefinition pro, Boolean inherited) {
+		public static PropertyDefinitionImpl<?> getPropertyDefinition(PropertyDefinition<?> pro, Boolean inherited) {
 			// LOG.info("getPropertyDefinition from {}", pro);
 			PropertyDefinitionImpl<?> propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(),
 					pro.getLocalNamespace(), pro.getDisplayName(), pro.getQueryName(), pro.getDescription(),
