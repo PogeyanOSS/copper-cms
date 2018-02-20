@@ -2061,7 +2061,16 @@ public class CmisObjectService {
 				LOG.info(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
-
+			PropertyData<?> relationTypeProperty = properties.getProperties().get("relation_name");
+			if (relationTypeProperty == null) {
+				LOG.error("createRelationshipIntern :{}", "Cannot create a relationship without a relation_name.");
+				throw new CmisInvalidArgumentException("Cannot create a relationship without a relation_name.");
+			}
+			String relationName = (String) relationTypeProperty.getFirstValue();
+			if (relationName == null || relationName.isEmpty()) {
+				LOG.error("createRelationshipIntern :{}", "Cannot create a relationship without a relation_name.");
+				throw new CmisInvalidArgumentException("Cannot create a relationship without a relation_name.");
+			}
 			// get required properties
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.SOURCE_ID);
 			if (pd == null) {
@@ -2089,6 +2098,10 @@ public class CmisObjectService {
 			// boolean cmis11 = context.getCmisVersion() !=
 			// CmisVersion.CMIS_1_0;
 			String typeId = (String) properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID).getFirstValue();
+			if (!typeId.equalsIgnoreCase("cmis:relation_md")) {
+				LOG.error("createRelationshipIntern :{}", "TypeId must use cmis base type{cmis:relation_md}");
+				throw new CmisInvalidArgumentException("TypeId must use cmis base type{cmis:relation_md}");
+			}
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 
 			// check if the given type is a relationship type
@@ -2099,8 +2112,6 @@ public class CmisObjectService {
 						"Cannot create a relationship, with a non-relationship type: " + typeDef.getId());
 			}
 
-			IBaseObject[] relationObjects = retriveRelationshipObjects(repositoryId, sourceId, targetId, policies);
-
 			// set default properties
 			Properties propertiesNew;
 			Map<String, PropertyData<?>> propMap = properties.getProperties();
@@ -2110,17 +2121,22 @@ public class CmisObjectService {
 			} else {
 				propertiesNew = properties;
 			}
-
 			// validate ACL
-
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 
-			TypeDefinition sourceTypeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-					getObjectById(repositoryId, sourceId).getTypeId(), null);
-			TypeDefinition targetTypeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-					getObjectById(repositoryId, targetId).getTypeId(), null);
-
-			validateRelationshipDocuments(repositoryId, properties, relationObjects[0], relationObjects[1], false,
+			String sourceTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null) != null
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId() : null;
+			String targetTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null) != null
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId() : null;
+			if (sourceTypeId == null) {
+				LOG.error("createRelationshipIntern :{}", "Wrong sourceId,SourceObject should not be null");
+				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
+			}
+			if (targetTypeId == null) {
+				LOG.error("createRelationshipIntern :{}", "Wrong targetId,TargetObject should not be null");
+				throw new CmisInvalidArgumentException("Wrong sourceId,TargetObject should not be null");
+			}
+			validateRelationshipDocuments(repositoryId, relationName, sourceTypeId, targetTypeId, false,
 					objectMorphiaDAO);
 			// get name from properties
 			pd = propMap.get(PropertyIds.NAME);
@@ -2143,9 +2159,8 @@ public class CmisObjectService {
 				}
 			}
 
-			IBaseObject storedObject = createRelationshipObject(repositoryId, parent, name, relationObjects[0],
-					relationObjects[1], secondaryObjectTypeIds, propMapNew, userName, typeDef.getId(), policies,
-					aclAdd);
+			IBaseObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
+					propMapNew, userName, typeDef.getId(), policies, aclAdd);
 			return storedObject;
 		}
 
@@ -2153,12 +2168,9 @@ public class CmisObjectService {
 		 * inserting relationshipObject into mongoDB
 		 */
 		private static IBaseObject createRelationshipObject(String repositoryId, IBaseObject parentData, String name,
-				IBaseObject sourceObject, IBaseObject targetObject, List<String> secondaryObjectTypeId,
-				Map<String, PropertyData<?>> properties, String user, String typeId, List<String> policies,
-				AccessControlListImplExt aclAdd) throws CmisObjectNotFoundException, IllegalArgumentException {
-			LOG.info("CreateRelationship sourceObject:", sourceObject.getId(), " - targetObject:{}",
-					targetObject.getId());
-			// 0) folder id
+				List<String> secondaryObjectTypeId, Map<String, PropertyData<?>> properties, String user, String typeId,
+				List<String> policies, AccessControlListImplExt aclAdd)
+				throws CmisObjectNotFoundException, IllegalArgumentException {
 
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -2190,61 +2202,30 @@ public class CmisObjectService {
 		/**
 		 * Validating the CMIS Relation Objects
 		 */
-		private static void validateRelationshipDocuments(String repositoryId, Properties properties,
-				IBaseObject sourceTypeDef, IBaseObject targetTypeDef, Boolean cmis11, MBaseObjectDAO baseMorphiaDAO) {
-			LOG.info("ValidateRelationships documents for source: {}, target: {}", sourceTypeDef.getName(),
-					targetTypeDef.getName());
-			String typeId = (String) properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID).getFirstValue();
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeRelationshipDefinition(repositoryId, typeId, cmis11);
-			if (typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_RELATIONSHIP)) {
-				if (typeDef.getParentTypeId() != null) {
-					Map<String, PropertyDefinition<?>> propDefs = typeDef.getPropertyDefinitions();
-					for (PropertyDefinition<?> propDef : propDefs.values()) {
-						boolean isPresent = false;
-						String propId = propDef.getId();
-						List<? extends IBaseObject> data = null;
-						try {
-							data = DBUtils.BaseDAO.getByTypeId(repositoryId, propId);
-							if (data.size() > 0) {
-								// check relationDocument
-								for (IBaseObject object : data) {
-									if (object.getId().equals(sourceTypeDef.getId())) {
-										isPresent = true;
-										LOG.info("Relationship Document");
-									} else if (object.getId().equals(targetTypeDef.getId())) {
-										isPresent = true;
-										LOG.info("Relationship Document");
-									}
-								}
-								if (isPresent == false) {
-									LOG.error("Wrong relationShipDocumentObject:{}");
-									throw new IllegalArgumentException("Wrong relationShipDocumentObject");
-								}
-							} else {
-								LOG.error("Wrong relationShipDocumentObject:{}");
-								throw new IllegalArgumentException("Wrong relationShipDocumentObject");
-							}
-						} catch (Exception e) {
-							LOG.error("getObject Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
-							throw new MongoException(e.toString());
-						}
-					}
+		private static void validateRelationshipDocuments(String repositoryId, String relationName, String sourceTypeId,
+				String targetTypeId, Boolean cmis11, MBaseObjectDAO baseMorphiaDAO) {
+			LOG.info("ValidateRelationships documents for source: {}, target: {}", sourceTypeId, targetTypeId);
 
-				}
+			Map<String, Object> relationProps = DBUtils.BaseDAO.getByName(repositoryId, relationName, null)
+					.getProperties();
+			String sourceTable = relationProps.get("source_table").toString();
+			if (sourceTable == null) {
+				LOG.error("SourceTable  not present in relationShipObject:{}", sourceTable);
+				throw new IllegalArgumentException("SourceTable  not present in relationShipObject");
 			}
-
-		}
-
-		/**
-		 * Retrieve the CMIS Relation Objects
-		 */
-		private static IBaseObject[] retriveRelationshipObjects(String repositoryId, String sourceId, String targetId,
-				List<String> policies) {
-			IBaseObject sourceObject = getObjectById(repositoryId, sourceId);
-			IBaseObject targetObject = getObjectById(repositoryId, targetId);
-			IBaseObject[] relationshipObjects = { sourceObject, targetObject };
-			LOG.info("SourceObject: {} , TargetObject: {}", sourceObject, targetObject);
-			return relationshipObjects;
+			String targetTable = relationProps.get("target_table").toString();
+			if (targetTable == null) {
+				LOG.error("target:table  not present in relationShipObject:{}", sourceTable);
+				throw new IllegalArgumentException("targetTable  not present in relationShipObject");
+			}
+			if (!sourceTable.equalsIgnoreCase(sourceTypeId)) {
+				LOG.error("Wrong relationShipDocumentObject:{}", sourceTypeId);
+				throw new IllegalArgumentException("Wrong relationShipDocumentObject");
+			}
+			if (!targetTable.equalsIgnoreCase(targetTypeId)) {
+				LOG.error("Wrong relationShipDocumentObject:{}", targetTable);
+				throw new IllegalArgumentException("Wrong relationShipDocumentObject");
+			}
 		}
 
 		/**
