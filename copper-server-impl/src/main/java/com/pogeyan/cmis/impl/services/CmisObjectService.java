@@ -96,7 +96,6 @@ import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
-import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
@@ -226,9 +225,7 @@ public class CmisObjectService {
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
-			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			TypeDefinition type = typeMorphiaDAO.getById(Arrays.asList(typeId)).get(0);
+			TypeDefinition type = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(typeId)).get(0);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
@@ -1155,10 +1152,8 @@ public class CmisObjectService {
 
 					if (typeId.getPropertyDefinitions().get(map.getKey()) == null) {
 						if (data.getSecondaryTypeIds() != null) {
-							MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-									.getObjectService(repositoryId, MTypeManagerDAO.class);
-							List<? extends TypeDefinition> secondaryObject = typeMorphiaDAO
-									.getById(data.getSecondaryTypeIds());
+							List<? extends TypeDefinition> secondaryObject = DBUtils.TypeServiceDAO
+									.getById(repositoryId, data.getSecondaryTypeIds());
 							secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 								Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
 								secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {
@@ -3287,8 +3282,6 @@ public class CmisObjectService {
 				Properties properties, IBaseObject data) {
 			PropertiesImpl result = new PropertiesImpl();
 			// Set<String> addedProps = new HashSet<String>();
-			MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
 
 			if (properties == null || properties.getProperties() == null) {
 				LOG.error("Unknown properties:{}", properties);
@@ -3319,7 +3312,8 @@ public class CmisObjectService {
 				if (propTypes == null) {
 					if (secondaryObjectTypeIds != null) {
 						Map<String, PropertyDefinition<?>> secondaryPropertyDefinition = new HashMap<>();
-						List<? extends TypeDefinition> secondaryObject = typeMorphiaDAO.getById(secondaryObjectTypeIds);
+						List<? extends TypeDefinition> secondaryObject = DBUtils.TypeServiceDAO.getById(repositoryId,
+								secondaryObjectTypeIds);
 						secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 							Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
 							secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {

@@ -65,6 +65,7 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 		this.deleteByQuery(query);
 	}
 
+	@SuppressWarnings("deprecation")
 	public List<MTypeObject> getChildrenIds(String parentId, int maxItems, int skipCount) {
 		Query<MTypeObject> query = createQuery().field("parent").equal(parentId);
 		if (maxItems > 0 && skipCount >= 0) {

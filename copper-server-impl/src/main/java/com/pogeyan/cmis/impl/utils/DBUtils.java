@@ -15,20 +15,27 @@
  */
 package com.pogeyan.cmis.impl.utils;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.bson.types.ObjectId;
 
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
+import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.api.data.IDocumentObject;
-import com.pogeyan.cmis.api.data.IBaseObject;
 
 public class DBUtils {
 	public static class Variables {
@@ -356,6 +363,38 @@ public class DBUtils {
 				}
 			};
 			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns);
+		}
+	}
+
+	public static class TypeServiceDAO {
+		@SuppressWarnings("unchecked")
+		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
+			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
+					.getTypeCacheServiceProvider().get(repositoryId, typeId));
+			return typeDef;
+		}
+
+		public static List<? extends TypeDefinition> getChildrenIds(String repositoryId, String parentId, int maxItems,
+				int skipCount) {
+			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
+			return typeManagerDAO.getChildrenIds(parentId, maxItems, skipCount);
+
+		}
+
+		public static Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId) {
+			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
+			return typeManagerDAO.getAllPropertyById(propId);
+		}
+	}
+
+	public static class DocumentTypeManagerDAO {
+		@SuppressWarnings("unchecked")
+		public static DocumentTypeDefinition getByTypeId(String repositoryId, String typeId) {
+			List<? extends DocumentTypeDefinition> docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory
+					.getTypeCacheServiceProvider().get(repositoryId, Arrays.asList(typeId)));
+			return docType.get(0);
 		}
 	}
 }
