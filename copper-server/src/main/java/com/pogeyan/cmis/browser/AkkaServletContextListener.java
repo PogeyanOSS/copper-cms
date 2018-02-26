@@ -45,6 +45,7 @@ import com.pogeyan.cmis.actors.RepositoryActor;
 import com.pogeyan.cmis.actors.VersioningActor;
 import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
+import com.pogeyan.cmis.api.data.ICacheProvider;
 import com.pogeyan.cmis.api.data.IObjectFlowFactory;
 import com.pogeyan.cmis.api.repo.IRepositoryManager;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
@@ -53,6 +54,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
+import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
@@ -71,11 +73,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_AUTH_STORE_CLASS = "authenticationManagerClass";
 	private static final String PROPERTY_FILE_STORE_CLASS = "storageManagerClass";
 	private static final String PROPERTY_ACTOR_CLASS = "actorManagerClass";
+	private static final String PROPERTY_CACHE_PROVIDER_CLASS = "cacheProviderManagerClass";
 	private static final String PROPERTY_OBJECT_FLOW_CLASS = "objectFlowManagerClass";
+	private static final String PROPERTY_INTERVAL_TIME = "intervalTime";
 	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.api.repo.RepositoryManagerFactory";
 	private static final String DEFAULT_REPO_STORE_CLASS = "com.pogeyan.cmis.repo.MongoDBRepositoryStore";
 	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.repo.local.LocalRepoAuthFactory";
 	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.impl.storage.FileSystemStorageFactory";
+	private static final String DEFAULT_CACHE_PROVIDER_CLASS = "com.pogeyan.cmis.impl.cacheProvider.GoogleGuiceCacheProviderImpl";
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
@@ -150,7 +155,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.warn("REPOSITORY_PROPERTY_FILE_LOCATION is not found due to: {}", e.getMessage());
 			LOG.info("Loading default extensions");
 			return initializeExtensions(DEFAULT_CLASS, DEFAULT_REPO_STORE_CLASS, DEFAULT_AUTH_STORE_CLASS,
-					DEFAULT_FILE_STORE_CLASS, null, null);
+					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, null, 30 * 60);
 		}
 
 		Properties props = new Properties();
@@ -184,35 +189,52 @@ public class AkkaServletContextListener implements ServletContextListener {
 		if (fileStorageClassName == null) {
 			fileStorageClassName = DEFAULT_FILE_STORE_CLASS;
 		}
+
+		String cacheProviderClassName = props.getProperty(PROPERTY_CACHE_PROVIDER_CLASS);
+		if (cacheProviderClassName == null) {
+			cacheProviderClassName = DEFAULT_CACHE_PROVIDER_CLASS;
+		}
+
+		String interval = props.getProperty(PROPERTY_INTERVAL_TIME);
+		long intevalTime;
+		if (interval == null) {
+			intevalTime = 30 * 60;
+		} else {
+			intevalTime = Long.parseLong(interval);
+		}
+
 		String externalActorClassName = props.getProperty(PROPERTY_ACTOR_CLASS);
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
 
 		return initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName, fileStorageClassName,
-				externalActorClassName, ObjectFlowServiceClass);
+				cacheProviderClassName, externalActorClassName, ObjectFlowServiceClass, intevalTime);
 	}
 
 	private static boolean initializeExtensions(String className, String repoClassName, String authStoreClassName,
-			String fileStorageClassName, String externalActorClassName, String ObjectFlowServiceClass) {
+			String fileStorageClassName, String cacheProviderClassName, String externalActorClassName,
+			String ObjectFlowServiceClass, long intervaltime) {
 		LOG.info("Initialized External Services Factory Classes");
 		if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
 			if (authFactoryClassinitializeExtensions(authStoreClassName)) {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
-					if (externalActorClassName != null) {
-						if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
-							if (ObjectFlowServiceClass != null) {
-								if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
+						if (externalActorClassName != null) {
+							if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
+								if (ObjectFlowServiceClass != null) {
+									if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+										return true;
+									}
+								} else {
 									return true;
 								}
-							} else {
+							}
+						} else if (ObjectFlowServiceClass != null) {
+							if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
 								return true;
 							}
-						}
-					} else if (ObjectFlowServiceClass != null) {
-						if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+						} else {
 							return true;
 						}
-					} else {
-						return true;
 					}
 				}
 			}
@@ -248,6 +270,21 @@ public class AkkaServletContextListener implements ServletContextListener {
 				IStorageFactory fileFactory = (IStorageFactory) storageClassFactory.newInstance();
 				StorageServiceFactory.add(fileFactory);
 			}
+		} catch (Exception e) {
+			LOG.error("Could not create a authentication services factory instance: {}", e.toString(), e);
+			return false;
+		}
+		return true;
+
+	}
+
+	private static boolean cacheProviderFactoryClassInit(String cacheProviderFactoryClassName, long intervalTime) {
+		try {
+			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
+			Class<?> c = Class.forName(cacheProviderFactoryClassName);
+			ICacheProvider cacheProviderFactory = (ICacheProvider) c.newInstance();
+			CacheProviderServiceFactory.addTypeCacheService(cacheProviderFactory);
+			cacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e.toString(), e);
 			return false;

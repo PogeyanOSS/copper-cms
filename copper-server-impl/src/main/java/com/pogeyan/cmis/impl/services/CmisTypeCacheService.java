@@ -21,10 +21,11 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.impl.TypeCache;
-import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
+
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 
 public class CmisTypeCacheService implements TypeCache {
 	private static Map<String, TypeCache> instances = new HashMap<String, TypeCache>();
