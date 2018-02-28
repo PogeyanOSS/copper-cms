@@ -2901,6 +2901,10 @@ public class CmisObjectService {
 
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == false) {
 				IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, data.getId(), null);
+				String previousVersionObjectId = doc.getPreviousVersionObjectId();
+				Map<String, Object> updateProps = new HashMap<String, Object>();
+				updateProps.put("isLatestVersion", true);
+				docMorphiaDAO.update(previousVersionObjectId, updateProps);
 				if (doc.getContentStreamFileName() != null) {
 					boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(), doc.getPath(),
 							doc.getContentStreamMimeType());
