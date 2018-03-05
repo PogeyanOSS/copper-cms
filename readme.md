@@ -192,35 +192,3 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 * Adding objectFlow factory classpath in repository.properties file.
 * Example - objectFlowManagerClass=com.pogeyan.cmis.aws.content.AwsObjectFlowFactory
 
-### Example repo json for ObjectFlow
-
-```
-[
-    {
-        "repositoryId": "MongoTest",
-        "repositoryName": "MongoTest",
-        "db": {
-            "type": "mongo",
-            "connectionString": "127.0.0.1:27017;dd"
-        },
-        "description": "TestRepo",
-        "file": {
-        },
-        "login": {
-            "type": "local",
-            "users": [
-                {
-                    "userDetails": "admin:admin123",
-                    "permission": "cmis:all",
-                    "groups": [
-                        {
-                            "groupName": "admin",
-                            "permission": "cmis:all"
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-]
-```
