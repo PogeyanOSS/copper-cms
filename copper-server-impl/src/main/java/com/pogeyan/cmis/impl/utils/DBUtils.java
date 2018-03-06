@@ -32,6 +32,7 @@ import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
@@ -370,12 +371,15 @@ public class DBUtils {
 	public static class TypeServiceDAO {
 		@SuppressWarnings("unchecked")
 		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
+			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
 			if (typeDef != null && typeDef.get(0) == null) {
-				CmisTypeServices.Impl.getAllTypes(repositoryId);
-				typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory.getTypeCacheServiceProvider()
-						.get(repositoryId, typeId));
+				typeDef = typeManagerDAO.getById(typeId);
+				typeDef.stream().forEach((k) -> {
+					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
+				});
 			}
 			return typeDef;
 		}
@@ -398,12 +402,15 @@ public class DBUtils {
 	public static class DocumentTypeManagerDAO {
 		@SuppressWarnings("unchecked")
 		public static DocumentTypeDefinition getByTypeId(String repositoryId, String typeId) {
+			MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends DocumentTypeDefinition> docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, Arrays.asList(typeId)));
 			if (docType != null && docType.get(0) == null) {
-				CmisTypeServices.Impl.getAllTypes(repositoryId);
-				docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory.getTypeCacheServiceProvider()
-						.get(repositoryId, Arrays.asList(typeId)));
+				DocumentTypeDefinition docTypeDef = docManagerDAO.getByTypeId(typeId);
+				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, docTypeDef.getId(),
+						docTypeDef);
+				return docTypeDef;
 			}
 			return docType.get(0);
 		}

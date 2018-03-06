@@ -109,31 +109,6 @@ public class CmisTypeServices {
 			}
 		}
 
-		public static void getAllTypes(String repositoryId) throws MongoException {
-			LOG.info("addBaseType for {}", repositoryId);
-			try {
-				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-						.getObjectService(repositoryId, MTypeManagerDAO.class);
-				MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-						.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
-				List<? extends TypeDefinition> typeDef = typeManagerDAO.getById(null);
-				if (typeDef != null && typeDef.size() > 0) {
-					typeDef.stream().forEach((k) -> {
-						if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
-									docManagerDAO.getByTypeId(k.getId()));
-						} else {
-							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
-						}
-
-					});
-				}
-			} catch (MongoException e) {
-				LOG.error("MongoObject shouldnot be null: {}", e.getMessage());
-				throw new MongoException("MongoObject shouldnot be null");
-			}
-		}
-
 		/**
 		 * returns the Morphia BaseTypeObject
 		 */
