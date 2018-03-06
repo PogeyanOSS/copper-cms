@@ -8,6 +8,8 @@ public interface ICacheProvider {
 
 	public <T> void put(String repositoryId, String key, T object);
 
+	public void remove(String repositoryId, String key);
+
 	public boolean contains(String repositoryId, String key);
 
 	public void init(long time);

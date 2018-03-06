@@ -61,4 +61,12 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 	public void init(long time) {
 		this.intervalTime = time;
 	}
+
+	@Override
+	public void remove(String repositoryId, String key) {
+		Cache<String, Object> typeCacheMap = repo.get(repositoryId);
+		if (typeCacheMap != null) {
+			typeCacheMap.invalidate(key);
+		}
+	}
 }

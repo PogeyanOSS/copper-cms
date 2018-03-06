@@ -36,6 +36,7 @@ import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class DBUtils {
 	public static class Variables {
@@ -371,6 +372,11 @@ public class DBUtils {
 		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
+			if (typeDef != null && typeDef.get(0) == null) {
+				CmisTypeServices.Impl.getAllTypes(repositoryId);
+				typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory.getTypeCacheServiceProvider()
+						.get(repositoryId, typeId));
+			}
 			return typeDef;
 		}
 
@@ -394,6 +400,11 @@ public class DBUtils {
 		public static DocumentTypeDefinition getByTypeId(String repositoryId, String typeId) {
 			List<? extends DocumentTypeDefinition> docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, Arrays.asList(typeId)));
+			if (docType != null && docType.get(0) == null) {
+				CmisTypeServices.Impl.getAllTypes(repositoryId);
+				docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory.getTypeCacheServiceProvider()
+						.get(repositoryId, Arrays.asList(typeId)));
+			}
 			return docType.get(0);
 		}
 	}
