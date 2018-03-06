@@ -44,11 +44,11 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	}
 
 	/*
-	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt,
-	 * startswith, endswith. example filter:
+	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt, startswith,
+	 * endswith. example filter:
 	 * "properties.orderId eq 100 and name eq pogeyan or startswith (name::'a')"
-	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to
-	 * get all properties data in that object
+	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to get
+	 * all properties data in that object
 	 * "properties.isRead eq false and typeId ne cmis:folder"
 	 * "properties.orderId gt 100 properties.purchaseOrder ge 100"
 	 * "startswith (name::'a') and properties.orderId lt 100"
@@ -123,11 +123,11 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	}
 
 	/*
-	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt,
-	 * startswith, endswith. example filter:
+	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt, startswith,
+	 * endswith. example filter:
 	 * "properties.orderId eq 100 and name eq pogeyan or startswith (name::'a')"
-	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to
-	 * get all properties data in that object
+	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to get
+	 * all properties data in that object
 	 * "properties.isRead eq false and typeId ne cmis:folder"
 	 * "properties.orderId gt 100 properties.purchaseOrder ge 100"
 	 * "startswith (name::'a') and properties.orderId lt 100"
@@ -135,8 +135,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 * 
 	 * example order: "name asc, repositoryId", "name desc"
 	 * 
-	 * @see
-	 * com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getDescendants(
+	 * @see com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getDescendants(
 	 * java .lang.String, java.lang.String[], boolean,java.lang.String[],
 	 * java.lang.String)
 	 */

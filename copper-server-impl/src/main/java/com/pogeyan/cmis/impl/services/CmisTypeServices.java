@@ -92,7 +92,6 @@ public class CmisTypeServices {
 								CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
 										k);
 							}
-
 						});
 					} else {
 						List<TypeDefinition> baseType = upset(repositoryId);
@@ -102,7 +101,7 @@ public class CmisTypeServices {
 						}
 					}
 				}
-				CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, "cmis:item");
+
 			} catch (MongoException e) {
 				LOG.error("MongoObject shouldnot be null: {}", e.getMessage());
 				throw new MongoException("MongoObject shouldnot be null");

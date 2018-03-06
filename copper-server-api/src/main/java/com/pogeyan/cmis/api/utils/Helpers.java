@@ -239,7 +239,7 @@ public class Helpers {
 
 	public static String[] getPrincipalIds(IUserObject userObject) {
 		List<String> principalIds = Stream.of(userObject.getGroups()).map(t -> t.getGroupDN())
-				.collect(Collectors.<String> toList());
+				.collect(Collectors.<String>toList());
 		principalIds.add(userObject.getUserDN());
 		return principalIds.toArray(new String[principalIds.size()]);
 	}
@@ -316,7 +316,7 @@ public class Helpers {
 
 	public static String[] getFilterArray(Set<String> filterCollection, boolean check) {
 		List<String> filterArray = filterCollection.stream().map(t -> getQueryName(t))
-				.collect(Collectors.<String> toList());
+				.collect(Collectors.<String>toList());
 		filterArray.add("acl");
 		if (check) {
 			List<String> docProps = getDocumentProperties();
@@ -360,7 +360,9 @@ public class Helpers {
 		if (filter.trim().length() == 0) {
 			return null;
 		}
-
+		if (filter.equals("*")) {
+			return null;
+		}
 		if (filter.contains(",")) {
 			filter = Arrays.asList(filter.split(",")).stream().filter(s -> StringUtils.containsWhitespace(s))
 					.map(s -> s.replace("::", ",")).collect(Collectors.joining(","));
@@ -371,8 +373,8 @@ public class Helpers {
 
 	/**
 	 * Splits a filter statement into a collection of properties. If
-	 * <code>filter</code> is <code>null</code>, empty or one of the properties
-	 * is '*' , an empty collection will be returned.
+	 * <code>filter</code> is <code>null</code>, empty or one of the properties is
+	 * '*' , an empty collection will be returned.
 	 */
 	public static Set<String> splitFilter(String filter) {
 		if (filter == null) {

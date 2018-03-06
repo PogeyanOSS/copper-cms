@@ -25,6 +25,7 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
@@ -37,7 +38,6 @@ import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class DBUtils {
 	public static class Variables {
@@ -373,12 +373,20 @@ public class DBUtils {
 		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
+			MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
-			if (typeDef != null && typeDef.get(0) == null) {
+			if (typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
 				typeDef = typeManagerDAO.getById(typeId);
 				typeDef.stream().forEach((k) -> {
-					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
+					if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+						CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
+								docManagerDAO.getByTypeId(k.getId()));
+					} else {
+						CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
+					}
+
 				});
 			}
 			return typeDef;
@@ -406,7 +414,7 @@ public class DBUtils {
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends DocumentTypeDefinition> docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, Arrays.asList(typeId)));
-			if (docType != null && docType.get(0) == null) {
+			if (docType != null && !docType.isEmpty() && docType.get(0) == null) {
 				DocumentTypeDefinition docTypeDef = docManagerDAO.getByTypeId(typeId);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, docTypeDef.getId(),
 						docTypeDef);
