@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDateTimeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.DateTimeResolution;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
@@ -51,7 +52,7 @@ public class CmisPropertyDateTimeDefinitionImpl<T> implements PropertyDateTimeDe
 		super();
 	}
 
-	public CmisPropertyDateTimeDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyDateTimeDefinitionImpl(PropertyDefinition<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();

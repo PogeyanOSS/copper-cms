@@ -41,7 +41,7 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 	}
 
 	@Override
-	public List<MTypeObject> getById(List<?> typeId) {
+	public List<MTypeObject> getById(String repositoryId, List<?> typeId) {
 		if (typeId == null) {
 			List<ObjectId> getid = this.findIds();
 			if (getid.size() > 0) {
@@ -60,13 +60,13 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 	}
 
 	@Override
-	public void delete(String typeId) {
+	public void delete(String repositoryId, String typeId) {
 		Query<MTypeObject> query = createQuery().field("id").equal(typeId);
 		this.deleteByQuery(query);
 	}
 
 	@SuppressWarnings("deprecation")
-	public List<MTypeObject> getChildrenIds(String parentId, int maxItems, int skipCount) {
+	public List<MTypeObject> getChildrenIds(String repositoryId, String parentId, int maxItems, int skipCount) {
 		Query<MTypeObject> query = createQuery().field("parent").equal(parentId);
 		if (maxItems > 0 && skipCount >= 0) {
 			query = query.offset(skipCount).limit(maxItems);
@@ -76,7 +76,7 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 	}
 
 	@Override
-	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId) {
+	public Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId) {
 		Query<MTypeObject> query = createQuery().field("propertyDefinition." + propId + ".id").equal(propId);
 		if (query.get() != null) {
 			return query.get().getPropertyDefinitions();
@@ -86,7 +86,7 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 	}
 
 	@Override
-	public void commit(TypeDefinition entity) {
+	public void commit(String repositoryId, TypeDefinition entity) {
 		this.save((MTypeObject) entity);
 	}
 

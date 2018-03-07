@@ -82,12 +82,12 @@ public class CmisTypeServices {
 				List<? extends TypeDefinition> getTypeObject = DBUtils.TypeServiceDAO.getById(repositoryId, null);
 				if (getTypeObject != null) {
 				} else {
-					List<? extends TypeDefinition> typeDef = typeManagerDAO.getById(null);
+					List<? extends TypeDefinition> typeDef = typeManagerDAO.getById(repositoryId, null);
 					if (typeDef != null && typeDef.size() > 0) {
 						typeDef.stream().forEach((k) -> {
 							if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
 								CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
-										docManagerDAO.getByTypeId(k.getId()));
+										docManagerDAO.getByTypeId(repositoryId, k.getId()));
 							} else {
 								CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
 										k);
@@ -97,7 +97,7 @@ public class CmisTypeServices {
 					} else {
 						List<TypeDefinition> baseType = upset(repositoryId);
 						for (TypeDefinition tm : baseType) {
-							typeManagerDAO.commit(tm);
+							typeManagerDAO.commit(repositoryId, tm);
 							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, tm.getId(), tm);
 						}
 					}
@@ -532,12 +532,12 @@ public class CmisTypeServices {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
 				DocumentTypeDefinition newType = getDocumentTypeDefinition(typeManagerDAO, doctype, Mproperty,
 						typeMutability);
-				typeManagerDAO.commit(newType);
+				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 				try {
 					createFolderForType(type, userName, repositoryId);
 				} catch (IOException e) {
-					typeManagerDAO.delete(type.getId());
+					typeManagerDAO.delete(repositoryId, type.getId());
 					LOG.error("Folder creation exception:  {}", e.getMessage());
 					throw new IllegalArgumentException(e.getMessage());
 				}
@@ -545,14 +545,14 @@ public class CmisTypeServices {
 				return getType;
 			} else {
 				TypeDefinition newType = getTypeDefinitionManager(typeManagerDAO, type, Mproperty, typeMutability);
-				typeManagerDAO.commit(newType);
+				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 				try {
 					if (type.getBaseTypeId() != BaseTypeId.CMIS_FOLDER) {
 						createFolderForType(type, userName, repositoryId);
 					}
 				} catch (IOException e) {
-					typeManagerDAO.delete(type.getId());
+					typeManagerDAO.delete(repositoryId, type.getId());
 					LOG.error("Folder creation exception:  {}", e.getMessage());
 					throw new IllegalArgumentException(e.getMessage());
 				}
@@ -613,11 +613,11 @@ public class CmisTypeServices {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
 				DocumentTypeDefinition newType = getDocumentTypeDefinition(typeManagerDAO, doctype, Mproperty,
 						typeMutability);
-				typeManagerDAO.commit(newType);
+				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 			} else {
 				TypeDefinition newType = getTypeDefinitionManager(typeManagerDAO, type, Mproperty, typeMutability);
-				typeManagerDAO.commit(newType);
+				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 			}
 			TypeDefinition getType = getTypeDefinition(repositoryId, type.getId(), extension);
@@ -659,9 +659,9 @@ public class CmisTypeServices {
 			// localService.deleteFolder(parameters, repositoryId, type);
 			IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type);
 			if (folderObject != null) {
-				baseMorphiaDAO.delete(folderObject.getId(), true, null);
+				baseMorphiaDAO.delete(repositoryId, folderObject.getId(), true, null);
 			}
-			typeManagerDAO.delete(type);
+			typeManagerDAO.delete(repositoryId, type);
 			if (LOG.isDebugEnabled()) {
 				LOG.info("Deleted type: {}", type);
 			}
@@ -943,19 +943,19 @@ public class CmisTypeServices {
 					result.setHasMoreItems(childrenList.size() > maxItems - skipCount);
 					List<TypeDefinition> resultTypes = childrenList.stream()
 							.map(t -> getPropertyIncludeObject(repositoryId, t, includePropertyDefinitions))
-							.collect(Collectors.<TypeDefinition> toList());
+							.collect(Collectors.<TypeDefinition>toList());
 					result.setList(resultTypes);
 				} else {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(childrenList.size()));
-					result.setList(Collections.<TypeDefinition> emptyList());
+					result.setList(Collections.<TypeDefinition>emptyList());
 				}
 
 			} else {
 				if (skipCount >= 6) {
 					result.setHasMoreItems(false);
 					result.setNumItems(BigInteger.valueOf(0));
-					result.setList(Collections.<TypeDefinition> emptyList());
+					result.setList(Collections.<TypeDefinition>emptyList());
 				} else {
 					List<TypeDefinition> resultTypes = new ArrayList<>();
 					resultTypes.add(getPropertyIncludeObject(repositoryId,
@@ -1506,8 +1506,9 @@ public class CmisTypeServices {
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
 					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty,
-					type.isVersionable() == null ? false : type.isVersionable(), type.getContentStreamAllowed() == null
-							? ContentStreamAllowed.NOTALLOWED : type.getContentStreamAllowed());
+					type.isVersionable() == null ? false : type.isVersionable(),
+					type.getContentStreamAllowed() == null ? ContentStreamAllowed.NOTALLOWED
+							: type.getContentStreamAllowed());
 			return newType;
 		}
 
@@ -1516,11 +1517,11 @@ public class CmisTypeServices {
 			List<String> primaryIndex = getPropertyDefinitions.entrySet().stream()
 					.filter(map -> map.getValue() != null && map.getValue().getLocalName() != null
 							&& map.getValue().getLocalName().equalsIgnoreCase("primaryKey"))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
 			List<String> secondaryIndex = getPropertyDefinitions.entrySet().stream()
 					.filter(map -> map.getValue() != null && map.getValue().getLocalName() != null
 							&& map.getValue().getLocalName().equalsIgnoreCase("lk_" + map.getValue().getId()))
-					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String> toList());
+					.map(t -> "properties." + t.getValue().getId()).collect(Collectors.<String>toList());
 			secondaryIndex.parallelStream().collect(Collectors.toCollection(() -> primaryIndex));
 			String[] columnsToIndex = primaryIndex.toArray(new String[primaryIndex.size()]);
 			if (columnsToIndex.length > 0) {

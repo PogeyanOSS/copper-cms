@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -393,6 +394,11 @@ public class MongoClientFactory implements IDBClientFactory {
 		public Object encode(final Object value, final MappedField optionalExtraInfo) {
 			return null;
 		}
+	}
+
+	@Override
+	public Properties getProperties(String repositoryId) {
+		return null;
 	}
 
 }

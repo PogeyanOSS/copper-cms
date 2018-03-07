@@ -30,24 +30,25 @@ public interface MTypeManagerDAO {
 	/**
 	 * Returns MTypeObject values depending on TypeId
 	 */
-	public List<? extends TypeDefinition> getById(List<?> typeId);
+	public List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId);
 
 	/**
 	 * Remove MTypeObject values depending on TypeId
 	 */
-	public void delete(String typeId);
+	public void delete(String repositoryId, String typeId);
 
 	/**
 	 * Returns list of MTypeObject children depending on TypeId
 	 */
-	public List<? extends TypeDefinition> getChildrenIds(String parentId, int maxItems, int skipCount);
+	public List<? extends TypeDefinition> getChildrenIds(String repositoryId, String parentId, int maxItems,
+			int skipCount);
 
 	/**
 	 * Returns propertyDef depending on propId
 	 */
-	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId);
+	public Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId);
 
-	public <T extends TypeDefinition> void commit(T entity);
+	public <T extends TypeDefinition> void commit(String repositoryId, T entity);
 
 	public TypeDefinition createObjectFacade(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, BaseTypeId baseTypeId, String parent, Boolean isCreatable,

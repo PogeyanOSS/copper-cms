@@ -1,0 +1,60 @@
+package com.pogeyan.cmis.data.jdo;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.jdo.annotations.Cacheable;
+import javax.jdo.annotations.DatastoreIdentity;
+import javax.jdo.annotations.Embedded;
+import javax.jdo.annotations.Extension;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.PrimaryKey;
+import javax.jdo.annotations.NotPersistent;
+import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
+
+@Cacheable("false")
+@PersistenceCapable(detachable = "true")
+@DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
+@Extension(vendorName = "datanucleus", key = "read-write", value = "true")
+public class {{className}}
+{
+public Map<String,Object> properties;
+public getProperties()
+{
+return this.properties;
+}
+public setProperties(Map<String,Object> properties)
+{
+return this.properties=properties;
+}
+{{#each propDef}}
+{{#if primary}}
+@primary
+public {{property}} {{id}};
+public get{{id}}()
+{
+this.{{id}};
+}
+public set{{id}}({{property}} {{id}})
+{
+this.{{id}}={{id}};
+}
+ {{else}}
+public {{property}} {{id}};
+public get{{id}}()
+{
+this.{{id}};
+}
+public set{{id}}({{property}} {{id}})
+{
+this.{{id}}={{id}};
+}
+{{/if}}
+{{/each}}
+}
+
+
+
+

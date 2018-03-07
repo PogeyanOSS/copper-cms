@@ -135,7 +135,7 @@ public class CmisObjectService {
 							BaseTypeId.CMIS_FOLDER, "cmis:folder", repositoryId, null,
 							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, null, "/",
 							null);
-					objectDAO.commit(folderObject);
+					objectDAO.commit(repositoryId, folderObject);
 					LOG.info("Root folder created in MongoDB: {} , repository: {} ", folderObject.getId(),
 							repositoryId);
 					addRootFolder(repositoryId);
@@ -1377,7 +1377,7 @@ public class CmisObjectService {
 				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			} catch (IOException e) {
-				objectMorphiaDAO.delete(folderId, true, null);
+				objectMorphiaDAO.delete(repositoryId, folderId, true, null);
 				LOG.error("Folder creation exception: {}", e.getMessage());
 				throw new IllegalArgumentException(e.getMessage());
 			}
@@ -1442,7 +1442,7 @@ public class CmisObjectService {
 				}
 			}
 
-			objectMorphiaDAO.commit(result);
+			objectMorphiaDAO.commit(repositoryId, result);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("createFolderObject successful using objectMorphiaDAO: {}, {}", result.getId(),
 						result.getName());
@@ -1551,8 +1551,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -2014,7 +2013,7 @@ public class CmisObjectService {
 				}
 			}
 
-			baseMorphiaDAO.commit(result);
+			baseMorphiaDAO.commit(repositoryId, result);
 			LOG.info("Item: {} created", result.getName());
 			if (aclRemove != null)
 				validateAcl(repositoryId, aclRemove, result.getId(), result);
@@ -2122,9 +2121,11 @@ public class CmisObjectService {
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 
 			String sourceTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId()
+					: null;
 			String targetTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId()
+					: null;
 			if (sourceTypeId == null) {
 				LOG.error("createRelationshipIntern :{}", "Wrong sourceId,SourceObject should not be null");
 				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
@@ -2191,7 +2192,7 @@ public class CmisObjectService {
 				throw new IllegalArgumentException(typeId + " is already present");
 			}
 
-			baseMorphiaDAO.commit(result);
+			baseMorphiaDAO.commit(repositoryId, result);
 			LOG.info("Created Relationship: {}", result.getName());
 			return result;
 		}
@@ -2387,7 +2388,7 @@ public class CmisObjectService {
 					settableBaseObject.setId(objectId);
 				}
 			}
-			baseMorphiaDAO.commit(result);
+			baseMorphiaDAO.commit(repositoryId, result);
 			LOG.info("Policy {} created", result.getName());
 			if (aclRemove != null)
 				validateAcl(repositoryId, aclRemove, result.getId(), result);
@@ -2484,7 +2485,8 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
+					? props.getProperties().get("cmis:description").getFirstValue().toString()
+					: null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -2559,7 +2561,7 @@ public class CmisObjectService {
 					}
 				}
 			}
-			baseMorphiaDAO.update(id, updatecontentProps);
+			baseMorphiaDAO.update(repositoryId, id, updatecontentProps);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("updateProperties for {} , object: {}", id, updatecontentProps.toString());
 			}
@@ -2599,7 +2601,7 @@ public class CmisObjectService {
 				for (IBaseObject child : children) {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
-					baseMorphiaDAO.update(child.getId(), updatePath);
+					baseMorphiaDAO.update(repositoryId, child.getId(), updatePath);
 					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED);
 				}
 			}
@@ -2893,14 +2895,18 @@ public class CmisObjectService {
 
 						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
 					}
-					baseMorphiaDAO.delete(child.getId(), false, token);
+					baseMorphiaDAO.delete(repositoryId, child.getId(), false, token);
 				}
 				localService.deleteFolder(data.getPath());
-				baseMorphiaDAO.delete(data.getId(), false, token);
+				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token);
 				LOG.info("ObjectId: {} ,  with baseType: {} deleted", data.getId(), data.getBaseId());
 
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == false) {
 				IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, data.getId(), null);
+				String previousVersionObjectId = doc.getPreviousVersionObjectId();
+				Map<String, Object> updateProps = new HashMap<String, Object>();
+				updateProps.put("isLatestVersion", true);
+				docMorphiaDAO.update(previousVersionObjectId, updateProps);
 				if (doc.getContentStreamFileName() != null) {
 					boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(), doc.getPath(),
 							doc.getContentStreamMimeType());
@@ -2911,7 +2917,7 @@ public class CmisObjectService {
 						// failed!");
 					}
 				}
-				baseMorphiaDAO.delete(data.getId(), false, token);
+				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token);
 				LOG.info("Object: {} ,with baseType:{} deleted", data.getId(), data.getBaseId());
 
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
@@ -2931,13 +2937,13 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(document.getId(), false, token);
+					baseMorphiaDAO.delete(repositoryId, document.getId(), false, token);
 					LOG.info("Object: {} ,with baseType: {} document: {} deleted", data.getId(), data.getBaseId(),
 							document.getId());
 
 				}
 			} else {
-				baseMorphiaDAO.delete(data.getId(), false, token);
+				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token);
 				LOG.info("Object: {} ,with baseType: {} deleted", data.getId(), data.getBaseId());
 			}
 		}
@@ -3011,7 +3017,7 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			// TODO: optimize here
 			for (IBaseObject child : children) {
-				baseMorphiaDAO.delete(child.getId(), false, token);
+				baseMorphiaDAO.delete(repositoryId, child.getId(), false, token);
 				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, child.getId(), null);
 				if (childCheck != null) {
 					failedToDeleteIds.add(child.getId().toString());
@@ -3022,7 +3028,7 @@ public class CmisObjectService {
 			// IStorageService localService =
 			// MongoStorageDocument.createStorageService(parameters);
 			// localService.deleteFolder(data.getPath());
-			baseMorphiaDAO.delete(folderId, false, token);
+			baseMorphiaDAO.delete(repositoryId, folderId, false, token);
 			IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			if (parentCheck != null) {
 				failedToDeleteIds.add(folderId.toString());
@@ -3135,7 +3141,7 @@ public class CmisObjectService {
 				updateProps.put("modifiedAt", modifiedTime);
 				updateProps.put("modifiedBy", userObject.getUserDN());
 				updateProps.put("token", token);
-				baseMorphiaDAO.update(data.getId(), updateProps);
+				baseMorphiaDAO.update(repositoryId, data.getId(), updateProps);
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("updateObjects: {} ,baseType: {} ,props: {}", data.getId(), data.getBaseId(),
 							updateProps.toString());
@@ -3157,7 +3163,8 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName() : child.getName();
+									? docObject.getContentStreamFileName()
+									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3166,7 +3173,7 @@ public class CmisObjectService {
 							if (child.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 								documentMorphiaDAO.update(child.getId(), updatePropsDoc);
 							} else {
-								baseMorphiaDAO.update(child.getId(), updatePropsDoc);
+								baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc);
 							}
 							if (LOG.isDebugEnabled()) {
 								LOG.debug("updateObjects: {} ,baseType: {} ,props: {}", child.getId(),
@@ -3192,7 +3199,7 @@ public class CmisObjectService {
 				if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 					documentMorphiaDAO.update(data.getId(), updateProps);
 				} else {
-					baseMorphiaDAO.update(data.getId(), updateProps);
+					baseMorphiaDAO.update(repositoryId, data.getId(), updateProps);
 				}
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("updateObjects: {} ,baseType: {} ,props: {}", data.getId(), data.getBaseId(),
@@ -3235,7 +3242,7 @@ public class CmisObjectService {
 			updateProps.put("modifiedAt", modifiedTime);
 			updateProps.put("modifiedBy", userObject.getUserDN());
 			updateProps.put("token", token);
-			baseMorphiaDAO.update(childId, updateProps);
+			baseMorphiaDAO.update(repositoryId, childId, updateProps);
 			List<? extends IBaseObject> children = getChildrens(repositoryId, path, dataPath, dataAcl,
 					navigationMorphiaDAO, userObject);
 			if (children != null && children.size() > 0) {
@@ -3252,7 +3259,8 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName() : child.getName();
+								? docObject.getContentStreamFileName()
+								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3262,7 +3270,7 @@ public class CmisObjectService {
 						if (child.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 							documentMorphiaDAO.update(child.getId(), updatePropsDoc);
 						} else {
-							baseMorphiaDAO.update(child.getId(), updatePropsDoc);
+							baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc);
 						}
 					}
 					if (LOG.isDebugEnabled()) {
@@ -3829,14 +3837,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject> toList());
+						.collect(Collectors.<IBaseObject>toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt> toList());
+							.collect(Collectors.<AccessControlListImplExt>toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3902,7 +3910,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3910,7 +3918,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -3944,7 +3952,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3952,7 +3960,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();

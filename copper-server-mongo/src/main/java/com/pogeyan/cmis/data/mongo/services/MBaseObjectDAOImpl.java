@@ -41,7 +41,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void delete(String objectId, boolean forceDelete, TokenImpl token) {
+	public void delete(String repoistoryId, String objectId, boolean forceDelete, TokenImpl token) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
@@ -56,7 +56,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void update(String objectId, Map<String, Object> updateProps) {
+	public void update(String repoistoryId, String objectId, Map<String, Object> updateProps) {
 		UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
@@ -77,14 +77,14 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public MBaseObject getLatestToken() {
+	public MBaseObject getLatestToken(String repoistoryId) {
 		Query<MBaseObject> query = createQuery().disableValidation().order("-token.time").limit(-1);
 		return query.get();
 	}
 
 	@Override
-	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
-			int skipCount, String[] mappedColumns) {
+	public List<MBaseObject> filter(String repoistoryId, Map<String, Object> fieldNames, boolean includePagination,
+			int maxItems, int skipCount, String[] mappedColumns) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
@@ -102,7 +102,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void commit(IBaseObject entity) {
+	public void commit(String repoistoryId, IBaseObject entity) {
 		this.save((MBaseObject) entity);
 	}
 

@@ -378,14 +378,14 @@ public class DBUtils {
 				int skipCount) {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			return typeManagerDAO.getChildrenIds(parentId, maxItems, skipCount);
+			return typeManagerDAO.getChildrenIds(repositoryId, parentId, maxItems, skipCount);
 
 		}
 
 		public static Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId) {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			return typeManagerDAO.getAllPropertyById(propId);
+			return typeManagerDAO.getAllPropertyById(repositoryId, propId);
 		}
 	}
 

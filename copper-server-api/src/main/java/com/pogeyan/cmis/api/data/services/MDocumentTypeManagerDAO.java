@@ -21,6 +21,6 @@ public interface MDocumentTypeManagerDAO {
 	/**
 	 * Returns MCmisDocumentTypeDefinition values depending on TypeId
 	 */
-	public DocumentTypeDefinition getByTypeId(String typeId);
+	public DocumentTypeDefinition getByTypeId(String repositoryId, String typeId);
 
 }

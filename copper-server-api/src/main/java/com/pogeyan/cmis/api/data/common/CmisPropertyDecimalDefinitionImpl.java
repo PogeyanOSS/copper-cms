@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDecimalDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.DecimalPrecision;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
@@ -51,7 +52,7 @@ public class CmisPropertyDecimalDefinitionImpl<T> implements PropertyDecimalDefi
 		super();
 	}
 
-	public CmisPropertyDecimalDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyDecimalDefinitionImpl(PropertyDefinition<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();

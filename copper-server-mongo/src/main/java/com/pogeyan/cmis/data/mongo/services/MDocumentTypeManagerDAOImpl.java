@@ -31,7 +31,7 @@ public class MDocumentTypeManagerDAOImpl extends BasicDAO<MTypeDocumentObject, O
 	}
 
 	@Override
-	public MTypeDocumentObject getByTypeId(String typeId) {
+	public MTypeDocumentObject getByTypeId(String repoistoryId, String typeId) {
 		Query<MTypeDocumentObject> query = createQuery().field("id").equal(typeId);
 		return query.get();
 	}

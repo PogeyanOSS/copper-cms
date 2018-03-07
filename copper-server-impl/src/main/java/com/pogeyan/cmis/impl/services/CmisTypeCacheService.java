@@ -56,7 +56,7 @@ public class CmisTypeCacheService implements TypeCache {
 	public PropertyDefinition<?> getPropertyDefinition(String propId) {
 		MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MTypeManagerDAO.class);
-		Map<String, PropertyDefinition<?>> property = typeMorphiaDAO.getAllPropertyById(propId);
+		Map<String, PropertyDefinition<?>> property = typeMorphiaDAO.getAllPropertyById(repositoryId, propId);
 		return property.get(propId);
 	}
 

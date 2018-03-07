@@ -54,6 +54,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
+import com.pogeyan.cmis.data.services.JDOManagerFactory;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
@@ -96,6 +97,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 
 		DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
+		//DatabaseServiceFactory.add(JDOManagerFactory.createDatabaseService());
 
 		LOG.info("Registering actors to main actor system");
 		system.actorOf(Props.create(GatewayActor.class), "gateway");
@@ -122,14 +124,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
 		}
 
-		if (Helpers.isPerfMode()) {
-			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
-					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
-			reporter.start(10, TimeUnit.SECONDS);
-			if (Helpers.isPrometheusMode()) {
-				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
-			}
-		}
+//		if (Helpers.isPerfMode()) {
+//			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
+//					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
+//			reporter.start(10, TimeUnit.SECONDS);
+//			if (Helpers.isPrometheusMode()) {
+//				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
+//			}
+//		}
 	}
 
 	@Override

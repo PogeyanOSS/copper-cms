@@ -28,7 +28,7 @@ public class DatabaseServiceFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseServiceFactory.class);
 	private static final Map<String, IDBClientFactory> dbFactory = new HashMap<>();
 	public static final String MONGO = "mongo";
-	public static final String SQL = "sql";
+	public static final String SQL = "jdo";
 
 	public static IDBClientFactory getInstance(String repositoryId) {
 		if (LOG.isDebugEnabled()) {
@@ -40,7 +40,7 @@ public class DatabaseServiceFactory {
 		if (dbFactory.containsKey(dbType)) {
 			return dbFactory.get(dbType);
 		}
-		
+
 		return null;
 	}
 

@@ -15,10 +15,14 @@
  */
 package com.pogeyan.cmis.api.data;
 
+import java.util.Properties;
+
 public interface IDBClientFactory {
 	public String getType();
-	
+
 	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
 
 	void addIndex(String repositoryId, String[] columnsToIndex);
+
+	public Properties getProperties(String repositoryId);
 }

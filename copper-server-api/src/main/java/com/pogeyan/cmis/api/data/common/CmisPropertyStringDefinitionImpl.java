@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyStringDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
@@ -50,7 +51,7 @@ public class CmisPropertyStringDefinitionImpl<T> implements PropertyStringDefini
 		super();
 	}
 
-	public CmisPropertyStringDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyStringDefinitionImpl(PropertyDefinition<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();

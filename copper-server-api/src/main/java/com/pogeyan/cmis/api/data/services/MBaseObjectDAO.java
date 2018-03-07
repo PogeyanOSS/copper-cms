@@ -26,23 +26,23 @@ import com.pogeyan.cmis.api.data.common.TokenImpl;
 
 public interface MBaseObjectDAO {
 
-	public IBaseObject getLatestToken();
+	public IBaseObject getLatestToken(String repoistoryId);
 
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(String objectId, boolean forceDelete, TokenImpl token);
+	public void delete(String repoistoryId, String objectId, boolean forceDelete, TokenImpl token);
 
 	/**
 	 * Update Folder type objectIds for an object.
 	 */
-	public void update(String objectId, Map<String, Object> updateProps);
+	public void update(String repoistoryId, String objectId, Map<String, Object> updateProps);
 
-	public List<? extends IBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
-			int skipCount, String[] mappedColumns);
+	public List<? extends IBaseObject> filter(String repoistoryId, Map<String, Object> fieldNames,
+			boolean includePagination, int maxItems, int skipCount, String[] mappedColumns);
 
-	public void commit(IBaseObject entity);
-	
+	public void commit(String repoistoryId, IBaseObject entity);
+
 	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
 			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
