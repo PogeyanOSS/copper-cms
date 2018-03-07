@@ -92,7 +92,6 @@ public class CmisTypeServices {
 								CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
 										k);
 							}
-
 						});
 					} else {
 						List<TypeDefinition> baseType = upset(repositoryId);
@@ -102,6 +101,7 @@ public class CmisTypeServices {
 						}
 					}
 				}
+
 			} catch (MongoException e) {
 				LOG.error("MongoObject shouldnot be null: {}", e.getMessage());
 				throw new MongoException("MongoObject shouldnot be null");
@@ -662,6 +662,7 @@ public class CmisTypeServices {
 				baseMorphiaDAO.delete(repositoryId, folderObject.getId(), true, null);
 			}
 			typeManagerDAO.delete(repositoryId, type);
+			CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);
 			if (LOG.isDebugEnabled()) {
 				LOG.info("Deleted type: {}", type);
 			}

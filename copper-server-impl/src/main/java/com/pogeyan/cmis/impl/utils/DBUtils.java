@@ -25,6 +25,7 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
@@ -32,6 +33,7 @@ import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
@@ -66,8 +68,8 @@ public class DBUtils {
 					put(Variables.OBJECTID, objectId);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0,
-					mappedColumns);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0,
+					0, mappedColumns);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -88,7 +90,8 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0,
+					0, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -107,7 +110,8 @@ public class DBUtils {
 				}
 			};
 
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0,
+					0, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -126,7 +130,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			return objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0, 0, null);
 		}
 
 		@SuppressWarnings("serial")
@@ -138,7 +142,8 @@ public class DBUtils {
 					put(Variables.PATH, path);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0,
+					0, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -156,7 +161,8 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0,
+					0, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -174,7 +180,7 @@ public class DBUtils {
 					put(Variables.TOKEN, token);
 				}
 			};
-			objectMorphiaDAO.update(objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
 		}
 
 		@SuppressWarnings("serial")
@@ -187,7 +193,7 @@ public class DBUtils {
 					put(Variables.TOKEN, token);
 				}
 			};
-			objectMorphiaDAO.update(objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
 		}
 
 		@SuppressWarnings("serial")
@@ -202,7 +208,7 @@ public class DBUtils {
 
 				}
 			};
-			objectMorphiaDAO.update(objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
 		}
 	}
 
@@ -320,7 +326,7 @@ public class DBUtils {
 					put(Variables.BASEID, "CMIS:FOLDER");
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			return objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0, 0, null);
 		}
 
 		@SuppressWarnings("serial")
@@ -335,7 +341,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			return objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, false, 0, 0, null);
 		}
 
 		@SuppressWarnings("serial")
@@ -349,7 +355,8 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns);
+			return objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, true, maxItems, skipCount,
+					mappedColumns);
 		}
 
 		@SuppressWarnings("serial")
@@ -362,15 +369,32 @@ public class DBUtils {
 					put("properties.cmis:targetId", targetId);
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns);
+			return objectMorphiaDAO.filter(repositoryId, fieldsNamesAndValues, true, maxItems, skipCount,
+					mappedColumns);
 		}
 	}
 
 	public static class TypeServiceDAO {
 		@SuppressWarnings("unchecked")
 		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
+			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
+			MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
+			if (typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
+				typeDef = typeManagerDAO.getById(repositoryId, typeId);
+				typeDef.stream().forEach((k) -> {
+					if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+						CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
+								docManagerDAO.getByTypeId(repositoryId, k.getId()));
+					} else {
+						CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
+					}
+
+				});
+			}
 			return typeDef;
 		}
 
@@ -392,8 +416,16 @@ public class DBUtils {
 	public static class DocumentTypeManagerDAO {
 		@SuppressWarnings("unchecked")
 		public static DocumentTypeDefinition getByTypeId(String repositoryId, String typeId) {
+			MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends DocumentTypeDefinition> docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, Arrays.asList(typeId)));
+			if (docType != null && !docType.isEmpty() && docType.get(0) == null) {
+				DocumentTypeDefinition docTypeDef = docManagerDAO.getByTypeId(repositoryId, typeId);
+				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, docTypeDef.getId(),
+						docTypeDef);
+				return docTypeDef;
+			}
 			return docType.get(0);
 		}
 	}
