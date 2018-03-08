@@ -18,7 +18,7 @@ public class JDocumentTypeManagerDAOImpl implements MDocumentTypeManagerDAO {
 	@SuppressWarnings("unchecked")
 	@Override
 	public DocumentTypeDefinition getByTypeId(String repositoryId, String typeId) {
-		PersistenceManager pm = JDOConnection.get().initializePersistenceManager(repositoryId);
+		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
 		Query query = pm.newQuery(JTypeObject.class);
 		query.declareParameters("String docId");
 		query.setFilter("id == docId");

@@ -20,7 +20,7 @@ import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
 @Extension(vendorName = "datanucleus", key = "read-write", value = "true")
 public class {{className}}
 {
-public Map<String,Object> properties;
+private Map<String,Object> properties;
 public getProperties()
 {
 return this.properties;
@@ -32,7 +32,7 @@ return this.properties=properties;
 {{#each propDef}}
 {{#if primary}}
 @primary
-public {{property}} {{id}};
+private {{property}} {{id}};
 public get{{id}}()
 {
 this.{{id}};
@@ -42,7 +42,7 @@ public set{{id}}({{property}} {{id}})
 this.{{id}}={{id}};
 }
  {{else}}
-public {{property}} {{id}};
+private {{property}} {{id}};
 public get{{id}}()
 {
 this.{{id}};

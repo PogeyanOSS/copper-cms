@@ -37,7 +37,7 @@ public class JTypeManagerDAOImpl implements MTypeManagerDAO {
 	@Override
 	public List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
 		List<TypeDefinition> typeDef = new ArrayList<>();
-		PersistenceManager pm = JDOConnection.get().initializePersistenceManager(repositoryId);
+		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
 		if (typeId == null) {
 			Query query = pm.newQuery("SELECT FROM " + JTypeObject.class.getName());
 			query.setClass(JTypeObject.class);
@@ -75,7 +75,7 @@ public class JTypeManagerDAOImpl implements MTypeManagerDAO {
 
 	@Override
 	public void delete(String repositoryId, String typeId) {
-		PersistenceManager pm = JDOConnection.get().initializePersistenceManager(repositoryId);
+		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
 		pm.deletePersistent(typeId);
 	}
 
@@ -83,7 +83,7 @@ public class JTypeManagerDAOImpl implements MTypeManagerDAO {
 	@Override
 	public List<? extends TypeDefinition> getChildrenIds(String repositoryId, String parentId, int maxItems,
 			int skipCount) {
-		PersistenceManager pm = JDOConnection.get().initializePersistenceManager(repositoryId);
+		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
 		List<TypeDefinition> typeDef = new ArrayList<>();
 		Query query = pm.newQuery(JTypeObject.class);
 		query.declareParameters("String id");
@@ -103,7 +103,7 @@ public class JTypeManagerDAOImpl implements MTypeManagerDAO {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId) {
-		PersistenceManager pm = JDOConnection.get().initializePersistenceManager(repositoryId);
+		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
 		Query query = pm.newQuery(JPropertyDefinitionImpl.class);
 		query.declareParameters("String propID");
 		query.setFilter("id == propID");
@@ -115,7 +115,7 @@ public class JTypeManagerDAOImpl implements MTypeManagerDAO {
 
 	@Override
 	public <T extends TypeDefinition> void commit(String repositoryId, T entity) {
-		PersistenceManager pm = JDOConnection.get().initializePersistenceManager(repositoryId);
+		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
 		Transaction tx = pm.currentTransaction();
 		try {
 			tx.begin();

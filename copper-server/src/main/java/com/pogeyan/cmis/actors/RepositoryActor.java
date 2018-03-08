@@ -326,8 +326,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("createRepositoryInfo rootFolderId: {}", rootFolderId);
 		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MBaseObjectDAO.class);
-		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null
-				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime() : null);
+		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken(repositoryId).getChangeToken() != null
+				? baseMorphiaDAO.getLatestToken(repositoryId).getChangeToken().getTime()
+				: null);
 		// repository info
 		RepositoryInfoImpl repoInfo = new RepositoryInfoImpl();
 		repoInfo.setId(repositoryId == null ? "repository" : repositoryId);

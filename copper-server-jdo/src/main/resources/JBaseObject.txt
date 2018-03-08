@@ -11,6 +11,7 @@ import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.PrimaryKey;
+import javax.jdo.annotations.NotPersistent;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -48,9 +49,6 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	private List<String> policies;
 	private JAclImpl acl;
 	private String parentId;
-
-	private Map<String, Object> properties;
-
 	public String getRepositoryId() {
 		return repositoryId;
 	}
@@ -58,35 +56,27 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	public void setRepositoryId(String repositoryId) {
 		this.repositoryId = repositoryId;
 	}
-
-	public JBaseObject() {
-
+	
+	public static JBaseObject getInstance()
+	{
+	     return new JBaseObject();
 	}
 
-	public JBaseObject(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
-			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
-			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
-			String parentId) {
-		super();
-		this.id = (new ObjectId()).toString();
-		this.name = name;
-		this.baseId = baseId;
-		this.typeId = typeId;
-		this.repositoryId = fRepositoryId;
-		this.secondaryTypeIds = secondaryTypeIds;
-		this.description = description;
-		this.createdBy = createdBy;
-		this.modifiedBy = modifiedBy;
-		this.token = convertJDOToken(token);
-		this.internalPath = internalPath;
-		this.path = path;
-		this.properties = properties;
-		this.policies = policies;
-		this.acl = convertJDOAcl(acl);
-		this.createdAt = System.currentTimeMillis();
-		this.modifiedAt = System.currentTimeMillis();
-		this.parentId = parentId;
+{{#each embedded}}
+{{#if isEmbedded}}
+private {{importPath}} {{id}}
+public get{{id}}()
+{
+this.{{id}};
+}
+public set{{id}}({{importPath}} {{id}})
+{
+this.{{id}}={{id}};
+}
+{{/if}}
+{{/each}}
 
+	public JBaseObject() {
 	}
 
 	public String getId() {
@@ -163,14 +153,6 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 
 	public void setModifiedAt(Long calendar) {
 		this.modifiedAt = calendar;
-	}
-
-	public Map<String, Object> getProperties() {
-		return this.properties;
-	}
-
-	public void setProperties(Map<String, Object> props) {
-		this.properties = props;
 	}
 
 	public TokenImpl getChangeToken() {
@@ -258,7 +240,12 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 		mongoToken.setChangeType(token.getChangeType());
 		mongoToken.setTime(token.getTime());
 		return mongoToken;
-
 	}
-
+	public Map<String, Object> getProperties() {
+		return null;
+	}
+	public void setProperties(Map<String,Object> props)
+	{
+	}
+	
 }

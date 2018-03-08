@@ -97,7 +97,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 
 		DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
-		//DatabaseServiceFactory.add(JDOManagerFactory.createDatabaseService());
+		DatabaseServiceFactory.add(JDOManagerFactory.createDatabaseService());
 
 		LOG.info("Registering actors to main actor system");
 		system.actorOf(Props.create(GatewayActor.class), "gateway");

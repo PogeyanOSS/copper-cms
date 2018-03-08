@@ -34,7 +34,7 @@ public class JDOManagerFactory implements IDBClientFactory {
 		objectServiceClass.put(MNavigationServiceDAO.class, JDOManagerFactory.MNAVIGATIONSERVICEDAO);
 		objectServiceClass.put(MDocumentTypeManagerDAO.class, JDOManagerFactory.MDOCUMENTTYPEMANAGERDAO);
 		objectServiceClass.put(MTypeManagerDAO.class, JDOManagerFactory.MTYPEMANAGERDAO);
-		JDOConnection.get().compileEnhancer();
+		JDOServiceImpl.getInstance().init();
 	}
 
 	public static IDBClientFactory createDatabaseService() {
