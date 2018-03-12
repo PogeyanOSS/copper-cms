@@ -66,7 +66,7 @@ public class JDOServiceImpl {
 			byte[] classBy = compileGroovyScript(packageName + className, templateString, getGroovyClassLoader());
 			Class cc = getGroovyClassLoader().parseClass(templateString);
 			JDOEnhancer enhancer = getEnchaner(packageName + className, classBy);
-			ByteClassLoader byloader = new ByteClassLoader(enhancer.getEnhancedBytes(packageName + className));
+			ByteClassLoader byloader = new ByteClassLoader(enhancer.getEnhancedBytes(packageName + className), gcl);
 			Class<?> enhancedClass = byloader.loadClass(packageName + className);
 			putCacheMap(repositoryId, packageName + className, enhancedClass);
 			return enhancedClass;
@@ -109,10 +109,11 @@ public class JDOServiceImpl {
 
 	public PersistenceManager initializePersistenceManager(String repositoryId) {
 		if (pm == null) {
-			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory(
-					DatabaseServiceFactory.getInstance(repositoryId).getProperties(repositoryId));
+			PersistenceManagerFactory pmf = JDOHelper
+					.getPersistenceManagerFactory(JDOManagerFactory.getProperties(repositoryId));
 			pm = pmf.getPersistenceManager();
 		}
+
 		return pm;
 	}
 
@@ -127,13 +128,16 @@ public class JDOServiceImpl {
 		JDOEnhancer jdoEnhancer = JDOHelper.getEnhancer();
 		jdoEnhancer.setVerbose(true);
 		jdoEnhancer.setClassLoader(getGroovyClassLoader());
-		jdoEnhancer.addPersistenceUnit("TypeDef");
-		jdoEnhancer.enhance();
+		jdoEnhancer.addClasses("com.pogeyan.cmis.data.jdo.JAcleImpl", "com.pogeyan.cmis.data.jdo.JAclImpl",
+				"com.pogeyan.cmis.data.jdo.JDocumentTypeObject", "com.pogeyan.cmis.data.jdo.JPropertyDefinitionImpl",
+				"com.pogeyan.cmis.data.jdo.JTokenImpl", "com.pogeyan.cmis.data.jdo.JTypeDefinition",
+				"com.pogeyan.cmis.data.jdo.JTypeMutability", "com.pogeyan.cmis.data.jdo.JTypeObject");
+		int enhancedClasses = jdoEnhancer.enhance();
+		LOG.info("JDO enhance step completed with: {} types", enhancedClasses);
 		try {
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
-
 }

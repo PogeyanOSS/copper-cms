@@ -68,8 +68,7 @@ public class JDOManagerFactory implements IDBClientFactory {
 
 	}
 
-	@Override
-	public Properties getProperties(String repositoryId) {
+	static Properties getProperties(String repositoryId) {
 		Properties properties = new Properties();
 		IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 		properties.setProperty("javax.jdo.PersistenceManagerFactoryClass",
@@ -81,5 +80,4 @@ public class JDOManagerFactory implements IDBClientFactory {
 		properties.setProperty("datanucleus.schema.autoCreateTables", "true");
 		return properties;
 	}
-
 }

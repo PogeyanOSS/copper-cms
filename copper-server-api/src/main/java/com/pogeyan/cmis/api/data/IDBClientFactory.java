@@ -23,6 +23,4 @@ public interface IDBClientFactory {
 	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
 
 	void addIndex(String repositoryId, String[] columnsToIndex);
-
-	public Properties getProperties(String repositoryId);
 }

@@ -28,7 +28,6 @@ import com.pogeyan.cmis.api.data.common.TokenImpl;
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
-@Extension(vendorName = "datanucleus", key = "read-write", value = "true")
 public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	@PrimaryKey
 	private String id;

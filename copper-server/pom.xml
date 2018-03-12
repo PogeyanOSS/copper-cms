@@ -11,7 +11,7 @@
 	<name>copper-server</name>
 	<description>copper-server</description>
 	<properties>
-		<tomcat.version>8.0.21</tomcat.version>
+		<tomcat.version>8.0.50</tomcat.version>
 	</properties>
 	<dependencies>
 		<dependency>

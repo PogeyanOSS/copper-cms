@@ -395,10 +395,4 @@ public class MongoClientFactory implements IDBClientFactory {
 			return null;
 		}
 	}
-
-	@Override
-	public Properties getProperties(String repositoryId) {
-		return null;
-	}
-
 }

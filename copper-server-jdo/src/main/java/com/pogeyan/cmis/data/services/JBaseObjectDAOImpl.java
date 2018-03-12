@@ -110,9 +110,9 @@ public class JBaseObjectDAOImpl implements MBaseObjectDAO {
 		Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, "JBaseObject", true, JBaseObjectClassMap);
 		try {
 			// Class<?> class1 = Class.forName("com.pogeyan.cmis.data.jdo.JBaseObject");
-			Method method = enhancedCC.getMethod("getInstance");
-			GroovyObject myInstance = (GroovyObject) method.invoke(null);
-			// myInstance = (GroovyObject) enhancedCC.newInstance();
+			//Method method = enhancedCC.getMethod("getInstance");
+			//GroovyObject myInstance = (GroovyObject) method.invoke(null);
+			GroovyObject myInstance = (GroovyObject) enhancedCC.newInstance();
 			myInstance.invokeMethod("setName", name);
 			myInstance.invokeMethod("setBaseId", baseId);
 			myInstance.invokeMethod("setTypeId", typeId);
