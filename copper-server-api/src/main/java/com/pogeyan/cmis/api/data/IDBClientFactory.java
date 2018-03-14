@@ -15,8 +15,6 @@
  */
 package com.pogeyan.cmis.api.data;
 
-import java.util.Properties;
-
 public interface IDBClientFactory {
 	public String getType();
 

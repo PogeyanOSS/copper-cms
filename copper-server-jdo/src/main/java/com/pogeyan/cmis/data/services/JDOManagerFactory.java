@@ -59,6 +59,10 @@ public class JDOManagerFactory implements IDBClientFactory {
 			return (T) new JDocumentTypeManagerDAOImpl();
 		} else if (className.equals(JDOManagerFactory.MBASEOBJECTDAOIMPL)) {
 			return (T) new JBaseObjectDAOImpl();
+		} else if (className.equals(JDOManagerFactory.MDOCUMENTOBJECTDAO)) {
+			return (T) new JDocumentObjectDAOImpl();
+		} else if (className.equals(JDOManagerFactory.MDISCOVERYSERVICEDAO)) {
+			return (T) new JDiscoveryServiceDAOImpl();
 		}
 		return null;
 	}

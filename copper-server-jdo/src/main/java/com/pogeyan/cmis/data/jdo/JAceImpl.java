@@ -7,6 +7,7 @@ import javax.jdo.annotations.Cacheable;
 import javax.jdo.annotations.DatastoreIdentity;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Serialized;
 
 import org.apache.chemistry.opencmis.commons.data.Principal;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
@@ -15,6 +16,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrinc
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
 public class JAceImpl {
+	
 	private List<String> permissions;
 	private String principal;
 	private boolean isDirect = true;

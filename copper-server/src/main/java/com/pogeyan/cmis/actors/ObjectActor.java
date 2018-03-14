@@ -150,7 +150,8 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = t.getObjectId();
 		boolean acessPermission = false;
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId,
+				DBUtils.BaseDAO.getByObjectTypeId(t.getRepositoryId(), objectId), null);
 		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
 		if (data != null && !data.getName().equals(ROOT) && acessPermission == false) {
 			throw new CmisInvalidArgumentException(
@@ -505,7 +506,8 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
 		String objectId = request.getObjectId();
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId, null);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId,
+				DBUtils.BaseDAO.getByObjectTypeId(request.getRepositoryId(), objectId), null);
 		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), objectId);
 		String changeToken = request.getParameter(QueryGetRequest.CONTROL_CHANGE_TOKEN);
 		String token = request.getParameter(QueryGetRequest.PARAM_TOKEN);
@@ -568,20 +570,19 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		 * if (content == null || content.getStream() == null) { throw new
 		 * CmisRuntimeException("Content stream is null!"); }
 		 * 
-		 * String contentType = content.getMimeType(); if (contentType == null)
-		 * { contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
+		 * String contentType = content.getMimeType(); if (contentType == null) {
+		 * contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
 		 * 
-		 * String contentFilename = content.getFileName(); if (contentFilename
-		 * == null) { contentFilename = "content"; }
+		 * String contentFilename = content.getFileName(); if (contentFilename == null)
+		 * { contentFilename = "content"; }
 		 * 
-		 * // send content InputStream in = content.getStream(); OutputStream
-		 * out = null; try { out = new FileOutputStream(content.getFileName());
-		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); }
-		 * catch (Exception e) { LOG.error("writeContent exception: {}, {}",
-		 * e.getMessage(), ExceptionUtils.getStackTrace(e)); throw new
-		 * IllegalArgumentException("Could not write content: " +
-		 * e.getMessage(), e); } finally { IOUtils.closeQuietly(out);
-		 * IOUtils.closeQuietly(in); } return null;
+		 * // send content InputStream in = content.getStream(); OutputStream out =
+		 * null; try { out = new FileOutputStream(content.getFileName());
+		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); } catch
+		 * (Exception e) { LOG.error("writeContent exception: {}, {}", e.getMessage(),
+		 * ExceptionUtils.getStackTrace(e)); throw new
+		 * IllegalArgumentException("Could not write content: " + e.getMessage(), e); }
+		 * finally { IOUtils.closeQuietly(out); IOUtils.closeQuietly(in); } return null;
 		 */
 
 	}

@@ -27,34 +27,36 @@ public interface MDocumentObjectDAO {
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
-			TokenImpl token);
+	public void delete(String repositoryId, String objectId, String typeId, List<String> removeProps,
+			boolean forceDelete, boolean removefields, TokenImpl token);
 
 	/**
-	 * update MDocumentObject with multiple field with in single query depending
-	 * on ObjectId
+	 * update MDocumentObject with multiple field with in single query depending on
+	 * ObjectId
 	 */
-	public void update(String objectId, Map<String, Object> updateProps);
+	public void update(String repositoryId, String objectId, String typeId, Map<String, Object> updateProps);
 
 	/**
 	 * get checked out documents.
 	 */
-	public List<? extends IDocumentObject> getCheckOutDocs(String folderId, String[] principalIds, boolean aclPropagation,
-			int maxItems, int skipCount, String orderBy);
+	public List<? extends IDocumentObject> getCheckOutDocs(String repositoryId, String folderId, String typeId,
+			String[] principalIds, boolean aclPropagation, int maxItems, int skipCount, String orderBy);
 
 	/**
 	 * get checked out documents size.
 	 */
-	public long getCheckOutDocsSize(String folderId, String[] principalIds, boolean aclPropagation);
+	public long getCheckOutDocsSize(String repositoryId, String folderId, String typeId, String[] principalIds,
+			boolean aclPropagation);
 
-	public List<? extends IDocumentObject> filter(Map<String, Object> fieldNames, String[] mappedColumns);
+	public List<? extends IDocumentObject> filter(String repositoryId, Map<String, Object> fieldNames, String typeId,
+			String[] mappedColumns);
 
-	public void commit(IDocumentObject entity);
-	
-	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion, Boolean isMajorVersion,
-			Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel, String versionSeriesId,
-			String versionReferenceId, Boolean isVersionSeriesCheckedOut, String versionSeriesCheckedOutBy,
-			String versionSeriesCheckedOutId, String checkinComment, Long contentStreamLength,
-			String contentStreamMimeType, String contentStreamFileName, String contentStreamId,
-			String previousVersionObjectId);
+	public void commit(String repositoryId, IDocumentObject entity);
+
+	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion,
+			Boolean isMajorVersion, Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel,
+			String versionSeriesId, String versionReferenceId, Boolean isVersionSeriesCheckedOut,
+			String versionSeriesCheckedOutBy, String versionSeriesCheckedOutId, String checkinComment,
+			Long contentStreamLength, String contentStreamMimeType, String contentStreamFileName,
+			String contentStreamId, String previousVersionObjectId);
 }

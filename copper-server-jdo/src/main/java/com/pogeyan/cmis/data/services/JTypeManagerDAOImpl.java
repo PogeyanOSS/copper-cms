@@ -1,6 +1,7 @@
 package com.pogeyan.cmis.data.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +34,7 @@ import com.pogeyan.cmis.data.jdo.JTypeObject;
 
 public class JTypeManagerDAOImpl implements MTypeManagerDAO {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
 		List<TypeDefinition> typeDef = new ArrayList<>();
@@ -76,10 +77,11 @@ public class JTypeManagerDAOImpl implements MTypeManagerDAO {
 	@Override
 	public void delete(String repositoryId, String typeId) {
 		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
-		pm.deletePersistent(typeId);
+		TypeDefinition typeDef = getById(repositoryId, Arrays.asList(typeId)).get(0);
+		pm.deletePersistent(typeDef);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public List<? extends TypeDefinition> getChildrenIds(String repositoryId, String parentId, int maxItems,
 			int skipCount) {

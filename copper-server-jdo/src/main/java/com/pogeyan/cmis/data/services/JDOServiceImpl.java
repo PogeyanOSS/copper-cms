@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.jdo.JDOEnhancer;
+import javax.jdo.JDOException;
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
@@ -19,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 
 import groovy.lang.GroovyClassLoader;
 
@@ -35,14 +35,40 @@ public class JDOServiceImpl {
 		return instance;
 	}
 
-	public Class<?> load(String repositoryId, String className, boolean baseObjectFile,
+	public Class<?> load(String repositoryId, String className, String fileName,
 			Map<String, Object> JBaseObjectClassMap) {
 		Class<?> enhancedClass = getCacheMapValue(repositoryId, packageName + className);
 		if (enhancedClass != null) {
 			return enhancedClass;
 		} else {
-			return getEnhancedClass(repositoryId, className, baseObjectFile, JBaseObjectClassMap);
+			return getEnhancedClass(repositoryId, className, fileName, JBaseObjectClassMap);
 		}
+	}
+
+	@SuppressWarnings("resource")
+	public Class<?> getEnhanceClass(String repositoryId, String className) {
+		try {
+			Class<?> enhancedClass = getCacheMapValue(repositoryId, packageName + className);
+			if (enhancedClass != null) {
+				return enhancedClass;
+			} else {
+				JDOEnhancer enhancer = getEnchaner(null, null);
+				byte[] classByte = enhancer.getEnhancedBytes(packageName + className);
+				if (classByte != null) {
+					ByteClassLoader byloader = new ByteClassLoader(enhancer.getEnhancedBytes(packageName + className),
+							gcl);
+					enhancedClass = byloader.loadClass(packageName + className);
+					putCacheMap(repositoryId, packageName + className, enhancedClass);
+					return enhancedClass;
+				}
+			}
+		} catch (JDOException e) {
+			return null;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
+
 	}
 
 	public byte[] compileGroovyScript(final String className, final String script, final GroovyClassLoader gcl) {
@@ -58,10 +84,10 @@ public class JDOServiceImpl {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unused", "resource" })
-	public Class<?> getEnhancedClass(String repositoryId, String className, boolean baseObjectFile,
+	public Class<?> getEnhancedClass(String repositoryId, String className, String fileName,
 			Map<String, Object> JBaseObjectClassMap) {
 		try {
-			String templateString = HandleBarService.Impl.getTemplateString(repositoryId, baseObjectFile,
+			String templateString = HandleBarService.Impl.getTemplateString(repositoryId, fileName,
 					JBaseObjectClassMap);
 			byte[] classBy = compileGroovyScript(packageName + className, templateString, getGroovyClassLoader());
 			Class cc = getGroovyClassLoader().parseClass(templateString);
@@ -104,6 +130,11 @@ public class JDOServiceImpl {
 			jdoEnhancer.addClass(packName, classByte);
 		}
 		jdoEnhancer.enhance();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		return jdoEnhancer;
 	}
 

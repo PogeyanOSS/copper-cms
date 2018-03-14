@@ -81,11 +81,11 @@ public class CmisDiscoveryService {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
 
-			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO
-					.getLatestChanges(Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray);
+			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO.getLatestChanges(repositoryId,
+					Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray);
 			if (latestChangesObjects.size() > 0) {
-				childrenCount = discoveryObjectMorphiaDAO
-						.getLatestTokenChildrenSize(Long.parseLong(changeLogToken.getValue()));
+				childrenCount = discoveryObjectMorphiaDAO.getLatestTokenChildrenSize(repositoryId,
+						Long.parseLong(changeLogToken.getValue()));
 				for (IBaseObject object : latestChangesObjects) {
 					if (includeAcl) {
 						List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
@@ -170,8 +170,8 @@ public class CmisDiscoveryService {
 
 		/**
 		 * Splits a filter statement into a collection of properties. If
-		 * <code>filter</code> is <code>null</code>, empty or one of the
-		 * properties is '*' , an empty collection will be returned.
+		 * <code>filter</code> is <code>null</code>, empty or one of the properties is
+		 * '*' , an empty collection will be returned.
 		 */
 		private static Set<String> splitFilter(String filter) {
 			if (filter == null) {

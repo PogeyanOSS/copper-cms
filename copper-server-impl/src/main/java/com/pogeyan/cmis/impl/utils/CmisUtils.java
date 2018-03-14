@@ -56,16 +56,17 @@ public class CmisUtils {
 			permissions.add(permission);
 			return getAclFor(principalId, permissions);
 		}
-		
+
 		public static Acl getAclFor(String principalId, List<String> permissions) {
 			List<Ace> aceList = new ArrayList<Ace>();
-			AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId), permissions);
+			AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId),
+					permissions);
 			aceList.add(ace);
 			AccessControlListImplExt aclImp = new AccessControlListImplExt(aceList);
 			return aclImp;
 		}
 	}
-	
+
 	public static class Rendition {
 
 		public static boolean hasRendition(IBaseObject so, String user, String repositoryId) {
@@ -74,7 +75,8 @@ public class CmisUtils {
 				return true;
 			}
 			if (so.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
-				documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, so.getId(), null);
+				documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, so.getId(), so.getTypeId(),
+						null);
 				if (documentData.getContentStreamLength() == null) {
 					return false;
 				}
@@ -166,7 +168,7 @@ public class CmisUtils {
 				} else {
 					try {
 						IDocumentObject documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-								so.getId(), null);
+								so.getId(), so.getTypeId(), null);
 						if (documentData == null) {
 							LOG.error("getRenditions Object is null in {} repository!", repositoryId);
 							throw new CmisObjectNotFoundException("Object must not be null!");

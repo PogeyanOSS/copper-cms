@@ -657,9 +657,10 @@ public class CmisTypeServices {
 			// MongoStorageDocument.createStorageService(parameters,
 			// repositoryId, type);
 			// localService.deleteFolder(parameters, repositoryId, type);
-			IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type);
+			IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId,
+					DBUtils.BaseDAO.getByPathTypeId(repositoryId, "/" + type), "/" + type);
 			if (folderObject != null) {
-				baseMorphiaDAO.delete(repositoryId, folderObject.getId(), true, null);
+				baseMorphiaDAO.delete(repositoryId, folderObject.getId(), folderObject.getTypeId(), true, null);
 			}
 			typeManagerDAO.delete(repositoryId, type);
 			CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);

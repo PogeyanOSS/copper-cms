@@ -47,7 +47,8 @@ public class CmisAclServices {
 				ExtensionsData extension, ObjectInfoHandler objectInfos, String userName)
 				throws CmisObjectNotFoundException {
 			LOG.info("getAcl on objectId: {} , repository: {}", objectId, repositoryId);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId,
+					DBUtils.BaseDAO.getByObjectTypeId(repositoryId, objectId), null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
@@ -70,8 +71,8 @@ public class CmisAclServices {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
-
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			String typeId = DBUtils.BaseDAO.getByObjectTypeId(repositoryId, objectId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, typeId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
@@ -80,19 +81,19 @@ public class CmisAclServices {
 			switch (aclPropagation) {
 			case REPOSITORYDETERMINED: {
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, typeId, newData, token, objectId);
 				break;
 			}
 			case OBJECTONLY:
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, typeId, newData, token, objectId);
 				break;
 			case PROPAGATE:
 				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, typeId, aclData, token, objectId);
 				break;
 			}
-			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, typeId, null);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("newData after applyAcl: {}", newData.getAcl().getAces());
 			}

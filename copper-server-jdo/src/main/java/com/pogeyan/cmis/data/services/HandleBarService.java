@@ -20,14 +20,8 @@ public class HandleBarService {
 
 	public static class Impl {
 
-		public static String getTemplateString(String repositoryId, boolean baseObject, Map<String, Object> fields)
+		public static String getTemplateString(String repositoryId, String fileName, Map<String, Object> fields)
 				throws IOException {
-			String fileName = null;
-			if (baseObject) {
-				fileName = "JBaseObject";
-			} else {
-				fileName = "JProperties";
-			}
 			LOG.info("getTemplateString for {}", fileName);
 			Handlebars handlebars = new Handlebars();
 			ClassLoader classLoader = HandleBarCheck.class.getClassLoader();

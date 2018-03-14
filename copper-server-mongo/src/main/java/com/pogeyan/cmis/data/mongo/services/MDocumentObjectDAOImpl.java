@@ -44,7 +44,8 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public List<MDocumentObject> filter(Map<String, Object> fieldNames, String[] mappedColumns) {
+	public List<MDocumentObject> filter(String repoistoryId, Map<String, Object> fieldNames, String typeId,
+			String[] mappedColumns) {
 		Query<MDocumentObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
@@ -57,8 +58,8 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void delete(String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
-			TokenImpl token) {
+	public void delete(String repoistoryId, String objectId, String typeId, List<String> removeProps,
+			boolean forceDelete, boolean removefields, TokenImpl token) {
 		Query<MDocumentObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
@@ -81,7 +82,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void update(String objectId, Map<String, Object> updateProps) {
+	public void update(String repoistoryId, String objectId, String typeId, Map<String, Object> updateProps) {
 		UpdateOperations<MDocumentObject> update = createUpdateOperations();
 		Query<MDocumentObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
@@ -102,8 +103,8 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public List<MDocumentObject> getCheckOutDocs(String folderId, String[] principalIds, boolean aclPropagation,
-			int maxItems, int skipCount, String orderBy) {
+	public List<MDocumentObject> getCheckOutDocs(String repoistoryId, String folderId, String typeId,
+			String[] principalIds, boolean aclPropagation, int maxItems, int skipCount, String orderBy) {
 		Query<MDocumentObject> query = null;
 		if (folderId == null) {
 			query = createQuery().disableValidation().field("typeId").equalIgnoreCase("cmis:document")
@@ -136,7 +137,8 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public long getCheckOutDocsSize(String folderId, String[] principalIds, boolean aclPropagation) {
+	public long getCheckOutDocsSize(String repoistoryId, String folderId, String typeId, String[] principalIds,
+			boolean aclPropagation) {
 		Query<MDocumentObject> query = null;
 		if (folderId == null) {
 			query = createQuery().disableValidation().field("typeId").equalIgnoreCase("cmis:document")
@@ -156,7 +158,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void commit(IDocumentObject entity) {
+	public void commit(String repositoryId, IDocumentObject entity) {
 		this.save((MDocumentObject) entity);
 	}
 

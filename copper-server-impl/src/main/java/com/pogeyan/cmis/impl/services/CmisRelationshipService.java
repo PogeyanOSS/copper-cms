@@ -50,7 +50,8 @@ public class CmisRelationshipService {
 			LOG.info("getObjectRelationships on object: {} , repository: {},", repositoryId, objectId);
 			IBaseObject so = null;
 			try {
-				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId,
+						DBUtils.BaseDAO.getByObjectTypeId(repositoryId, objectId), null);
 			} catch (Exception e) {
 				LOG.error("getObjectRelationships Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
 				throw new MongoException(e.toString());
@@ -72,7 +73,7 @@ public class CmisRelationshipService {
 			ObjectListImpl result = new ObjectListImpl();
 			List<ObjectData> odList = null;
 			List<? extends IBaseObject> totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
-					so.getId().toString(), -1, -1, null);
+					so.getTypeId(), so.getId().toString(), -1, -1, null);
 			if (relationshipDirection == RelationshipDirection.SOURCE) {
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.SOURCE, so, userName, maxItemsInt, skipCountInt, filterArray);

@@ -12,23 +12,17 @@ import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.PrimaryKey;
 import javax.jdo.annotations.NotPersistent;
+import javax.jdo.annotations.Inheritance;
+import javax.jdo.annotations.InheritanceStrategy;
 import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
 
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
 @Extension(vendorName = "datanucleus", key = "read-write", value = "true")
-public class {{className}}
+public class {{className}} extends {{parentClassName}}
 {
-private Map<String,Object> properties;
-public getProperties()
-{
-return this.properties;
-}
-public setProperties(Map<String,Object> properties)
-{
-return this.properties=properties;
-}
+ 
 {{#each propDef}}
 {{#if primary}}
 @primary

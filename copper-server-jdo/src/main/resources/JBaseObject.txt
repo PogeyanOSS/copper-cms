@@ -12,6 +12,8 @@ import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.PrimaryKey;
 import javax.jdo.annotations.NotPersistent;
+import javax.jdo.annotations.Inheritance;
+import javax.jdo.annotations.InheritanceStrategy;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -24,10 +26,12 @@ import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
+import  com.pogeyan.cmis.api.data.common.TokenChangeType;
 
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
+@Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
 public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	@PrimaryKey
 	private String id;
@@ -48,6 +52,9 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	private List<String> policies;
 	private JAclImpl acl;
 	private String parentId;
+	@NotPersistent
+	Map<String,Object> prop;
+	
 	public String getRepositoryId() {
 		return repositoryId;
 	}
@@ -60,20 +67,6 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	{
 	     return new JBaseObject();
 	}
-
-{{#each embedded}}
-{{#if isEmbedded}}
-private {{importPath}} {{id}}
-public get{{id}}()
-{
-this.{{id}};
-}
-public set{{id}}({{importPath}} {{id}})
-{
-this.{{id}}={{id}};
-}
-{{/if}}
-{{/each}}
 
 	public JBaseObject() {
 	}
@@ -155,12 +148,12 @@ this.{{id}}={{id}};
 	}
 
 	public TokenImpl getChangeToken() {
-		TokenImpl m = new TokenImpl(token.getChangeType(), token.getTime());
+		TokenImpl m = new TokenImpl(getTokenValue.getTokenValue(token.getChangeType()), token.getTime());
 		return m;
 	}
 
-	public void setChangeToken(JTokenImpl token) {
-		this.token = token;
+	public void setToken(TokenImpl token) {
+		this.token = convertJDOToken(token);
 	}
 
 	public boolean hasParent() {
@@ -196,8 +189,8 @@ this.{{id}}={{id}};
 		return mAcl;
 	}
 
-	public void setAcl(JAclImpl acl) {
-		this.acl = acl;
+	public void setAcl(Acl acl) {
+		this.acl = convertJDOAcl(acl);
 	}
 
 	public String getPath() {
@@ -236,15 +229,16 @@ this.{{id}}={{id}};
 
 	public static JTokenImpl convertJDOToken(TokenImpl token) {
 		JTokenImpl mongoToken = new JTokenImpl();
-		mongoToken.setChangeType(token.getChangeType());
+		mongoToken.setChangeType(TokenChangeType.toValue(token.getChangeType().toString()));
 		mongoToken.setTime(token.getTime());
 		return mongoToken;
 	}
 	public Map<String, Object> getProperties() {
-		return null;
+		return this.prop;
 	}
 	public void setProperties(Map<String,Object> props)
 	{
+	this.prop=props;
 	}
 	
 }

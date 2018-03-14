@@ -125,10 +125,9 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		}
 		/*
 		 * if (listProperties != null) { properties =
-		 * listProperties.entrySet().stream().collect(Collectors.toMap(p ->
-		 * p.getKey(), p -> p.getValue() !=
-		 * null||!StringUtils.isBlank(p.getValue().get(0)) ? p.getValue().get(0)
-		 * :null)); }
+		 * listProperties.entrySet().stream().collect(Collectors.toMap(p -> p.getKey(),
+		 * p -> p.getValue() != null||!StringUtils.isBlank(p.getValue().get(0)) ?
+		 * p.getValue().get(0) :null)); }
 		 */
 
 		String versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), properties,

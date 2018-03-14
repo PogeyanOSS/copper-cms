@@ -40,7 +40,8 @@ public class CmisPolicyService {
 		public static List<ObjectData> getAppliedPolicies(String repositoryId, String objectId, String filter,
 				String username) throws CmisObjectNotFoundException {
 			LOG.info("getAppliedPolicies on objectId: {} , repository: {}", objectId, repositoryId);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId,
+					DBUtils.BaseDAO.getByObjectTypeId(repositoryId, objectId), null);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
 				LOG.error("Unknown object id:{}", objectId);
@@ -49,7 +50,8 @@ public class CmisPolicyService {
 			List<String> polIds = data.getPolicies();
 			if (null != polIds && polIds.size() > 0) {
 				for (String polId : polIds) {
-					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null);
+					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId,
+							DBUtils.BaseDAO.getByObjectTypeId(repositoryId, polId), null);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
 							false, true, null, null, IncludeRelationships.NONE, username);
 
@@ -71,7 +73,8 @@ public class CmisPolicyService {
 			LOG.info("removePolicy on objectId: {} , with policyId: {} , repository: {}", objectId, policyId,
 					repositoryId);
 			List<String> polIds = null;
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			String typeId = DBUtils.BaseDAO.getByObjectTypeId(repositoryId, objectId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, typeId, null);
 			if (data == null) {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
@@ -84,7 +87,7 @@ public class CmisPolicyService {
 						"Policy id " + policyId + "cannot be removed, because it is not applied to object " + objectId);
 			}
 			polIds.remove(policyId);
-			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token);
+			DBUtils.BaseDAO.updatePolicy(repositoryId, typeId, polIds, objectId, token);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("PolicyObject after removing policy: {} is : {} ", policyId, polIds.toString());
 			}
@@ -99,12 +102,14 @@ public class CmisPolicyService {
 			LOG.info("applyPolicy on objectId: {} , with policyId: {} , repository : {}", objectId, policyId,
 					repositoryId);
 			List<String> polIds = null;
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			String typeId = DBUtils.BaseDAO.getByObjectTypeId(repositoryId, objectId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, typeId, null);
 			if (data == null) {
 				LOG.error("Unknown object id:{}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null);
+			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId,
+					DBUtils.BaseDAO.getByObjectTypeId(repositoryId, policyId), null);
 			if (policy == null) {
 				LOG.error("Unknown policy id:{}", policyId);
 				throw new CmisObjectNotFoundException("Unknown policy id: " + policyId);
@@ -121,7 +126,7 @@ public class CmisPolicyService {
 				polIds = new ArrayList<String>();
 			}
 			polIds.add(policyId);
-			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token);
+			DBUtils.BaseDAO.updatePolicy(repositoryId, typeId, polIds, objectId, token);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("PolicyObject after adding policy: {} is : {} ", policyId, polIds.toString());
 			}

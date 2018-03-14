@@ -13,23 +13,23 @@ import com.pogeyan.cmis.api.data.common.TokenChangeType;
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
 @Extension(vendorName = "datanucleus", key = "read-write", value = "true")
 public class JTokenImpl {
-	TokenChangeType changeType;
+	int changeType;
 	Long time;
 
 	public JTokenImpl() {
 
 	}
 
-	public JTokenImpl(TokenChangeType changetype, Long time) {
+	public JTokenImpl(int changetype, Long time) {
 		this.changeType = changetype;
 		this.time = time;
 	}
 
 	public TokenChangeType getChangeType() {
-		return changeType;
+		return TokenChangeType.getTokenValue(changeType);
 	}
 
-	public void setChangeType(TokenChangeType changetype) {
+	public void setChangeType(int changetype) {
 		this.changeType = changetype;
 	}
 

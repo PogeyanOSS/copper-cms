@@ -1,26 +1,31 @@
 package com.pogeyan.cmis.data.services;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.jdo.Extent;
 import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 import javax.jdo.Transaction;
 
 import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
+import com.pogeyan.cmis.data.jdo.JAclImpl;
+import com.pogeyan.cmis.data.jdo.JTokenImpl;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 
 import groovy.lang.GroovyObject;
@@ -28,25 +33,128 @@ import groovy.lang.GroovyObject;
 public class JBaseObjectDAOImpl implements MBaseObjectDAO {
 	private static final Logger LOG = LoggerFactory.getLogger(JBaseObjectDAOImpl.class);
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public IBaseObject getLatestToken(String repositoryId) {
+		try {
+			PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
+			if (pm != null) {
+				Class<?> objectClass = JDOServiceImpl.getInstance().getEnhanceClass(repositoryId, "JBaseObject");
+				Extent QueryExtent = pm.getExtent(objectClass, true);
+				Query query = pm.newQuery(QueryExtent);
+				query.setOrdering("token.time desc");
+				query.setUnique(true);
+				return (IBaseObject) query.execute();
+			}
+		} catch (Exception e) {
+			LOG.error("getLatestToken Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+			e.printStackTrace();
+		}
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void delete(String repositoryId, String objectId, boolean forceDelete, TokenImpl token) {
+	public void delete(String repositoryId, String objectId, String typeId, boolean forceDelete, TokenImpl token) {
+		try {
+			PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
+			Transaction tx = pm.currentTransaction();
+			if (pm != null) {
+				Class<?> objectClass = JDOServiceImpl.getInstance().getEnhanceClass(repositoryId,
+						JDOHelper.Impl.getJDOTypeId(typeId, true));
+				Extent QueryExtent = pm.getExtent(objectClass, true);
+				GroovyObject myInstance = (GroovyObject) objectClass.newInstance();
+				Query query = pm.newQuery(QueryExtent, "id == " + objectId + " && token.changeType != 2");
+				query.setUnique(true);
+				myInstance = (GroovyObject) query.execute();
+				if (forceDelete) {
+					pm.deletePersistent(myInstance);
+				} else {
+					tx.begin();
+					Map<String, Object> tokenUpdate = new HashMap<>();
+					tokenUpdate.put("token", 2);
+					myInstance = JDOHelper.Impl.setPropDefFields(tokenUpdate, myInstance);
+					tx.commit();
+
+				}
+			}
+
+		} catch (Exception e) {
+			LOG.error("delete Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+			e.printStackTrace();
+		}
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void update(String repositoryId, String objectId, Map<String, Object> updateProps) {
+	public void update(String repositoryId, String objectId, String typeId, Map<String, Object> updateProps) {
+		try {
+			PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
+			Transaction tx = pm.currentTransaction();
+			if (pm != null) {
+				tx.begin();
+				if (updateProps.get("acl") != null) {
+					JAclImpl mAcl = JDOHelper.Impl.convertJDOAcl((AccessControlListImplExt) updateProps.get("acl"));
+					updateProps.remove("acl");
+					updateProps.put("acl", mAcl);
+				}
+				if (updateProps.get("token") != null) {
+					JTokenImpl mToken = JDOHelper.Impl.convertJDOToken((TokenImpl) updateProps.get("token"));
+					updateProps.remove("token");
+					updateProps.put("stoken", mToken);
+				}
+				Class<?> objectClass = JDOServiceImpl.getInstance().getEnhanceClass(repositoryId,
+						JDOHelper.Impl.getJDOTypeId(typeId, true));
+				Extent QueryExtent = pm.getExtent(objectClass, true);
+				GroovyObject myInstance = (GroovyObject) objectClass.newInstance();
+				Query query = pm.newQuery(QueryExtent, "id == " + objectId + " && token.changeType != 2");
+				query.setUnique(true);
+				myInstance = (GroovyObject) query.execute();
+				myInstance = JDOHelper.Impl.setPropDefFields(updateProps, myInstance);
+				tx.commit();
+			}
+
+		} catch (Exception e) {
+			LOG.error("update Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+			e.printStackTrace();
+		}
+
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public List<? extends IBaseObject> filter(String repositoryId, Map<String, Object> fieldNames,
+	public List<? extends IBaseObject> filter(String repositoryId, String typeId, Map<String, Object> fieldNames,
 			boolean includePagination, int maxItems, int skipCount, String[] mappedColumns) {
-		List<IBaseObject> ff = new ArrayList<>();
-		return ff;
+		try {
+			PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
+			if (pm != null) {
+				Class<?> objectClass = JDOServiceImpl.getInstance().getEnhanceClass(repositoryId,
+						JDOHelper.Impl.getJDOTypeId(typeId, true));
+				if (objectClass != null) {
+					Extent QueryExtent = pm.getExtent(objectClass, true);
+					Query query = pm.newQuery(QueryExtent);
+					query.declareParameters(JDOHelper.Impl.getDeclareParameter(fieldNames));
+					query.setFilter(JDOHelper.Impl.getFilterParameter(fieldNames));
+					if (includePagination) {
+						if (maxItems > 0) {
+							query.setRange(skipCount, maxItems);
+						} else {
+							query.setRange(skipCount, 0);
+						}
+					}
+					if (mappedColumns != null && mappedColumns.length > 0) {
+
+					}
+					fieldNames.put("tokenType", TokenChangeType.DELETED.value());
+					return (List<? extends IBaseObject>) query.executeWithMap(fieldNames);
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("filter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
 	}
 
 	@Override
@@ -55,18 +163,8 @@ public class JBaseObjectDAOImpl implements MBaseObjectDAO {
 		Transaction tx = pm.currentTransaction();
 		try {
 			tx.begin();
-			// JTypeObject typeObject = null;
-			// if (entity.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT) {
-			// typeObject = new JTypeObject(entity.getId(), entity.getParentTypeId(),
-			// ((JTypeDefinition) entity), null,
-			// entity.getPropertyDefinitions());
-			// } else {
-			// typeObject = new JTypeObject(entity.getId(), entity.getParentTypeId(), null,
-			// ((JDocumentTypeObject) entity), entity.getPropertyDefinitions());
-			// }
-			//
-			// pm.makePersistent(typeObject);
-			// tx.commit();
+			pm.makePersistent(entity);
+			tx.commit();
 		} finally {
 			if (tx.isActive()) {
 				tx.rollback();
@@ -74,46 +172,48 @@ public class JBaseObjectDAOImpl implements MBaseObjectDAO {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unused", "unchecked", "resource" })
+	@SuppressWarnings({ "rawtypes", "unused" })
 	@Override
 	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
 			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
 			String parentId) {
-		JTypeManagerDAOImpl typeMorphia = new JTypeManagerDAOImpl();
-		Map<String, Object> JBaseObjectClassMap = new HashMap<>();
-		List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(fRepositoryId, Arrays.asList(typeId));
-		if (typeDef != null && typeDef.size() > 0) {
-			TypeDefinition type = typeDef.get(0);
-			if (type.getBaseTypeId() != BaseTypeId.CMIS_FOLDER && type.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT
-					&& type.getBaseTypeId() != BaseTypeId.CMIS_ITEM && type.getBaseTypeId() != BaseTypeId.CMIS_POLICY
-					&& type.getBaseTypeId() != BaseTypeId.CMIS_SECONDARY) {
-				List<Map<String, Object>> listFields = getPropDefFields(type.getPropertyDefinitions());
-				Map<String, Object> classMap = new HashMap<>();
-				classMap.put("className", type.getId());
-				classMap.put("propDef", listFields);
-
-				// String templateString = getTemplateString(fRepositoryId, "JProperties",
-				// classMap);
-				// byte[] classBy =
-				// JdoServiceImpl.get().compileGroovyScript("com.pogeyan.cmis.data.jdo." +
-				// type.getId(),
-				// templateString, JdoServiceImpl.get().getGroovyClassLoader());
-				// Class cc =
-				// JdoServiceImpl.get().getGroovyClassLoader().parseClass(templateString);
-			} else {
-				Map<String, Object> fieldValue = new HashMap<>();
-				fieldValue.put("isEmbedded", false);
-				JBaseObjectClassMap.put("embedded", fieldValue);
-			}
-		}
-		Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, "JBaseObject", true, JBaseObjectClassMap);
 		try {
-			// Class<?> class1 = Class.forName("com.pogeyan.cmis.data.jdo.JBaseObject");
-			//Method method = enhancedCC.getMethod("getInstance");
-			//GroovyObject myInstance = (GroovyObject) method.invoke(null);
-			GroovyObject myInstance = (GroovyObject) enhancedCC.newInstance();
+			JTypeManagerDAOImpl typeMorphia = new JTypeManagerDAOImpl();
+			Map<String, Object> JBaseObjectClassMap = new HashMap<>();
+			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(fRepositoryId,
+					Arrays.asList(typeId));
+			GroovyObject myInstance = null;
+			if (typeDef != null && typeDef.size() > 0) {
+				TypeDefinition type = typeDef.get(0);
+				if (type.getParentTypeId() != null) {
+					List<Map<String, Object>> listFields = JDOHelper.Impl
+							.getPropDefFields(type.getPropertyDefinitions());
+					Map<String, Object> classMap = new HashMap<>();
+					classMap.put("className", type.getId());
+					classMap.put("propDef", listFields);
+					if (type.getParentTypeId() != BaseTypeId.CMIS_FOLDER.toString()
+							|| type.getParentTypeId() != BaseTypeId.CMIS_ITEM.toString()
+							|| type.getParentTypeId() != BaseTypeId.CMIS_POLICY.toString()
+							|| type.getParentTypeId() != BaseTypeId.CMIS_SECONDARY.toString()) {
+						classMap.put("parentClassName", type.getParentTypeId());
+
+					} else {
+						classMap.put("parentClassName", "JBaseObject");
+					}
+					Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, typeId, "JProperties", classMap);
+					myInstance = (GroovyObject) enhancedCC.newInstance();
+					myInstance = JDOHelper.Impl.setPropDefFields(properties, myInstance);
+					myInstance.invokeMethod("setProperties", properties);
+				} else {
+					Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, "JBaseObject", "JBaseObject",
+							JBaseObjectClassMap);
+					myInstance = (GroovyObject) enhancedCC.newInstance();
+				}
+			}
+			myInstance.invokeMethod("setId", (new ObjectId()).toString());
 			myInstance.invokeMethod("setName", name);
+			myInstance.invokeMethod("setRepositoryId", fRepositoryId);
 			myInstance.invokeMethod("setBaseId", baseId);
 			myInstance.invokeMethod("setTypeId", typeId);
 			myInstance.invokeMethod("getSecondaryTypeIds", secondaryTypeIds);
@@ -122,54 +222,19 @@ public class JBaseObjectDAOImpl implements MBaseObjectDAO {
 			myInstance.invokeMethod("setModifiedBy", modifiedBy);
 			myInstance.invokeMethod("setCreatedAt", System.currentTimeMillis());
 			myInstance.invokeMethod("setModifiedAt", System.currentTimeMillis());
-			myInstance.invokeMethod("setChangeToken", token);
+			myInstance.invokeMethod("setToken", token);
 			myInstance.invokeMethod("setInternalPath", internalPath);
 			myInstance.invokeMethod("setPolicies", policies);
 			myInstance.invokeMethod("setAcl", acl);
 			myInstance.invokeMethod("setPath", path);
 			myInstance.invokeMethod("setParentId", parentId);
 			myInstance.invokeMethod("setPolicies", policies);
-			Map<String, Object> fieldValue = (Map<String, Object>) JBaseObjectClassMap.get("embedded");
-			if ((boolean) fieldValue.get("isEmbedded")) {
-
-			}
 			return (IBaseObject) myInstance;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 
-	}
-
-	@SuppressWarnings("unlikely-arg-type")
-	private String getPropertyType(String property) {
-		if (PropertyType.BOOLEAN.equals(property)) {
-			return "boolean";
-		} else if (PropertyType.STRING.equals(property) || PropertyType.ID.equals(property)
-				|| PropertyType.URI.equals(property)) {
-			return "String";
-		} else if (PropertyType.INTEGER.equals(property)) {
-			return "int";
-		} else if (PropertyType.DATETIME.equals(property)) {
-			return "long";
-		}
-		return property;
-	}
-
-	private List<Map<String, Object>> getPropDefFields(Map<String, PropertyDefinition<?>> propDef) {
-		List<Map<String, Object>> listOfPropDef = new ArrayList<>();
-		propDef.forEach((key, value) -> {
-			Map<String, Object> propDetails = new HashMap<>();
-			propDetails.put("id", value.getId());
-			propDetails.put("property", getPropertyType(value.getPropertyType().toString()));
-			if (value.getLocalName().equalsIgnoreCase("primary")) {
-				propDetails.put("primary", true);
-			} else {
-				propDetails.put("primary", false);
-			}
-			listOfPropDef.add(propDetails);
-		});
-		return listOfPropDef;
 	}
 
 }
