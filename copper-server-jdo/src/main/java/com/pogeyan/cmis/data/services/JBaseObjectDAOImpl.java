@@ -183,33 +183,35 @@ public class JBaseObjectDAOImpl implements MBaseObjectDAO {
 			Map<String, Object> JBaseObjectClassMap = new HashMap<>();
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(fRepositoryId,
 					Arrays.asList(typeId));
-			GroovyObject myInstance = null;
-			if (typeDef != null && typeDef.size() > 0) {
-				TypeDefinition type = typeDef.get(0);
-				if (type.getParentTypeId() != null) {
-					List<Map<String, Object>> listFields = JDOHelper.Impl
-							.getPropDefFields(type.getPropertyDefinitions());
-					Map<String, Object> classMap = new HashMap<>();
-					classMap.put("className", type.getId());
-					classMap.put("propDef", listFields);
-					if (type.getParentTypeId() != BaseTypeId.CMIS_FOLDER.toString()
-							|| type.getParentTypeId() != BaseTypeId.CMIS_ITEM.toString()
-							|| type.getParentTypeId() != BaseTypeId.CMIS_POLICY.toString()
-							|| type.getParentTypeId() != BaseTypeId.CMIS_SECONDARY.toString()) {
-						classMap.put("parentClassName", type.getParentTypeId());
+			if (typeDef == null && typeDef != null && typeDef.size() == 0) {
+				return null;
+			}
 
-					} else {
-						classMap.put("parentClassName", "JBaseObject");
-					}
-					Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, typeId, "JProperties", classMap);
-					myInstance = (GroovyObject) enhancedCC.newInstance();
-					myInstance = JDOHelper.Impl.setPropDefFields(properties, myInstance);
-					myInstance.invokeMethod("setProperties", properties);
+			GroovyObject myInstance = null;
+			TypeDefinition type = typeDef.get(0);
+			if (type.getParentTypeId() != null) {
+				List<Map<String, Object>> listFields = JDOHelper.Impl.getPropDefFields(type.getPropertyDefinitions());
+				Map<String, Object> classMap = new HashMap<>();
+				classMap.put("className", type.getId());
+				classMap.put("propDef", listFields);
+				if (type.getParentTypeId() != BaseTypeId.CMIS_FOLDER.toString()
+						|| type.getParentTypeId() != BaseTypeId.CMIS_ITEM.toString()
+						|| type.getParentTypeId() != BaseTypeId.CMIS_POLICY.toString()
+						|| type.getParentTypeId() != BaseTypeId.CMIS_SECONDARY.toString()) {
+					classMap.put("parentClassName", type.getParentTypeId());
+
 				} else {
-					Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, "JBaseObject", "JBaseObject",
-							JBaseObjectClassMap);
-					myInstance = (GroovyObject) enhancedCC.newInstance();
+					classMap.put("parentClassName", "JBaseObject");
 				}
+				Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, typeId, "JProperties", classMap);
+				myInstance = (GroovyObject) enhancedCC.newInstance();
+				myInstance = JDOHelper.Impl.setPropDefFields(properties, myInstance);
+				myInstance.invokeMethod("setProperties", properties);
+			} else {
+				Class enhancedCC = new JDOServiceImpl().load(fRepositoryId, "JBaseObject", "JBaseObject",
+						JBaseObjectClassMap);
+				myInstance = (GroovyObject) enhancedCC.newInstance();
+				GroovyObject x = myInstance;
 			}
 			myInstance.invokeMethod("setId", (new ObjectId()).toString());
 			myInstance.invokeMethod("setName", name);

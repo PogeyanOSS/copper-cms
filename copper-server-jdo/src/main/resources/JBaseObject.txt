@@ -62,11 +62,6 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	public void setRepositoryId(String repositoryId) {
 		this.repositoryId = repositoryId;
 	}
-	
-	public static JBaseObject getInstance()
-	{
-	     return new JBaseObject();
-	}
 
 	public JBaseObject() {
 	}

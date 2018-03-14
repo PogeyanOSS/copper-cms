@@ -52,10 +52,10 @@ public class JDOServiceImpl {
 			if (enhancedClass != null) {
 				return enhancedClass;
 			} else {
-				JDOEnhancer enhancer = getEnchaner(null, null);
-				byte[] classByte = enhancer.getEnhancedBytes(packageName + className);
+				JDOEnhancer jdoEnhancer = applyEnhancer(null, null);
+				byte[] classByte = jdoEnhancer.getEnhancedBytes(packageName + className);
 				if (classByte != null) {
-					ByteClassLoader byloader = new ByteClassLoader(enhancer.getEnhancedBytes(packageName + className),
+					ByteClassLoader byloader = new ByteClassLoader(packageName + className, jdoEnhancer.getEnhancedBytes(packageName + className),
 							gcl);
 					enhancedClass = byloader.loadClass(packageName + className);
 					putCacheMap(repositoryId, packageName + className, enhancedClass);
@@ -91,8 +91,8 @@ public class JDOServiceImpl {
 					JBaseObjectClassMap);
 			byte[] classBy = compileGroovyScript(packageName + className, templateString, getGroovyClassLoader());
 			Class cc = getGroovyClassLoader().parseClass(templateString);
-			JDOEnhancer enhancer = getEnchaner(packageName + className, classBy);
-			ByteClassLoader byloader = new ByteClassLoader(enhancer.getEnhancedBytes(packageName + className), gcl);
+			JDOEnhancer jdoEnhancer = this.applyEnhancer(packageName + className, classBy);
+			ByteClassLoader byloader = new ByteClassLoader(packageName + className, jdoEnhancer.getEnhancedBytes(packageName + className), gcl);
 			Class<?> enhancedClass = byloader.loadClass(packageName + className);
 			putCacheMap(repositoryId, packageName + className, enhancedClass);
 			return enhancedClass;
@@ -122,7 +122,7 @@ public class JDOServiceImpl {
 		return null;
 	}
 
-	private JDOEnhancer getEnchaner(String packName, byte[] classByte) {
+	private JDOEnhancer applyEnhancer(String packName, byte[] classByte) {
 		JDOEnhancer jdoEnhancer = JDOHelper.getEnhancer();
 		jdoEnhancer.setVerbose(true);
 		jdoEnhancer.setClassLoader(getGroovyClassLoader());
@@ -130,11 +130,6 @@ public class JDOServiceImpl {
 			jdoEnhancer.addClass(packName, classByte);
 		}
 		jdoEnhancer.enhance();
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		return jdoEnhancer;
 	}
 
@@ -158,7 +153,6 @@ public class JDOServiceImpl {
 	public void init() {
 		JDOEnhancer jdoEnhancer = JDOHelper.getEnhancer();
 		jdoEnhancer.setVerbose(true);
-		jdoEnhancer.setClassLoader(getGroovyClassLoader());
 		jdoEnhancer.addClasses("com.pogeyan.cmis.data.jdo.JAcleImpl", "com.pogeyan.cmis.data.jdo.JAclImpl",
 				"com.pogeyan.cmis.data.jdo.JDocumentTypeObject", "com.pogeyan.cmis.data.jdo.JPropertyDefinitionImpl",
 				"com.pogeyan.cmis.data.jdo.JTokenImpl", "com.pogeyan.cmis.data.jdo.JTypeDefinition",
