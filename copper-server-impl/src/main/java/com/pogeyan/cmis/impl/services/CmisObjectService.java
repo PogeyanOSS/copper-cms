@@ -2901,19 +2901,26 @@ public class CmisObjectService {
 
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == false) {
 				IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, data.getId(), null);
-				if (doc.getContentStreamFileName() != null) {
-					boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(), doc.getPath(),
-							doc.getContentStreamMimeType());
-					invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
-					if (!contentDeleted) {
-						// LOG.error("Unknown ContentStreamID:{}", doc.getId());
-						// throw new CmisStorageException("Deletion content
-						// failed!");
+				if (doc != null) {
+					String previousVersionObjectId = doc.getPreviousVersionObjectId();
+					if (previousVersionObjectId != null) {
+						Map<String, Object> updateProps = new HashMap<String, Object>();
+						updateProps.put("isLatestVersion", true);
+						docMorphiaDAO.update(previousVersionObjectId, updateProps);
 					}
+					if (doc.getContentStreamFileName() != null) {
+						boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(),
+								doc.getPath(), doc.getContentStreamMimeType());
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+						if (!contentDeleted) {
+							// LOG.error("Unknown ContentStreamID:{}", doc.getId());
+							// throw new CmisStorageException("Deletion content
+							// failed!");
+						}
+					}
+					baseMorphiaDAO.delete(data.getId(), false, token);
+					LOG.info("Object: {} ,with baseType:{} deleted", data.getId(), data.getBaseId());
 				}
-				baseMorphiaDAO.delete(data.getId(), false, token);
-				LOG.info("Object: {} ,with baseType:{} deleted", data.getId(), data.getBaseId());
-
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
 				IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, data.getId(), null);
 				String versionRefId = doc.getVersionReferenceId();
