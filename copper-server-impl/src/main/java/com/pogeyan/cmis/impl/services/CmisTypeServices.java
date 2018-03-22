@@ -498,7 +498,7 @@ public class CmisTypeServices {
 
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(type.getId()));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				object = typeDef.get(0);
 			}
 			if (object != null) {
@@ -820,7 +820,7 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> listProperty = null;
 
 			if (incluePro) {
-				Map<String, PropertyDefinitionImpl<?>> parentPropertyDefinition = null;
+				Map<String, PropertyDefinitionImpl<?>> parentPropertyDefinition = new HashMap<>();
 				Map<String, PropertyDefinitionImpl<?>> ownPropertyDefinition = null;
 				if (typeDefinition.getPropertyDefinitions() != null) {
 					Map<String, PropertyDefinition<?>> property = typeDefinition.getPropertyDefinitions();
@@ -837,8 +837,16 @@ public class CmisTypeServices {
 							for (TypeDefinition parentObject : childTypes) {
 								if (parentObject.getPropertyDefinitions() != null) {
 									Map<String, PropertyDefinition<?>> property = parentObject.getPropertyDefinitions();
-									parentPropertyDefinition = property.entrySet().stream().collect(Collectors.toMap(
-											p -> p.getKey(), p -> getPropertyDefinition(p.getValue(), true), (u, v) -> {
+									Map<String, PropertyDefinitionImpl<?>> parentPropertyDefinitions = property
+											.entrySet().stream().collect(Collectors.toMap(p -> p.getKey(),
+													p -> getPropertyDefinition(p.getValue(), true), (u, v) -> {
+														throw new IllegalStateException(
+																String.format("Duplicate key %s", u));
+													}, LinkedHashMap::new));
+									parentPropertyDefinition = Stream
+											.of(parentPropertyDefinition, parentPropertyDefinitions)
+											.flatMap(m -> m.entrySet().stream())
+											.collect(Collectors.toMap(Entry::getKey, Entry::getValue, (u, v) -> {
 												throw new IllegalStateException(String.format("Duplicate key %s", u));
 											}, LinkedHashMap::new));
 								}
