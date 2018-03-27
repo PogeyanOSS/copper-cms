@@ -149,7 +149,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 						.getRepositories(request.getRepositoryId());
 				if (respositoryList != null && !respositoryList.isEmpty()) {
 					for (IRepository repository : respositoryList) {
-						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId());
+						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserName());
 						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
 								request.getUserName());
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
@@ -327,7 +327,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MBaseObjectDAO.class);
 		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null
-				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime() : null);
+				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime()
+				: null);
 		// repository info
 		RepositoryInfoImpl repoInfo = new RepositoryInfoImpl();
 		repoInfo.setId(repositoryId == null ? "repository" : repositoryId);

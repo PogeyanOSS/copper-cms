@@ -80,9 +80,6 @@ import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.TypeValidator;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1382,11 +1379,8 @@ public class CmisObjectService {
 				LOG.error("Folder creation exception: {}", e.getMessage());
 				throw new IllegalArgumentException(e.getMessage());
 			}
-			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
-			if (objectFlowConfig != null) {
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
-				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
-			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			return result;
 		}
 
@@ -1666,11 +1660,8 @@ public class CmisObjectService {
 				}
 			}
 
-			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
-			if (objectFlowConfig != null) {
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
-				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
-			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 
 			GregorianCalendar creationDateCalender = new GregorianCalendar();
 			creationDateCalender.setTimeInMillis(result.getCreatedAt());
@@ -2104,9 +2095,9 @@ public class CmisObjectService {
 			// boolean cmis11 = context.getCmisVersion() !=
 			// CmisVersion.CMIS_1_0;
 			String typeId = (String) properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID).getFirstValue();
-			if (!typeId.equalsIgnoreCase("cmis:relation_md")) {
-				LOG.error("createRelationshipIntern :{}", "TypeId must use cmis base type{cmis:relation_md}");
-				throw new CmisInvalidArgumentException("TypeId must use cmis base type{cmis:relation_md}");
+			if (!typeId.equalsIgnoreCase("cmis_ext:relationship")) {
+				LOG.error("createRelationshipIntern :{}", "TypeId must use cmis base type{cmis_ext:relationship}");
+				throw new CmisInvalidArgumentException("TypeId must use cmis base type{cmis_ext:relationship}");
 			}
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 
@@ -2467,12 +2458,10 @@ public class CmisObjectService {
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			IObjectFlowService objectFlowService = null;
-			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
-			if (objectFlowConfig != null) {
-				objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
-				invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
-			}
+
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
+
 			PropertyData<?> customData = properties.getProperties().get("cmis:name");
 			if (customData != null && customData.getId().equalsIgnoreCase("cmis:name")) {
 				updatecontentProps.put("name", customData.getFirstValue());
@@ -2741,11 +2730,9 @@ public class CmisObjectService {
 
 			}
 
-			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
-			if (objectFlowConfig != null) {
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
-				invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
-			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("setContentStream, updateObjects for object: {},{}", id, updatecontentProps.toString());
 			}
@@ -2792,11 +2779,9 @@ public class CmisObjectService {
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
-			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
-			if (objectFlowConfig != null) {
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
-				invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
-			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("appendContentStream, updateObjects for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2833,11 +2818,9 @@ public class CmisObjectService {
 			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
-			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
-			if (objectFlowConfig != null) {
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
-				invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
-			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("deleteContentStream, removeFields for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2893,11 +2876,8 @@ public class CmisObjectService {
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			RepositoryManagerFactory.getFileDetails(repositoryId);
-			IObjectFlowService objectFlowService = null;
-			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
-			if (objectFlowConfig != null) {
-				objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
-			}
+
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 				String path = "," + data.getId() + ",";
 				List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
@@ -4091,38 +4071,6 @@ public class CmisObjectService {
 			}
 		}
 
-		@SuppressWarnings("unchecked")
-		private static Map<String, String> getObjectFlowDetailsInConfig(String repositoryId) {
-			IBaseObject data = null;
-			String configDetails = null;
-			try {
-				data = DBUtils.BaseDAO.getByPath(repositoryId, "/cmis:ext_config/objectFlow_SQS");
-				if (data != null) {
-					Map<String, Object> prop = data.getProperties();
-					configDetails = prop.get("configDetails").toString();
-					if (configDetails != null) {
-						JSONParser jsonParser = new JSONParser();
-						Object object = jsonParser.parse(configDetails);
-						JSONObject jsonObject = (JSONObject) object;
-						JSONArray objectFlowDetails = (JSONArray) jsonObject.get("object_flow");
-						Map<String, String> configDetailsMap = (Map<String, String>) jsonObject;
-						if (objectFlowDetails != null) {
-							configDetailsMap.remove("object_flow");
-							configDetailsMap.put("object_flow", objectFlowDetails.toString());
-						}
-						LOG.info("getObjectFlowDetailsInConfig : {} , repository:{}", configDetails, repositoryId);
-						return configDetailsMap;
-					}
-				}
-			} catch (Exception e) {
-				LOG.error("getObjectFlowDetailsInConfig Exception: {}, {}", e.toString(),
-						ExceptionUtils.getStackTrace(e));
-				throw new MongoException(e.toString());
-			}
-			LOG.info("getObjectFlowDetailsInConfig : {} , repository:{}", configDetails, repositoryId);
-			return null;
-
-		}
 	}
 
 }

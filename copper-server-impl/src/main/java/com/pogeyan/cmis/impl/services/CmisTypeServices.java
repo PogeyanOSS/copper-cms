@@ -72,7 +72,7 @@ public class CmisTypeServices {
 
 	public static class Impl {
 
-		public static void addBaseType(String repositoryId) throws MongoException {
+		public static void addBaseType(String repositoryId, String userName) throws MongoException {
 			LOG.info("addBaseType for {}", repositoryId);
 			try {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -97,6 +97,20 @@ public class CmisTypeServices {
 						List<TypeDefinition> baseType = upset(repositoryId);
 						for (TypeDefinition tm : baseType) {
 							typeManagerDAO.commit(tm);
+							if (tm.getId().equalsIgnoreCase("cmis:folder")) {
+								CmisObjectService.Impl.addRootFolder(repositoryId, userName);
+							}
+							if (tm.getId().equalsIgnoreCase("cmis_ext:relationmd")
+									|| tm.getId().equalsIgnoreCase("cmis_ext:relationship")
+									|| tm.getId().equalsIgnoreCase("cmis_ext:config")) {
+								try {
+									createFolderForType(tm, userName, repositoryId);
+								} catch (IOException e) {
+									typeManagerDAO.delete(tm.getId());
+									LOG.error("Folder creation exception:  {}", e.getMessage());
+									throw new IllegalArgumentException(e.getMessage());
+								}
+							}
 							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, tm.getId(), tm);
 						}
 					}
@@ -146,47 +160,21 @@ public class CmisTypeServices {
 					"cmis:secondary", "cmis:secondary", "cmis:secondary", "Secondary Type", BaseTypeId.CMIS_SECONDARY,
 					null, false, false, true, true, true, false, false, type, SecondaryTypeProperty, null, null);
 
-			// Map<String, MPropertyDefinition<?>>
-			// customMgtSecondaryTypeProperty =
-			// getclientMgtRetentionSecondaryProperty();
-			// TypeDefinition customClientMgtsecondaryType = new
-			// TypeDefinition("cmis:rm:clientMgtRetention",
-			// "cmis:rm:clientMgtRetention", "cmis:rm:clientMgtRetention",
-			// "cmis:rm:clientMgtRetention",
-			// "cmis:rm:clientMgtRetention", "Custom Secondary Type",
-			// BaseTypeId.CMIS_SECONDARY, "cmis:secondary",
-			// false, false, true, true, true, true, false, false, type,
-			// customMgtSecondaryTypeProperty);
-			//
-			// Map<String, MPropertyDefinition<?>>
-			// customDestructionSecondaryTypeProperty =
-			// getdestructionRetentionSecondaryProperty();
-			// TypeDefinition customDestructionsecondaryType = new
-			// TypeDefinition("cmis:rm:destructionRetention",
-			// "cmis:rm:destructionRetention", "cmis:rm:destructionRetention",
-			// "cmis:rm:destructionRetention",
-			// "cmis:rm:destructionRetention", "Custom Secondary Type",
-			// BaseTypeId.CMIS_SECONDARY,
-			// "cmis:secondary", false, false, true, true, true, true, false,
-			// false, type,
-			// customDestructionSecondaryTypeProperty);
-			//
-			// TypeDefinition holdsecondaryType = new
-			// TypeDefinition("cmis:rm:hold",
-			// "cmis:rm:hold", "cmis:rm:hold",
-			// "cmis:rm:hold", "cmis:rm:hold", "Custom Secondary Type",
-			// BaseTypeId.CMIS_SECONDARY,
-			// "cmis:secondary", false, false, true, true, true, true, false,
-			// false, type, null);
-			//
-			// TypeDefinition repsecondaryType = new
-			// TypeDefinition("cmis:rm:repMgtRetention",
-			// "cmis:rm:repMgtRetention",
-			// "cmis:rm:repMgtRetention", "cmis:rm:repMgtRetention",
-			// "cmis:rm:repMgtRetention",
-			// "Custom Secondary Type", BaseTypeId.CMIS_SECONDARY,
-			// "cmis:secondary", false, false, true, true,
-			// true, true, false, false, type, null);
+			Map<String, PropertyDefinitionImpl<?>> cmisRelationExt = getRelationExt();
+			TypeDefinition cmisRelationExtObject = typeManagerDAO.createObjectFacade("cmis_ext:relationmd",
+					"cmis_ext:relationmd", "cmis_ext:relationmd", "cmis_ext:relationmd", "cmis_ext:relationmd",
+					"cmis_ext:relationmd", BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true, true, type,
+					cmisRelationExt, null, null);
+
+			Map<String, PropertyDefinitionImpl<?>> cmisRelationMd = getRelationShipPropertyExt();
+			TypeDefinition cmisRelationMdObject = typeManagerDAO.createObjectFacade("cmis_ext:relationship",
+					"cmis_ext:relationship", "cmis_ext:relationship", "cmis_ext:relationship", "cmis_ext:relationship",
+					"Relationship", BaseTypeId.CMIS_RELATIONSHIP, null, true, false, true, true, true, true, true, type,
+					cmisRelationMd, null, null);
+			Map<String, PropertyDefinitionImpl<?>> cmisExtConfig = getConfigExt();
+			TypeDefinition cmisExtConfigObject = typeManagerDAO.createObjectFacade("cmis_ext:config", "cmis_ext:config",
+					"cmis_ext:config", "cmis_ext:config", "cmis_ext:config", "cmis:relation_ext", BaseTypeId.CMIS_ITEM,
+					null, true, true, true, true, true, true, true, type, cmisExtConfig, null, null);
 
 			typeList.add(folderType);
 			typeList.add(documentType);
@@ -194,17 +182,16 @@ public class CmisTypeServices {
 			typeList.add(realtionShipType);
 			typeList.add(policyType);
 			typeList.add(secondaryType);
-			// typeList.add(customClientMgtsecondaryType);
-			// typeList.add(customDestructionsecondaryType);
-			// typeList.add(holdsecondaryType);
-			// typeList.add(repsecondaryType);
+			typeList.add(cmisRelationExtObject);
+			typeList.add(cmisRelationMdObject);
+			typeList.add(cmisExtConfigObject);
+
 			return typeList;
 		}
 
 		@SuppressWarnings("rawtypes")
 		private static Map<String, PropertyDefinitionImpl<?>> getBaseProperty() {
 			Map<String, PropertyDefinitionImpl<?>> list = new HashMap<>();
-
 			PropertyDefinitionImpl<?> name = new PropertyDefinitionImpl("cmis:name", "localName", "localNameSpace",
 					"cmis:name", "cmis:name", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READWRITE, false, false, false, false, null);
@@ -262,16 +249,16 @@ public class CmisTypeServices {
 		@SuppressWarnings("rawtypes")
 		private static Map<String, PropertyDefinitionImpl<?>> getBaseFolderProperty() {
 			Map<String, PropertyDefinitionImpl<?>> folderList = getBaseProperty();
-			PropertyDefinitionImpl parentId = new PropertyDefinitionImpl("cmis:parentId", "localName", "localNameSpace",
-					"cmis:parentId", "cmis:parentId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, true, false, null);
+			PropertyDefinitionImpl<?> parentId = new PropertyDefinitionImpl("cmis:parentId", "localName",
+					"localNameSpace", "cmis:parentId", "cmis:parentId", "description", PropertyType.ID,
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:parentId", parentId);
-			PropertyDefinitionImpl allowedChildObjectTypeIds = new PropertyDefinitionImpl(
+			PropertyDefinitionImpl<?> allowedChildObjectTypeIds = new PropertyDefinitionImpl(
 					"cmis:allowedChildObjectTypeIds", "localName", "localNameSpace", "cmis:allowedChildObjectTypeIds",
 					"cmis:allowedChildObjectTypeIds", "description", PropertyType.ID, Cardinality.MULTI,
 					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:allowedChildObjectTypeIds", allowedChildObjectTypeIds);
-			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
+			PropertyDefinitionImpl<?> path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
 					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:path", path);
@@ -356,7 +343,7 @@ public class CmisTypeServices {
 					"cmis:previousVersionObjectId", "cmis:previousVersionObjectId", "description", PropertyType.ID,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:previousVersionObjectId", previousVersionObjectId);
-			PropertyDefinitionImpl path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
+			PropertyDefinitionImpl<?> path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
 					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
 					Updatability.READONLY, false, false, true, false, null);
 			documentList.put("cmis:path", path);
@@ -392,6 +379,16 @@ public class CmisTypeServices {
 					Updatability.READWRITE, false, true, false, false, null);
 			relationship.put("cmis:targetId", targetId);
 
+			return relationship;
+		}
+
+		@SuppressWarnings("rawtypes")
+		private static Map<String, PropertyDefinitionImpl<?>> getRelationShipPropertyExt() {
+			Map<String, PropertyDefinitionImpl<?>> relationship = getBaserelationShipProperty();
+			PropertyDefinitionImpl<?> relation_name = new PropertyDefinitionImpl("relation_name", "relation_name",
+					"relation_name", "relation_name", "relation_name", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.READWRITE, false, true, false, false, null);
+			relationship.put("relation_name", relation_name);
 			return relationship;
 		}
 
@@ -444,29 +441,42 @@ public class CmisTypeServices {
 					"description", "cmis:description", "cmis:description", "description", PropertyType.STRING,
 					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:description", description);
-			// MPropertyDefinition parentId = new
-			// MPropertyDefinition("cmis:parentId", "localName",
-			// "localNameSpace",
-			// "cmis:parentId", "cmis:parentId", "description", PropertyType.ID,
-			// Cardinality.SINGLE,
-			// Updatability.READONLY, false, false, true, false, null);
-			// list.put("cmis:parentId", parentId);
-			// MPropertyDefinition path = new MPropertyDefinition("cmis:path",
-			// "localName", "localNameSpace", "cmis:path",
-			// "cmis:path", "description", PropertyType.STRING,
-			// Cardinality.SINGLE, Updatability.READONLY, true,
-			// false, true, false, null);
-			// list.put("cmis:path", path);
-			// MPropertyDefinition allowedChildObjectTypeIds = new
-			// MPropertyDefinition("cmis:allowedChildObjectTypeIds",
-			// "localName", "localNameSpace", "cmis:allowedChildObjectTypeIds",
-			// "cmis:allowedChildObjectTypeIds",
-			// "description", PropertyType.ID, Cardinality.MULTI,
-			// Updatability.READONLY, false, false, true, false,
-			// null);
-			// list.put("cmis:allowedChildObjectTypeIds",
-			// allowedChildObjectTypeIds);
+			return list;
+		}
 
+		@SuppressWarnings("rawtypes")
+		public static Map<String, PropertyDefinitionImpl<?>> getRelationExt() {
+			Map<String, PropertyDefinitionImpl<?>> list = getBaseProperty();
+			PropertyDefinitionImpl<?> source_table = new PropertyDefinitionImpl("source_table", "localName",
+					"localNameSpace", "source_table", "source_table", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
+			list.put("source_table", source_table);
+			PropertyDefinitionImpl<?> target_table = new PropertyDefinitionImpl("target_table", "localName",
+					"localNameSpace", "target_table", "target_table", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+			list.put("target_table", target_table);
+			PropertyDefinitionImpl<?> source_column = new PropertyDefinitionImpl("source_column", "localName",
+					"localNameSpace", "source_column", "source_column", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
+			list.put("source_column", source_column);
+			PropertyDefinitionImpl<?> target_column = new PropertyDefinitionImpl("target_column", "localName",
+					"localNameSpace", "target_column", "target_column", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+			list.put("target_column", target_column);
+			PropertyDefinitionImpl<?> copper_relationType = new PropertyDefinitionImpl("copper_relationType",
+					"localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+			list.put("copper_relationType", copper_relationType);
+			return list;
+		}
+
+		@SuppressWarnings("rawtypes")
+		public static Map<String, PropertyDefinitionImpl<?>> getConfigExt() {
+			Map<String, PropertyDefinitionImpl<?>> list = getBaseProperty();
+			PropertyDefinitionImpl<?> configDetails = new PropertyDefinitionImpl("configDetails", "localName",
+					"localNameSpace", "configDetails", "configDetails", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
+			list.put("configDetails", configDetails);
 			return list;
 		}
 
@@ -705,7 +715,6 @@ public class CmisTypeServices {
 
 		}
 
-		@SuppressWarnings("rawtypes")
 		private static TypeDefinition gettingAllTypeDefinition(String repositoryId, TypeDefinition typeDefinition) {
 			CmisDocumentTypeDefinitionImpl resultDocument = null;
 			CmisFolderTypeDefinitionImpl resultFolder = null;
@@ -766,7 +775,7 @@ public class CmisTypeServices {
 				Map<String, PropertyDefinitionImpl<?>> list = new HashMap<>();
 				if (typeDefinition.getPropertyDefinitions() != null) {
 					Map<String, PropertyDefinition<?>> property = typeDefinition.getPropertyDefinitions();
-					for (PropertyDefinition pro : property.values()) {
+					for (PropertyDefinition<?> pro : property.values()) {
 						PropertyDefinitionImpl<?> propertyDefinition = getPropertyDefinition(pro, null);
 						if (propertyDefinition.getLocalNamespace().equalsIgnoreCase("sourceId")) {
 							if (!propertyDefinition.getId().equals("cmis:sourceId")) {
@@ -789,7 +798,7 @@ public class CmisTypeServices {
 						for (TypeDefinition parentObject : childTypes) {
 							if (parentObject.getPropertyDefinitions() != null) {
 								Map<String, PropertyDefinition<?>> property = parentObject.getPropertyDefinitions();
-								for (PropertyDefinition pro : property.values()) {
+								for (PropertyDefinition<?> pro : property.values()) {
 									PropertyDefinitionImpl<?> propertyDefinition = getPropertyDefinition(pro, true);
 									list.put(pro.getId(), propertyDefinition);
 								}
@@ -1464,7 +1473,7 @@ public class CmisTypeServices {
 		}
 
 		@SuppressWarnings({ "rawtypes" })
-		public static PropertyDefinitionImpl getPropertyDefinition(PropertyDefinition pro, Boolean inherited) {
+		public static PropertyDefinitionImpl<?> getPropertyDefinition(PropertyDefinition<?> pro, Boolean inherited) {
 			// LOG.info("getPropertyDefinition from {}", pro);
 			PropertyDefinitionImpl<?> propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(),
 					pro.getLocalNamespace(), pro.getDisplayName(), pro.getQueryName(), pro.getDescription(),
