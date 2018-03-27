@@ -80,6 +80,9 @@ import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.TypeValidator;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1374,12 +1377,15 @@ public class CmisObjectService {
 
 				localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
 				LOG.info("Folder: {} created ", result.getName());
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			} catch (IOException e) {
 				objectMorphiaDAO.delete(folderId, true, null);
 				LOG.error("Folder creation exception: {}", e.getMessage());
 				throw new IllegalArgumentException(e.getMessage());
+			}
+			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
+			if (objectFlowConfig != null) {
+				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
+				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			}
 			return result;
 		}
@@ -1551,8 +1557,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -1654,13 +1659,17 @@ public class CmisObjectService {
 					localService.writeContent(result.getId().toString(), result.getContentStreamFileName(),
 							result.getPath(), contentStream);
 					LOG.info("Document {} Created", result.getName());
-					IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-					invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
 					LOG.error("File creation exception:  {}", ex.getMessage());
 					throw new IllegalArgumentException(ex.getMessage());
 				}
+			}
+
+			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
+			if (objectFlowConfig != null) {
+				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
+				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			}
 
 			GregorianCalendar creationDateCalender = new GregorianCalendar();
@@ -2122,9 +2131,11 @@ public class CmisObjectService {
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 
 			String sourceTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId()
+					: null;
 			String targetTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId()
+					: null;
 			if (sourceTypeId == null) {
 				LOG.error("createRelationshipIntern :{}", "Wrong sourceId,SourceObject should not be null");
 				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
@@ -2456,8 +2467,12 @@ public class CmisObjectService {
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
+			IObjectFlowService objectFlowService = null;
+			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
+			if (objectFlowConfig != null) {
+				objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
+				invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
+			}
 			PropertyData<?> customData = properties.getProperties().get("cmis:name");
 			if (customData != null && customData.getId().equalsIgnoreCase("cmis:name")) {
 				updatecontentProps.put("name", customData.getFirstValue());
@@ -2484,7 +2499,8 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
+					? props.getProperties().get("cmis:description").getFirstValue().toString()
+					: null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -2695,7 +2711,6 @@ public class CmisObjectService {
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 
 			IDocumentObject object = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue().trim(),
 					null);
@@ -2725,7 +2740,12 @@ public class CmisObjectService {
 				baseMorphiaDAO.update(id, updatecontentProps);
 
 			}
-			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
+
+			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
+			if (objectFlowConfig != null) {
+				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
+				invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
+			}
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("setContentStream, updateObjects for object: {},{}", id, updatecontentProps.toString());
 			}
@@ -2743,7 +2763,6 @@ public class CmisObjectService {
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			String id = objectId.getValue().trim();
 			IDocumentObject docDetails = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, id, null);
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			Long modifiedTime = System.currentTimeMillis();
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
@@ -2773,7 +2792,11 @@ public class CmisObjectService {
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
+			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
+			if (objectFlowConfig != null) {
+				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
+				invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
+			}
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("appendContentStream, updateObjects for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2810,8 +2833,11 @@ public class CmisObjectService {
 			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
+			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
+			if (objectFlowConfig != null) {
+				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
+				invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
+			}
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("deleteContentStream, removeFields for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2866,9 +2892,12 @@ public class CmisObjectService {
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
-			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
+			RepositoryManagerFactory.getFileDetails(repositoryId);
+			IObjectFlowService objectFlowService = null;
+			Map<String, String> objectFlowConfig = getObjectFlowDetailsInConfig(repositoryId);
+			if (objectFlowConfig != null) {
+				objectFlowService = ObjectFlowFactory.createObjectFlowService(objectFlowConfig);
+			}
 			if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 				String path = "," + data.getId() + ",";
 				List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
@@ -3164,7 +3193,8 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName() : child.getName();
+									? docObject.getContentStreamFileName()
+									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3259,7 +3289,8 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName() : child.getName();
+								? docObject.getContentStreamFileName()
+								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3836,14 +3867,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject> toList());
+						.collect(Collectors.<IBaseObject>toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt> toList());
+							.collect(Collectors.<AccessControlListImplExt>toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3909,7 +3940,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3917,7 +3948,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -3951,7 +3982,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3959,7 +3990,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -4058,6 +4089,39 @@ public class CmisObjectService {
 					throw new IllegalArgumentException(e.getMessage());
 				}
 			}
+		}
+
+		@SuppressWarnings("unchecked")
+		private static Map<String, String> getObjectFlowDetailsInConfig(String repositoryId) {
+			IBaseObject data = null;
+			String configDetails = null;
+			try {
+				data = DBUtils.BaseDAO.getByPath(repositoryId, "/cmis:ext_config/objectFlow_SQS");
+				if (data != null) {
+					Map<String, Object> prop = data.getProperties();
+					configDetails = prop.get("configDetails").toString();
+					if (configDetails != null) {
+						JSONParser jsonParser = new JSONParser();
+						Object object = jsonParser.parse(configDetails);
+						JSONObject jsonObject = (JSONObject) object;
+						JSONArray objectFlowDetails = (JSONArray) jsonObject.get("object_flow");
+						Map<String, String> configDetailsMap = (Map<String, String>) jsonObject;
+						if (objectFlowDetails != null) {
+							configDetailsMap.remove("object_flow");
+							configDetailsMap.put("object_flow", objectFlowDetails.toString());
+						}
+						LOG.info("getObjectFlowDetailsInConfig : {} , repository:{}", configDetails, repositoryId);
+						return configDetailsMap;
+					}
+				}
+			} catch (Exception e) {
+				LOG.error("getObjectFlowDetailsInConfig Exception: {}, {}", e.toString(),
+						ExceptionUtils.getStackTrace(e));
+				throw new MongoException(e.toString());
+			}
+			LOG.info("getObjectFlowDetailsInConfig : {} , repository:{}", configDetails, repositoryId);
+			return null;
+
 		}
 	}
 
