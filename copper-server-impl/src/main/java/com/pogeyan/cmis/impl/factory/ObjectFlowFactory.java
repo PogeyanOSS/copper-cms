@@ -13,10 +13,10 @@ public class ObjectFlowFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(ObjectFlowFactory.class);
 	public static IObjectFlowFactory objectFlowFactory = null;
 
-	public static IObjectFlowService createObjectFlowService(String parameters) {
+	public static IObjectFlowService createObjectFlowService(String repositoryId) {
 		if (objectFlowFactory != null) {
 			try {
-				return objectFlowFactory.getObjectFlowService(parameters);
+				return objectFlowFactory.getObjectFlowService(repositoryId);
 			} catch (InvalidTargetObjectTypeException e) {
 				LOG.error("InvalidTargetObject {}", e.getMessage());
 				throw new CmisInvalidArgumentException(e.getMessage());
@@ -25,9 +25,9 @@ public class ObjectFlowFactory {
 		return null;
 	}
 
-	public static void setObjectFlow(IObjectFlowFactory objetFlowService) {
-		LOG.info("Setting ObjectFlowService: {}", objetFlowService);
-		objectFlowFactory = objetFlowService;
+	public static void setObjectFlow(IObjectFlowFactory objetFlowFactory) {
+		LOG.info("Setting ObjectFlowService: {}", objetFlowFactory);
+		objectFlowFactory = objetFlowFactory;
 	}
 
 }

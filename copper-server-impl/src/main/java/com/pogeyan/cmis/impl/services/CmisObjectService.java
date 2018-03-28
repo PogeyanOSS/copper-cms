@@ -1380,7 +1380,7 @@ public class CmisObjectService {
 				throw new IllegalArgumentException(e.getMessage());
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
+			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
 		}
 
@@ -1661,7 +1661,7 @@ public class CmisObjectService {
 			}
 
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
+			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED, null);
 
 			GregorianCalendar creationDateCalender = new GregorianCalendar();
 			creationDateCalender.setTimeInMillis(result.getCreatedAt());
@@ -2430,6 +2430,7 @@ public class CmisObjectService {
 				throws CmisRuntimeException, CmisObjectNotFoundException, CmisUpdateConflictException {
 			LOG.info("updateProperties for objectId: {} , repository: {}", objectId.getValue(), repositoryId);
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
+			Map<String, Object> objectFlowUpdateContentProps = new HashMap<String, Object>();
 			if (properties == null) {
 				throw new CmisRuntimeException(
 						"update properties: no properties given for object id: " + objectId.getValue());
@@ -2460,7 +2461,6 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
 
 			PropertyData<?> customData = properties.getProperties().get("cmis:name");
 			if (customData != null && customData.getId().equalsIgnoreCase("cmis:name")) {
@@ -2500,12 +2500,13 @@ public class CmisObjectService {
 					if (!valueName1.getValues().isEmpty()) {
 						if (valueName1.getFirstValue().getClass().getSimpleName()
 								.equalsIgnoreCase("GregorianCalendar")) {
-
 							if (valueName1.getValues().size() == 1) {
 								GregorianCalendar value = convertInstanceOfObject(valueName1.getFirstValue(),
 										GregorianCalendar.class);
 								Long time = value.getTimeInMillis();
 								updatecontentProps.put("properties." + valueName1.getId(), time.longValue());
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										valueName1.getFirstValue().toString());
 							} else {
 								List<Long> valueList = new ArrayList<>();
 								valueName1.getValues().forEach(v -> {
@@ -2514,6 +2515,8 @@ public class CmisObjectService {
 									valueList.add(time.longValue());
 								});
 								updatecontentProps.put("properties." + valueName1.getId(), valueList);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 
 						} else if (valueName1.getFirstValue().getClass().getSimpleName()
@@ -2524,6 +2527,8 @@ public class CmisObjectService {
 										BigInteger.class);
 								int value = valueBigInteger.intValue();
 								updatecontentProps.put("properties." + valueName1.getId(), value);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										valueName1.getFirstValue().toString());
 							} else {
 								List<Integer> valueList = new ArrayList<>();
 								valueName1.getValues().forEach(v -> {
@@ -2531,6 +2536,8 @@ public class CmisObjectService {
 									valueList.add(valueBigInteger.intValue());
 								});
 								updatecontentProps.put("properties." + valueName1.getId(), valueList);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 
 						} else if (valueName1.getFirstValue().getClass().getSimpleName()
@@ -2541,6 +2548,8 @@ public class CmisObjectService {
 										BigDecimal.class);
 								double doubleValue = value.doubleValue();
 								updatecontentProps.put("properties." + valueName1.getId(), doubleValue);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										valueName1.getFirstValue().toString().toString());
 							} else {
 								List<Double> valueList = new ArrayList<>();
 								valueName1.getValues().forEach(v -> {
@@ -2549,22 +2558,28 @@ public class CmisObjectService {
 									valueList.add(value.doubleValue());
 								});
 								updatecontentProps.put("properties." + valueName1.getId(), valueList);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 
 						} else {
-
 							if (valueName1.getValues().size() == 1) {
 								updatecontentProps.put("properties." + valueName1.getId(), valueName1.getFirstValue());
+								objectFlowUpdateContentProps.put(valueName1.getId(), valueName1.getFirstValue());
 							} else {
 								updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 						}
 					} else {
 						updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
+						objectFlowUpdateContentProps.put(valueName1.getId(), (List<String>) valueName1.getValues());
 					}
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
+			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED, objectFlowUpdateContentProps);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("updateProperties for {} , object: {}", id, updatecontentProps.toString());
 			}
@@ -2605,7 +2620,7 @@ public class CmisObjectService {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
 					baseMorphiaDAO.update(child.getId(), updatePath);
-					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED);
+					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED, null);
 				}
 			}
 		}
@@ -2731,7 +2746,7 @@ public class CmisObjectService {
 			}
 
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
+			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED, null);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("setContentStream, updateObjects for object: {},{}", id, updatecontentProps.toString());
@@ -2780,7 +2795,7 @@ public class CmisObjectService {
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED, null);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("appendContentStream, updateObjects for object: {} , {}", id, updatecontentProps.toString());
@@ -2819,7 +2834,7 @@ public class CmisObjectService {
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED, null);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("deleteContentStream, removeFields for object: {} , {}", id, updatecontentProps.toString());
@@ -2900,7 +2915,7 @@ public class CmisObjectService {
 						// failed!");
 						// }
 
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
 					baseMorphiaDAO.delete(child.getId(), false, token);
 				}
@@ -2920,7 +2935,7 @@ public class CmisObjectService {
 					if (doc.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(),
 								doc.getPath(), doc.getContentStreamMimeType());
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}", doc.getId());
 							// throw new CmisStorageException("Deletion content
@@ -2939,7 +2954,7 @@ public class CmisObjectService {
 					if (document.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(document.getContentStreamFileName(),
 								document.getPath(), document.getContentStreamMimeType());
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}",
 							// doc.getId());
@@ -4028,14 +4043,14 @@ public class CmisObjectService {
 		}
 
 		private static void invokeObjectFlowService(IObjectFlowService objectFlowService, IBaseObject doc,
-				ObjectFlowType invokeMethod) {
+				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
 				try {
 					Boolean resultFlow = null;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterCreation(doc);
 					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterUpdate(doc);
+						resultFlow = objectFlowService.afterUpdate(doc, updatedValues);
 					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterDeletion(doc);
 					}
