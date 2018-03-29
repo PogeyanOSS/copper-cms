@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
@@ -51,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
+import com.pogeyan.cmis.api.CustomTypeId;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisFolderTypeDefinitionImpl;
@@ -97,12 +99,12 @@ public class CmisTypeServices {
 						List<TypeDefinition> baseType = upset(repositoryId);
 						for (TypeDefinition tm : baseType) {
 							typeManagerDAO.commit(tm);
-							if (tm.getId().equalsIgnoreCase("cmis:folder")) {
+							if (tm.getId().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())) {
 								CmisObjectService.Impl.addRootFolder(repositoryId, userName);
 							}
-							if (tm.getId().equalsIgnoreCase("cmis_ext:relationmd")
-									|| tm.getId().equalsIgnoreCase("cmis_ext:relationship")
-									|| tm.getId().equalsIgnoreCase("cmis_ext:config")) {
+							if (tm.getId().equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONMD.value())
+									|| tm.getId().equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONSHIP.value())
+									|| tm.getId().equalsIgnoreCase(CustomTypeId.CMIS_EXT_CONFIG.value())) {
 								try {
 									createFolderForType(tm, userName, repositoryId);
 								} catch (IOException e) {
@@ -131,50 +133,62 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> folderProperty = getBaseFolderProperty();
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			TypeDefinition folderType = typeManagerDAO.createObjectFacade("cmis:folder", "cmis:folder", "cmis:folder",
-					"cmis:folder", "cmis:folder", "Folder", BaseTypeId.CMIS_FOLDER, null, true, true, true, true, true,
-					true, true, type, folderProperty, null, null);
+			TypeDefinition folderType = typeManagerDAO.createObjectFacade(BaseTypeId.CMIS_FOLDER.value(),
+					BaseTypeId.CMIS_FOLDER.value(), BaseTypeId.CMIS_FOLDER.value(), BaseTypeId.CMIS_FOLDER.value(),
+					BaseTypeId.CMIS_FOLDER.value(), "Folder", BaseTypeId.CMIS_FOLDER, null, true, true, true, true,
+					true, true, true, type, folderProperty, null, null);
 			Map<String, PropertyDefinitionImpl<?>> documentProperty = getBaseDocumentProperty();
 			DocumentTypeDefinition documentType = (DocumentTypeDefinition) typeManagerDAO.createObjectFacade(
-					"cmis:document", "cmis:document", "cmis:document", "cmis:document", "cmis:document", "Document",
-					BaseTypeId.CMIS_DOCUMENT, null, true, true, true, true, true, true, true, type, documentProperty,
-					true, ContentStreamAllowed.ALLOWED);
+					BaseTypeId.CMIS_DOCUMENT.value(), BaseTypeId.CMIS_DOCUMENT.value(),
+					BaseTypeId.CMIS_DOCUMENT.value(), BaseTypeId.CMIS_DOCUMENT.value(),
+					BaseTypeId.CMIS_DOCUMENT.value(), "Document", BaseTypeId.CMIS_DOCUMENT, null, true, true, true,
+					true, true, true, true, type, documentProperty, true, ContentStreamAllowed.ALLOWED);
 
-			TypeDefinition itemType = typeManagerDAO.createObjectFacade("cmis:item", "cmis:item", "cmis:item",
-					"cmis:item", "cmis:item", "Item", BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true,
-					true, type, getBaseProperty(), null, null);
+			TypeDefinition itemType = typeManagerDAO.createObjectFacade(BaseTypeId.CMIS_ITEM.value(),
+					BaseTypeId.CMIS_ITEM.value(), BaseTypeId.CMIS_ITEM.value(), BaseTypeId.CMIS_ITEM.value(),
+					BaseTypeId.CMIS_ITEM.value(), "Item", BaseTypeId.CMIS_ITEM, null, true, true, true, true, true,
+					true, true, type, getBaseProperty(), null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> relationShipProperty = getBaserelationShipProperty();
-			TypeDefinition realtionShipType = typeManagerDAO.createObjectFacade("cmis:relationship",
-					"cmis:relationship", "cmis:relationship", "cmis:relationship", "cmis:relationship", "Relationship",
+			TypeDefinition realtionShipType = typeManagerDAO.createObjectFacade(BaseTypeId.CMIS_RELATIONSHIP.value(),
+					BaseTypeId.CMIS_RELATIONSHIP.value(), BaseTypeId.CMIS_RELATIONSHIP.value(),
+					BaseTypeId.CMIS_RELATIONSHIP.value(), BaseTypeId.CMIS_RELATIONSHIP.value(), "Relationship",
 					BaseTypeId.CMIS_RELATIONSHIP, null, true, false, true, true, true, true, true, type,
 					relationShipProperty, null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> policyProperty = getBasepolicyProperty();
-			TypeDefinition policyType = typeManagerDAO.createObjectFacade("cmis:policy", "cmis:policy", "cmis:policy",
-					"cmis:policy", "cmis:policy", "Policy", BaseTypeId.CMIS_POLICY, null, true, true, true, true, true,
-					true, true, type, policyProperty, null, null);
+			TypeDefinition policyType = typeManagerDAO.createObjectFacade(BaseTypeId.CMIS_POLICY.value(),
+					BaseTypeId.CMIS_POLICY.value(), BaseTypeId.CMIS_POLICY.value(), BaseTypeId.CMIS_POLICY.value(),
+					BaseTypeId.CMIS_POLICY.value(), "Policy", BaseTypeId.CMIS_POLICY, null, true, true, true, true,
+					true, true, true, type, policyProperty, null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> SecondaryTypeProperty = getBaseSecondaryTypeProperty();
-			TypeDefinition secondaryType = typeManagerDAO.createObjectFacade("cmis:secondary", "cmis:secondary",
-					"cmis:secondary", "cmis:secondary", "cmis:secondary", "Secondary Type", BaseTypeId.CMIS_SECONDARY,
-					null, false, false, true, true, true, false, false, type, SecondaryTypeProperty, null, null);
+			TypeDefinition secondaryType = typeManagerDAO.createObjectFacade(BaseTypeId.CMIS_SECONDARY.value(),
+					BaseTypeId.CMIS_SECONDARY.value(), BaseTypeId.CMIS_SECONDARY.value(),
+					BaseTypeId.CMIS_SECONDARY.value(), BaseTypeId.CMIS_SECONDARY.value(), "Secondary Type",
+					BaseTypeId.CMIS_SECONDARY, null, false, false, true, true, true, false, false, type,
+					SecondaryTypeProperty, null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> cmisRelationExt = getRelationExt();
-			TypeDefinition cmisRelationExtObject = typeManagerDAO.createObjectFacade("cmis_ext:relationmd",
-					"cmis_ext:relationmd", "cmis_ext:relationmd", "cmis_ext:relationmd", "cmis_ext:relationmd",
-					"cmis_ext:relationmd", BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true, true, type,
-					cmisRelationExt, null, null);
+			TypeDefinition cmisRelationExtObject = typeManagerDAO.createObjectFacade(
+					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
+					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
+					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
+					BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true, true, type, cmisRelationExt, null,
+					null);
 
 			Map<String, PropertyDefinitionImpl<?>> cmisRelationMd = getRelationShipPropertyExt();
-			TypeDefinition cmisRelationMdObject = typeManagerDAO.createObjectFacade("cmis_ext:relationship",
-					"cmis_ext:relationship", "cmis_ext:relationship", "cmis_ext:relationship", "cmis_ext:relationship",
-					"Relationship", BaseTypeId.CMIS_RELATIONSHIP, null, true, false, true, true, true, true, true, type,
-					cmisRelationMd, null, null);
+			TypeDefinition cmisRelationMdObject = typeManagerDAO.createObjectFacade(
+					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_RELATIONSHIP.value(),
+					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_RELATIONSHIP.value(),
+					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), "Relationship", BaseTypeId.CMIS_RELATIONSHIP, null,
+					true, false, true, true, true, true, true, type, cmisRelationMd, null, null);
 			Map<String, PropertyDefinitionImpl<?>> cmisExtConfig = getConfigExt();
-			TypeDefinition cmisExtConfigObject = typeManagerDAO.createObjectFacade("cmis_ext:config", "cmis_ext:config",
-					"cmis_ext:config", "cmis_ext:config", "cmis_ext:config", "cmis:relation_ext", BaseTypeId.CMIS_ITEM,
-					null, true, true, true, true, true, true, true, type, cmisExtConfig, null, null);
+			TypeDefinition cmisExtConfigObject = typeManagerDAO.createObjectFacade(CustomTypeId.CMIS_EXT_CONFIG.value(),
+					CustomTypeId.CMIS_EXT_CONFIG.value(), CustomTypeId.CMIS_EXT_CONFIG.value(),
+					CustomTypeId.CMIS_EXT_CONFIG.value(), CustomTypeId.CMIS_EXT_CONFIG.value(),
+					CustomTypeId.CMIS_EXT_CONFIG.value(), BaseTypeId.CMIS_ITEM, null, true, true, true, true, true,
+					true, true, type, cmisExtConfig, null, null);
 
 			typeList.add(folderType);
 			typeList.add(documentType);
@@ -778,12 +792,12 @@ public class CmisTypeServices {
 					for (PropertyDefinition<?> pro : property.values()) {
 						PropertyDefinitionImpl<?> propertyDefinition = getPropertyDefinition(pro, null);
 						if (propertyDefinition.getLocalNamespace().equalsIgnoreCase("sourceId")) {
-							if (!propertyDefinition.getId().equals("cmis:sourceId")) {
+							if (!propertyDefinition.getId().equals(PropertyIds.SOURCE_ID)) {
 								sourceIds.add(propertyDefinition.getId());
 							}
 
 						} else if (propertyDefinition.getLocalNamespace().equalsIgnoreCase("targetId")) {
-							if (!propertyDefinition.getId().equals("cmis:targetId")) {
+							if (!propertyDefinition.getId().equals(PropertyIds.TARGET_ID)) {
 								targetIds.add(propertyDefinition.getId());
 							}
 						}
@@ -976,23 +990,28 @@ public class CmisTypeServices {
 					result.setList(Collections.<TypeDefinition>emptyList());
 				} else {
 					List<TypeDefinition> resultTypes = new ArrayList<>();
-					resultTypes.add(getPropertyIncludeObject(repositoryId,
-							DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:folder")).get(0),
+					resultTypes.add(getPropertyIncludeObject(
+							repositoryId, DBUtils.TypeServiceDAO
+									.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_FOLDER.value())).get(0),
 							includePropertyDefinitions));
 					resultTypes.add(getPropertyIncludeObject(repositoryId,
-							DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, "cmis:document"),
+							DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, BaseTypeId.CMIS_DOCUMENT.value()),
+							includePropertyDefinitions));
+					resultTypes.add(getPropertyIncludeObject(
+							repositoryId, DBUtils.TypeServiceDAO
+									.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_ITEM.value())).get(0),
+							includePropertyDefinitions));
+					resultTypes.add(getPropertyIncludeObject(
+							repositoryId, DBUtils.TypeServiceDAO
+									.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_POLICY.value())).get(0),
 							includePropertyDefinitions));
 					resultTypes.add(getPropertyIncludeObject(repositoryId,
-							DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:item")).get(0),
+							DBUtils.TypeServiceDAO
+									.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_RELATIONSHIP.value())).get(0),
 							includePropertyDefinitions));
 					resultTypes.add(getPropertyIncludeObject(repositoryId,
-							DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:policy")).get(0),
-							includePropertyDefinitions));
-					resultTypes.add(getPropertyIncludeObject(repositoryId,
-							DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:relationship")).get(0),
-							includePropertyDefinitions));
-					resultTypes.add(getPropertyIncludeObject(repositoryId,
-							DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:secondary")).get(0),
+							DBUtils.TypeServiceDAO
+									.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_SECONDARY.value())).get(0),
 							includePropertyDefinitions));
 					result.setNumItems(BigInteger.valueOf(resultTypes.size()));
 					result.setHasMoreItems(true);
@@ -1072,7 +1091,7 @@ public class CmisTypeServices {
 					Arrays.asList(typeId));
 			if (typeDef.size() > 0) {
 				result = typeDef.get(0);
-				if (result.getBaseTypeId().value().equals("cmis:document")) {
+				if (result.getBaseTypeId().value().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
 					DocumentTypeDefinition docResult = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId);
 					Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(docResult, repositoryId, null,
 							null);
@@ -1109,14 +1128,18 @@ public class CmisTypeServices {
 		private static List<TypeDefinitionContainer> getBaseTyeDefCon(String repositoryId,
 				MDocumentTypeManagerDAO docTypeMorphia, int depth, Boolean includePropertyDefinitions) {
 			List<TypeDefinitionContainer> object = new ArrayList<TypeDefinitionContainer>();
-			TypeDefinition folder = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:folder")).get(0);
-			DocumentTypeDefinition document = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, "cmis:document");
-			TypeDefinition policy = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:policy")).get(0);
+			TypeDefinition folder = DBUtils.TypeServiceDAO
+					.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_FOLDER.value())).get(0);
+			DocumentTypeDefinition document = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId,
+					BaseTypeId.CMIS_DOCUMENT.value());
+			TypeDefinition policy = DBUtils.TypeServiceDAO
+					.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_POLICY.value())).get(0);
 			TypeDefinition relationship = DBUtils.TypeServiceDAO
-					.getById(repositoryId, Arrays.asList("cmis:relationship")).get(0);
-			TypeDefinition item = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:item")).get(0);
-			TypeDefinition secondary = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList("cmis:secondary"))
-					.get(0);
+					.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_RELATIONSHIP.value())).get(0);
+			TypeDefinition item = DBUtils.TypeServiceDAO
+					.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_ITEM.value())).get(0);
+			TypeDefinition secondary = DBUtils.TypeServiceDAO
+					.getById(repositoryId, Arrays.asList(BaseTypeId.CMIS_SECONDARY.value())).get(0);
 
 			TypeDefinitionContainerImpl typeFolderDefinitionContainer = getTypeDefinitionContainerImpl(repositoryId,
 					folder, docTypeMorphia, depth, includePropertyDefinitions);
@@ -1196,7 +1219,7 @@ public class CmisTypeServices {
 		private static TypeDefinitionContainerImpl getInnerTypeDefinitionContainerImpl(String repositoryId,
 				TypeDefinition child, Boolean includePropertyDefinitions) {
 			TypeDefinitionContainerImpl typeDefinitionContainer = null;
-			if (child.getBaseTypeId().value().equals("cmis:document")) {
+			if (child.getBaseTypeId().value().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
 				DocumentTypeDefinition docType = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId,
 						child.getId());
 				typeDefinitionContainer = getDocTypeDefContainer(
@@ -1265,19 +1288,19 @@ public class CmisTypeServices {
 			CmisPolicyTypeDefinitionImpl resultPolicy = null;
 			CmisSecondaryTypeDefinitionImpl resultSecondary = null;
 			CmisRelationshipTypeDefinitionImpl resultRelationship = null;
-			if (type.equalsIgnoreCase("cmis:folder")) {
+			if (type.equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())) {
 				resultFolder = getFolderTypeDefinition(resultType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultFolder);
-			} else if (type.equalsIgnoreCase("cmis:item")) {
+			} else if (type.equalsIgnoreCase(BaseTypeId.CMIS_ITEM.value())) {
 				resultItem = getItemTypeDefinition(resultType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultItem);
-			} else if (type.equalsIgnoreCase("cmis:policy")) {
+			} else if (type.equalsIgnoreCase(BaseTypeId.CMIS_POLICY.value())) {
 				resultPolicy = getPolicyTypeDefinition(resultType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultPolicy);
-			} else if (type.equalsIgnoreCase("cmis:relationship")) {
+			} else if (type.equalsIgnoreCase(BaseTypeId.CMIS_RELATIONSHIP.value())) {
 				resultRelationship = getRelationshipTypeDefinitionWithSourceTarget(resultType, null, null);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultRelationship);
-			} else if (type.equalsIgnoreCase("cmis:secondary")) {
+			} else if (type.equalsIgnoreCase(BaseTypeId.CMIS_SECONDARY.value())) {
 				resultSecondary = getSecondaryTypeDefinition(resultType);
 				typeDefinitionContainer = new TypeDefinitionContainerImpl(resultSecondary);
 			}
@@ -1487,8 +1510,9 @@ public class CmisTypeServices {
 		private static void createFolderForType(TypeDefinition type, String userName, String repositoryId)
 				throws IOException, IllegalArgumentException, CmisInvalidArgumentException {
 			PropertiesImpl result = new PropertiesImpl();
-			PropertyData<?> propertyIDData = new PropertyIdImpl("cmis:objectTypeId", "cmis:folder");
-			PropertyData<?> propertyNameData = new PropertyIdImpl("cmis:name", type.getId());
+			PropertyData<?> propertyIDData = new PropertyIdImpl(PropertyIds.OBJECT_TYPE_ID,
+					BaseTypeId.CMIS_FOLDER.value());
+			PropertyData<?> propertyNameData = new PropertyIdImpl(PropertyIds.NAME, type.getId());
 			result.addProperty(propertyIDData);
 			result.addProperty(propertyNameData);
 			CmisObjectService.Impl.createTypeFolder(repositoryId, result, userName);

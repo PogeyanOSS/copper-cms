@@ -69,6 +69,7 @@ public class GatewayActor extends UntypedActor {
 		}
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof BaseMessage) {

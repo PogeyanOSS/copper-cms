@@ -57,6 +57,7 @@ import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.auth.IUserGroupObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostFileResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
@@ -69,7 +70,6 @@ import com.pogeyan.cmis.impl.services.CmisVersioningServices;
 import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
 import com.pogeyan.cmis.impl.utils.CmisUtils;
 import com.pogeyan.cmis.impl.utils.DBUtils;
-import com.pogeyan.cmis.api.data.IBaseObject;
 
 public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(ObjectActor.class);
@@ -261,7 +261,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
-		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
+		Acl aclImp = CmisUtils.Object.getAcl(request.getAddAcl(), principalId, permission);
 		String newObjectId = CmisObjectService.Impl.createFolder(request.getRepositoryId(), folderId, prop,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -296,7 +296,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
-		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
+		Acl aclImp = CmisUtils.Object.getAcl(request.getAddAcl(), principalId, permission);
 		String newObjectId = null;
 		if (request.getContentStream() == null) {
 			newObjectId = CmisObjectService.Impl.createDocument(request.getRepositoryId(), prop, folderId, null,
@@ -337,7 +337,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		String sourceId = request.getParameter(QueryGetRequest.PARAM_SOURCE_ID);
-		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
+		Acl aclImp = CmisUtils.Object.getAcl(request.getAddAcl(), principalId, permission);
 		ObjectData sourceDoc = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), sourceId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
 		PropertyData<?> sourceTypeId = sourceDoc.getProperties().getProperties().get(PropertyIds.OBJECT_TYPE_ID);
@@ -377,7 +377,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
-		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
+		Acl aclImp = CmisUtils.Object.getAcl(request.getAddAcl(), principalId, permission);
 		String newObjectId = CmisObjectService.Impl.createItem(request.getRepositoryId(), prop, folderId,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 
@@ -406,7 +406,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
-		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
+		Acl aclImp = CmisUtils.Object.getAcl(request.getAddAcl(), principalId, permission);
 		String newObjectId = CmisObjectService.Impl.createPolicy(request.getRepositoryId(), prop, folderId,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 
@@ -435,7 +435,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId());
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
-		Acl aclImp = CmisUtils.Object.getAclFor(principalId, permission);
+		Acl aclImp = CmisUtils.Object.getAcl(request.getAddAcl(), principalId, permission);
 		String newObjectId = CmisObjectService.Impl.createRelationship(request.getRepositoryId(), folderId, prop,
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject().getUserDN());
 
@@ -568,20 +568,19 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		 * if (content == null || content.getStream() == null) { throw new
 		 * CmisRuntimeException("Content stream is null!"); }
 		 * 
-		 * String contentType = content.getMimeType(); if (contentType == null)
-		 * { contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
+		 * String contentType = content.getMimeType(); if (contentType == null) {
+		 * contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
 		 * 
-		 * String contentFilename = content.getFileName(); if (contentFilename
-		 * == null) { contentFilename = "content"; }
+		 * String contentFilename = content.getFileName(); if (contentFilename == null)
+		 * { contentFilename = "content"; }
 		 * 
-		 * // send content InputStream in = content.getStream(); OutputStream
-		 * out = null; try { out = new FileOutputStream(content.getFileName());
-		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); }
-		 * catch (Exception e) { LOG.error("writeContent exception: {}, {}",
-		 * e.getMessage(), ExceptionUtils.getStackTrace(e)); throw new
-		 * IllegalArgumentException("Could not write content: " +
-		 * e.getMessage(), e); } finally { IOUtils.closeQuietly(out);
-		 * IOUtils.closeQuietly(in); } return null;
+		 * // send content InputStream in = content.getStream(); OutputStream out =
+		 * null; try { out = new FileOutputStream(content.getFileName());
+		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); } catch
+		 * (Exception e) { LOG.error("writeContent exception: {}, {}", e.getMessage(),
+		 * ExceptionUtils.getStackTrace(e)); throw new
+		 * IllegalArgumentException("Could not write content: " + e.getMessage(), e); }
+		 * finally { IOUtils.closeQuietly(out); IOUtils.closeQuietly(in); } return null;
 		 */
 
 	}
