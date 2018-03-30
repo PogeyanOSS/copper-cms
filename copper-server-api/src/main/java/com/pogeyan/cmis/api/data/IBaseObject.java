@@ -44,6 +44,8 @@ public interface IBaseObject {
 	public String getParentId();
 
 	public Map<String, Object> getProperties();
-	
+
 	public void setProperties(Map<String, Object> props);
+
+	public void setName(String name);
 }
