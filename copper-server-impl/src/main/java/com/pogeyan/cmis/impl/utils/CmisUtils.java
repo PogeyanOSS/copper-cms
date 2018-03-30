@@ -17,6 +17,7 @@ package com.pogeyan.cmis.impl.utils;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -56,16 +57,30 @@ public class CmisUtils {
 			permissions.add(permission);
 			return getAclFor(principalId, permissions);
 		}
-		
+
 		public static Acl getAclFor(String principalId, List<String> permissions) {
 			List<Ace> aceList = new ArrayList<Ace>();
-			AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId), permissions);
+			AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId),
+					permissions);
 			aceList.add(ace);
 			AccessControlListImplExt aclImp = new AccessControlListImplExt(aceList);
 			return aclImp;
 		}
+
+		public static Acl getAcl(Acl acl, String principalId, String permission) {
+			if (acl != null) {
+				List<Ace> aceList = acl.getAces();
+				AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId),
+						Arrays.asList(permission));
+				aceList.add(ace);
+				return acl;
+			} else {
+				return getAclFor(principalId, permission);
+			}
+
+		}
 	}
-	
+
 	public static class Rendition {
 
 		public static boolean hasRendition(IBaseObject so, String user, String repositoryId) {

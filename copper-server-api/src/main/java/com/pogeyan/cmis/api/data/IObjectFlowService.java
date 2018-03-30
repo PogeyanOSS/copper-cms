@@ -1,5 +1,7 @@
 package com.pogeyan.cmis.api.data;
 
+import java.util.Map;
+
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 public interface IObjectFlowService {
@@ -7,7 +9,7 @@ public interface IObjectFlowService {
 
 	public Boolean afterCreation(IBaseObject resultData);
 
-	public Boolean afterUpdate(IBaseObject resultData);
+	public Boolean afterUpdate(IBaseObject resultData, Map<String, Object> updateValues);
 
 	public Boolean afterDeletion(IBaseObject resultData);
 }

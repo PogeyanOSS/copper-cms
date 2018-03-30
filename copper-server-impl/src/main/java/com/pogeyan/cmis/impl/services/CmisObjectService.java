@@ -84,6 +84,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
+import com.pogeyan.cmis.api.CustomTypeId;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
@@ -376,8 +377,9 @@ public class CmisObjectService {
 			// find base type
 			String typeId = null;
 
-			if (data.getTypeId().equalsIgnoreCase("CMIS:FOLDER") || data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
-				if (data.getTypeId().equalsIgnoreCase("CMIS:FOLDER")) {
+			if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())
+					|| data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
+				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())) {
 					typeId = BaseTypeId.CMIS_FOLDER.value();
 				} else {
 					typeId = data.getTypeId();
@@ -403,9 +405,9 @@ public class CmisObjectService {
 					objectInfo.setWorkingCopyOriginalId(null);
 				}
 
-			} else if (data.getTypeId().equalsIgnoreCase("CMIS:DOCUMENT")
+			} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_DOCUMENT.value())
 					|| data.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
-				if (data.getTypeId().equalsIgnoreCase("cmis:document")) {
+				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_DOCUMENT.value())) {
 					typeId = BaseTypeId.CMIS_DOCUMENT.value();
 				} else {
 					typeId = data.getTypeId();
@@ -428,8 +430,9 @@ public class CmisObjectService {
 					objectInfo.setWorkingCopyId(null);
 					objectInfo.setWorkingCopyOriginalId(null);
 				}
-			} else if (data.getTypeId().equalsIgnoreCase("CMIS:ITEM") || data.getBaseId() == BaseTypeId.CMIS_ITEM) {
-				if (data.getTypeId().equalsIgnoreCase("CMIS:ITEM")) {
+			} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_ITEM.value())
+					|| data.getBaseId() == BaseTypeId.CMIS_ITEM) {
+				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_ITEM.value())) {
 					typeId = BaseTypeId.CMIS_ITEM.value();
 				} else {
 					typeId = data.getTypeId();
@@ -453,9 +456,9 @@ public class CmisObjectService {
 					objectInfo.setWorkingCopyId(null);
 					objectInfo.setWorkingCopyOriginalId(null);
 				}
-			} else if (data.getTypeId().equalsIgnoreCase("cmis:relationship")
+			} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_RELATIONSHIP.value())
 					|| data.getBaseId() == BaseTypeId.CMIS_RELATIONSHIP) {
-				if (data.getTypeId().equalsIgnoreCase("cmis:relationship")) {
+				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_RELATIONSHIP.value())) {
 					typeId = BaseTypeId.CMIS_RELATIONSHIP.value();
 				} else {
 					typeId = data.getTypeId();
@@ -476,8 +479,9 @@ public class CmisObjectService {
 					objectInfo.setWorkingCopyId(null);
 					objectInfo.setWorkingCopyOriginalId(null);
 				}
-			} else if (data.getTypeId().equalsIgnoreCase("cmis:policy") || data.getBaseId() == BaseTypeId.CMIS_POLICY) {
-				if (data.getTypeId().equalsIgnoreCase("cmis:policy")) {
+			} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_POLICY.value())
+					|| data.getBaseId() == BaseTypeId.CMIS_POLICY) {
+				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_POLICY.value())) {
 					typeId = BaseTypeId.CMIS_POLICY.value();
 				} else {
 					typeId = data.getTypeId();
@@ -498,9 +502,9 @@ public class CmisObjectService {
 					objectInfo.setWorkingCopyId(null);
 					objectInfo.setWorkingCopyOriginalId(null);
 				}
-			} else if (data.getTypeId().equalsIgnoreCase("cmis:secondary")
+			} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_SECONDARY.value())
 					|| data.getBaseId() == BaseTypeId.CMIS_SECONDARY) {
-				if (data.getTypeId().equalsIgnoreCase("cmis:policy")) {
+				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_SECONDARY.value())) {
 					typeId = BaseTypeId.CMIS_SECONDARY.value();
 				} else {
 					typeId = data.getTypeId();
@@ -584,7 +588,8 @@ public class CmisObjectService {
 						data.getSecondaryTypeIds() == null ? null : data.getSecondaryTypeIds());
 
 				// directory or file
-				if (data.getTypeId().equalsIgnoreCase("CMIS:FOLDER") || data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
+				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())
+						|| data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 					LOG.info("compileProperties isDirectory");
 
 					// base type and type name
@@ -608,7 +613,7 @@ public class CmisObjectService {
 
 					LOG.info("compileProperties hasParent: {}", objectInfo.hasParent());
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null);
-				} else if ((data.getTypeId().equalsIgnoreCase("CMIS:DOCUMENT")
+				} else if ((data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_DOCUMENT.value())
 						|| data.getBaseId() == BaseTypeId.CMIS_DOCUMENT)) {
 					// base type and type name
 					// base type and type name
@@ -703,27 +708,28 @@ public class CmisObjectService {
 								documentObject.getContentStreamId());
 
 					}
-				} else if (data.getTypeId().equalsIgnoreCase("CMIS:ITEM") || data.getBaseId() == BaseTypeId.CMIS_ITEM) {
+				} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_ITEM.value())
+						|| data.getBaseId() == BaseTypeId.CMIS_ITEM) {
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.BASE_TYPE_ID,
 							BaseTypeId.CMIS_ITEM.value());
 					if (typeId != null) {
 						addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_TYPE_ID, typeId);
 					}
-				} else if (data.getTypeId().equalsIgnoreCase("CMIS:POLICY")
+				} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_POLICY.value())
 						|| data.getBaseId() == BaseTypeId.CMIS_POLICY) {
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.BASE_TYPE_ID,
 							BaseTypeId.CMIS_POLICY.value());
 					if (typeId != null) {
 						addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_TYPE_ID, typeId);
 					}
-				} else if (data.getTypeId().equalsIgnoreCase("CMIS:SECONDARY")
+				} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_SECONDARY.value())
 						|| data.getBaseId() == BaseTypeId.CMIS_SECONDARY) {
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.BASE_TYPE_ID,
 							BaseTypeId.CMIS_SECONDARY.value());
 					if (typeId != null) {
 						addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_TYPE_ID, typeId);
 					}
-				} else if (data.getTypeId().equalsIgnoreCase("cmis:relationship")
+				} else if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_RELATIONSHIP.value())
 						|| data.getBaseId() == BaseTypeId.CMIS_RELATIONSHIP) {
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.BASE_TYPE_ID,
 							BaseTypeId.CMIS_RELATIONSHIP.value());
@@ -740,10 +746,10 @@ public class CmisObjectService {
 						for (Map.Entry<String, IBaseObject> objectValues : datas) {
 							String ids = objectValues.getKey();
 
-							if (ids.equalsIgnoreCase("cmis:sourceId")) {
+							if (ids.equalsIgnoreCase(PropertyIds.SOURCE_ID)) {
 								srcIds.add(ids.toString());
 
-							} else if (ids.equalsIgnoreCase("cmis:targetId")) {
+							} else if (ids.equalsIgnoreCase(PropertyIds.TARGET_ID)) {
 								targetIds.add(ids.toString());
 							}
 						}
@@ -804,16 +810,16 @@ public class CmisObjectService {
 			boolean hasContent = false;
 			boolean isRootFolder = false;
 			IDocumentObject documentData = null;
-			if (so.getBaseId().value().equalsIgnoreCase("cmis:folder")) {
+			if (so.getBaseId().value().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())) {
 				isFolder = true;
 			}
-			if (so.getBaseId().value().equalsIgnoreCase("cmis:document")) {
+			if (so.getBaseId().value().equalsIgnoreCase(BaseTypeId.CMIS_DOCUMENT.value())) {
 				isDocument = true;
 			}
-			if (so.getBaseId().value().equalsIgnoreCase("cmis:item")) {
+			if (so.getBaseId().value().equalsIgnoreCase(BaseTypeId.CMIS_ITEM.value())) {
 				isItem = true;
 			}
-			if (so.getBaseId().value().equalsIgnoreCase("cmis:policy")) {
+			if (so.getBaseId().value().equalsIgnoreCase(BaseTypeId.CMIS_POLICY.value())) {
 				isPolicy = true;
 			}
 			boolean isFileable = isFolder || isDocument || isItem;
@@ -968,7 +974,7 @@ public class CmisObjectService {
 			}
 
 			List<RenditionData> renditions = null;
-			if (data.getTypeId().equalsIgnoreCase("cmis:document")) {
+			if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_DOCUMENT.value())) {
 				renditions = checkRenditions(repositoryId, data, renditionFilter,
 						maxItems == null ? 0 : maxItems.longValue(), skipCount == null ? 0 : skipCount.longValue(),
 						userName);
@@ -1080,10 +1086,10 @@ public class CmisObjectService {
 			for (Map.Entry<String, Object> propertiesValues : data) {
 				String id = propertiesValues.getKey();
 				Object valueName = propertiesValues.getValue();
-				if (id.equalsIgnoreCase("cmis:sourceId")) {
+				if (id.equalsIgnoreCase(PropertyIds.SOURCE_ID)) {
 					IBaseObject object = getObjectById(repositoryId, valueName.toString());
 					result.put(id, object);
-				} else if (id.equalsIgnoreCase("cmis:targetId")) {
+				} else if (id.equalsIgnoreCase(PropertyIds.TARGET_ID)) {
 					IBaseObject object = getObjectById(repositoryId, valueName.toString());
 					result.put(id, object);
 				}
@@ -1177,7 +1183,7 @@ public class CmisObjectService {
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
 					String id = customValues.getKey();
-					if (!(customValues.getKey().equals("cmis:secondaryObjectTypeIds"))) {
+					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
 						if (propertyType == PropertyType.INTEGER) {
@@ -1371,16 +1377,18 @@ public class CmisObjectService {
 							localService.getClass().getName() != null ? localService.getClass().getName() : null,
 							result.getId());
 				}
+				if (localService != null) {
+					localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
+					LOG.info("Folder: {} created ", result.getName());
+				}
 
-				localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
-				LOG.info("Folder: {} created ", result.getName());
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-				invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
 			} catch (IOException e) {
 				objectMorphiaDAO.delete(folderId, true, null);
 				LOG.error("Folder creation exception: {}", e.getMessage());
 				throw new IllegalArgumentException(e.getMessage());
 			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
 		}
 
@@ -1551,8 +1559,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -1624,7 +1631,8 @@ public class CmisObjectService {
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			} else {
-				objectTypeId = objectTypeId.equals("cmis:document") ? objectTypeId = "@ROOT@" : objectTypeId;
+				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value()) ? objectTypeId = "@ROOT@"
+						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null);
@@ -1651,17 +1659,20 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			if (contentStream != null) {
 				try {
-					localService.writeContent(result.getId().toString(), result.getContentStreamFileName(),
-							result.getPath(), contentStream);
-					LOG.info("Document {} Created", result.getName());
-					IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-					invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED);
+					if (localService != null) {
+						localService.writeContent(result.getId().toString(), result.getContentStreamFileName(),
+								result.getPath(), contentStream);
+						LOG.info("Document {} Created", result.getName());
+					}
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
 					LOG.error("File creation exception:  {}", ex.getMessage());
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
+
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED, null);
 
 			GregorianCalendar creationDateCalender = new GregorianCalendar();
 			creationDateCalender.setTimeInMillis(result.getCreatedAt());
@@ -1849,7 +1860,8 @@ public class CmisObjectService {
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			} else {
-				objectTypeId = objectTypeId.equals("cmis:document") ? objectTypeId = "@ROOT@" : objectTypeId;
+				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value()) ? objectTypeId = "@ROOT@"
+						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null);
@@ -1961,7 +1973,8 @@ public class CmisObjectService {
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			} else {
-				objectTypeId = objectTypeId.equals("cmis:item") ? objectTypeId = "@ROOT@" : objectTypeId;
+				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_ITEM.value()) ? objectTypeId = "@ROOT@"
+						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null);
@@ -2095,9 +2108,11 @@ public class CmisObjectService {
 			// boolean cmis11 = context.getCmisVersion() !=
 			// CmisVersion.CMIS_1_0;
 			String typeId = (String) properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID).getFirstValue();
-			if (!typeId.equalsIgnoreCase("cmis:relation_md")) {
-				LOG.error("createRelationshipIntern :{}", "TypeId must use cmis base type{cmis:relation_md}");
-				throw new CmisInvalidArgumentException("TypeId must use cmis base type{cmis:relation_md}");
+			if (!typeId.equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONSHIP.value())) {
+				LOG.error("createRelationshipIntern :{}",
+						"TypeId must use cmis base type{" + CustomTypeId.CMIS_EXT_RELATIONSHIP.value() + "}");
+				throw new CmisInvalidArgumentException(
+						"TypeId must use cmis base type{" + CustomTypeId.CMIS_EXT_RELATIONSHIP.value() + "}");
 			}
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 
@@ -2122,9 +2137,11 @@ public class CmisObjectService {
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 
 			String sourceTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId()
+					: null;
 			String targetTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId()
+					: null;
 			if (sourceTypeId == null) {
 				LOG.error("createRelationshipIntern :{}", "Wrong sourceId,SourceObject should not be null");
 				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
@@ -2149,7 +2166,8 @@ public class CmisObjectService {
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			} else {
-				objectTypeId = objectTypeId.equals("cmis:relationship") ? objectTypeId = "@ROOT@" : objectTypeId;
+				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_RELATIONSHIP.value()) ? objectTypeId = "@ROOT@"
+						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null);
@@ -2327,7 +2345,8 @@ public class CmisObjectService {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, folderId, null);
 				}
 			} else {
-				objectTypeId = objectTypeId.equals("cmis:policy") ? objectTypeId = "@ROOT@" : objectTypeId;
+				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_POLICY.value()) ? objectTypeId = "@ROOT@"
+						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null);
@@ -2428,6 +2447,7 @@ public class CmisObjectService {
 				throws CmisRuntimeException, CmisObjectNotFoundException, CmisUpdateConflictException {
 			LOG.info("updateProperties for objectId: {} , repository: {}", objectId.getValue(), repositoryId);
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
+			Map<String, Object> objectFlowUpdateContentProps = new HashMap<String, Object>();
 			if (properties == null) {
 				throw new CmisRuntimeException(
 						"update properties: no properties given for object id: " + objectId.getValue());
@@ -2456,10 +2476,11 @@ public class CmisObjectService {
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED);
-			PropertyData<?> customData = properties.getProperties().get("cmis:name");
-			if (customData != null && customData.getId().equalsIgnoreCase("cmis:name")) {
+
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+
+			PropertyData<?> customData = properties.getProperties().get(PropertyIds.NAME);
+			if (customData != null && customData.getId().equalsIgnoreCase(PropertyIds.NAME)) {
 				updatecontentProps.put("name", customData.getFirstValue());
 				updatecontentProps.put("path", gettingPath(data.getPath(), customData.getFirstValue()));
 				if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
@@ -2483,24 +2504,26 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedAt", modifiedTime);
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
-			String description = props.getProperties().get("cmis:description") != null
-					? props.getProperties().get("cmis:description").getFirstValue().toString() : null;
+			String description = props.getProperties().get(PropertyIds.DESCRIPTION) != null
+					? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString()
+					: null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
 			Set<Map.Entry<String, PropertyData<?>>> customData1 = props.getProperties().entrySet();
 			for (Map.Entry<String, PropertyData<?>> customValues1 : customData1) {
-				if (!(customValues1.getKey().equals("cmis:secondaryObjectTypeIds"))) {
+				if (!(customValues1.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 					PropertyData<?> valueName1 = customValues1.getValue();
 					if (!valueName1.getValues().isEmpty()) {
 						if (valueName1.getFirstValue().getClass().getSimpleName()
 								.equalsIgnoreCase("GregorianCalendar")) {
-
 							if (valueName1.getValues().size() == 1) {
 								GregorianCalendar value = convertInstanceOfObject(valueName1.getFirstValue(),
 										GregorianCalendar.class);
 								Long time = value.getTimeInMillis();
 								updatecontentProps.put("properties." + valueName1.getId(), time.longValue());
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										valueName1.getFirstValue().toString());
 							} else {
 								List<Long> valueList = new ArrayList<>();
 								valueName1.getValues().forEach(v -> {
@@ -2509,6 +2532,8 @@ public class CmisObjectService {
 									valueList.add(time.longValue());
 								});
 								updatecontentProps.put("properties." + valueName1.getId(), valueList);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 
 						} else if (valueName1.getFirstValue().getClass().getSimpleName()
@@ -2519,6 +2544,8 @@ public class CmisObjectService {
 										BigInteger.class);
 								int value = valueBigInteger.intValue();
 								updatecontentProps.put("properties." + valueName1.getId(), value);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										valueName1.getFirstValue().toString());
 							} else {
 								List<Integer> valueList = new ArrayList<>();
 								valueName1.getValues().forEach(v -> {
@@ -2526,6 +2553,8 @@ public class CmisObjectService {
 									valueList.add(valueBigInteger.intValue());
 								});
 								updatecontentProps.put("properties." + valueName1.getId(), valueList);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 
 						} else if (valueName1.getFirstValue().getClass().getSimpleName()
@@ -2536,6 +2565,8 @@ public class CmisObjectService {
 										BigDecimal.class);
 								double doubleValue = value.doubleValue();
 								updatecontentProps.put("properties." + valueName1.getId(), doubleValue);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										valueName1.getFirstValue().toString().toString());
 							} else {
 								List<Double> valueList = new ArrayList<>();
 								valueName1.getValues().forEach(v -> {
@@ -2544,22 +2575,28 @@ public class CmisObjectService {
 									valueList.add(value.doubleValue());
 								});
 								updatecontentProps.put("properties." + valueName1.getId(), valueList);
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 
 						} else {
-
 							if (valueName1.getValues().size() == 1) {
 								updatecontentProps.put("properties." + valueName1.getId(), valueName1.getFirstValue());
+								objectFlowUpdateContentProps.put(valueName1.getId(), valueName1.getFirstValue());
 							} else {
 								updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
+								objectFlowUpdateContentProps.put(valueName1.getId(),
+										(List<String>) valueName1.getValues());
 							}
 						}
 					} else {
 						updatecontentProps.put("properties." + valueName1.getId(), valueName1.getValues());
+						objectFlowUpdateContentProps.put(valueName1.getId(), (List<String>) valueName1.getValues());
 					}
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
+			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED, objectFlowUpdateContentProps);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("updateProperties for {} , object: {}", id, updatecontentProps.toString());
 			}
@@ -2600,7 +2637,7 @@ public class CmisObjectService {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
 					baseMorphiaDAO.update(child.getId(), updatePath);
-					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED);
+					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED, null);
 				}
 			}
 		}
@@ -2695,7 +2732,6 @@ public class CmisObjectService {
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 
 			IDocumentObject object = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue().trim(),
 					null);
@@ -2725,7 +2761,10 @@ public class CmisObjectService {
 				baseMorphiaDAO.update(id, updatecontentProps);
 
 			}
-			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED);
+
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED, null);
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("setContentStream, updateObjects for object: {},{}", id, updatecontentProps.toString());
 			}
@@ -2743,7 +2782,6 @@ public class CmisObjectService {
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			String id = objectId.getValue().trim();
 			IDocumentObject docDetails = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, id, null);
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			Long modifiedTime = System.currentTimeMillis();
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
@@ -2773,7 +2811,9 @@ public class CmisObjectService {
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED, null);
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("appendContentStream, updateObjects for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2810,8 +2850,9 @@ public class CmisObjectService {
 			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED, null);
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("deleteContentStream, removeFields for object: {} , {}", id, updatecontentProps.toString());
 			}
@@ -2866,9 +2907,9 @@ public class CmisObjectService {
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
-			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+			RepositoryManagerFactory.getFileDetails(repositoryId);
 
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(parameters);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 				String path = "," + data.getId() + ",";
 				List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
@@ -2878,7 +2919,7 @@ public class CmisObjectService {
 				}
 
 				for (IBaseObject child : children) {
-					if (child.getBaseId().toString().equalsIgnoreCase("cmis:document")) {
+					if (child.getBaseId().toString().equalsIgnoreCase(BaseTypeId.CMIS_DOCUMENT.value())) {
 						IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, child.getId(),
 								null);
 						// boolean contentDeleted =
@@ -2891,7 +2932,7 @@ public class CmisObjectService {
 						// failed!");
 						// }
 
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
 					baseMorphiaDAO.delete(child.getId(), false, token);
 				}
@@ -2911,7 +2952,7 @@ public class CmisObjectService {
 					if (doc.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(),
 								doc.getPath(), doc.getContentStreamMimeType());
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}", doc.getId());
 							// throw new CmisStorageException("Deletion content
@@ -2930,7 +2971,7 @@ public class CmisObjectService {
 					if (document.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(document.getContentStreamFileName(),
 								document.getPath(), document.getContentStreamMimeType());
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED);
+						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}",
 							// doc.getId());
@@ -3164,7 +3205,8 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName() : child.getName();
+									? docObject.getContentStreamFileName()
+									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3259,7 +3301,8 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName() : child.getName();
+								? docObject.getContentStreamFileName()
+								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3345,8 +3388,9 @@ public class CmisObjectService {
 				// prop.getId() + "' is readonly!");
 				// }
 
-				if (!((propTypes.getId().equals("cmis:objectTypeId")) || (propTypes.getId().equals("cmis:name"))
-						|| (propTypes.getId().equals("cmis:objectId")))) {
+				if (!((propTypes.getId().equals(PropertyIds.OBJECT_TYPE_ID))
+						|| (propTypes.getId().equals(PropertyIds.NAME))
+						|| (propTypes.getId().equals(PropertyIds.OBJECT_ID)))) {
 					result.addProperty(prop);
 				}
 			}
@@ -3650,8 +3694,8 @@ public class CmisObjectService {
 			}
 
 			String queryName = null;
-			if (id.equalsIgnoreCase("cmis:path")) {
-				queryName = "cmis:path";
+			if (id.equalsIgnoreCase(PropertyIds.PATH)) {
+				queryName = PropertyIds.PATH;
 			} else {
 				if (type.getPropertyDefinitions() != null) {
 					Map<String, PropertyDefinition<?>> property = type.getPropertyDefinitions();
@@ -3759,10 +3803,10 @@ public class CmisObjectService {
 			for (Map.Entry<String, IBaseObject> objectValues : data) {
 				String id = objectValues.getKey();
 
-				if (id.equalsIgnoreCase("cmis:sourceId")) {
+				if (id.equalsIgnoreCase(PropertyIds.SOURCE_ID)) {
 					srcIds.add(id.toString());
 
-				} else if (id.equalsIgnoreCase("cmis:targetId")) {
+				} else if (id.equalsIgnoreCase(PropertyIds.TARGET_ID)) {
 					targetIds.add(id.toString());
 				}
 			}
@@ -3836,14 +3880,14 @@ public class CmisObjectService {
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject> toList());
+						.collect(Collectors.<IBaseObject>toList());
 				List<AccessControlListImplExt> mAcl = null;
 				if (folderChildren.size() == 1) {
 					mAcl = new ArrayList<>();
 					mAcl.add(data.getAcl());
 				} else {
 					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt> toList());
+							.collect(Collectors.<AccessControlListImplExt>toList());
 				}
 
 				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
@@ -3909,7 +3953,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3917,7 +3961,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -3951,7 +3995,7 @@ public class CmisObjectService {
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-					.collect(Collectors.<IBaseObject> toList());
+					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
 			if (folderChildren.size() == 1) {
@@ -3959,7 +4003,7 @@ public class CmisObjectService {
 				mAcl.add(dataAcl);
 			} else {
 				mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-						.collect(Collectors.<AccessControlListImplExt> toList());
+						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
@@ -4017,14 +4061,14 @@ public class CmisObjectService {
 		}
 
 		private static void invokeObjectFlowService(IObjectFlowService objectFlowService, IBaseObject doc,
-				ObjectFlowType invokeMethod) {
+				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
 				try {
 					Boolean resultFlow = null;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterCreation(doc);
 					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterUpdate(doc);
+						resultFlow = objectFlowService.afterUpdate(doc, updatedValues);
 					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterDeletion(doc);
 					}
@@ -4059,6 +4103,7 @@ public class CmisObjectService {
 				}
 			}
 		}
+
 	}
 
 }

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -166,12 +167,11 @@ public class CmisVersioningServices {
 			}
 
 			/*
-			 * AllowableActionsImpl allowableActions = new
-			 * AllowableActionsImpl(); allowableActions
+			 * AllowableActionsImpl allowableActions = new AllowableActionsImpl();
+			 * allowableActions
 			 * =(AllowableActionsImpl)allowableActions.getAllowableActions(); if
-			 * (((Set<Action>)allowableActions).contains(Action.CAN_CHECK_OUT))
-			 * { LOG.info("Versionable"); } else { throw new
-			 * CmisNotSupportedException(
+			 * (((Set<Action>)allowableActions).contains(Action.CAN_CHECK_OUT)) {
+			 * LOG.info("Versionable"); } else { throw new CmisNotSupportedException(
 			 * "only versionable document can be checked out"); }
 			 */
 
@@ -179,8 +179,9 @@ public class CmisVersioningServices {
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			IBaseObject baseObject = baseObjectDAO.createObjectFacade(data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
-					"cmis:document", repositoryId, null, "", userName, userName, token, data.getInternalPath(),
-					data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(), data.getParentId());
+					BaseTypeId.CMIS_DOCUMENT.value(), repositoryId, null, "", userName, userName, token,
+					data.getInternalPath(), data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(),
+					data.getParentId());
 			IDocumentObject documentObject = documentObjectDAO.createObjectFacade(baseObject, false, false, false,
 					false, true, data.getVersionLabel(), data.getVersionSeriesId(), data.getVersionReferenceId(), true,
 					userName, baseObject.getId(), "Commit Document", data.getContentStreamLength(),
@@ -248,8 +249,8 @@ public class CmisVersioningServices {
 			checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
 			if (data.getProperties() != null) {
 				properties.putAll(data.getProperties());
-				properties.remove("cmis:versionLabel");
-				properties.replace("cmis:lastModifiedBy", userName);
+				properties.remove(PropertyIds.VERSION_LABEL);
+				properties.replace(PropertyIds.LAST_MODIFIED_BY, userName);
 			}
 
 			IDocumentObject documentdata = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
@@ -258,8 +259,8 @@ public class CmisVersioningServices {
 			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IBaseObject baseObject = baseObjectDAO.createObjectFacade(documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
-					"cmis:document", repositoryId, null, "", documentdata.getCreatedBy(), userName, token,
-					data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
+					BaseTypeId.CMIS_DOCUMENT.value(), repositoryId, null, "", documentdata.getCreatedBy(), userName,
+					token, data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
 					data.getPath(), data.getParentId());
 			String versionSeriesId = Helpers.getObjectId();
 			if (data.getIsVersionSeriesCheckedOut()) {
