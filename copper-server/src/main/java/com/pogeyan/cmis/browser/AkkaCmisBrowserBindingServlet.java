@@ -391,9 +391,10 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 									"bytes " + rangeStart + "-" + rangeEnd + "/" + content.getLength());
 							long start = Long.parseLong(rangeStart);
 							in.skip(start);
-						} else {
-							response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
 						}
+//						else {
+//							response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+//						}
 					} else {
 						response.setStatus(HttpServletResponse.SC_OK);
 					}

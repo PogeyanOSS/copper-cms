@@ -47,6 +47,7 @@ import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.MimeUtils;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
@@ -318,8 +319,21 @@ public class CmisVersioningServices {
 					}
 				}
 			}
-			String fileName = documentObject.getContentStreamFileName()
-					+ documentObject.getVersionLabel().replace(".", "_");
+			String fileName;
+			if (documentObject.getContentStreamFileName().contains(".")) {
+				String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
+				String type = MimeUtils.checkFileExtension(fileNames[1]);
+				if (type != null) {
+					fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "." + fileNames[1];
+				} else {
+					fileName = documentObject.getContentStreamFileName()
+							+ documentObject.getVersionLabel().replace(".", "_");
+				}
+
+			} else {
+				fileName = documentObject.getContentStreamFileName()
+						+ documentObject.getVersionLabel().replace(".", "_");
+			}
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
@@ -334,7 +348,9 @@ public class CmisVersioningServices {
 					LOG.error("File creation exception:  {}", e.getMessage());
 				}
 				updatecontentProps.put("contentStreamLength", contentStreamParam.getLength());
+				updatecontentProps.put("contentStreamFileName", fileName);
 				documentObjectDAO.update(documentObject.getId(), updatecontentProps);
+
 			}
 
 			Map<String, Object> updateProps = new HashMap<String, Object>();
@@ -344,9 +360,6 @@ public class CmisVersioningServices {
 			updateProps.put("versionSeriesCheckedOutId", "");
 			updateProps.put("versionSeriesCheckedOutBy", "");
 			documentObjectDAO.update(documentdata.getId(), updateProps);
-			Map<String, Object> updatePwcProps = new HashMap<String, Object>();
-			updatePwcProps.put("contentStreamFileName", fileName);
-			documentObjectDAO.update(documentObject.getId(), updatePwcProps);
 			TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			documentObjectDAO.delete(objectId.getValue(), null, true, false, deleteToken);
 			return documentObject.getId();
