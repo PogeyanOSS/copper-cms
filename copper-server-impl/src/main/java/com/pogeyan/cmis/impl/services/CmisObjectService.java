@@ -1306,6 +1306,9 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
+					addAces, removeAces, userName, null, null, null, null, null, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userName, removeAces);
 			IBaseObject parent = null;
@@ -1387,8 +1390,8 @@ public class CmisObjectService {
 				LOG.error("Folder creation exception: {}", e.getMessage());
 				throw new IllegalArgumentException(e.getMessage());
 			}
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED, null);
+
+			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
 		}
 
@@ -1569,6 +1572,9 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addACEs != null && removeACEs != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addACEs.getAces(), removeACEs.getAces());
 			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
+					addACEs, removeACEs, userName, null, null, null, null, null, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(userName, addACEs);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userName, removeACEs);
 			List<String> secondaryObjectTypeIds = null;
@@ -1671,8 +1677,7 @@ public class CmisObjectService {
 				}
 			}
 
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, result, ObjectFlowType.CREATED, null);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 
 			GregorianCalendar creationDateCalender = new GregorianCalendar();
 			creationDateCalender.setTimeInMillis(result.getCreatedAt());
@@ -1802,6 +1807,9 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
+					addAces, removeAces, userName, null, null, null, null, null, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userName, removeAces);
 			List<String> secondaryObjectTypeIds = null;
@@ -1903,7 +1911,7 @@ public class CmisObjectService {
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
-
+			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 			GregorianCalendar creationDateCalender = new GregorianCalendar();
 			creationDateCalender.setTimeInMillis(result.getCreatedAt());
 			// set creation date
@@ -1933,6 +1941,9 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
+					addAces, removeAces, userName, null, null, null, null, null, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userName, removeAces);
 			// Properties propertiesNew = properties;
@@ -1993,6 +2004,7 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IBaseObject result = createItemObject(repositoryId, parent, objectId, itemName, userName,
 					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
 		}
 
@@ -2061,6 +2073,9 @@ public class CmisObjectService {
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
+					addAces, removeAces, userName, null, null, null, null, null, null, ObjectFlowType.CREATED);
 			List<String> secondaryObjectTypeIds = null;
 			TypeValidator.validateRequiredSystemProperties(properties);
 
@@ -2180,6 +2195,7 @@ public class CmisObjectService {
 
 			IBaseObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
 					propMapNew, userName, typeDef.getId(), policies, aclAdd);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, storedObject, ObjectFlowType.CREATED, null);
 			return storedObject;
 		}
 
@@ -2299,6 +2315,9 @@ public class CmisObjectService {
 			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
 				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
 			}
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
+					addAces, removeAces, userName, null, null, null, null, null, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(userName, addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userName, removeAces);
 			// Properties propertiesNew = properties;
@@ -2371,7 +2390,7 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IBaseObject result = createPolicyObject(repositoryId, parent, objectId, policyName, userName,
 					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove);
-
+			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
 		}
 
@@ -2452,6 +2471,10 @@ public class CmisObjectService {
 			LOG.info("updateProperties for objectId: {} , repository: {}", objectId.getValue(), repositoryId);
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			Map<String, Object> objectFlowUpdateContentProps = new HashMap<String, Object>();
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, null, properties, null, acl, null,
+					userObject.getUserDN(), objectId, changeToken, objectInfos, null, null, null,
+					ObjectFlowType.UPDATED);
 			if (properties == null) {
 				throw new CmisRuntimeException(
 						"update properties: no properties given for object id: " + objectId.getValue());
@@ -2480,8 +2503,6 @@ public class CmisObjectService {
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 
 			PropertyData<?> customData = properties.getProperties().get(PropertyIds.NAME);
 			if (customData != null && customData.getId().equalsIgnoreCase(PropertyIds.NAME)) {
@@ -2600,7 +2621,8 @@ public class CmisObjectService {
 				}
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
-			invokeObjectFlowService(objectFlowService, data, ObjectFlowType.UPDATED, objectFlowUpdateContentProps);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, data, ObjectFlowType.UPDATED,
+					objectFlowUpdateContentProps);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("updateProperties for {} , object: {}", id, updatecontentProps.toString());
 			}
@@ -2641,7 +2663,7 @@ public class CmisObjectService {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
 					baseMorphiaDAO.update(child.getId(), updatePath);
-					invokeObjectFlowService(objectFlowService, child, ObjectFlowType.UPDATED, null);
+					invokeObjectFlowServiceAfterCreate(objectFlowService, child, ObjectFlowType.UPDATED, null);
 				}
 			}
 		}
@@ -2772,7 +2794,7 @@ public class CmisObjectService {
 			}
 
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, object, ObjectFlowType.UPDATED, null);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, object, ObjectFlowType.UPDATED, null);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("setContentStream, updateObjects for object: {},{}", id, updatecontentProps.toString());
@@ -2821,7 +2843,7 @@ public class CmisObjectService {
 			}
 			baseMorphiaDAO.update(id, updatecontentProps);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.UPDATED, null);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, docDetails, ObjectFlowType.UPDATED, null);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("appendContentStream, updateObjects for object: {} , {}", id, updatecontentProps.toString());
@@ -2860,7 +2882,7 @@ public class CmisObjectService {
 			docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-			invokeObjectFlowService(objectFlowService, docDetails, ObjectFlowType.DELETED, null);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, docDetails, ObjectFlowType.DELETED, null);
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("deleteContentStream, removeFields for object: {} , {}", id, updatecontentProps.toString());
@@ -2874,6 +2896,9 @@ public class CmisObjectService {
 				IUserObject userObject) throws CmisObjectNotFoundException, CmisNotSupportedException {
 
 			LOG.info("deleteObject: {} , repository: {}", objectId, repositoryId);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, objectId, null, null, null, null,
+					userObject.getUserDN(), null, null, null, allVersions, null, null, ObjectFlowType.UPDATED);
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MDocumentObjectDAO docMorphiaDAO = null;
@@ -2941,7 +2966,7 @@ public class CmisObjectService {
 						// failed!");
 						// }
 
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
+						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
 					baseMorphiaDAO.delete(child.getId(), false, token);
 				}
@@ -2961,7 +2986,7 @@ public class CmisObjectService {
 					if (doc.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(),
 								doc.getPath(), doc.getContentStreamMimeType());
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
+						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}", doc.getId());
 							// throw new CmisStorageException("Deletion content
@@ -2980,7 +3005,7 @@ public class CmisObjectService {
 					if (document.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(document.getContentStreamFileName(),
 								document.getPath(), document.getContentStreamMimeType());
-						invokeObjectFlowService(objectFlowService, doc, ObjectFlowType.DELETED, null);
+						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}",
 							// doc.getId());
@@ -3008,6 +3033,9 @@ public class CmisObjectService {
 
 			LOG.debug("deleteTree for folderId: {} and its child- and descendant-objects for repository: {}", folderId,
 					repositoryId);
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, null, null, null, null,
+					userObject.getUserDN(), null, null, null, allVers, unfile, continueOnFail, ObjectFlowType.UPDATED);
 			// boolean allVersions = (null == allVers ? true : allVers);
 			UnfileObject unfileObjects = (null == unfile ? UnfileObject.DELETE : unfile);
 			// boolean continueOnFailure = (null == continueOnFail ? false :
@@ -4069,7 +4097,7 @@ public class CmisObjectService {
 			return null;
 		}
 
-		private static void invokeObjectFlowService(IObjectFlowService objectFlowService, IBaseObject doc,
+		private static void invokeObjectFlowServiceAfterCreate(IObjectFlowService objectFlowService, IBaseObject doc,
 				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
 				try {
@@ -4098,6 +4126,37 @@ public class CmisObjectService {
 			list.add(value);
 			props.put(key, list);
 			return props;
+		}
+
+		private static void invokeObjectFlowServiceBeforeCreate(IObjectFlowService objectFlowService,
+				String repositoryId, String id, Properties properties, List<String> policies, Acl addAces,
+				Acl removeAces, String userName, Holder<String> objectId, Holder<String> changeToken,
+				ObjectInfoHandler objectInfos, Boolean allVers, UnfileObject unfile, Boolean continueOnFail,
+				ObjectFlowType invokeMethod) {
+			if (objectFlowService != null) {
+				try {
+					LOG.info("invokeObjectFlowServiceBeforeCreate for folderId: {}, InvokeMethod: {}" + id,
+							invokeMethod);
+					Boolean resultFlow = null;
+					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
+						resultFlow = objectFlowService.beforeCreation(repositoryId, id, properties, policies, addAces,
+								removeAces, userName);
+					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
+						resultFlow = objectFlowService.beforeUpdate(repositoryId, objectId, changeToken, properties,
+								addAces, objectInfos, userName);
+					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
+						resultFlow = objectFlowService.beforeDeletion(repositoryId, id, allVers, unfile, continueOnFail,
+								userName);
+					}
+					if (resultFlow == null || !resultFlow) {
+						LOG.error("File Queue Message not send properly");
+						throw new IllegalArgumentException("File Queue Message not send properly");
+					}
+				} catch (Exception ex) {
+					LOG.error("File Queue Exception:  {}", ex.getMessage());
+					throw new IllegalArgumentException(ex.getMessage());
+				}
+			}
 		}
 
 		private static void addRootFolder(String repositoryId) {
