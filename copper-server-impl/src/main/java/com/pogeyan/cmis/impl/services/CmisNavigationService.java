@@ -121,20 +121,22 @@ public class CmisNavigationService {
 				path = data.getInternalPath() + folderId + ",";
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 				boolean objectOnly = true;
-				if (mAcl != null && mAcl.get(0) != null) {
+				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
-						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-							List<Ace> listAce = acl.getAces().stream()
-									.filter(t -> Arrays.stream(principalIds).parallel()
-											.anyMatch(t.getPrincipalId()::contains) == true)
-									.collect(Collectors.toList());
-							if (listAce.size() >= 1) {
-								children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems,
-										skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter));
-								childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false);
-								objectOnly = false;
-								break;
+						if (acl != null) {
+							if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+									|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+								List<Ace> listAce = acl.getAces().stream()
+										.filter(t -> Arrays.stream(principalIds).parallel()
+												.anyMatch(t.getPrincipalId()::contains) == true)
+										.collect(Collectors.toList());
+								if (listAce.size() >= 1) {
+									children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems,
+											skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter));
+									childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false);
+									objectOnly = false;
+									break;
+								}
 							}
 						}
 					}
@@ -235,17 +237,21 @@ public class CmisNavigationService {
 			List<? extends IBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			if (mAcl != null && mAcl.get(0) != null) {
+			if (mAcl != null && mAcl.size() > 0) {
 				for (AccessControlListImplExt acl : mAcl) {
-					if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-							|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-						List<Ace> listAce = acl.getAces().stream().filter(t -> Arrays.stream(principalIds).parallel()
-								.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
-						if (listAce.size() >= 1) {
-							children = navigationMorphiaDAO.getDescendants(path, principalIds, false, filterArray,
-									Helpers.splitFilterQuery(filter));
-							objectOnly = false;
-							break;
+					if (acl != null) {
+						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+							List<Ace> listAce = acl.getAces().stream()
+									.filter(t -> Arrays.stream(principalIds).parallel()
+											.anyMatch(t.getPrincipalId()::contains) == true)
+									.collect(Collectors.toList());
+							if (listAce.size() >= 1) {
+								children = navigationMorphiaDAO.getDescendants(path, principalIds, false, filterArray,
+										Helpers.splitFilterQuery(filter));
+								objectOnly = false;
+								break;
+							}
 						}
 					}
 				}
@@ -456,16 +462,20 @@ public class CmisNavigationService {
 			List<? extends IBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			if (mAcl != null && mAcl.get(0) != null) {
+			if (mAcl != null && mAcl.size() > 0) {
 				for (AccessControlListImplExt acl : mAcl) {
-					if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-							|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-						List<Ace> listAce = acl.getAces().stream().filter(t -> Arrays.stream(principalIds).parallel()
-								.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
-						if (listAce.size() >= 1) {
-							children = navigationMorphiaDAO.getFolderTreeIds(path, principalIds, false);
-							objectOnly = false;
-							break;
+					if (acl != null) {
+						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+							List<Ace> listAce = acl.getAces().stream()
+									.filter(t -> Arrays.stream(principalIds).parallel()
+											.anyMatch(t.getPrincipalId()::contains) == true)
+									.collect(Collectors.toList());
+							if (listAce.size() >= 1) {
+								children = navigationMorphiaDAO.getFolderTreeIds(path, principalIds, false);
+								objectOnly = false;
+								break;
+							}
 						}
 					}
 				}
@@ -578,20 +588,23 @@ public class CmisNavigationService {
 				}
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 				boolean objectOnly = true;
-				if (mAcl != null && mAcl.get(0) != null) {
+				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
-						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-							List<Ace> listAce = acl.getAces().stream()
-									.filter(t -> Arrays.stream(principalIds).parallel()
-											.anyMatch(t.getPrincipalId()::contains) == true)
-									.collect(Collectors.toList());
-							if (listAce.size() >= 1) {
-								document = documentMorphiaDAO.getCheckOutDocs(folderId, principalIds, false, maxItems,
-										skipCount, orderBy);
-								documentCount = documentMorphiaDAO.getCheckOutDocsSize(folderId, principalIds, false);
-								objectOnly = false;
-								break;
+						if (acl != null) {
+							if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+									|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+								List<Ace> listAce = acl.getAces().stream()
+										.filter(t -> Arrays.stream(principalIds).parallel()
+												.anyMatch(t.getPrincipalId()::contains) == true)
+										.collect(Collectors.toList());
+								if (listAce.size() >= 1) {
+									document = documentMorphiaDAO.getCheckOutDocs(folderId, principalIds, false,
+											maxItems, skipCount, orderBy);
+									documentCount = documentMorphiaDAO.getCheckOutDocsSize(folderId, principalIds,
+											false);
+									objectOnly = false;
+									break;
+								}
 							}
 						}
 					}

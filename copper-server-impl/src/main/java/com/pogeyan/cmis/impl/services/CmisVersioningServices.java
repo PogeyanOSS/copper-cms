@@ -47,6 +47,7 @@ import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.MimeUtils;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
@@ -320,8 +321,14 @@ public class CmisVersioningServices {
 			}
 			String fileName;
 			if (documentObject.getContentStreamFileName().contains(".")) {
-				String[] fileNames = documentObject.getContentStreamFileName().split("\\.");
-				fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "." + fileNames[1];
+				String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
+				String type = MimeUtils.checkFileExtension(fileNames[1]);
+				if (type != null) {
+					fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "." + fileNames[1];
+				} else {
+					fileName = documentObject.getContentStreamFileName()
+							+ documentObject.getVersionLabel().replace(".", "_");
+				}
 
 			} else {
 				fileName = documentObject.getContentStreamFileName()
