@@ -42,6 +42,7 @@ import com.pogeyan.cmis.actors.ObjectActor;
 import com.pogeyan.cmis.actors.PolicyActor;
 import com.pogeyan.cmis.actors.RelationshipActor;
 import com.pogeyan.cmis.actors.RepositoryActor;
+import com.pogeyan.cmis.actors.TypeCacheActor;
 import com.pogeyan.cmis.actors.VersioningActor;
 import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
@@ -108,6 +109,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 		system.actorOf(Props.create(VersioningActor.class), "versioning");
 		system.actorOf(Props.create(AclActor.class), "acl");
 		system.actorOf(Props.create(DiscoveryActor.class), "discovery");
+		system.actorOf(Props.create(TypeCacheActor.class), "cache");
+
 
 		LOG.info("Initializing service factory instances");
 		try {
@@ -122,14 +125,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
 		}
 
-		if (Helpers.isPerfMode()) {
-			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
-					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
-			reporter.start(10, TimeUnit.SECONDS);
-			if (Helpers.isPrometheusMode()) {
-				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
-			}
-		}
+//		if (Helpers.isPerfMode()) {
+//			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
+//					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
+//			reporter.start(10, TimeUnit.SECONDS);
+//			if (Helpers.isPrometheusMode()) {
+//				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
+//			}
+//		}
 	}
 
 	@Override

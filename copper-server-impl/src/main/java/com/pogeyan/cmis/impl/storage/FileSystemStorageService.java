@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.ByteStreams;
 import com.pogeyan.cmis.api.storage.IRepositoryStorageSettings;
 import com.pogeyan.cmis.api.storage.IStorageService;
-import com.pogeyan.cmis.api.utils.*;
+import com.pogeyan.cmis.api.utils.MimeUtils;
 
 public class FileSystemStorageService implements IStorageService {
 	private static final Logger LOG = LoggerFactory.getLogger(FileSystemStorageService.class);
@@ -69,6 +69,8 @@ public class FileSystemStorageService implements IStorageService {
 
 		if (!newFile.exists()) {
 			try {
+				File dir = new File(gettingFolderPath(this.storeSettings.getFileLocation(), gettingDocNamePath(path)));
+				dir.mkdir();
 				newFile.createNewFile();
 			} catch (Exception e) {
 				LOG.error("writeContent exception: {}, {}", e.getMessage(), ExceptionUtils.getStackTrace(e));
@@ -419,7 +421,8 @@ public class FileSystemStorageService implements IStorageService {
 	}
 
 	private static String gettingFolderPath(String rootPath, String path) {
-		String folderPath = rootPath + path.replace("/", File.separator);
+
+		String folderPath = rootPath + path.replace(":", "_").replace("/", File.separator);
 		return folderPath;
 	}
 

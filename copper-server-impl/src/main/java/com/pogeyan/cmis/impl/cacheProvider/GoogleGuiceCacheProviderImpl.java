@@ -69,4 +69,11 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			typeCacheMap.invalidate(key);
 		}
 	}
+
+	@Override
+	public void removeAll(String repositoryId) {
+		if (repo.containsKey(repositoryId)) {
+			repo.remove(repositoryId);
+		}
+	}
 }

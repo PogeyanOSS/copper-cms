@@ -10,6 +10,8 @@ public interface ICacheProvider {
 
 	public void remove(String repositoryId, String key);
 
+	public void removeAll(String repositoryId);
+
 	public boolean contains(String repositoryId, String key);
 
 	public void init(long time);
