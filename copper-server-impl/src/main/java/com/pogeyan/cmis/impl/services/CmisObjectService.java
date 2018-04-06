@@ -4097,7 +4097,9 @@ public class CmisObjectService {
 				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
 				try {
-					Boolean resultFlow = null;
+					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc.getId(),
+							invokeMethod);
+					boolean resultFlow = false;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterCreation(doc);
 					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
@@ -4105,12 +4107,12 @@ public class CmisObjectService {
 					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterDeletion(doc);
 					}
-					if (resultFlow == null || !resultFlow) {
-						LOG.error("File Queue Message not send properly");
-						throw new IllegalArgumentException("File Queue Message not send properly");
+					if (!resultFlow) {
+						LOG.error("onAfterCreate operation failed with ObjectFlowService");
+						throw new IllegalArgumentException("onAfterCreate operation failed with ObjectFlowService");
 					}
 				} catch (Exception ex) {
-					LOG.error("File Queue Exception:  {}", ex.getMessage());
+					LOG.error("onAfterCreate operation failed with ObjectFlowService:  {}", ex.getMessage());
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
@@ -4131,7 +4133,7 @@ public class CmisObjectService {
 				try {
 					LOG.info("invokeObjectFlowServiceBeforeCreate for objectId: {}, InvokeMethod: {}" + objectId,
 							invokeMethod);
-					Boolean resultFlow = null;
+					boolean resultFlow = false;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.beforeCreation(repositoryId, objectId, properties, policies,
 								addAces, removeAces, userName);
@@ -4141,12 +4143,12 @@ public class CmisObjectService {
 					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.beforeDeletion(repositoryId, objectId, allVers, userName);
 					}
-					if (resultFlow == null || !resultFlow) {
-						LOG.error("File Queue Message not send properly");
-						throw new IllegalArgumentException("File Queue Message not send properly");
+					if (!resultFlow) {
+						LOG.error("onBeforeCreate operation failed with ObjectFlowService");
+						throw new IllegalArgumentException("onBeforeCreate operation failed with ObjectFlowService");
 					}
 				} catch (Exception ex) {
-					LOG.error("File Queue Exception:  {}", ex.getMessage());
+					LOG.error("onBeforeCreate operation failed with ObjectFlowService:  {}", ex.getMessage());
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
