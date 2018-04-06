@@ -72,9 +72,6 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 
 	@Override
 	public void removeAll(String repositoryId) {
-		Cache<String, Object> typeCacheMap = repo.get(repositoryId);
-		if (typeCacheMap != null) {
-			repo.put(repositoryId, null);
-		}
+		repo.put(repositoryId, null);
 	}
 }
