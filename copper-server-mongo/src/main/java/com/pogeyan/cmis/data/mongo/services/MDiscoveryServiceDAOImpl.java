@@ -31,6 +31,7 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 		super(entityClass, ds);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public List<MBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", changeLogToken);
@@ -43,6 +44,7 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 		return query.asList();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public long getLatestTokenChildrenSize(long latestChangeToken) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", latestChangeToken);

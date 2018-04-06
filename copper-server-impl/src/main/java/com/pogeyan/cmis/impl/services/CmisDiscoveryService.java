@@ -87,34 +87,36 @@ public class CmisDiscoveryService {
 				childrenCount = discoveryObjectMorphiaDAO
 						.getLatestTokenChildrenSize(Long.parseLong(changeLogToken.getValue()));
 				for (IBaseObject object : latestChangesObjects) {
-					if (includeAcl) {
-						List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
-								object.getInternalPath(), object.getAcl());
-						boolean objectOnly = true;
-						for (AccessControlListImplExt acl : mAcl) {
-							if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-								List<Ace> listAce = getListAce(acl, principalIds);
+					if (!object.getChangeToken().getChangeType().equals(TokenChangeType.DELETED)) {
+						if (includeAcl) {
+							List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
+									object.getInternalPath(), object.getAcl());
+							boolean objectOnly = true;
+							for (AccessControlListImplExt acl : mAcl) {
+								if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+									List<Ace> listAce = getListAce(acl, principalIds);
+									if (listAce.size() >= 1) {
+										ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
+												filterCollection, includeProperties, includePolicyIds);
+										lod.add(odImpl);
+										objectOnly = false;
+										break;
+									}
+								}
+							}
+							if (objectOnly) {
+								List<Ace> listAce = getListAce(object.getAcl(), principalIds);
 								if (listAce.size() >= 1) {
 									ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
 											includeProperties, includePolicyIds);
 									lod.add(odImpl);
-									objectOnly = false;
-									break;
 								}
 							}
+						} else {
+							ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
+									includeProperties, includePolicyIds);
+							lod.add(odImpl);
 						}
-						if (objectOnly) {
-							List<Ace> listAce = getListAce(object.getAcl(), principalIds);
-							if (listAce.size() >= 1) {
-								ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-										includeProperties, includePolicyIds);
-								lod.add(odImpl);
-							}
-						}
-					} else {
-						ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-								includeProperties, includePolicyIds);
-						lod.add(odImpl);
 					}
 				}
 
