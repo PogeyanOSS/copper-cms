@@ -1812,11 +1812,15 @@ public class CmisObjectService {
 				IDocumentObject doc = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, sourceId, null);
 				Map<String, Object> propertiesdata = doc.getProperties();
 				Map<String, List<String>> pros = new HashMap<String, List<String>>();
-				for (Map.Entry<String, Object> entry : propertiesdata.entrySet()) {
-					List<String> list = new ArrayList<String>();
-					list.add(entry.getValue().toString());
-					pros.put(entry.getKey(), list);
+				if (propertiesdata != null) {
+					for (Map.Entry<String, Object> entry : propertiesdata.entrySet()) {
+						List<String> list = new ArrayList<String>();
+						list.add(entry.getValue().toString());
+						pros.put(entry.getKey(), list);
+					}
 				}
+				getSourceProperties(pros, "cmis:name", doc.getName());
+				getSourceProperties(pros, "cmis:objectTypeId", doc.getTypeId());
 				properties = CmisPropertyConverter.Impl.createNewProperties(pros, repositoryId);
 			}
 			PropertyData<?> pdType = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
@@ -2182,6 +2186,7 @@ public class CmisObjectService {
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, aclAdd, ObjectFlowType.CREATED);
 			IBaseObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
 					propMapNew, userName, typeDef.getId(), policies, aclAdd);
+			invokeObjectFlowServiceAfterCreate(objectFlowService, storedObject, ObjectFlowType.CREATED, null);
 			return storedObject;
 		}
 
@@ -2375,7 +2380,7 @@ public class CmisObjectService {
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, aclAdd, ObjectFlowType.CREATED);
 			IBaseObject result = createPolicyObject(repositoryId, parent, objectId, policyName, userName,
 					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove);
-
+			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
 		}
 
@@ -2709,9 +2714,14 @@ public class CmisObjectService {
 				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 				ContentStream contentStream = null;
 				if (docDetails.getContentStreamFileName() != null) {
+					BigInteger Contentlength;
+					if (offset != null) {
+						Contentlength = BigInteger.valueOf(docDetails.getContentStreamLength()).subtract(offset);
+					} else {
+						Contentlength = BigInteger.valueOf(docDetails.getContentStreamLength());
+					}
 					contentStream = localService.getContent(docDetails.getContentStreamFileName(), docDetails.getPath(),
-							docDetails.getContentStreamMimeType(),
-							BigInteger.valueOf(docDetails.getContentStreamLength()));
+							docDetails.getContentStreamMimeType(), Contentlength);
 					LOG.info("ContentStream: {}", contentStream.toString());
 				}
 
@@ -4116,6 +4126,14 @@ public class CmisObjectService {
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
+		}
+
+		private static Map<String, List<String>> getSourceProperties(Map<String, List<String>> props, String key,
+				String value) {
+			List<String> list = new ArrayList<String>();
+			list.add(value);
+			props.put(key, list);
+			return props;
 		}
 
 		private static void addRootFolder(String repositoryId) {

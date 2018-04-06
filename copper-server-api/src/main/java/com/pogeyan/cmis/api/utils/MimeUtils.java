@@ -18,6 +18,7 @@ package com.pogeyan.cmis.api.utils;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Utilities for dealing with MIME types. Used to implement
@@ -416,8 +417,7 @@ public final class MimeUtils {
 	}
 
 	/**
-	 * Returns true if the given case insensitive MIME type has an entry in the
-	 * map.
+	 * Returns true if the given case insensitive MIME type has an entry in the map.
 	 * 
 	 * @param mimeType
 	 *            A MIME type (i.e. text/plain)
@@ -433,8 +433,8 @@ public final class MimeUtils {
 	 * 
 	 * @param extension
 	 *            A file extension without the leading '.'
-	 * @return The MIME type has been registered for the given case insensitive
-	 *         file extension or null if there is none.
+	 * @return The MIME type has been registered for the given case insensitive file
+	 *         extension or null if there is none.
 	 */
 	public static String guessMimeTypeFromExtension(String extension) {
 		if (extension == null || extension.isEmpty()) {
@@ -445,8 +445,8 @@ public final class MimeUtils {
 	}
 
 	/**
-	 * Returns true if the given case insensitive extension has a registered
-	 * MIME type.
+	 * Returns true if the given case insensitive extension has a registered MIME
+	 * type.
 	 * 
 	 * @param extension
 	 *            A file extension without the leading '.'
@@ -458,14 +458,14 @@ public final class MimeUtils {
 	}
 
 	/**
-	 * Returns the registered extension for the given case insensitive MIME
-	 * type. Note that some MIME types map to multiple extensions. This call
-	 * will return the most common extension for the given MIME type.
+	 * Returns the registered extension for the given case insensitive MIME type.
+	 * Note that some MIME types map to multiple extensions. This call will return
+	 * the most common extension for the given MIME type.
 	 * 
 	 * @param mimeType
 	 *            A MIME type (i.e. text/plain)
-	 * @return The extension has been registered for the given case insensitive
-	 *         MIME type or null if there is none.
+	 * @return The extension has been registered for the given case insensitive MIME
+	 *         type or null if there is none.
 	 */
 	public static String guessExtensionFromMimeType(String mimeType) {
 		if (mimeType == null || mimeType.isEmpty()) {
@@ -473,5 +473,14 @@ public final class MimeUtils {
 		}
 		mimeType = mimeType.toLowerCase(Locale.US);
 		return "." + mimeTypeToExtensionMap.get(mimeType);
+	}
+
+	public static String checkFileExtension(String mimeType) {
+		if (mimeType == null || mimeType.isEmpty()) {
+			return null;
+		}
+		String result = mimeTypeToExtensionMap.entrySet().stream().filter(t -> t.getValue().equalsIgnoreCase(mimeType))
+				.map(t -> t.getKey()).collect(Collectors.joining(","));
+		return result;
 	}
 }
