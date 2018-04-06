@@ -7,25 +7,20 @@ import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
-import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
 
 public interface IObjectFlowService {
 	public void setObjectFlowStoreSettings(IObjectFlowStoreSetting dbSettings) throws InvalidTargetObjectTypeException;
 
-	public Boolean beforeCreation(String repositoryId, String folderId, Properties properties, List<String> policies,
+	public boolean beforeCreation(String repositoryId, String objectId, Properties properties, List<String> policies,
 			Acl addAces, Acl removeAces, String userName);
 
-	public Boolean beforeUpdate(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-			Properties properties, Acl acl, ObjectInfoHandler objectInfos, String userName);
+	public boolean beforeUpdate(String repositoryId, String objectId, Properties properties, Acl acl, String userName);
 
-	public Boolean beforeDeletion(String repositoryId, String folderId, Boolean allVers, UnfileObject unfile,
-			Boolean continueOnFail, String userName);
+	public boolean beforeDeletion(String repositoryId, String objectId, boolean allVers, String userName);
 
-	public Boolean afterCreation(IBaseObject resultData);
+	public boolean afterCreation(IBaseObject resultData);
 
-	public Boolean afterUpdate(IBaseObject resultData, Map<String, Object> updateValues);
+	public boolean afterUpdate(IBaseObject resultData, Map<String, Object> updateValues);
 
-	public Boolean afterDeletion(IBaseObject resultData);
+	public boolean afterDeletion(IBaseObject resultData);
 }
