@@ -4108,13 +4108,13 @@ public class CmisObjectService {
 						resultFlow = objectFlowService.afterDeletion(doc);
 					}
 					if (!resultFlow) {
-						LOG.error("onAfterCreate operation failed with ObjectFlowService in " + invokeMethod);
+						LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
 						throw new IllegalArgumentException(
-								"onAfterCreate operation failed with ObjectFlowService in " + invokeMethod);
+								"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
 					}
 				} catch (Exception ex) {
-					LOG.error("onAfterCreate operation failed with ObjectFlowService:  {}, InvokeMethod: {}",
-							ex.getMessage(), invokeMethod);
+					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
+							invokeMethod, ex.getMessage());
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
@@ -4146,13 +4146,13 @@ public class CmisObjectService {
 						resultFlow = objectFlowService.beforeDeletion(repositoryId, objectId, allVers, userName);
 					}
 					if (!resultFlow) {
-						LOG.error("onBeforeCreate operation failed with ObjectFlowService in " + invokeMethod);
+						LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
 						throw new IllegalArgumentException(
-								"onBeforeCreate operation failed with ObjectFlowService in " + invokeMethod);
+								"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
 					}
 				} catch (Exception ex) {
-					LOG.error("onBeforeCreate operation failed with ObjectFlowService:  {}, InvokeMethod:  {}",
-							ex.getMessage(), invokeMethod);
+					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
+							invokeMethod, ex.getMessage());
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
