@@ -190,7 +190,7 @@ public class CmisObjectService {
 				throw new MongoException(e.toString());
 			}
 			if (data == null) {
-				LOG.error("compileProperties Object is null in {} repository!", repositoryId);
+				LOG.error("getObject Object is null in {} repository!", repositoryId);
 				throw new CmisObjectNotFoundException("Object must not be null!");
 			}
 
@@ -237,7 +237,7 @@ public class CmisObjectService {
 				throw new MongoException(e.toString());
 			}
 			if (data == null) {
-				LOG.error("compileProperties Object is null in {} repository!", repositoryId);
+				LOG.error("getObjectForRestAPI Object is null in {} repository!", repositoryId);
 				throw new CmisObjectNotFoundException("Object must not be null!");
 			}
 
@@ -590,7 +590,6 @@ public class CmisObjectService {
 				// directory or file
 				if (data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())
 						|| data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
-					LOG.info("compileProperties isDirectory");
 
 					// base type and type name
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.BASE_TYPE_ID,
@@ -610,8 +609,6 @@ public class CmisObjectService {
 					// String path = getRepositoryPath(file);
 
 					// folder properties
-
-					LOG.info("compileProperties hasParent: {}", objectInfo.hasParent());
 					addPropertyId(repositoryId, result, type, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null);
 				} else if ((data.getTypeId().equalsIgnoreCase(BaseTypeId.CMIS_DOCUMENT.value())
 						|| data.getBaseId() == BaseTypeId.CMIS_DOCUMENT)) {
