@@ -111,7 +111,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 		system.actorOf(Props.create(DiscoveryActor.class), "discovery");
 		system.actorOf(Props.create(TypeCacheActor.class), "cache");
 
-
 		LOG.info("Initializing service factory instances");
 		try {
 			boolean factory = createServiceFactory(sce, configFilename);
@@ -125,14 +124,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
 		}
 
-//		if (Helpers.isPerfMode()) {
-//			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
-//					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
-//			reporter.start(10, TimeUnit.SECONDS);
-//			if (Helpers.isPrometheusMode()) {
-//				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
-//			}
-//		}
+		if (Helpers.isPerfMode()) {
+			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
+					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
+			reporter.start(10, TimeUnit.SECONDS);
+			if (Helpers.isPrometheusMode()) {
+				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
+			}
+		}
 	}
 
 	@Override
