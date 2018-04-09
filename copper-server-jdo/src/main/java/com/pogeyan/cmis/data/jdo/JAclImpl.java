@@ -4,18 +4,20 @@ import java.util.List;
 
 import javax.jdo.annotations.Cacheable;
 import javax.jdo.annotations.DatastoreIdentity;
-import javax.jdo.annotations.Embedded;
-import javax.jdo.annotations.Extension;
+import javax.jdo.annotations.Element;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.PrimaryKey;
 
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
-@Extension(vendorName = "datanucleus", key = "read-write", value = "true")
 public class JAclImpl {
+	@PrimaryKey
+	private String aclId;
+	private String baseId;
 	private String aclPropagation;
-	@Embedded
+	@Element(column = "aclId")
 	private List<JAceImpl> ace;
 	private boolean extract;
 
@@ -27,6 +29,14 @@ public class JAclImpl {
 		this.aclPropagation = aclPropagation;
 		this.setAce(acl);
 		this.setExtract(extract);
+	}
+
+	public String getAclId() {
+		return aclId;
+	}
+
+	public void setAclId(String aclId) {
+		this.aclId = aclId;
 	}
 
 	public String getAclPropagation() {
@@ -52,4 +62,13 @@ public class JAclImpl {
 	public void setExtract(boolean extract) {
 		this.extract = extract;
 	}
+
+	public String getBaseId() {
+		return baseId;
+	}
+
+	public void setBaseId(String baseId) {
+		this.baseId = baseId;
+	}
+
 }

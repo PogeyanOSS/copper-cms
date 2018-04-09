@@ -63,6 +63,8 @@ public class JDOManagerFactory implements IDBClientFactory {
 			return (T) new JDocumentObjectDAOImpl();
 		} else if (className.equals(JDOManagerFactory.MDISCOVERYSERVICEDAO)) {
 			return (T) new JDiscoveryServiceDAOImpl();
+		} else if (className.equals(JDOManagerFactory.MNAVIGATIONSERVICEDAO)) {
+			return (T) new JNavigationServiceDAOImpl();
 		}
 		return null;
 	}
@@ -82,6 +84,8 @@ public class JDOManagerFactory implements IDBClientFactory {
 		properties.setProperty("javax.jdo.option.ConnectionUserName", repository.getDBName().get("userName"));
 		properties.setProperty("javax.jdo.option.ConnectionPassword", repository.getDBName().get("password"));
 		properties.setProperty("datanucleus.schema.autoCreateTables", "true");
+		properties.setProperty("datanucleus.schema.autoCreateColumns", "true");
+		properties.setProperty("datanucleus.connectionPoolingType", "BoneCP");
 		return properties;
 	}
 }

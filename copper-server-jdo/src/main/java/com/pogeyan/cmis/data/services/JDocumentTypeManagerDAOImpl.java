@@ -11,7 +11,6 @@ import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
 
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.data.jdo.JDocumentTypeObject;
-import com.pogeyan.cmis.data.jdo.JTypeObject;
 
 public class JDocumentTypeManagerDAOImpl implements MDocumentTypeManagerDAO {
 
@@ -19,15 +18,18 @@ public class JDocumentTypeManagerDAOImpl implements MDocumentTypeManagerDAO {
 	@Override
 	public DocumentTypeDefinition getByTypeId(String repositoryId, String typeId) {
 		PersistenceManager pm = JDOServiceImpl.getInstance().initializePersistenceManager(repositoryId);
-		Query query = pm.newQuery(JTypeObject.class);
+		Query<?> query = pm.newQuery(JDocumentTypeObject.class);
 		query.declareParameters("String docId");
-		query.setFilter("id == docId");
+		query.setFilter("this.id == docId");
 		Map<String, String> paramValues = new HashMap<>();
 		paramValues.put("docId", typeId);
-		List<JTypeObject> typeObject = (List<JTypeObject>) query.executeWithMap(paramValues);
-		JDocumentTypeObject object = typeObject.get(0).getDocTypeDefinition();
-		object.setPropertyDefinition(typeObject.get(0).getPropertyDefinition());
-		return object;
+		List<JDocumentTypeObject> typeObject = (List<JDocumentTypeObject>) query.executeWithMap(paramValues);
+		if (typeObject.size() > 0) {
+			JDocumentTypeObject type = typeObject.get(0);
+			type.setPropertyDefinition(type.getListPropertyDefinition());
+			return type;
+		}
+		return null;
 
 	}
 

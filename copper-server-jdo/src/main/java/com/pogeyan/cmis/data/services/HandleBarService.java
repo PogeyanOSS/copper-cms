@@ -20,16 +20,29 @@ public class HandleBarService {
 
 	public static class Impl {
 
-		public static String getTemplateString(String repositoryId, String fileName, Map<String, Object> fields)
+		public static String getTemplateString(String repositoryId, FileNameType fileType, Map<String, Object> fields)
 				throws IOException {
-			LOG.info("getTemplateString for {}", fileName);
-			Handlebars handlebars = new Handlebars();
-			ClassLoader classLoader = HandleBarCheck.class.getClassLoader();
-			File file = new File(classLoader.getResource(fileName + ".txt").getFile());
-			String templateText = readFile(file.getPath(), Charset.defaultCharset());
-			Template template = handlebars.compileInline(templateText);
-			Context context = Context.newBuilder(fields).build();
-			return template.apply(context);
+			try {
+				String fileName = null;
+				LOG.info("getTemplateString for {}", fileType);
+				if (FileNameType.BASEOBJECT.equals(fileType)) {
+					fileName = "JBaseObject.txt";
+				} else if (FileNameType.DOCUMENTOBJECT.equals(fileType)) {
+					fileName = "JDocumentObject.txt";
+				} else if (FileNameType.PROPERTYOBJECT.equals(fileType)) {
+					fileName = "JProperties.txt";
+				}
+				Handlebars handlebars = new Handlebars();
+				ClassLoader classLoader = HandleBarCheck.class.getClassLoader();
+				File file = new File(classLoader.getResource(fileName).getFile());
+				String templateText = readFile(file.getPath(), Charset.defaultCharset());
+				Template template = handlebars.compileInline(templateText);
+				Context context = Context.newBuilder(fields).build();
+				return template.apply(context);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
 		}
 
 		static String readFile(String path, Charset encoding) throws IOException {

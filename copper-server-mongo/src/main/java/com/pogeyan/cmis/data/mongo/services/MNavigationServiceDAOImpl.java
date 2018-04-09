@@ -63,8 +63,9 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<MBaseObject> getChildren(String path, String[] principalIds, boolean aclPropagation, int maxItems,
-			int skipCount, String orderBy, String[] mappedColumns, String filterExpression) {
+	public List<MBaseObject> getChildren(String repositoryId, String typeId, String path, String[] principalIds,
+			boolean aclPropagation, int maxItems, int skipCount, String orderBy, String[] mappedColumns,
+			String filterExpression) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath", path)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (!StringUtils.isEmpty(orderBy)) {
@@ -111,7 +112,8 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	}
 
 	@Override
-	public long getChildrenSize(String path, String[] principalIds, boolean aclPropagation) {
+	public long getChildrenSize(String repositoryId, String typeId, String path, String[] principalIds,
+			boolean aclPropagation) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath", path)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (aclPropagation) {
@@ -141,8 +143,8 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<MBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
-			String[] mappedColumns, String filterExpression) {
+	public List<MBaseObject> getDescendants(String repositoryId, String typeId, String path, String[] principalIds,
+			boolean aclPropagation, String[] mappedColumns, String filterExpression) {
 		Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
@@ -164,7 +166,8 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	}
 
 	@Override
-	public List<MBaseObject> getFolderTreeIds(String path, String[] principalIds, boolean aclPropagation) {
+	public List<MBaseObject> getFolderTreeIds(String repositoryId, String typeId, String path, String[] principalIds,
+			boolean aclPropagation) {
 		if (aclPropagation) {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp).field("baseId")

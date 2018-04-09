@@ -106,10 +106,10 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 		this.save((MBaseObject) entity);
 	}
 
-	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
-			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
-			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
-			String parentId) {
+	public IBaseObject createObjectFacade(String objectId, String name, BaseTypeId baseId, String typeId,
+			String fRepositoryId, List<String> secondaryTypeIds, String description, String createdBy,
+			String modifiedBy, TokenImpl token, String internalPath, Map<String, Object> properties,
+			List<String> policies, Acl acl, String path, String parentId) {
 		return new MBaseObject(name, baseId, typeId, fRepositoryId, secondaryTypeIds, description, createdBy,
 				modifiedBy, token, internalPath, properties, policies, acl, path, parentId);
 	}

@@ -53,9 +53,9 @@ public interface MDocumentObjectDAO {
 
 	public void commit(String repositoryId, IDocumentObject entity);
 
-	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion,
-			Boolean isMajorVersion, Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel,
-			String versionSeriesId, String versionReferenceId, Boolean isVersionSeriesCheckedOut,
+	public IDocumentObject createObjectFacade(String objectId, IBaseObject baseObject, Boolean isImmutable,
+			Boolean isLatestVersion, Boolean isMajorVersion, Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy,
+			String versionLabel, String versionSeriesId, String versionReferenceId, Boolean isVersionSeriesCheckedOut,
 			String versionSeriesCheckedOutBy, String versionSeriesCheckedOutId, String checkinComment,
 			Long contentStreamLength, String contentStreamMimeType, String contentStreamFileName,
 			String contentStreamId, String previousVersionObjectId);

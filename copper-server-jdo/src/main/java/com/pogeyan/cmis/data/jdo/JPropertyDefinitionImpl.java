@@ -1,12 +1,15 @@
 package com.pogeyan.cmis.data.jdo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.jdo.annotations.Cacheable;
 import javax.jdo.annotations.DatastoreIdentity;
+import javax.jdo.annotations.Element;
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.PrimaryKey;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
@@ -14,6 +17,8 @@ import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
+import org.bson.types.ObjectId;
 
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
@@ -21,7 +26,9 @@ import org.apache.chemistry.opencmis.commons.enums.Updatability;
 @Extension(vendorName = "datanucleus", key = "read-write", value = "true")
 public class JPropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private static final long serialVersionUID = 1607345349010610692L;
-	private String id;
+	@PrimaryKey
+	private String propId;
+	private String propDefId;
 	private String localName;
 	private String localNamespace;
 	private String displayName;
@@ -35,7 +42,8 @@ public class JPropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private Boolean isQueryable;
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
-	//private List<Choice<?>> choice;
+	@Element(column = "propId")
+	private List<JChoiceImpl> choice;
 
 	public JPropertyDefinitionImpl() {
 
@@ -46,7 +54,8 @@ public class JPropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 			Updatability updatability, Boolean isInherited, Boolean isRequired, Boolean isQueryable,
 			Boolean isOrderable, Boolean isOpenChoice) {
 		super();
-		this.id = id;
+		this.propId = (new ObjectId()).toString();
+		this.propDefId = id;
 		this.localName = localName;
 		this.localNamespace = localNamespace;
 		this.displayName = displayName;
@@ -74,7 +83,7 @@ public class JPropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	@Override
 	public String getId() {
-		return this.id;
+		return this.propDefId;
 	}
 
 	@Override
@@ -147,27 +156,25 @@ public class JPropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Choice<T>> getChoices() {
-//		List<Choice<T>> choiceList = null;
-//		if (choice != null) {
-//			choiceList = new ArrayList<>();
-//			for (Choice<?> ch : choice) {
-//				ChoiceImpl<T> singleChoice = new ChoiceImpl<T>();
-//				singleChoice.setDisplayName(ch.getDisplayName());
-//				singleChoice.setValue((List<T>) ch.getValue());
-//				List<?> childChoice = ch.getChoice();
-//				singleChoice.setChoice((List<Choice<T>>) childChoice);
-//				choiceList.add(singleChoice);
-//			}
-//		}
-//
-//		return choiceList;
-		return null;
+		List<Choice<T>> choiceList = null;
+		if (choice != null) {
+			choiceList = new ArrayList<>();
+			for (JChoiceImpl ch : choice) {
+				ChoiceImpl<T> singleChoice = new ChoiceImpl<T>();
+				singleChoice.setDisplayName(ch.getDispalyName());
+				singleChoice.setValue((List<T>) ch.getValue());
+				singleChoice.setChoice(null);
+				choiceList.add(singleChoice);
+			}
+		}
+		return choiceList;
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		this.propDefId = id;
 	}
 
 	public void setLocalName(String localName) {
@@ -222,9 +229,15 @@ public class JPropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		this.isOpenChoice = isOpenChoice;
 	}
 
-	@SuppressWarnings({ "unchecked" })
-	public void setChoice(List<?> list) {
-		// this.choice = (List<Choice<?>>) list;
-		//this.choice = null;
+	public void setChoice(List<JChoiceImpl> choice) {
+		this.choice = choice;
+	}
+
+	public String getPropId() {
+		return propId;
+	}
+
+	public void setPropId(String propId) {
+		this.propId = propId;
 	}
 }

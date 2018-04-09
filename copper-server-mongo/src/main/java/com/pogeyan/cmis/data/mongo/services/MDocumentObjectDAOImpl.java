@@ -162,7 +162,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 		this.save((MDocumentObject) entity);
 	}
 
-	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion,
+	public IDocumentObject createObjectFacade(String objectId,IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion,
 			Boolean isMajorVersion, Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel,
 			String versionSeriesId, String versionReferenceId, Boolean isVersionSeriesCheckedOut,
 			String versionSeriesCheckedOutBy, String versionSeriesCheckedOutId, String checkinComment,

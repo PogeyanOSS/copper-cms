@@ -238,7 +238,7 @@ public class Helpers {
 	}
 
 	public static String[] getPrincipalIds(IUserObject userObject) {
-		List<String> principalIds = Stream.of(userObject.getGroups()).map(t -> t.getGroupDN())
+		List<String> principalIds = Stream.of(userObject.getGroups()).distinct().map(t -> t.getGroupDN())
 				.collect(Collectors.<String>toList());
 		principalIds.add(userObject.getUserDN());
 		return principalIds.toArray(new String[principalIds.size()]);
@@ -280,7 +280,7 @@ public class Helpers {
 		} else if (name.equalsIgnoreCase("operator")) {
 			return "operator";
 		} else {
-			return "properties." + name;
+			return name;
 		}
 	}
 
@@ -341,14 +341,14 @@ public class Helpers {
 			Boolean isLatestVersion, Boolean isMajorVersion, Boolean isLatestMajorVersion, ContentStream contentStream,
 			String versionSeriesId, String versionReferenceId) {
 		if (contentStream != null) {
-			return documentMorphiaDAO.createObjectFacade(baseObject, false, isLatestVersion, isMajorVersion,
-					isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false, null, null,
-					"Commit Document", contentStream.getLength(), contentStream.getMimeType(),
+			return documentMorphiaDAO.createObjectFacade(baseObject.getId(), baseObject, false, isLatestVersion,
+					isMajorVersion, isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false,
+					null, null, "Commit Document", contentStream.getLength(), contentStream.getMimeType(),
 					contentStream.getFileName(), Helpers.getObjectId(), null);
 		} else {
-			return documentMorphiaDAO.createObjectFacade(baseObject, false, isLatestVersion, isMajorVersion,
-					isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false, null, null,
-					"Commit Document", null, null, null, null, null);
+			return documentMorphiaDAO.createObjectFacade(baseObject.getId(), baseObject, false, isLatestVersion,
+					isMajorVersion, isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false,
+					null, null, "Commit Document", null, null, null, null, null);
 		}
 	}
 

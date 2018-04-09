@@ -3,6 +3,7 @@ package com.pogeyan.cmis.data.jdo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import javax.jdo.annotations.Cacheable;
 import javax.jdo.annotations.DatastoreIdentity;
@@ -14,6 +15,8 @@ import javax.jdo.annotations.PrimaryKey;
 import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.Inheritance;
 import javax.jdo.annotations.InheritanceStrategy;
+import javax.jdo.annotations.Element;
+import javax.jdo.annotations.Persistent;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -24,21 +27,26 @@ import org.bson.types.ObjectId;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
+import com.pogeyan.cmis.api.data.IVirtualBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import  com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import javax.jdo.annotations.Serialized;
+import com.pogeyan.cmis.data.jdo.JAclConverter;
+
 
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
 @Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
-public class JBaseObject implements IBaseObject, ISettableBaseObject {
+public class JBaseObject implements IBaseObject, ISettableBaseObject, IVirtualBaseObject {
 	@PrimaryKey
 	private String id;
 	private String name;
 	private BaseTypeId baseId;
 	private String typeId;
 	private String repositoryId;
+	@Serialized
 	private List<String> secondaryTypeIds;
 	private String description;
 	private String createdBy;
@@ -47,13 +55,21 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	private Long modifiedAt;
 	@Embedded
 	private JTokenImpl token;
+	@Element(column = "id")
+	private List<JRelationship> relationship;
 	private String internalPath;
 	private String path;
+	@Serialized
 	private List<String> policies;
-	private JAclImpl acl;
+	@Element(column = "id")
+	private List<JAclImpl> acl;
 	private String parentId;
 	@NotPersistent
 	Map<String,Object> prop;
+	private String policyText;
+	private Boolean isVirtual;
+	@Serialized
+	private String propString;
 	
 	public String getRepositoryId() {
 		return repositoryId;
@@ -101,6 +117,10 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	public List<String> getSecondaryTypeIds() {
 		return this.secondaryTypeIds;
 	}
+	
+	public void setSecondaryTypeIds(List<String> secondaryTypeIds) {
+	 this.secondaryTypeIds = secondaryTypeIds;
+	}
 
 	public String getDescription() {
 		return this.description;
@@ -143,7 +163,7 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	}
 
 	public TokenImpl getChangeToken() {
-		TokenImpl m = new TokenImpl(getTokenValue.getTokenValue(token.getChangeType()), token.getTime());
+		TokenImpl m = new TokenImpl(this.token.getChangeType(), this.token.getTime());
 		return m;
 	}
 
@@ -172,20 +192,25 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	}
 
 	public AccessControlListImplExt getAcl() {
-		List<Ace> list = new ArrayList<Ace>(acl.getAce().size());
-		for (JAceImpl ace : acl.getAce()) {
+	
+	if(this.acl !=null && this.acl.size() > 0 && this.acl.get(0).getAce() !=null && this.acl.get(0).getAce().size() > 0)
+	{
+		List<Ace> list = new ArrayList<Ace>(this.acl.get(0).getAce().size());
+		for (JAceImpl ace : this.acl.get(0).getAce()) {
 			AccessControlEntryImpl aces = new AccessControlEntryImpl();
 			aces.setDirect(true);
 			aces.setPrincipal(new AccessControlPrincipalDataImpl(ace.getPrincipalId()));
 			aces.setPermissions(ace.getPermissions());
 			list.add(aces);
 		}
-		AccessControlListImplExt mAcl = new AccessControlListImplExt(list, acl.getAclPropagation(), true);
+		AccessControlListImplExt mAcl = new AccessControlListImplExt(list, this.acl.get(0).getAclPropagation(), true);
 		return mAcl;
+		}
+		return null;	 
 	}
 
-	public void setAcl(Acl acl) {
-		this.acl = convertJDOAcl(acl);
+	public void setAcl(JAclConverter acl) {
+	this.acl=convertJDOAcl(acl);
 	}
 
 	public String getPath() {
@@ -204,21 +229,39 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 		this.parentId = parentId;
 	}
 
-	public static JAclImpl convertJDOAcl(Acl acl) {
+	public static List<JAclImpl> convertJDOAcl(JAclConverter JAcl) {
+	if(JAcl != null){
+	List<JAclImpl> aclList=new ArrayList<>();
+	String baseId=JAcl.getId();
+	Acl acl=JAcl.getAcl();
 		if (acl != null) {
 			AccessControlListImplExt acessControl = (AccessControlListImplExt) acl;
 			List<JAceImpl> list = new ArrayList<JAceImpl>(acl.getAces().size());
 			for (Ace ace : acl.getAces()) {
 				JAceImpl aces = new JAceImpl();
 				aces.setDirect(true);
-				aces.setPrincipal(ace.getPrincipalId());
-				aces.setPermissions(ace.getPermissions());
+					List<JPermission> jPermission = new ArrayList<>();
+					if (ace.getPermissions().size() > 0) {
+						for (String permissions : ace.getPermissions()) {
+							JPermission permission = new JPermission();
+							permission.setPermissionRule(permissions);
+							permission.setBaseId(baseId);
+							jPermission.add(permission);
+						}
+					}
+					aces.setPrincipal(ace.getPrincipalId());
+					aces.setPermissions(jPermission);
+					aces.setAceId((new ObjectId()).toString());
+					aces.setBaseId(baseId);
 				list.add(aces);
 			}
 			JAclImpl mAcl = new JAclImpl(list, acessControl.getAclPropagation(), true);
-			return mAcl;
+			mAcl.setBaseId(baseId);
+			mAcl.setAclId((new ObjectId()).toString());
+			aclList.add(mAcl);
+			return aclList;
 		}
-
+}
 		return null;
 	}
 
@@ -229,6 +272,28 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 		return mongoToken;
 	}
 	public Map<String, Object> getProperties() {
+	if(this.relationship !=null && !this.relationship.isEmpty() && this.relationship.size > 0)
+	{
+	if(this.prop ==null)
+	{
+	this.prop =  new HashMap<>();
+	}
+	if(this.relationship.get(0).getSourceId() !=null && this.relationship.get(0).getTargetId() !=null)
+	{
+	this.prop.put("cmis:sourceId",this.relationship.getSourceId());
+	this.prop.put("cmis:targetId",this.relationship.getTargetId());
+	}
+	
+	}
+	if(this.policyText !=null)
+	{
+	if(this.prop ==null)
+	{
+	this.prop =  new HashMap<>();
+	}
+	this.prop.put("cmis:policyText",this.policyText);
+	}
+	
 		return this.prop;
 	}
 	public void setProperties(Map<String,Object> props)
@@ -236,4 +301,41 @@ public class JBaseObject implements IBaseObject, ISettableBaseObject {
 	this.prop=props;
 	}
 	
+	public JRelationship getRelationship() {
+	if(this.relationship !=null && !this.relationship.isEmpty() && this.relationship.size > 0)
+	{
+	return this.relationship.get(0);
+	}
+		return null;
+	}
+	public void setRelationship(List<JRelationship> relationship)
+	{
+	this.relationship=relationship;
+	}
+	public String getPolicyText() {
+		return policyText;
+	}
+
+	public void setPolicyText(String policyText) {
+		this.policyText = policyText;
+	}
+	
+	 
+	public Boolean getIsVirtual() {
+		return this.isVirtual;
+	}
+
+	 
+	public void setIsVirtual(Boolean isvirtual) {
+		this.isVirtual = isvirtual;
+
+	}
+	
+	public String getPropString() {
+		return propString;
+	}
+
+	public void setPropString(String propString) {
+		this.propString = propString;
+	}
 }

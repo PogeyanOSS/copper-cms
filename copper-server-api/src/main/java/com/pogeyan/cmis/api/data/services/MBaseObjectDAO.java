@@ -43,8 +43,8 @@ public interface MBaseObjectDAO {
 
 	public void commit(String repoistoryId, IBaseObject entity);
 
-	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
-			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
-			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
-			String parentId);
+	public IBaseObject createObjectFacade(String objectId, String name, BaseTypeId baseId, String typeId,
+			String fRepositoryId, List<String> secondaryTypeIds, String description, String createdBy,
+			String modifiedBy, TokenImpl token, String internalPath, Map<String, Object> properties,
+			List<String> policies, Acl acl, String path, String parentId);
 }

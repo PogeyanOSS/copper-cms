@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISettableTypeObject;
 import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisFolderTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisPolicyTypeDefinitionImpl;
@@ -532,6 +533,13 @@ public class CmisTypeServices {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
 				DocumentTypeDefinition newType = getDocumentTypeDefinition(typeManagerDAO, doctype, Mproperty,
 						typeMutability);
+				if (newType instanceof ISettableTypeObject) {
+					ISettableTypeObject settableTypeObject = (ISettableTypeObject) newType;
+					if (newType != null) {
+						settableTypeObject.setCreatedAt(System.currentTimeMillis());
+						settableTypeObject.setModifiedAt(System.currentTimeMillis());
+					}
+				}
 				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 				try {
@@ -545,6 +553,13 @@ public class CmisTypeServices {
 				return getType;
 			} else {
 				TypeDefinition newType = getTypeDefinitionManager(typeManagerDAO, type, Mproperty, typeMutability);
+				if (newType instanceof ISettableTypeObject) {
+					ISettableTypeObject settableTypeObject = (ISettableTypeObject) newType;
+					if (newType != null) {
+						settableTypeObject.setCreatedAt(System.currentTimeMillis());
+						settableTypeObject.setModifiedAt(System.currentTimeMillis());
+					}
+				}
 				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 				try {
@@ -613,10 +628,22 @@ public class CmisTypeServices {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
 				DocumentTypeDefinition newType = getDocumentTypeDefinition(typeManagerDAO, doctype, Mproperty,
 						typeMutability);
+				if (newType instanceof ISettableTypeObject) {
+					ISettableTypeObject settableTypeObject = (ISettableTypeObject) newType;
+					if (newType != null) {
+						settableTypeObject.setModifiedAt(System.currentTimeMillis());
+					}
+				}
 				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 			} else {
 				TypeDefinition newType = getTypeDefinitionManager(typeManagerDAO, type, Mproperty, typeMutability);
+				if (newType instanceof ISettableTypeObject) {
+					ISettableTypeObject settableTypeObject = (ISettableTypeObject) newType;
+					if (newType != null) {
+						settableTypeObject.setModifiedAt(System.currentTimeMillis());
+					}
+				}
 				typeManagerDAO.commit(repositoryId, newType);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(), newType);
 			}
@@ -657,8 +684,13 @@ public class CmisTypeServices {
 			// MongoStorageDocument.createStorageService(parameters,
 			// repositoryId, type);
 			// localService.deleteFolder(parameters, repositoryId, type);
-			IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId,
-					DBUtils.BaseDAO.getByPathTypeId(repositoryId, "/" + type), "/" + type);
+			IBaseObject folderObject = null;
+			String typeIdByPath = DBUtils.BaseDAO.getByPathTypeId(repositoryId, "/" + type);
+			if (typeIdByPath != null) {
+				folderObject = DBUtils.BaseDAO.getByPath(repositoryId,
+						DBUtils.BaseDAO.getByPathTypeId(repositoryId, "/" + type), "/" + type);
+			}
+
 			if (folderObject != null) {
 				baseMorphiaDAO.delete(repositoryId, folderObject.getId(), folderObject.getTypeId(), true, null);
 			}

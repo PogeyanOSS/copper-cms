@@ -14,18 +14,21 @@ import javax.jdo.annotations.PrimaryKey;
 import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.Inheritance;
 import javax.jdo.annotations.InheritanceStrategy;
-import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
+import com.pogeyan.cmis.data.jdo.{{parentClassName}};
+import javax.jdo.annotations.Index;
 
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
-@Extension(vendorName = "datanucleus", key = "read-write", value = "true")
+@Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
 public class {{className}} extends {{parentClassName}}
 {
- 
+ public {{className}}()
+ {
+ }
 {{#each propDef}}
 {{#if primary}}
-@primary
+@Index
 private {{property}} {{id}};
 public get{{id}}()
 {

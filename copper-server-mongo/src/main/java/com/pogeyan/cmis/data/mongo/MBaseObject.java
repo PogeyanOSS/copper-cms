@@ -32,12 +32,13 @@ import org.mongodb.morphia.annotations.Indexes;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
+import com.pogeyan.cmis.api.data.IVirtualBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 
 @Entity(value = "objectData", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
-public class MBaseObject implements IBaseObject, ISettableBaseObject {
+public class MBaseObject implements IBaseObject, ISettableBaseObject, IVirtualBaseObject {
 	@Id
 	private String id;
 	private String name;
@@ -56,6 +57,7 @@ public class MBaseObject implements IBaseObject, ISettableBaseObject {
 	private List<String> policies;
 	private MongoAclImpl acl;
 	private String parentId;
+	private Boolean isVirtual;
 
 	private Map<String, Object> properties;
 
@@ -259,5 +261,21 @@ public class MBaseObject implements IBaseObject, ISettableBaseObject {
 		mongoToken.setTime(token.getTime());
 		return mongoToken;
 
+	}
+
+	@Override
+	public Boolean getIsVirtual() {
+		return this.isVirtual;
+	}
+
+	@Override
+	public void setIsVirtual(Boolean isvirtual) {
+		this.isVirtual = isvirtual;
+
+	}
+
+	@Override
+	public String getPropString() {
+		return null;
 	}
 }

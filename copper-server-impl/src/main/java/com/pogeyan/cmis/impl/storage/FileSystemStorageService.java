@@ -60,26 +60,35 @@ public class FileSystemStorageService implements IStorageService {
 			LOG.error("Root folder does not exist");
 			throw new IOException("Root folder does not exist");
 		}
+		Boolean checkFileExtension = true;
 		if (!getFileExtensionExists(objectName)) {
-			objectName = objectName + MimeUtils.guessExtensionFromMimeType(contentStream.getMimeType());
+			if (MimeUtils.guessExtensionFromMimeType(contentStream.getMimeType()) != null) {
+				checkFileExtension = true;
+				objectName = objectName + MimeUtils.guessExtensionFromMimeType(contentStream.getMimeType());
+			} else {
+				checkFileExtension = false;
+			}
+
 		}
+		if (checkFileExtension) {
+			File newFile = new File(gettingFolderPath(this.storeSettings.getFileLocation(), gettingDocNamePath(path)),
+					objectName);
 
-		File newFile = new File(gettingFolderPath(this.storeSettings.getFileLocation(), gettingDocNamePath(path)),
-				objectName);
+			if (!newFile.exists()) {
+				try {
+					newFile.createNewFile();
+				} catch (Exception e) {
+					LOG.error("writeContent exception: {}, {}", e.getMessage(), ExceptionUtils.getStackTrace(e));
+					throw new IllegalArgumentException("Could not create file: " + e.getMessage());
+				}
+			}
 
-		if (!newFile.exists()) {
-			try {
-				newFile.createNewFile();
-			} catch (Exception e) {
-				LOG.error("writeContent exception: {}, {}", e.getMessage(), ExceptionUtils.getStackTrace(e));
-				throw new IllegalArgumentException("Could not create file: " + e.getMessage());
+			// write content, if available
+			if (contentStream != null && contentStream.getStream() != null) {
+				writeContent(newFile, contentStream.getStream());
 			}
 		}
 
-		// write content, if available
-		if (contentStream != null && contentStream.getStream() != null) {
-			writeContent(newFile, contentStream.getStream());
-		}
 	}
 
 	@Override

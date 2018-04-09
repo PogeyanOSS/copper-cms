@@ -115,33 +115,45 @@ public class CmisNavigationService {
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";
-				children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
-						filterArray, Helpers.splitFilterQuery(filter));
-				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true);
+				children = navigationMorphiaDAO.getChildren(repositoryId, BaseTypeId.CMIS_FOLDER.value(), path,
+						principalIds, true, maxItems, skipCount, orderBy, filterArray,
+						Helpers.splitFilterQuery(filter));
+				childrenCount = navigationMorphiaDAO.getChildrenSize(repositoryId, BaseTypeId.CMIS_FOLDER.value(), path,
+						principalIds, true);
 			} else {
 				path = data.getInternalPath() + folderId + ",";
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 				boolean objectOnly = true;
-				for (AccessControlListImplExt acl : mAcl) {
-					if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-							|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-						List<Ace> listAce = acl.getAces().stream().filter(t -> Arrays.stream(principalIds).parallel()
-								.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
-						if (listAce.size() >= 1) {
-							children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems, skipCount,
-									orderBy, filterArray, Helpers.splitFilterQuery(filter));
-							childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false);
-							objectOnly = false;
-							break;
+				if (mAcl.size() > 0) {
+					for (AccessControlListImplExt acl : mAcl) {
+						if (acl != null) {
+							if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+									|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+								List<Ace> listAce = acl.getAces().stream()
+										.filter(t -> Arrays.stream(principalIds).parallel()
+												.anyMatch(t.getPrincipalId()::contains) == true)
+										.collect(Collectors.toList());
+								if (listAce.size() >= 1) {
+									children = navigationMorphiaDAO.getChildren(repositoryId,
+											BaseTypeId.CMIS_FOLDER.value(), path, principalIds, false, maxItems,
+											skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter));
+									childrenCount = navigationMorphiaDAO.getChildrenSize(repositoryId,
+											BaseTypeId.CMIS_FOLDER.value(), path, principalIds, false);
+									objectOnly = false;
+									break;
+								}
+							}
 						}
 					}
 				}
 
 				// Acl Propagation ObjectOnly
 				if (objectOnly) {
-					children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
-							filterArray, Helpers.splitFilterQuery(filter));
-					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true);
+					children = navigationMorphiaDAO.getChildren(repositoryId, BaseTypeId.CMIS_FOLDER.value(), path,
+							principalIds, true, maxItems, skipCount, orderBy, filterArray,
+							Helpers.splitFilterQuery(filter));
+					childrenCount = navigationMorphiaDAO.getChildrenSize(repositoryId, BaseTypeId.CMIS_FOLDER.value(),
+							path, principalIds, true);
 				}
 			}
 
@@ -235,25 +247,31 @@ public class CmisNavigationService {
 			List<? extends IBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			for (AccessControlListImplExt acl : mAcl) {
-				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-					List<Ace> listAce = acl.getAces().stream().filter(
-							t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
-							.collect(Collectors.toList());
-					if (listAce.size() >= 1) {
-						children = navigationMorphiaDAO.getDescendants(path, principalIds, false, filterArray,
-								Helpers.splitFilterQuery(filter));
-						objectOnly = false;
-						break;
+			if (mAcl.size() > 0) {
+				for (AccessControlListImplExt acl : mAcl) {
+					if (acl != null) {
+						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+							List<Ace> listAce = acl.getAces().stream()
+									.filter(t -> Arrays.stream(principalIds).parallel()
+											.anyMatch(t.getPrincipalId()::contains) == true)
+									.collect(Collectors.toList());
+							if (listAce.size() >= 1) {
+								children = navigationMorphiaDAO.getDescendants(repositoryId,
+										BaseTypeId.CMIS_FOLDER.value(), path, principalIds, false, filterArray,
+										Helpers.splitFilterQuery(filter));
+								objectOnly = false;
+								break;
+							}
+						}
 					}
 				}
 			}
 
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
-				children = navigationMorphiaDAO.getDescendants(path, principalIds, true, filterArray,
-						Helpers.splitFilterQuery(filter));
+				children = navigationMorphiaDAO.getDescendants(repositoryId, BaseTypeId.CMIS_FOLDER.value(), path,
+						principalIds, true, filterArray, Helpers.splitFilterQuery(filter));
 			}
 			List<String> listOfParentIds = new ArrayList<>();
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
@@ -459,22 +477,29 @@ public class CmisNavigationService {
 			List<? extends IBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
-			for (AccessControlListImplExt acl : mAcl) {
-				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-					List<Ace> listAce = acl.getAces().stream().filter(
-							t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
-							.collect(Collectors.toList());
-					if (listAce.size() >= 1) {
-						children = navigationMorphiaDAO.getFolderTreeIds(path, principalIds, false);
-						objectOnly = false;
-						break;
+			if (mAcl.size() > 0) {
+				for (AccessControlListImplExt acl : mAcl) {
+					if (acl != null) {
+						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+							List<Ace> listAce = acl.getAces().stream()
+									.filter(t -> Arrays.stream(principalIds).parallel()
+											.anyMatch(t.getPrincipalId()::contains) == true)
+									.collect(Collectors.toList());
+							if (listAce.size() >= 1) {
+								children = navigationMorphiaDAO.getFolderTreeIds(repositoryId,
+										BaseTypeId.CMIS_FOLDER.value(), path, principalIds, false);
+								objectOnly = false;
+								break;
+							}
+						}
 					}
 				}
 			}
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
-				children = navigationMorphiaDAO.getFolderTreeIds(path, principalIds, true);
+				children = navigationMorphiaDAO.getFolderTreeIds(repositoryId, BaseTypeId.CMIS_FOLDER.value(), path,
+						principalIds, true);
 			}
 			List<String> listOfParentIds = new ArrayList<>();
 			folderTree = getDescendants(repositoryId, children, folderId, includePathSegments, filter,
@@ -586,18 +611,24 @@ public class CmisNavigationService {
 				}
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
 				boolean objectOnly = true;
-				for (AccessControlListImplExt acl : mAcl) {
-					if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-							|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-						List<Ace> listAce = acl.getAces().stream().filter(t -> Arrays.stream(principalIds).parallel()
-								.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
-						if (listAce.size() >= 1) {
-							document = documentMorphiaDAO.getCheckOutDocs(repositoryId, folderId, typeId, principalIds,
-									false, maxItems, skipCount, orderBy);
-							documentCount = documentMorphiaDAO.getCheckOutDocsSize(repositoryId, folderId, typeId,
-									principalIds, false);
-							objectOnly = false;
-							break;
+				if (mAcl != null) {
+					for (AccessControlListImplExt acl : mAcl) {
+						if (acl != null) {
+							if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
+									|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+								List<Ace> listAce = acl.getAces().stream()
+										.filter(t -> Arrays.stream(principalIds).parallel()
+												.anyMatch(t.getPrincipalId()::contains) == true)
+										.collect(Collectors.toList());
+								if (listAce.size() >= 1) {
+									document = documentMorphiaDAO.getCheckOutDocs(repositoryId, folderId, typeId,
+											principalIds, false, maxItems, skipCount, orderBy);
+									documentCount = documentMorphiaDAO.getCheckOutDocsSize(repositoryId, folderId,
+											typeId, principalIds, false);
+									objectOnly = false;
+									break;
+								}
+							}
 						}
 					}
 				}
@@ -657,9 +688,9 @@ public class CmisNavigationService {
 		}
 
 		private static String getOrderByName(String orderBy) {
-			if (orderBy.contains("\\s+")) {
-				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy.split("\\s+")[0]) + " "
-						+ orderBy.split("\\s+")[1];
+			if (orderBy.contains(" ")) {
+				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy.split(" ")[0]) + " "
+						+ orderBy.split(" ")[1];
 			} else {
 				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy);
 			}

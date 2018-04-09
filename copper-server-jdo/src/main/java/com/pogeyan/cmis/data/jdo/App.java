@@ -59,12 +59,12 @@ public class App {
 //					+ "WHERE typeId == ids");
 //			q.declareParameters("java.util.List ids");
 //			String sql="select from com.pogeyan.cmis.data.jdo.JTypeObject where typeId in(:ids)";
-			Query query = pm.newQuery(JTypeObject.class);
+			Query query = pm.newQuery(JTypeDefinition.class);
 			query.declareParameters("java.util.List docId");
 			query.setFilter("typeId  docId");
 			Map<String, List<String>> paramValues = new HashMap<>();
 			paramValues.put("docId", v);
-			List<JTypeObject> typeObject = (List<JTypeObject>) query.executeWithMap(paramValues);
+			List<JTypeDefinition> typeObject = (List<JTypeDefinition>) query.executeWithMap(paramValues);
 //			List<JTypeObject> result = new ArrayList<>();
 //			Map idsMap = Collections.singletonMap("ids", v);
 //			result = jdbcTemplate.query(sql, idsMap, ParameterizedBeanPropertyRowMapper.newInstance(JTypeObject.class));

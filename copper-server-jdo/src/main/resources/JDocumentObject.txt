@@ -21,18 +21,21 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
 import org.bson.types.ObjectId;
+import com.pogeyan.cmis.api.data.IDocumentObject;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import  com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.data.jdo.JBaseObject;
 
 @Cacheable("false")
 @PersistenceCapable(detachable = "true")
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
 @Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
-public class MDocumentObject extends JBaseObject {
+public class JDocumentObject extends JBaseObject implements IDocumentObject  {
 	private Boolean isImmutable;
 	private Boolean isLatestVersion;
 	private Boolean isMajorVersion;
@@ -51,7 +54,7 @@ public class MDocumentObject extends JBaseObject {
 	private String contentStreamId;
 	private String previousVersionObjectId;
 
-	public MDocumentObject() {
+	public JDocumentObject() {
 		 
 	}
 

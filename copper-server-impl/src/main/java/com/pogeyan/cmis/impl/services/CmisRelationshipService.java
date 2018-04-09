@@ -73,7 +73,7 @@ public class CmisRelationshipService {
 			ObjectListImpl result = new ObjectListImpl();
 			List<ObjectData> odList = null;
 			List<? extends IBaseObject> totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
-					so.getTypeId(), so.getId().toString(), -1, -1, null);
+					so.getId().toString(), BaseTypeId.CMIS_RELATIONSHIP.value(), -1, -1, null);
 			if (relationshipDirection == RelationshipDirection.SOURCE) {
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.SOURCE, so, userName, maxItemsInt, skipCountInt, filterArray);

@@ -184,10 +184,11 @@ public class CmisVersioningServices {
 			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
-			IBaseObject baseObject = baseObjectDAO.createObjectFacade(data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
-					"cmis:document", repositoryId, null, "", userName, userName, token, data.getInternalPath(),
-					data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(), data.getParentId());
-			IDocumentObject documentObject = documentObjectDAO.createObjectFacade(baseObject, false, false, false,
+			IBaseObject baseObject = baseObjectDAO.createObjectFacade(null, data.getName() + "-pwc",
+					BaseTypeId.CMIS_DOCUMENT, "cmis:document", repositoryId, null, "", userName, userName, token,
+					data.getInternalPath(), data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(),
+					data.getParentId());
+			IDocumentObject documentObject = documentObjectDAO.createObjectFacade(null, baseObject, false, false, false,
 					false, true, data.getVersionLabel(), data.getVersionSeriesId(), data.getVersionReferenceId(), true,
 					userName, baseObject.getId(), "Commit Document", data.getContentStreamLength(),
 					data.getContentStreamMimeType(), data.getContentStreamFileName(), null, objectId.getValue());
@@ -267,10 +268,10 @@ public class CmisVersioningServices {
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
 			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			IBaseObject baseObject = baseObjectDAO.createObjectFacade(documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
-					"cmis:document", repositoryId, null, "", documentdata.getCreatedBy(), userName, token,
-					data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
-					data.getPath(), data.getParentId());
+			IBaseObject baseObject = baseObjectDAO.createObjectFacade(null, documentdata.getName(),
+					BaseTypeId.CMIS_DOCUMENT, "cmis:document", repositoryId, null, "", documentdata.getCreatedBy(),
+					userName, token, data.getInternalPath(), properties, documentdata.getPolicies(),
+					documentdata.getAcl(), data.getPath(), data.getParentId());
 			String versionSeriesId = Helpers.getObjectId();
 			if (data.getIsVersionSeriesCheckedOut()) {
 				if (data.getIsPrivateWorkingCopy()) {
@@ -280,15 +281,15 @@ public class CmisVersioningServices {
 						Double versionLabelMajor = Double.parseDouble(versionLabelArray[0]);
 						versionLabelMajor = versionLabelMajor + 1;
 						if (contentStreamParam == null) {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true,
-									false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
+							documentObject = documentObjectDAO.createObjectFacade(null, baseObject, false, true, true,
+									true, false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
 									data.getContentStreamLength(), data.getContentStreamMimeType(),
 									data.getContentStreamFileName(), data.getContentStreamId(),
 									data.getPreviousVersionObjectId());
 						} else {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true,
-									false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
+							documentObject = documentObjectDAO.createObjectFacade(null, baseObject, false, true, true,
+									true, false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
 									contentStreamParam.getLength(), data.getContentStreamMimeType(),
 									contentStreamParam.getFileName(), data.getContentStreamId(),
@@ -305,15 +306,15 @@ public class CmisVersioningServices {
 						String verLabelMinorString = String.valueOf(versionLabelMinor);
 						verLabelMinorString = versionLabelArray[0] + "." + versionLabelMinor;
 						if (contentStreamParam == null) {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false, false,
-									false, String.valueOf(verLabelMinorString), versionSeriesId.toString(),
+							documentObject = documentObjectDAO.createObjectFacade(null, baseObject, false, true, false,
+									false, false, String.valueOf(verLabelMinorString), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
 									data.getContentStreamLength(), data.getContentStreamMimeType(),
 									data.getContentStreamFileName(), data.getContentStreamId(),
 									data.getPreviousVersionObjectId());
 						} else {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false, false,
-									false, verLabelMinorString, versionSeriesId.toString(),
+							documentObject = documentObjectDAO.createObjectFacade(null, baseObject, false, true, false,
+									false, false, verLabelMinorString, versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
 									contentStreamParam.getLength(), data.getContentStreamMimeType(),
 									contentStreamParam.getFileName(), data.getContentStreamId(),

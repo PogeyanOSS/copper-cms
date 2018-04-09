@@ -1,5 +1,6 @@
 package com.pogeyan.cmis.data.jdo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,9 +10,11 @@ import java.util.Set;
 
 import javax.jdo.annotations.Cacheable;
 import javax.jdo.annotations.DatastoreIdentity;
+import javax.jdo.annotations.Element;
 import javax.jdo.annotations.Embedded;
-import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.Inheritance;
+import javax.jdo.annotations.InheritanceStrategy;
 import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.PrimaryKey;
@@ -20,7 +23,9 @@ import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.bson.types.ObjectId;
 
+import com.pogeyan.cmis.api.data.ISettableTypeObject;
 import com.pogeyan.cmis.api.data.common.CmisPropertyBooleanDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisPropertyDateTimeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisPropertyDecimalDefinitionImpl;
@@ -31,12 +36,13 @@ import com.pogeyan.cmis.api.data.common.CmisPropertyStringDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisPropertyUriDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.TypeMutabilityImpl;
+import com.pogeyan.cmis.data.services.JDOHelper;
 
 @Cacheable("false")
-@PersistenceCapable(detachable="true")
-@DatastoreIdentity(strategy=IdGeneratorStrategy.IDENTITY)
-@Extension(vendorName="datanucleus", key="read-write", value="true")
-public class JTypeDefinition implements TypeDefinition {
+@PersistenceCapable(detachable = "true")
+@DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY)
+@Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
+public class JTypeDefinition implements TypeDefinition, ISettableTypeObject {
 	private static final long serialVersionUID = -2058798794964755398L;
 	@PrimaryKey
 	protected String id;
@@ -54,11 +60,14 @@ public class JTypeDefinition implements TypeDefinition {
 	protected Boolean isIncludedInSupertypeQuery;
 	protected Boolean isControllablePolicy;
 	protected Boolean isControllableAcl;
-
+	protected Long createdAt;
+	protected Long modifiedAt;
 	@Embedded
 	protected JTypeMutability typeMutability;
 	@NotPersistent
 	protected Map<String, JPropertyDefinitionImpl<?>> propertyDefinition;
+	@Element(column = "id")
+	protected List<JPropertyDefinitionImpl<?>> listPropertyDefinition;
 
 	public JTypeDefinition() {
 	}
@@ -86,6 +95,7 @@ public class JTypeDefinition implements TypeDefinition {
 		this.isControllableAcl = isControllableAcl;
 		this.typeMutability = convertJDOTypeMutability(typeMutability);
 		this.propertyDefinition = convertJDOPropertyDefinition(propertyDefinition);
+		this.listPropertyDefinition = convertListJDOPropertyDefinition(propertyDefinition);
 	}
 
 	@Override
@@ -303,8 +313,8 @@ public class JTypeDefinition implements TypeDefinition {
 		this.propertyDefinition = propDef;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private Map<String, JPropertyDefinitionImpl<?>> convertJDOPropertyDefinition(
+	@SuppressWarnings({ "rawtypes" })
+	private <T> Map<String, JPropertyDefinitionImpl<?>> convertJDOPropertyDefinition(
 			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
 		if (propertyDefinition != null) {
 			Map<String, JPropertyDefinitionImpl<?>> mongoProperty = new LinkedHashMap<String, JPropertyDefinitionImpl<?>>();
@@ -312,28 +322,86 @@ public class JTypeDefinition implements TypeDefinition {
 			for (Entry<String, PropertyDefinitionImpl<?>> propertiesValues : data) {
 				String id = propertiesValues.getKey();
 				PropertyDefinitionImpl<?> valueName = propertiesValues.getValue();
-				JPropertyDefinitionImpl<?> mongo = new JPropertyDefinitionImpl();
-				mongo.setId(valueName.getId());
-				mongo.setLocalName(valueName.getLocalName());
-				mongo.setLocalNamespace(valueName.getLocalNamespace());
-				mongo.setDisplayName(valueName.getDisplayName());
-				mongo.setQueryName(valueName.getQueryName());
-				mongo.setDescription(valueName.getDescription());
-				mongo.setPropertyType(valueName.getPropertyType());
-				mongo.setCardinality(valueName.getCardinality());
-				mongo.setUpdatability(valueName.getUpdatability());
-				mongo.setIsInherited(valueName.isInherited());
-				mongo.setIsRequired(valueName.isRequired());
-				mongo.setIsQueryable(valueName.isQueryable());
-				mongo.setIsOrderable(valueName.isOrderable());
-				mongo.setIsOpenChoice(valueName.isOpenChoice());
-				mongo.setChoice(valueName.getChoices());
-				mongoProperty.put(id, mongo);
+				JPropertyDefinitionImpl<?> JdoProp = new JPropertyDefinitionImpl();
+				JdoProp.setId(valueName.getId());
+				JdoProp.setPropId((new ObjectId()).toString());
+				JdoProp.setLocalName(valueName.getLocalName());
+				JdoProp.setLocalNamespace(valueName.getLocalNamespace());
+				JdoProp.setDisplayName(valueName.getDisplayName());
+				JdoProp.setQueryName(valueName.getQueryName());
+				JdoProp.setDescription(valueName.getDescription());
+				JdoProp.setPropertyType(valueName.getPropertyType());
+				JdoProp.setCardinality(valueName.getCardinality());
+				JdoProp.setUpdatability(valueName.getUpdatability());
+				JdoProp.setIsInherited(valueName.isInherited());
+				JdoProp.setIsRequired(valueName.isRequired());
+				JdoProp.setIsQueryable(valueName.isQueryable());
+				JdoProp.setIsOrderable(valueName.isOrderable());
+				JdoProp.setIsOpenChoice(valueName.isOpenChoice());
+				JdoProp.setChoice(JDOHelper.Impl.setChoice(valueName.getChoices()));
+				mongoProperty.put(id, JdoProp);
 			}
 			return mongoProperty;
 		}
 		return null;
 
+	}
+
+	@SuppressWarnings("rawtypes")
+	private List<JPropertyDefinitionImpl<?>> convertListJDOPropertyDefinition(
+			Map<String, PropertyDefinitionImpl<?>> propertyDefinition) {
+		if (propertyDefinition != null) {
+			List<JPropertyDefinitionImpl<?>> jdoProperty = new ArrayList<JPropertyDefinitionImpl<?>>();
+			Set<Entry<String, PropertyDefinitionImpl<?>>> data = propertyDefinition.entrySet();
+			for (Entry<String, PropertyDefinitionImpl<?>> propertiesValues : data) {
+				PropertyDefinition<?> valueName = propertiesValues.getValue();
+				JPropertyDefinitionImpl<?> jdoProp = new JPropertyDefinitionImpl();
+				jdoProp.setId(valueName.getId());
+				jdoProp.setPropId((new ObjectId()).toString());
+				jdoProp.setLocalName(valueName.getLocalName());
+				jdoProp.setLocalNamespace(valueName.getLocalNamespace());
+				jdoProp.setDisplayName(valueName.getDisplayName());
+				jdoProp.setQueryName(valueName.getQueryName());
+				jdoProp.setDescription(valueName.getDescription());
+				jdoProp.setPropertyType(valueName.getPropertyType());
+				jdoProp.setCardinality(valueName.getCardinality());
+				jdoProp.setUpdatability(valueName.getUpdatability());
+				jdoProp.setIsInherited(valueName.isInherited());
+				jdoProp.setIsRequired(valueName.isRequired());
+				jdoProp.setIsQueryable(valueName.isQueryable());
+				jdoProp.setIsOrderable(valueName.isOrderable());
+				jdoProp.setIsOpenChoice(valueName.isOpenChoice());
+				jdoProp.setChoice(JDOHelper.Impl.setChoice(valueName.getChoices()));
+				jdoProperty.add(jdoProp);
+			}
+			return jdoProperty;
+		}
+		return null;
+
+	}
+
+	public List<JPropertyDefinitionImpl<?>> getListPropertyDefinition() {
+		return listPropertyDefinition;
+	}
+
+	public void setListPropertyDefinition(List<JPropertyDefinitionImpl<?>> listPropertyDefinition) {
+		this.listPropertyDefinition = listPropertyDefinition;
+	}
+
+	public Long getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Long createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Long getModifiedAt() {
+		return modifiedAt;
+	}
+
+	public void setModifiedAt(Long modifiedAt) {
+		this.modifiedAt = modifiedAt;
 	}
 
 }
