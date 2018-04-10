@@ -188,8 +188,8 @@ public class CmisDiscoveryService {
 
 		/**
 		 * Splits a filter statement into a collection of properties. If
-		 * <code>filter</code> is <code>null</code>, empty or one of the properties is
-		 * '*' , an empty collection will be returned.
+		 * <code>filter</code> is <code>null</code>, empty or one of the
+		 * properties is '*' , an empty collection will be returned.
 		 */
 		private static Set<String> splitFilter(String filter) {
 			if (filter == null) {
@@ -215,6 +215,7 @@ public class CmisDiscoveryService {
 			result.add(PropertyIds.OBJECT_ID);
 			result.add(PropertyIds.OBJECT_TYPE_ID);
 			result.add(PropertyIds.BASE_TYPE_ID);
+			result.add(PropertyIds.CHANGE_TOKEN);
 			return result;
 		}
 
