@@ -203,20 +203,33 @@ public class CmisNavigationService {
 			List<ObjectInFolderContainer> result = null;
 
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
-
-			if (data.getBaseId().equals(BaseTypeId.CMIS_FOLDER)) {
-				int level = 0;
-				result = getDescendantsIntern(repositoryId, folderId, filter, includeAllowableActions,
-						includeRelationships, renditionFilter, includePathSegment, level, levels, false, objectInfos,
-						userObject);
-				if (LOG.isDebugEnabled() && result != null) {
-					LOG.debug("descendants for folder: {} are : {}", folderId, result);
+			if (data != null) {
+				if (data.getBaseId().equals(BaseTypeId.CMIS_FOLDER)) {
+					int level = 0;
+					result = getDescendantsIntern(repositoryId, folderId, filter, includeAllowableActions,
+							includeRelationships, renditionFilter, includePathSegment, level, levels, false,
+							objectInfos, userObject);
+					if (LOG.isDebugEnabled() && result != null) {
+						LOG.debug("descendants for folder: {} are : {}", folderId, result);
+					}
+				} else {
+					int level = 0;
+					ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
+					ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
+					Set<String> filterCollection = Helpers.splitFilter(filter);
+					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data,
+							filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
+							includeRelationships, userObject.getUserDN());
+					oifd.setObject(objectData);
+					result = getDescendantsRelationObjects(repositoryId, folderId, filter, includeAllowableActions,
+							includeRelationships, renditionFilter, includePathSegment, level, levels, false,
+							objectInfos, userObject);
+					oifc.setObject(oifd);
+					oifc.setChildren(result);
+					List<ObjectInFolderContainer> parentData = new ArrayList<ObjectInFolderContainer>();
+					parentData.add(oifc);
+					result = parentData;
 				}
-			} else if (data.getBaseId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-				int level = 0;
-				result = getDescendantsRelationObjects(repositoryId, folderId, filter, includeAllowableActions,
-						includeRelationships, renditionFilter, includePathSegment, level, levels, false, objectInfos,
-						userObject);
 			}
 			return result;
 		}
