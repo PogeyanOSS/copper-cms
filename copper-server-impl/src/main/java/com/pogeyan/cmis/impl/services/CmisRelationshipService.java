@@ -71,15 +71,20 @@ public class CmisRelationshipService {
 			}
 			ObjectListImpl result = new ObjectListImpl();
 			List<ObjectData> odList = null;
-			List<? extends IBaseObject> totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
-					so.getId().toString(), -1, -1, null);
+			List<? extends IBaseObject> totalSize = null;
 			if (relationshipDirection == RelationshipDirection.SOURCE) {
+				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
+						-1, null);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.SOURCE, so, userName, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.TARGET) {
+				totalSize = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId, so.getId().toString(), -1,
+						-1, null);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.TARGET, so, userName, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.EITHER) {
+				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
+						-1, null);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.BOTH, so, userName, maxItemsInt, skipCountInt, filterArray);
 			}
