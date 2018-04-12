@@ -17,13 +17,20 @@ package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Query;
 
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
+import com.pogeyan.cmis.api.uri.UriParser;
+import com.pogeyan.cmis.api.uri.expression.ExceptionVisitExpression;
+import com.pogeyan.cmis.api.uri.expression.ExpressionParserException;
+import com.pogeyan.cmis.api.uri.expression.FilterExpression;
+import com.pogeyan.cmis.api.uri.expression.OrderByExpression;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
+import com.pogeyan.cmis.data.mongo.MongoExpressionVisitor;
 
 public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MDiscoveryServiceDAO {
 
@@ -31,9 +38,30 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 		super(entityClass, ds);
 	}
 
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	@Override
-	public List<MBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns) {
+	public List<MBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns, String orderBy,
+			String filterExpression) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", changeLogToken);
+		if (!StringUtils.isEmpty(orderBy)) {
+			if (this.isOrderByParsable(orderBy)) {
+				try {
+					OrderByExpression orderByExpression = UriParser.parseOrderBy(orderBy);
+					query = (Query<MBaseObject>) orderByExpression
+							.accept(new MongoExpressionVisitor<MBaseObject>(query));
+				} catch (ExpressionParserException | ExceptionVisitExpression e) {
+				}
+			} else {
+				query = query.order(orderBy);
+			}
+		}
+		if (!StringUtils.isEmpty(filterExpression)) {
+			try {
+				FilterExpression expression = UriParser.parseFilter(filterExpression);
+				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
+			} catch (ExpressionParserException | ExceptionVisitExpression e) {
+			}
+		}
 		if (maxItems > 0) {
 			query = query.limit(maxItems);
 		}
@@ -43,10 +71,28 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 		return query.asList();
 	}
 
+	@SuppressWarnings({ "deprecation", "unchecked" })
 	@Override
-	public long getLatestTokenChildrenSize(long latestChangeToken) {
+	public long getLatestTokenChildrenSize(long latestChangeToken, String filterExpression) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", latestChangeToken);
+		if (!StringUtils.isEmpty(filterExpression)) {
+			try {
+				FilterExpression expression = UriParser.parseFilter(filterExpression);
+				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
+			} catch (ExpressionParserException | ExceptionVisitExpression e) {
+			}
+		}
 		return query.countAll();
+	}
+
+	@SuppressWarnings("unused")
+	private boolean isOrderByParsable(String orderByExpressionQuery) {
+		try {
+			OrderByExpression orderByExpression = UriParser.parseOrderBy(orderByExpressionQuery);
+			return true;
+		} catch (ExpressionParserException e) {
+			return false;
+		}
 	}
 
 }

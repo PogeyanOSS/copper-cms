@@ -37,6 +37,8 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChangeEventInfoDat
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PolicyIdListImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
@@ -56,7 +58,7 @@ public class CmisDiscoveryService {
 
 	public static class Impl {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
-				Boolean includeProperties, String filter, Boolean includePolicyIds, Boolean includeAcl,
+				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
 			LOG.info("getContentChanges on change log token : {} , repository: {}", changeLogToken, repositoryId);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -80,41 +82,48 @@ public class CmisDiscoveryService {
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
+			if (orderBy != null) {
+				String[] orderQuery = orderBy.split(",");
+				orderBy = Arrays.stream(orderQuery).map(t -> getOrderByName(t)).collect(Collectors.joining(","));
+			}
 
-			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO
-					.getLatestChanges(Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray);
+			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO.getLatestChanges(
+					Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray, orderBy,
+					Helpers.splitFilterQuery(filter));
 			if (latestChangesObjects.size() > 0) {
-				childrenCount = discoveryObjectMorphiaDAO
-						.getLatestTokenChildrenSize(Long.parseLong(changeLogToken.getValue()));
+				childrenCount = discoveryObjectMorphiaDAO.getLatestTokenChildrenSize(
+						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter));
 				for (IBaseObject object : latestChangesObjects) {
-					if (includeAcl) {
-						List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
-								object.getInternalPath(), object.getAcl());
-						boolean objectOnly = true;
-						for (AccessControlListImplExt acl : mAcl) {
-							if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-								List<Ace> listAce = getListAce(acl, principalIds);
+					if (object != null) {
+						if (includeAcl) {
+							List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
+									object.getInternalPath(), object.getAcl());
+							boolean objectOnly = true;
+							for (AccessControlListImplExt acl : mAcl) {
+								if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+									List<Ace> listAce = getListAce(acl, principalIds);
+									if (listAce.size() >= 1) {
+										ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
+												filterCollection, includeProperties, includePolicyIds);
+										lod.add(odImpl);
+										objectOnly = false;
+										break;
+									}
+								}
+							}
+							if (objectOnly) {
+								List<Ace> listAce = getListAce(object.getAcl(), principalIds);
 								if (listAce.size() >= 1) {
 									ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
 											includeProperties, includePolicyIds);
 									lod.add(odImpl);
-									objectOnly = false;
-									break;
 								}
 							}
+						} else {
+							ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
+									includeProperties, includePolicyIds);
+							lod.add(odImpl);
 						}
-						if (objectOnly) {
-							List<Ace> listAce = getListAce(object.getAcl(), principalIds);
-							if (listAce.size() >= 1) {
-								ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-										includeProperties, includePolicyIds);
-								lod.add(odImpl);
-							}
-						}
-					} else {
-						ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-								includeProperties, includePolicyIds);
-						lod.add(odImpl);
 					}
 				}
 
@@ -137,8 +146,18 @@ public class CmisDiscoveryService {
 				object.setProperties(custom);
 			}
 			ObjectInfoImpl objectInfo = new ObjectInfoImpl();
-			Properties props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection,
-					objectInfo);
+			Properties props = null;
+			if (object.getChangeToken().getChangeType().equals(TokenChangeType.DELETED)) {
+				PropertiesImpl result = new PropertiesImpl();
+				PropertyIdImpl pd = new PropertyIdImpl(PropertyIds.OBJECT_ID, (String) object.getId());
+				pd.setDisplayName(PropertyIds.OBJECT_ID);
+				pd.setQueryName(PropertyIds.OBJECT_ID);
+				result.addProperty(pd);
+				props = result;
+			} else {
+				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo);
+			}
+
 			odImpl.setProperties(props);
 			ChangeEventInfoDataImpl changeEventInfo = new ChangeEventInfoDataImpl();
 			changeEventInfo.setChangeType(TokenChangeType.fromValue(object.getChangeToken().getChangeType()));
@@ -197,7 +216,17 @@ public class CmisDiscoveryService {
 			result.add(PropertyIds.OBJECT_ID);
 			result.add(PropertyIds.OBJECT_TYPE_ID);
 			result.add(PropertyIds.BASE_TYPE_ID);
+			result.add(PropertyIds.CHANGE_TOKEN);
 			return result;
+		}
+
+		private static String getOrderByName(String orderBy) {
+			if (orderBy.contains("\\s+")) {
+				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy.split("\\s+")[0]) + " "
+						+ orderBy.split("\\s+")[1];
+			} else {
+				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy);
+			}
 		}
 	}
 }

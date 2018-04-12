@@ -24,7 +24,8 @@ public interface MDiscoveryServiceDAO {
 	 * Returns List of MBaseObject Object values depending on change log
 	 * token,maxItems,skipCount.
 	 */
-	public List<? extends IBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns);
+	public List<? extends IBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns,
+			String orderBy, String filterExpression);
 
-	public long getLatestTokenChildrenSize(long latestChangeToken);
+	public long getLatestTokenChildrenSize(long latestChangeToken, String filterExpression);
 }
