@@ -1327,7 +1327,9 @@ public class CmisTypeServices {
 				parent = typeDef.get(0);
 			}
 			if (parent != null) {
-				LOG.info("getTypeParent from repository: {}, parentTypeId: {}", repositoryId, parent.getId());
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("getTypeParent from repository: {}, parentTypeId: {}", repositoryId, parent.getId());
+				}
 				if (parent.getParentTypeId() == null) {
 					innerChild.add(parent);
 				} else {

@@ -776,8 +776,10 @@ public class CmisObjectService {
 		}
 
 		public static AllowableActions getAllowableActions(String repositoryId, String objectId, String userName) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(" getAllowableActions on objectId: {} , repository:{}", objectId.toString(), repositoryId);
+			}
 
-			LOG.info(" getAllowableActions on objectId: {} , repository:{}", objectId.toString(), repositoryId);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
@@ -956,7 +958,10 @@ public class CmisObjectService {
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 
-			LOG.info("getRenditions on object: {}, repository: {}", objectId.toString(), repositoryId);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getRenditions on object: {}, repository: {}", objectId.toString(), repositoryId);
+			}
+
 			IBaseObject data = null;
 			try {
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
@@ -1124,10 +1129,7 @@ public class CmisObjectService {
 		@SuppressWarnings("unchecked")
 		private static void readCustomProperties(String repositoryId, IBaseObject data, PropertiesImpl props,
 				TypeDefinition typeId, Set<String> filter) {
-
 			HashMap<String, Object> customProps = new HashMap<String, Object>();
-			LOG.info("Custom Properties: {} , objectId: {} , repository: {}", customProps.toString(), data.getId(),
-					repositoryId);
 			data.getProperties().entrySet().forEach(map -> {
 				if (!(map.getKey().equalsIgnoreCase("cmis:name") || map.getKey().equalsIgnoreCase("cmis:lastModifiedBy")
 						|| map.getKey().equalsIgnoreCase("cmis:objectTypeId")
@@ -3909,7 +3911,9 @@ public class CmisObjectService {
 		public static boolean getAclAccess(String repositoryId, IBaseObject data, IUserObject userObject) {
 			boolean acessPermission = false;
 			if (data != null && !data.getName().equals("@ROOT@")) {
-				LOG.info("getAclAccess for object: {} ,repository: {}", data.getId().toString(), repositoryId);
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("getAclAccess for object: {} ,repository: {}", data.getId().toString(), repositoryId);
+				}
 				String[] queryResult = data.getInternalPath().split(",");
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
