@@ -124,8 +124,7 @@ public class CmisNavigationService {
 				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
 						if (acl != null) {
-							if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-									|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+							if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 								List<Ace> listAce = acl.getAces().stream()
 										.filter(t -> Arrays.stream(principalIds).parallel()
 												.anyMatch(t.getPrincipalId()::contains) == true)
@@ -137,6 +136,8 @@ public class CmisNavigationService {
 									objectOnly = false;
 									break;
 								}
+							} else if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")) {
+								objectOnly = true;
 							}
 						}
 					}
@@ -149,7 +150,9 @@ public class CmisNavigationService {
 				}
 			}
 
-			for (IBaseObject child : children) {
+			for (
+
+			IBaseObject child : children) {
 				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 				if (includePathSegments != null && includePathSegments) {
 					oifd.setPathSegment(child.getName());
@@ -263,8 +266,7 @@ public class CmisNavigationService {
 			if (mAcl != null && mAcl.size() > 0) {
 				for (AccessControlListImplExt acl : mAcl) {
 					if (acl != null) {
-						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+						if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 							List<Ace> listAce = acl.getAces().stream()
 									.filter(t -> Arrays.stream(principalIds).parallel()
 											.anyMatch(t.getPrincipalId()::contains) == true)
@@ -275,6 +277,8 @@ public class CmisNavigationService {
 								objectOnly = false;
 								break;
 							}
+						} else if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")) {
+							objectOnly = true;
 						}
 					}
 				}
@@ -536,8 +540,7 @@ public class CmisNavigationService {
 			if (mAcl != null && mAcl.size() > 0) {
 				for (AccessControlListImplExt acl : mAcl) {
 					if (acl != null) {
-						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-								|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+						if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 							List<Ace> listAce = acl.getAces().stream()
 									.filter(t -> Arrays.stream(principalIds).parallel()
 											.anyMatch(t.getPrincipalId()::contains) == true)
@@ -547,6 +550,10 @@ public class CmisNavigationService {
 								objectOnly = false;
 								break;
 							}
+						}
+
+						if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")) {
+							objectOnly = true;
 						}
 					}
 				}
@@ -662,8 +669,7 @@ public class CmisNavigationService {
 				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
 						if (acl != null) {
-							if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
-									|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+							if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 								List<Ace> listAce = acl.getAces().stream()
 										.filter(t -> Arrays.stream(principalIds).parallel()
 												.anyMatch(t.getPrincipalId()::contains) == true)
@@ -677,6 +683,10 @@ public class CmisNavigationService {
 									break;
 								}
 							}
+
+							if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")) {
+								objectOnly = true;
+							}
 						}
 					}
 				}
@@ -688,7 +698,9 @@ public class CmisNavigationService {
 				}
 			}
 
-			for (IDocumentObject checkedOutDocs : document) {
+			for (
+
+			IDocumentObject checkedOutDocs : document) {
 				Set<String> filterCollection = Helpers.splitFilter(filter);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, checkedOutDocs,
 						filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,

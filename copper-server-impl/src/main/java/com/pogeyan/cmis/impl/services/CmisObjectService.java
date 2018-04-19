@@ -43,6 +43,7 @@ import org.apache.chemistry.opencmis.commons.data.PropertyId;
 import org.apache.chemistry.opencmis.commons.data.RenditionData;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
@@ -132,9 +133,11 @@ public class CmisObjectService {
 					return rootData.getId();
 				} else {
 					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
+					AccessControlListImplExt aclImp = new AccessControlListImplExt(new ArrayList<>(),
+							AclPropagation.REPOSITORYDETERMINED.toString(), true);
 					IBaseObject folderObject = objectDAO.createObjectFacade(CopperCmsRepository.ROOT_ID,
 							BaseTypeId.CMIS_FOLDER, "cmis:folder", repositoryId, null,
-							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, null, "/",
+							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, aclImp, "/",
 							null);
 					objectDAO.commit(folderObject);
 					LOG.info("Root folder created in MongoDB: {} , repository: {} ", folderObject.getId(),
@@ -1405,6 +1408,7 @@ public class CmisObjectService {
 			String folderName = (String) pd.getFirstValue();
 			AccessControlListImplExt aclImp = (AccessControlListImplExt) CmisUtils.Object.getAclFor(userName,
 					"cmis:all");
+			aclImp.setAclPropagation(AclPropagation.REPOSITORYDETERMINED.toString());
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			createFolderObject(repositoryId, parent, objectId, folderName, userName, null, typeId,
@@ -3914,50 +3918,56 @@ public class CmisObjectService {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("getAclAccess for object: {} ,repository: {}", data.getId().toString(), repositoryId);
 				}
-				String[] queryResult = data.getInternalPath().split(",");
-				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
-						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
-						.collect(Collectors.<IBaseObject>toList());
-				List<AccessControlListImplExt> mAcl = null;
-				if (folderChildren.size() == 1) {
-					mAcl = new ArrayList<>();
-					mAcl.add(data.getAcl());
+				if (data.getAcl().getAclPropagation()
+						.equalsIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString())) {
+					acessPermission = true;
 				} else {
-					mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
-							.collect(Collectors.<AccessControlListImplExt>toList());
-				}
 
-				String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
-				List<List<Ace>> parentAce = mAcl.stream().map(t -> t.getAces()).collect(Collectors.toList());
-				parentAce.add(data.getAcl().getAces());
-				// for (MAclImpl acl : mAcl) {
-				// List<Ace> listAce = acl.getAces().stream().filter(t ->
-				// Arrays.stream(getPrincipalIds).parallel()
-				// .anyMatch(t.getPrincipalId()::contains) ==
-				// true).collect(Collectors.toList());
-				// if (listAce.size() > 1 || listAce.size() == 1) {
-				// acessPermission = true;
-				// break;
-				// }
-				// }
-				// if (!acessPermission) {
-				// List<Ace> dataAce = data.getAcl().getAces().stream().filter(t
-				// -> Arrays.stream(getPrincipalIds)
-				// .parallel().anyMatch(t.getPrincipalId()::contains) ==
-				// true).collect(Collectors.toList());
-				// if (dataAce.size() > 1 || dataAce.size() == 1) {
-				// acessPermission = true;
-				// }
-				// }
-				for (List<Ace> ace : parentAce) {
-					List<Ace> listAce = ace.stream().filter(t -> Arrays.stream(getPrincipalIds).parallel()
-							.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
-					if (listAce.size() >= 1) {
-						acessPermission = true;
-						break;
+					String[] queryResult = data.getInternalPath().split(",");
+					List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
+							.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
+							.collect(Collectors.<IBaseObject>toList());
+					List<AccessControlListImplExt> mAcl = null;
+					if (folderChildren.size() == 1) {
+						mAcl = new ArrayList<>();
+						mAcl.add(data.getAcl());
+					} else {
+						mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
+								.collect(Collectors.<AccessControlListImplExt>toList());
 					}
-				}
 
+					String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
+					List<List<Ace>> parentAce = mAcl.stream().map(t -> t.getAces()).collect(Collectors.toList());
+					parentAce.add(data.getAcl().getAces());
+					// for (MAclImpl acl : mAcl) {
+					// List<Ace> listAce = acl.getAces().stream().filter(t ->
+					// Arrays.stream(getPrincipalIds).parallel()
+					// .anyMatch(t.getPrincipalId()::contains) ==
+					// true).collect(Collectors.toList());
+					// if (listAce.size() > 1 || listAce.size() == 1) {
+					// acessPermission = true;
+					// break;
+					// }
+					// }
+					// if (!acessPermission) {
+					// List<Ace> dataAce = data.getAcl().getAces().stream().filter(t
+					// -> Arrays.stream(getPrincipalIds)
+					// .parallel().anyMatch(t.getPrincipalId()::contains) ==
+					// true).collect(Collectors.toList());
+					// if (dataAce.size() > 1 || dataAce.size() == 1) {
+					// acessPermission = true;
+					// }
+					// }
+					for (List<Ace> ace : parentAce) {
+						List<Ace> listAce = ace.stream().filter(t -> Arrays.stream(getPrincipalIds).parallel()
+								.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
+						if (listAce.size() >= 1) {
+							acessPermission = true;
+							break;
+						}
+					}
+
+				}
 			}
 			return acessPermission;
 		}

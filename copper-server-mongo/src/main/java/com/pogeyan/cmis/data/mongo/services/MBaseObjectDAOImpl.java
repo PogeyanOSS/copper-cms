@@ -17,11 +17,14 @@ package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
+import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
@@ -44,6 +47,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	public void delete(String objectId, boolean forceDelete, TokenImpl token) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
+		query.or(getAclCriteria(query));
 		if (forceDelete) {
 			this.deleteByQuery(query);
 		} else {
@@ -98,6 +102,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 		if (mappedColumns != null && mappedColumns.length > 0) {
 			query = query.retrievedFields(true, mappedColumns);
 		}
+		query.or(getAclCriteria(query));
 		return query.asList();
 	}
 
@@ -112,5 +117,12 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 			String parentId) {
 		return new MBaseObject(name, baseId, typeId, fRepositoryId, secondaryTypeIds, description, createdBy,
 				modifiedBy, token, internalPath, properties, policies, acl, path, parentId);
+	}
+
+	private Criteria[] getAclCriteria(Query<MBaseObject> query) {
+		Criteria[] checkAclRepo = new Criteria[] {
+				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()),
+				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.OBJECTONLY.toString()) };
+		return checkAclRepo;
 	}
 }
