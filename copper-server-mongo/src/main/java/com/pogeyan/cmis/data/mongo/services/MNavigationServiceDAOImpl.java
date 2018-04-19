@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -184,7 +186,10 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		Criteria[] checkAcl = Stream.of(principalIds)
 				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
 				.toArray(s -> new Criteria[s]);
-		return checkAcl;
+		Criteria[] checkAclRepo = new Criteria[] {
+				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()) };
+		Criteria[] result = ArrayUtils.addAll(checkAclRepo, checkAcl);
+		return result;
 	}
 
 }
