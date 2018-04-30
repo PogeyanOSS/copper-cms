@@ -250,15 +250,19 @@ public class ServletHelpers {
 			postRequest.setAclPropagation(requestParameter.getAclPropagation(controlParser, postRequest));
 		}
 
-		postRequest.setParameterMap(request.getParameterMap());
+		String cmisAction = HttpUtils.getStringParameter(request, BrowserConstants.CONTROL_CMISACTION);
+		postRequest.setCmisAction(cmisAction);
+		if (cmisAction == null || cmisAction.length() == 0) {
+			throw new CmisNotSupportedException("Unknown action");
+		}
+
+		postRequest.setParameterMap(HttpUtils.getParameterMap(request));
 		postRequest.setBaseUrl((String) request.getAttribute(BrowserConstants.BASE_URL_ATTRIBUTE));
 		postRequest.setScheme(request.getScheme());
 		postRequest.setServerName(request.getServerName());
 		postRequest.setServerPort(request.getServerPort());
 		postRequest.setContextPath(request.getContextPath());
 		postRequest.setServletPath(request.getServletPath());
-		String cmisAction = HttpUtils.getStringParameter(request, BrowserConstants.CONTROL_CMISACTION);
-		postRequest.setCmisAction(cmisAction);
 		String objectId = HttpUtils.getStringParameter(request, BrowserConstants.CONTROL_OBJECT_ID);
 		postRequest.setObjectId(objectId);
 		if (pathFragments.length > 0) {
@@ -274,9 +278,6 @@ public class ServletHelpers {
 		String token = HttpUtils.getStringParameter(request, BrowserConstants.CONTROL_TOKEN);
 		postRequest.setToken(token);
 		postRequest.setRequestBody(request.getRequestBody());
-		if (cmisAction == null || cmisAction.length() == 0) {
-			throw new CmisNotSupportedException("Unknown action");
-		}
 		postRequest.setPathFragments(pathFragments);
 		if (userObject != null) {
 			postRequest.setUserName(userObject.getUserDN());
@@ -289,7 +290,7 @@ public class ServletHelpers {
 	static BaseMessage queryHttpToBaseMessage(QueryStringHttpServletRequestWrapper request, String[] pathFragments,
 			IUserObject userObject) {
 		QueryGetRequest queryRequest = new QueryGetRequest();
-		queryRequest.setParameterMap(request.getParameterMap());
+		queryRequest.setParameterMap(HttpUtils.getParameterMap(request));
 		queryRequest.setBaseUrl((String) request.getAttribute(BrowserConstants.BASE_URL_ATTRIBUTE));
 		queryRequest.setScheme(request.getScheme());
 		queryRequest.setServerName(request.getServerName());

@@ -15,7 +15,18 @@
  */
 package com.pogeyan.cmis.browser.shared;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.cxf.common.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,9 +35,16 @@ import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 
 import org.apache.chemistry.opencmis.commons.impl.UrlBuilder;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pogeyan.cmis.browser.AkkaCmisBrowserBindingServlet;
+
 public final class HttpUtils {
 	public static final String REPOSITORY_PLACEHOLDER = "{repositoryId}";
 	public static final String ROOT_PATH_FRAGMENT = "root";
+	static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
+
+	private static final ObjectMapper mapper = new ObjectMapper();
 
 	private HttpUtils() {
 	}
@@ -42,18 +60,56 @@ public final class HttpUtils {
 		}
 
 		Map<String, String[]> parameters = request.getParameterMap();
-		if (parameters != null) {
-			for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
-				if (name.equalsIgnoreCase(parameter.getKey())) {
-					if (parameter.getValue() == null) {
-						return null;
-					}
-					return parameter.getValue()[0];
+		if (parameters != null && !parameters.isEmpty()) {
+			if (parameters.containsKey(name)) {
+				return parameters.get(name)[0];
+			}
+		} else if (request instanceof POSTHttpServletRequestWrapper) {
+			try {
+				POSTHttpServletRequestWrapper requestWrapper = (POSTHttpServletRequestWrapper) request;
+				String requestBody = requestWrapper.getRequestBody();
+				Map<String, Object> map = new HashMap<String, Object>();
+				// convert JSON string to Map
+				map = mapper.readValue(requestBody, new TypeReference<Map<String, String>>() {
+				});
+				if (map.containsKey(name)) {
+					return map.get(name).toString();
 				}
+			} catch (Exception ex) {
+				LOG.error("getStringParameter exception: {}, stack: {}", ex.getMessage(),
+						ExceptionUtils.getStackTrace(ex));
 			}
 		}
 
 		return null;
+	}
+
+	public static Map<String, String> getParameterMap(final HttpServletRequest request) {
+		Map<String, String> requestParameterMap = new HashMap<String, String>();
+		Map<String, String[]> parameters = request.getParameterMap();
+		if (parameters != null && !parameters.isEmpty()) {
+			for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
+				if (parameter.getValue() == null
+						|| (parameter.getValue() != null && parameter.getValue().length == 0)) {
+					continue;
+				}
+
+				requestParameterMap.put(parameter.getKey(), parameter.getValue()[0]);
+			}
+		} else if (request instanceof POSTHttpServletRequestWrapper) {
+			try {
+				POSTHttpServletRequestWrapper requestWrapper = (POSTHttpServletRequestWrapper) request;
+				String requestBody = requestWrapper.getRequestBody();
+				// convert JSON string to Map
+				requestParameterMap = mapper.readValue(requestBody, new TypeReference<Map<String, String>>() {
+				});
+			} catch (Exception ex) {
+				LOG.error("getParameterMap exception: {}, stack: {}", ex.getMessage(),
+						ExceptionUtils.getStackTrace(ex));
+			}
+		}
+
+		return requestParameterMap;
 	}
 
 	/**

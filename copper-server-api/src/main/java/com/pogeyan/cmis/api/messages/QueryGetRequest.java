@@ -229,7 +229,7 @@ public class QueryGetRequest extends CmisBaseRequest {
 	// rendition filter
 	public static final String RENDITION_NONE = "cmis:none";
 
-	private Map<String, String[]> parameters = new HashMap<String, String[]>();
+	private Map<String, String> parameters = new HashMap<String, String>();
 	private String typeId;
 	private BaseTypeId baseTypeId;
 	private String[] pathFragments;
@@ -238,28 +238,19 @@ public class QueryGetRequest extends CmisBaseRequest {
 	private IUserObject userObject;
 
 	public final String getParameter(String name) {
-		String[] values = parameters.get(name);
-		if (values == null || values.length == 0) {
-			return null;
+		if (this.parameters.containsKey(name)) {
+			return this.parameters.get(name);
 		}
 
-		return values[0];
+		return null;
 	}
 
-	public final void setParameterMap(Map<String, String[]> parameters) {
+	public final void setParameterMap(Map<String, String> parameters) {
 		this.parameters = parameters;
 	}
 
-	public final Map<String, String[]> getParameterMap() {
+	public final Map<String, String> getParameterMap() {
 		return parameters;
-	}
-
-	public final Enumeration<String> getParameterNames() {
-		return Collections.enumeration(parameters.keySet());
-	}
-
-	public final String[] getParameterValues(String name) {
-		return parameters.get(name);
 	}
 
 	public String getTypeId() {
