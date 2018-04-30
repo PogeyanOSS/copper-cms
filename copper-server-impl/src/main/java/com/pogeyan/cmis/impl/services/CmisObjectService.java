@@ -3989,7 +3989,8 @@ public class CmisObjectService {
 				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 				DBUtils.BaseDAO.updateAcl(repositoryId, data.getAcl(), token, objectId);
 				if (LOG.isDebugEnabled()) {
-					LOG.debug("updatedAcl:{} for object: {}", data.getAcl(), objectId.toString());
+					LOG.debug("updatedAcl:{} for object: {}", data.getAcl() != null ? data.getAcl() : null,
+							objectId.toString());
 				}
 			}
 		}
