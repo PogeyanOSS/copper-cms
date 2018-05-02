@@ -3927,12 +3927,12 @@ public class CmisObjectService {
 					List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 							.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
 							.collect(Collectors.<IBaseObject>toList());
-					List<AccessControlListImplExt> mAcl = null;
+				List<AccessControlListImplExt> mAcl = null;
 					if (folderChildren.size() == 1) {
 						mAcl = new ArrayList<>();
 						mAcl.add(data.getAcl());
 					} else {
-						mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
+						mAcl = folderChildren.stream().filter(t -> t != null && t.getAcl() != null).map(t -> t.getAcl())
 								.collect(Collectors.<AccessControlListImplExt>toList());
 					}
 
