@@ -122,7 +122,8 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	private Criteria[] getAclCriteria(Query<MBaseObject> query) {
 		Criteria[] checkAclRepo = new Criteria[] {
 				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()),
-				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.OBJECTONLY.toString()) };
+				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.OBJECTONLY.toString()),
+				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.PROPAGATE.toString()) };
 		return checkAclRepo;
 	}
 }
