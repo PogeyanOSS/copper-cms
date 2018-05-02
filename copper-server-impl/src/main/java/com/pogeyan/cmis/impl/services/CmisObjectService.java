@@ -265,7 +265,7 @@ public class CmisObjectService {
 				LOG.error("Unknown object id: {}", path);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
-			LOG.info("getObjectByPath compileObjectData for: {}" + path);
+			LOG.info("getObjectByPath compileObjectData for: {}", path);
 
 			IBaseObject data = null;
 			try {
@@ -3937,7 +3937,8 @@ public class CmisObjectService {
 					}
 
 					String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
-					List<List<Ace>> parentAce = mAcl.stream().map(t -> t.getAces()).collect(Collectors.toList());
+					List<List<Ace>> parentAce = mAcl.stream().filter(t -> t.getAces() != null && t.getAces().size() > 0)
+							.map(t -> t.getAces()).collect(Collectors.toList());
 					parentAce.add(data.getAcl().getAces());
 					// for (MAclImpl acl : mAcl) {
 					// List<Ace> listAce = acl.getAces().stream().filter(t ->
