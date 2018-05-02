@@ -265,7 +265,7 @@ public class CmisObjectService {
 				LOG.error("Unknown object id: {}", path);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
-			LOG.info("getObjectByPath compileObjectData for: {}" + path);
+			LOG.info("getObjectByPath compileObjectData for: {}", path);
 
 			IBaseObject data = null;
 			try {
@@ -3927,17 +3927,18 @@ public class CmisObjectService {
 					List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
 							.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null))
 							.collect(Collectors.<IBaseObject>toList());
-					List<AccessControlListImplExt> mAcl = null;
+				List<AccessControlListImplExt> mAcl = null;
 					if (folderChildren.size() == 1) {
 						mAcl = new ArrayList<>();
 						mAcl.add(data.getAcl());
 					} else {
-						mAcl = folderChildren.stream().filter(t -> t.getAcl() != null).map(t -> t.getAcl())
+						mAcl = folderChildren.stream().filter(t -> t != null && t.getAcl() != null).map(t -> t.getAcl())
 								.collect(Collectors.<AccessControlListImplExt>toList());
 					}
 
 					String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
-					List<List<Ace>> parentAce = mAcl.stream().map(t -> t.getAces()).collect(Collectors.toList());
+					List<List<Ace>> parentAce = mAcl.stream().filter(t -> t.getAces() != null && t.getAces().size() > 0)
+							.map(t -> t.getAces()).collect(Collectors.toList());
 					parentAce.add(data.getAcl().getAces());
 					// for (MAclImpl acl : mAcl) {
 					// List<Ace> listAce = acl.getAces().stream().filter(t ->
