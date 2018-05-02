@@ -15,10 +15,6 @@
  */
 package com.pogeyan.cmis.browser.shared;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.cxf.common.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -37,7 +32,6 @@ import org.apache.chemistry.opencmis.commons.impl.UrlBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pogeyan.cmis.browser.AkkaCmisBrowserBindingServlet;
 
 public final class HttpUtils {
 	public static final String REPOSITORY_PLACEHOLDER = "{repositoryId}";
