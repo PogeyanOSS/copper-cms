@@ -81,6 +81,8 @@ public class CmisDiscoveryService {
 			Set<String> filterCollection = splitFilter(filter);
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
+				filterArray = Arrays.copyOf(filterArray, filterArray.length + 1);
+				filterArray[filterArray.length - 1] = "internalPath";
 			}
 			if (orderBy != null) {
 				String[] orderQuery = orderBy.split(",");
@@ -100,28 +102,31 @@ public class CmisDiscoveryService {
 									object.getInternalPath(), object.getAcl());
 							boolean objectOnly = true;
 							for (AccessControlListImplExt acl : mAcl) {
-								if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-									List<Ace> listAce = getListAce(acl, principalIds);
-									if (listAce.size() >= 1) {
-										ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
-												filterCollection, includeProperties, includePolicyIds);
-										lod.add(odImpl);
-										objectOnly = false;
-										break;
-									}
+								if (acl != null) {
+									if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+										List<Ace> listAce = getListAce(acl, principalIds);
+										if (listAce.size() >= 1) {
+											ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
+													filterCollection, includeProperties, includePolicyIds, includeAcl);
+											lod.add(odImpl);
+											objectOnly = false;
+											break;
+										}
+									} 
 								}
 							}
+
 							if (objectOnly) {
 								List<Ace> listAce = getListAce(object.getAcl(), principalIds);
 								if (listAce.size() >= 1) {
 									ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-											includeProperties, includePolicyIds);
+											includeProperties, includePolicyIds, includeAcl);
 									lod.add(odImpl);
 								}
 							}
 						} else {
 							ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-									includeProperties, includePolicyIds);
+									includeProperties, includePolicyIds, includeAcl);
 							lod.add(odImpl);
 						}
 					}
@@ -129,7 +134,7 @@ public class CmisDiscoveryService {
 
 			}
 
-			objList.setObjects(lod);
+	objList.setObjects(lod);
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
 
@@ -137,7 +142,7 @@ public class CmisDiscoveryService {
 		}
 
 		private static ObjectDataImpl getObjectDataImpl(String repositoryId, IBaseObject object,
-				Set<String> filterCollection, Boolean includeProperties, Boolean includePolicyIds) {
+				Set<String> filterCollection, Boolean includeProperties, Boolean includePolicyIds, Boolean includeAcl) {
 			ObjectDataImpl odImpl = new ObjectDataImpl();
 			if (!includeProperties) {
 				Map<String, Object> custom = new HashMap<>();
@@ -175,6 +180,9 @@ public class CmisDiscoveryService {
 					odImpl.setPolicyIds(policies);
 				}
 
+			}
+			if (includeAcl != null && includeAcl) {
+				odImpl.setAcl(object.getAcl());
 			}
 			return odImpl;
 
