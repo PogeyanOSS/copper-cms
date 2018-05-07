@@ -81,6 +81,8 @@ public class CmisDiscoveryService {
 			Set<String> filterCollection = splitFilter(filter);
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
+				filterArray = Arrays.copyOf(filterArray, filterArray.length + 1);
+				filterArray[filterArray.length - 1] = "internalPath";
 			}
 			if (orderBy != null) {
 				String[] orderQuery = orderBy.split(",");
@@ -109,8 +111,15 @@ public class CmisDiscoveryService {
 										objectOnly = false;
 										break;
 									}
+								} else if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")) {
+									ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
+											includeProperties, includePolicyIds);
+									lod.add(odImpl);
+									objectOnly = false;
+									break;
 								}
 							}
+
 							if (objectOnly) {
 								List<Ace> listAce = getListAce(object.getAcl(), principalIds);
 								if (listAce.size() >= 1) {
