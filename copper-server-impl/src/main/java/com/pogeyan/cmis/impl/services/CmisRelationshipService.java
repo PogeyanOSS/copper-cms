@@ -47,7 +47,6 @@ public class CmisRelationshipService {
 				Boolean includeSubRelationshipTypes, RelationshipDirection relationshipDirection, String typeId,
 				String filter, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
 				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException, MongoException {
-			LOG.info("getObjectRelationships on object: {} , repository: {},", repositoryId, objectId);
 			IBaseObject so = null;
 			try {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);

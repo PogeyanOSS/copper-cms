@@ -27,6 +27,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
@@ -39,6 +41,7 @@ import com.pogeyan.cmis.impl.services.CmisObjectService;
 import com.pogeyan.cmis.impl.services.CmisPolicyService;
 
 public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
+	private static final Logger LOG = LoggerFactory.getLogger(PolicyActor.class);
 
 	@Override
 	public String getName() {
@@ -65,6 +68,8 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+		LOG.info("methodName: {}, get appiled policies using this id: {},repositoryId: {}, filter: {}",
+				"getAppliedPolicies", objectId, request.getRepositoryId(), filter);
 		List<ObjectData> policies = CmisPolicyService.Impl.getAppliedPolicies(request.getRepositoryId(), objectId,
 				filter, null);
 		JSONArray jsonPolicies = new JSONArray();
@@ -87,7 +92,11 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+		LOG.info("methodName: {}, apply policy using this id: {},repositoryId: {},policyId: {}", "getAppliedPolicies",
+				objectId, request.getRepositoryId(), request.getPolicyId());
 		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getPolicyId(), objectId);
+		LOG.info("methodName: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
+				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);
 		if (object == null) {
@@ -109,8 +118,12 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+		LOG.info("methodName: {}, remove policy using this id: {},repositoryId: {},policyId: {}", "getAppliedPolicies",
+				objectId, request.getRepositoryId(), request.getPolicyId());
 		CmisPolicyService.Impl.removePolicy(request.getRepositoryId(), request.getPolicyId(), objectId,
 				request.getUserObject().getUserDN());
+		LOG.info("methodName: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
+				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);
 		if (object == null) {

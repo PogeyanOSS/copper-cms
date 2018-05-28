@@ -60,7 +60,6 @@ public class CmisDiscoveryService {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
-			LOG.info("getContentChanges on change log token : {} , repository: {}", changeLogToken, repositoryId);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
@@ -112,7 +111,7 @@ public class CmisDiscoveryService {
 											objectOnly = false;
 											break;
 										}
-									} 
+									}
 								}
 							}
 
@@ -134,10 +133,12 @@ public class CmisDiscoveryService {
 
 			}
 
-	objList.setObjects(lod);
+			objList.setObjects(lod);
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
-
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getContentChanges result data count:{}", objList.getNumItems());
+			}
 			return objList;
 		}
 

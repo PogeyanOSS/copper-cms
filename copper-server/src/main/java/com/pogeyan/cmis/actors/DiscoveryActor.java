@@ -25,6 +25,8 @@ import org.apache.chemistry.opencmis.commons.impl.JSONConstants;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
@@ -36,6 +38,7 @@ import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 
 public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
+	private static final Logger LOG = LoggerFactory.getLogger(DiscoveryActor.class);
 
 	@Override
 	public String getName() {
@@ -65,6 +68,9 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Holder<String> changeLogTokenHolder = new Holder<String>(changeLogToken);
+		LOG.info(
+				"methodName: {}, get latest content changes using this id: {},repositoryId: {}, includeAcl: {}, includePolicyIds :{}",
+				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
 		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
 				request.getUserObject());

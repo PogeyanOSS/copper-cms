@@ -46,7 +46,6 @@ public class CmisAclServices {
 		public static Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions,
 				ExtensionsData extension, ObjectInfoHandler objectInfos, String userName)
 				throws CmisObjectNotFoundException {
-			LOG.info("getAcl on objectId: {} , repository: {}", objectId, repositoryId);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
@@ -63,7 +62,6 @@ public class CmisAclServices {
 		public static Acl applyAcl(String repositoryId, String objectId, Acl aclAdd, Acl aclRemove,
 				AclPropagation aclPropagation, ExtensionsData extension, ObjectInfoHandler objectInfos,
 				CapabilityAcl capability, String userName) throws CmisObjectNotFoundException {
-			LOG.info("applyAcl on objectId: {} , repository: {}", objectId, repositoryId);
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);

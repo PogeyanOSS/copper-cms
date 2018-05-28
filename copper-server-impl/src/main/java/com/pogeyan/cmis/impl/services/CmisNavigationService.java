@@ -68,7 +68,6 @@ public class CmisNavigationService {
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
 				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisObjectNotFoundException {
-			LOG.info("List of child objects for folderId: {} , repository: {}", folderId, repositoryId);
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
 			ObjectInFolderList res = getChildrenIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
@@ -192,8 +191,6 @@ public class CmisNavigationService {
 				BigInteger depth, String filter, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment,
 				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisInvalidArgumentException {
-			LOG.info("getDescendants for folderId: {} , repository: {}", folderId, repositoryId);
-
 			int levels = 0;
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
@@ -244,8 +241,9 @@ public class CmisNavigationService {
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
 				ObjectInfoHandler objectInfos, IUserObject userObject) {
-			LOG.info("getDescendantsIntern with folderId: {} , for user: {} , repository: {}", folderId,
-					userObject.getUserDN(), repositoryId);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getDescendantsIntern for folder data :{}", folderId);
+			}
 			MDocumentObjectDAO docMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -304,6 +302,9 @@ public class CmisNavigationService {
 				Boolean includeAllowableActions, ObjectInfoHandler objectInfos, String renditionFilter,
 				IncludeRelationships includeRelationships, IUserObject userObject, MDocumentObjectDAO docMorphia,
 				List<String> listOfParentIds) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getDescendants child object data:{}", children);
+			}
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			ObjectInFolderList childList = getChildernList(repositoryId, children, folderId, includePathSegments,
 					filter, includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
@@ -412,6 +413,9 @@ public class CmisNavigationService {
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, int level, int levels, boolean b,
 				ObjectInfoHandler objectInfos, IUserObject userObject) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getDescendantsRelationObjects for folder data :{}", folderId);
+			}
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
 					folderId.toString(), 0, 0, null);
@@ -461,7 +465,6 @@ public class CmisNavigationService {
 		 */
 		public static ObjectData getFolderParent(String repositoryId, String folderId, String filter,
 				ObjectInfoHandler objectInfos, String userName) throws CmisInvalidArgumentException {
-			LOG.info("getFolderParent with folderId: {} , repository: {}", repositoryId, folderId);
 			ObjectData res = getFolderParentIntern(repositoryId, folderId, filter, false, IncludeRelationships.NONE,
 					userName, objectInfos);
 			if (res == null) {
@@ -480,6 +483,9 @@ public class CmisNavigationService {
 		private static ObjectData getFolderParentIntern(String repositoryId, String folderId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String user,
 				ObjectInfoHandler objectInfos) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getFolderParentIntern for folder data :{}", folderId);
+			}
 			IBaseObject folderParent = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			folderParent = DBUtils.BaseDAO.getByObjectId(repositoryId, data.getParentId(), null);
@@ -497,8 +503,6 @@ public class CmisNavigationService {
 				BigInteger depth, String filter, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment,
 				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisInvalidArgumentException {
-			LOG.info("getFolderTree with folderId: {} , repository: {}", folderId, repositoryId);
-
 			int levels;
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
@@ -578,7 +582,6 @@ public class CmisNavigationService {
 		public static List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 				Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos, String userName) {
-			LOG.info("getObjectParents with objectId: {} , repository: {}", objectId, repositoryId);
 			List<ObjectParentData> result = getObjectParentsIntern(repositoryId, objectId, filter, objectInfos,
 					includeAllowableActions, includeRelationships, renditionFilter, includeRelativePathSegment,
 					userName);
@@ -628,7 +631,6 @@ public class CmisNavigationService {
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 				BigInteger maxItems, BigInteger skipCount, ExtensionsData extension, ObjectInfoHandler objectInfos,
 				IUserObject userObject) {
-			LOG.info("getCheckedOutDocs with folderId: {} ,  repository: {}", folderId, repositoryId);
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
 			ObjectList res = getCheckedOutIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
@@ -725,6 +727,9 @@ public class CmisNavigationService {
 
 		public static List<AccessControlListImplExt> getParentAcl(String repositoryId, String dataPath,
 				AccessControlListImplExt dataAcl) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getParentAcl for data path :{}", dataPath);
+			}
 			List<AccessControlListImplExt> acl = null;
 			String[] queryResult = dataPath.split(",");
 			if (queryResult.length > 0) {

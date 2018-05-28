@@ -33,7 +33,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
@@ -166,7 +165,9 @@ public class CmisUtils {
 
 		public static List<RenditionData> getRenditions(String repositoryId, IBaseObject so, String renditionFilter,
 				long maxItems, long skipCount, String user) {
-
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getRenditions data using this id:{}", so.getId());
+			}
 			String tokenizer = "[\\s;]";
 			if (null == renditionFilter) {
 				return null;
@@ -200,8 +201,8 @@ public class CmisUtils {
 							mimeType = contentStream.getMimeType();
 						}
 					} catch (Exception e) {
-						LOG.error("getObject Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
-						throw new MongoException(e.toString());
+						LOG.error("getRenditions Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+						throw new CmisObjectNotFoundException(e.toString());
 					}
 				}
 

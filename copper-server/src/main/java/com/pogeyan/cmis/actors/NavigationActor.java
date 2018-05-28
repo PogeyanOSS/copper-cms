@@ -32,6 +32,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
@@ -43,6 +45,7 @@ import com.pogeyan.cmis.impl.services.CmisNavigationService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 
 public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse> {
+	private static final Logger LOG = LoggerFactory.getLogger(NavigationActor.class);
 
 	@Override
 	public String getName() {
@@ -90,7 +93,9 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		BigInteger skipCount = request.getBigIntegerParameter(QueryGetRequest.PARAM_SKIP_COUNT);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-
+		LOG.info(
+				"methodName: {}, get the first level of  child elements for folder object using this id: {},repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
+				"getChildren", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		ObjectInFolderList children = CmisNavigationService.Impl.getChildren(request.getRepositoryId(), folderId,
 				filter, orderBy, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment,
 				maxItems, skipCount, null, request.getUserObject());
@@ -123,6 +128,9 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		Boolean includePathSegment = request.getBooleanParameter(QueryGetRequest.PARAM_PATH_SEGMENT);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+		LOG.info(
+				"methodName: {}, getting all child elements for folder object using this id: {},repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
+				"getChildren", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		List<ObjectInFolderContainer> descendants = CmisNavigationService.Impl.getDescendants(request.getRepositoryId(),
 				folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter,
 				includePathSegment, null, request.getUserObject());
@@ -157,6 +165,9 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 
+		LOG.info(
+				"methodName: {},getFolderTree using this id: {},repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
+				"getFolderTree", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		List<ObjectInFolderContainer> folderTree = CmisNavigationService.Impl.getFolderTree(request.getRepositoryId(),
 				folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter,
 				includePathSegment, null, request.getUserObject());
@@ -183,7 +194,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-
+		LOG.info("methodName: {},getting first level of parent using this id: {},repositoryId: {}, query filter: {}",
+				"getFolderTree", objectId, request.getRepositoryId(), filter);
 		ObjectData parent = CmisNavigationService.Impl.getFolderParent(request.getRepositoryId(), objectId, filter,
 				null, request.getUserObject().getUserDN());
 
@@ -212,7 +224,10 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		Boolean includeRelativePathSegment = request.getBooleanParameter(QueryGetRequest.PARAM_RELATIVE_PATH_SEGMENT);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-
+		LOG.info(
+				"methodName: {},getting all parent objects using this id: {},repositoryId: {}, IncludeAllowableActions: {}, IncludeRelationships: {}, query filter: {}",
+				"getObjectParents", objectId, request.getRepositoryId(), includeAllowableActions, includeRelationships,
+				filter);
 		List<ObjectParentData> parents = CmisNavigationService.Impl.getObjectParents(request.getRepositoryId(),
 				objectId, filter, includeAllowableActions, includeRelationships, renditionFilter,
 				includeRelativePathSegment, null, request.getUserObject().getUserDN());
@@ -247,7 +262,10 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		BigInteger skipCount = request.getBigIntegerParameter(QueryGetRequest.PARAM_SKIP_COUNT);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-
+		LOG.info(
+				"methodName: {},getting all checkout documents objects using this folder id: {},repositoryId: {}, IncludeAllowableActions: {}, IncludeRelationships: {}, query filter: {}",
+				"getCheckedOutDocs", folderId, request.getRepositoryId(), includeAllowableActions, includeRelationships,
+				filter);
 		ObjectList docs = CmisNavigationService.Impl.getCheckedOutDocs(request.getRepositoryId(), folderId, filter,
 				orderBy, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, null,
 				null, request.getUserObject());

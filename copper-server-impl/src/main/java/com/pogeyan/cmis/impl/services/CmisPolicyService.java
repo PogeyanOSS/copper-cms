@@ -39,7 +39,6 @@ public class CmisPolicyService {
 		 */
 		public static List<ObjectData> getAppliedPolicies(String repositoryId, String objectId, String filter,
 				String username) throws CmisObjectNotFoundException {
-			LOG.info("getAppliedPolicies on objectId: {} , repository: {}", objectId, repositoryId);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
@@ -67,9 +66,6 @@ public class CmisPolicyService {
 		 */
 		public static void removePolicy(String repositoryId, String policyId, String objectId, String userName)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException {
-
-			LOG.info("removePolicy on objectId: {} , with policyId: {} , repository: {}", objectId, policyId,
-					repositoryId);
 			List<String> polIds = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
@@ -95,9 +91,6 @@ public class CmisPolicyService {
 		 */
 		public static void applyPolicy(String repositoryId, String policyId, String objectId)
 				throws CmisObjectNotFoundException, CmisInvalidArgumentException {
-
-			LOG.info("applyPolicy on objectId: {} , with policyId: {} , repository : {}", objectId, policyId,
-					repositoryId);
 			List<String> polIds = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {

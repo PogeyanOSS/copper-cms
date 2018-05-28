@@ -25,6 +25,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.BaseClusterActor;
@@ -36,6 +38,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.services.CmisRelationshipService;
 
 public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseResponse> {
+	private static final Logger LOG = LoggerFactory.getLogger(RelationshipActor.class);
 
 	@Override
 	public String getName() {
@@ -65,6 +68,10 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+		LOG.info(
+				"methodName: {}, get relationship object using this id: {},repositoryId: {}, includeAllowableActions: {}, RelationshipDirection: {}",
+				"getObjectRelationships", objectId, request.getRepositoryId(), includeAllowableActions,
+				relationshipDirection);
 
 		ObjectList relationships = CmisRelationshipService.Impl.getObjectRelationships(request.getRepositoryId(),
 				objectId, includeSubRelationshipTypes, relationshipDirection, typeId, renditionFilter,

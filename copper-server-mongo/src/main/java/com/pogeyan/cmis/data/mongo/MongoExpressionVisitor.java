@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.uri.expression.BinaryExpression;
 import com.pogeyan.cmis.api.uri.expression.BinaryOperator;
@@ -24,8 +26,10 @@ import com.pogeyan.cmis.api.uri.expression.PropertyExpression;
 import com.pogeyan.cmis.api.uri.expression.SortOrder;
 import com.pogeyan.cmis.api.uri.expression.UnaryExpression;
 import com.pogeyan.cmis.api.uri.expression.UnaryOperator;
+import com.pogeyan.cmis.impl.services.CmisNavigationService;
 
 public class MongoExpressionVisitor<T> implements ExpressionVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(CmisNavigationService.class);
 	private Query<T> query;
 
 	public MongoExpressionVisitor(Query<T> query) {
@@ -34,6 +38,9 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	@Override
 	public Object visitFilterExpression(FilterExpression filterExpression, String expressionString, Object expression) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("visitFilterExpression:{}", expressionString);
+		}
 		if (expression.getClass() == CriteriaContainerImpl.class) {
 			this.query.and((Criteria) expression);
 			return this.query;
@@ -44,6 +51,9 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	@Override
 	public Object visitBinary(BinaryExpression binaryExpression, BinaryOperator operator, Object leftSide,
 			Object rightSide) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("visitBinary:{} , leftSide:{}, rightSide:{}", binaryExpression.toString(), leftSide, rightSide);
+		}
 		if (leftSide instanceof BinaryExpression) {
 			// If something is lower in the tree and is of the type AND or OR it
 			// needs brackets to show the higher priority
@@ -114,6 +124,9 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	@Override
 	public Object visitOrderByExpression(OrderByExpression orderByExpression, String expressionString,
 			List<Object> orders) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("visitOrderByExpression:{}", expressionString);
+		}
 		String orderByQuery = orders.stream().filter(t -> t != null).map(n -> n.toString())
 				.collect(Collectors.joining(","));
 		return this.query.order(orderByQuery);
@@ -153,6 +166,9 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	@Override
 	public Object visitOrder(OrderExpression orderExpression, Object filterResult, SortOrder sortOrder) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("visitOrder:{}", orderExpression.toString());
+		}
 		if (filterResult instanceof PropertyExpression) {
 			PropertyExpression orderByProperty = (PropertyExpression) filterResult;
 			String orderByLiteral = sortOrder == SortOrder.asc ? orderByProperty.getUriLiteral()
@@ -171,6 +187,9 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	@Override
 	public Object visitMethod(MethodExpression methodExpression, MethodOperator method, List<Object> parameters) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("visitMethod:{}", methodExpression.toString());
+		}
 		if (parameters.size() != 2) {
 			throw new UnsupportedOperationException("Unsupported parameters length, it should be 2");
 		}
