@@ -104,7 +104,7 @@ public class CmisVersioningServices {
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
 			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
 			if (docObj == null) {
-				LOG.error("error while getting latest version", objectId);
+				LOG.error("error while getting latest version:{}", objectId);
 				throw new CmisObjectNotFoundException("error while getting latest version " + objectId);
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, docObj, filterCollection,

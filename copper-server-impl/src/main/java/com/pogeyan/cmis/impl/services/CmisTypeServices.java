@@ -525,7 +525,7 @@ public class CmisTypeServices {
 				object = typeDef.get(0);
 			}
 			if (object != null) {
-				LOG.error(type.getId(), " is already present!");
+				LOG.error(type.getId() + ":{}", " is already present!");
 				throw new IllegalArgumentException(type.getId() + " is already present");
 			}
 			if (type.getPropertyDefinitions() != null) {
@@ -614,7 +614,7 @@ public class CmisTypeServices {
 				object = tyeDef.get(0);
 			}
 			if (object == null) {
-				LOG.error(type.getId(), " is unknown");
+				LOG.error(type.getId() + ":{}", " is unknown");
 				throw new IllegalArgumentException("Unknown TypeId" + type.getId());
 			}
 			if (type.getPropertyDefinitions() != null) {
@@ -669,7 +669,7 @@ public class CmisTypeServices {
 			}
 
 			if (object == null) {
-				LOG.error(type, " does not exists");
+				LOG.error(type + ":{}", " does not exists");
 				throw new IllegalArgumentException("Unknown TypeId " + type);
 			}
 			// Map<String, String> parameters =
@@ -832,7 +832,7 @@ public class CmisTypeServices {
 				typeDefinitionContainer.getTypeDefinition().getPropertyDefinitions().size();
 				return typeDefinitionContainer.getTypeDefinition();
 			} else {
-				LOG.error("unknown typeId {}", typeDefinition.getId());
+				LOG.error("unknown typeId :{}", typeDefinition.getId());
 				throw new CmisObjectNotFoundException("unknown typeId: " + typeDefinition.getId());
 			}
 		}
@@ -959,7 +959,7 @@ public class CmisTypeServices {
 					object = typeDef.get(0);
 				}
 				if (object == null) {
-					LOG.error("Unknown TypeId {}", typeId);
+					LOG.error("Unknown TypeId :{}", typeId);
 					throw new IllegalArgumentException("Unknown TypeID " + typeId);
 				}
 			}
@@ -1047,7 +1047,7 @@ public class CmisTypeServices {
 					object = typeDef.get(0);
 				}
 				if (object == null) {
-					LOG.error("Unknown TypeID {}", typeId);
+					LOG.error("Unknown TypeID :{}", typeId);
 					throw new IllegalArgumentException("Unknown TypeID " + typeId);
 				}
 

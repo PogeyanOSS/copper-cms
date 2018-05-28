@@ -761,7 +761,7 @@ public class CmisObjectService {
 				if (filter != null) {
 					if (!filter.isEmpty()) {
 						if (LOG.isDebugEnabled()) {
-							LOG.debug("Unknown filter properties: " + filter.toString());
+							LOG.debug("Unknown filter properties:{} ", filter.toString());
 						}
 					}
 				}
@@ -1307,14 +1307,14 @@ public class CmisObjectService {
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(folderName)) {
-				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, " Name is:{} ", folderName);
+				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, ":{} ", folderName);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + folderName);
 			}
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
 			if (secondaryObjectType != null) {
 				if (LOG.isDebugEnabled()) {
-					LOG.info(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
+					LOG.debug(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
 				}
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
@@ -1577,10 +1577,8 @@ public class CmisObjectService {
 			// }
 
 			PropertyData<?> pdType = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
-			LOG.info(PropertyIds.OBJECT_TYPE_ID + " properties: {}", pdType);
 			String objectTypeId = (String) pdType.getFirstValue();
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
-			LOG.info(PropertyIds.NAME + " properties: {}", pd);
 			String documentName = (String) pd.getFirstValue();
 			if (documentName == null || documentName.length() == 0) {
 				LOG.error("Unknown DocumentName");
@@ -1590,14 +1588,14 @@ public class CmisObjectService {
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
 			if (secondaryObjectType != null) {
 				if (LOG.isDebugEnabled()) {
-					LOG.info(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
+					LOG.debug(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
 				}
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
-				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, " Name is:{} ", documentName);
+				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, ":{} ", documentName);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName);
 			}
 
@@ -1832,7 +1830,7 @@ public class CmisObjectService {
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
-				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, " Name is: {}", documentName);
+				LOG.error(NameValidator.ERROR_ILLEGAL_NAME + ": {}", documentName);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName);
 			}
 			String typeId = getObjectTypeId(properties);
@@ -1953,7 +1951,7 @@ public class CmisObjectService {
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(itemName)) {
-				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, " Name is:{} ", itemName);
+				LOG.error(NameValidator.ERROR_ILLEGAL_NAME + ":{} ", itemName);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME, " Name is: " + itemName);
 			}
 
@@ -2338,16 +2336,15 @@ public class CmisObjectService {
 				throw new CmisInvalidArgumentException("Cannot create a policy without a name.");
 			}
 			if (!NameValidator.impl.isValidName(policyName)) {
-				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, " Name is:{} ", policyName);
+				LOG.error(NameValidator.ERROR_ILLEGAL_NAME, ":{} ", policyName);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME, " Name is: " + policyName);
 			}
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
 			if (secondaryObjectType != null) {
 				if (LOG.isDebugEnabled()) {
-					LOG.info(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
+					LOG.debug(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
 				}
-				LOG.info(PropertyIds.SECONDARY_OBJECT_TYPE_IDS + " properties: {}", secondaryObjectType);
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
 
@@ -2359,7 +2356,7 @@ public class CmisObjectService {
 			}
 			// check if the given type is a folder type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_POLICY)) {
-				LOG.error("Cannot create a policy, with a non-folder type:{} " + typeDef.getId());
+				LOG.error("Cannot create a policy, with a non-folder type:{} ", typeDef.getId());
 				throw new CmisInvalidArgumentException(
 						"Cannot create a policy, with a non-folder type: " + typeDef.getId());
 			}
@@ -2458,7 +2455,8 @@ public class CmisObjectService {
 					updateProperties(repositoryId, objId, changeToken, properties, null, objectInfos, userObject);
 					result.add(new BulkUpdateObjectIdAndChangeTokenImpl(obj.getId(), changeToken.getValue()));
 				} catch (Exception e) {
-					LOG.error("updating properties in bulk upadate failed for object:{},{}", obj.getId() + ": ", e);
+					LOG.error("updating properties in bulk upadate failed for object:{},{}", obj.getId(),
+							e.getMessage());
 				}
 			}
 			if (LOG.isDebugEnabled()) {
@@ -3057,7 +3055,7 @@ public class CmisObjectService {
 			FailedToDeleteDataImpl result = new FailedToDeleteDataImpl();
 
 			if (data == null) {
-				LOG.error("Cannot delete object with id :{} ", folderId, ". Object does not exist.");
+				LOG.error("Cannot delete object with id :{},{} ", folderId, "Object does not exist.");
 				throw new CmisInvalidArgumentException(
 						"Cannot delete object with id  " + folderId + ". Object does not exist.");
 			}
