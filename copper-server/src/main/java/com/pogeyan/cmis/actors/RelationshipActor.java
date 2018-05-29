@@ -69,7 +69,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info(
-				"methodName: {}, get relationship object using this id: {},repositoryId: {}, includeAllowableActions: {}, RelationshipDirection: {}",
+				"Method name: {}, get relationship object using this id: {}, repositoryId: {}, includeAllowableActions: {}, relationshipDirection: {}",
 				"getObjectRelationships", objectId, request.getRepositoryId(), includeAllowableActions,
 				relationshipDirection);
 

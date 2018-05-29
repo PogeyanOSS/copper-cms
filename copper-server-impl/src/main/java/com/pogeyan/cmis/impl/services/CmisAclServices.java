@@ -49,12 +49,12 @@ public class CmisAclServices {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
-				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
+				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
 					false, objectInfos, null, null, userName);
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Acl: {}", objectData.getAcl().getAces());
+				LOG.debug("get acl result data: {}", objectData.getAcl().getAces());
 			}
 			return objectData.getAcl();
 		}
@@ -65,14 +65,10 @@ public class CmisAclServices {
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
-			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
-				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
-			}
-
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Unknown object id: {}", objectId);
-				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
+				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			switch (aclPropagation) {
@@ -91,9 +87,8 @@ public class CmisAclServices {
 				break;
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("newData after applyAcl: {}", newData.getAcl().getAces());
-			}
+
+			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl().getAces() : null);
 			return newData.getAcl();
 		}
 
@@ -147,10 +142,7 @@ public class CmisAclServices {
 			}
 
 			AccessControlListImplExt aclimpl = new AccessControlListImplExt(aces, aclPropagation, false);
-			if (LOG.isDebugEnabled() && aclimpl != null) {
-				LOG.debug("ValidatedAcl: {}", aclimpl.getAces());
-			}
-
+			LOG.debug("After validatedAces: {}", aclimpl.getAces());
 			return aclimpl;
 		}
 

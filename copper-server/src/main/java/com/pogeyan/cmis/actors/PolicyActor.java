@@ -68,7 +68,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		LOG.info("methodName: {}, get appiled policies using this id: {},repositoryId: {}, filter: {}",
+		LOG.info("Method name: {}, get appiled policies using this id: {}, repositoryId: {}, filter: {}",
 				"getAppliedPolicies", objectId, request.getRepositoryId(), filter);
 		List<ObjectData> policies = CmisPolicyService.Impl.getAppliedPolicies(request.getRepositoryId(), objectId,
 				filter, null);
@@ -92,10 +92,10 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		LOG.info("methodName: {}, apply policy using this id: {},repositoryId: {},policyId: {}", "getAppliedPolicies",
+		LOG.info("Method name: {}, apply policy using this id: {}, repositoryId: {}, policyId: {}", "applyPolicy",
 				objectId, request.getRepositoryId(), request.getPolicyId());
 		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getPolicyId(), objectId);
-		LOG.info("methodName: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
+		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);
@@ -118,11 +118,11 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		LOG.info("methodName: {}, remove policy using this id: {},repositoryId: {},policyId: {}", "getAppliedPolicies",
+		LOG.info("Method name: {}, remove policy using this id: {}, repositoryId: {}, policyId: {}", "removePolicy",
 				objectId, request.getRepositoryId(), request.getPolicyId());
 		CmisPolicyService.Impl.removePolicy(request.getRepositoryId(), request.getPolicyId(), objectId,
 				request.getUserObject().getUserDN());
-		LOG.info("methodName: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
+		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);

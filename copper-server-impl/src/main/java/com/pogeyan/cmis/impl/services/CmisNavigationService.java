@@ -73,8 +73,8 @@ public class CmisNavigationService {
 			ObjectInFolderList res = getChildrenIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
 					includeRelationships, renditionFilter, includePathSegment, maxItemsInt, skipCountInt, false, false,
 					objectInfos, userObject);
-			if (LOG.isDebugEnabled() && res != null) {
-				LOG.debug("children for folder: {} are : {}", folderId, res.getObjects());
+			if (res != null) {
+				LOG.debug("getChildren result for folderId: {}, numItems: {}", folderId, res.getNumItems());
 			}
 			return res;
 		}
@@ -149,9 +149,7 @@ public class CmisNavigationService {
 				}
 			}
 
-			for (
-
-			IBaseObject child : children) {
+			for (IBaseObject child : children) {
 				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 				if (includePathSegments != null && includePathSegments) {
 					oifd.setPathSegment(child.getName());
@@ -174,11 +172,6 @@ public class CmisNavigationService {
 			result.setObjects(folderList);
 			result.setNumItems(BigInteger.valueOf(childrenCount));
 			result.setHasMoreItems(skipCount + 1 * maxItems < childrenCount);
-
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getChildrenIntern result for {}, {} - NumItems {}", repositoryId, folderId,
-						result.getNumItems().toString());
-			}
 
 			return result;
 		}
@@ -209,9 +202,6 @@ public class CmisNavigationService {
 					result = getDescendantsIntern(repositoryId, folderId, filter, includeAllowableActions,
 							includeRelationships, renditionFilter, includePathSegment, level, levels, false,
 							objectInfos, userObject);
-					if (LOG.isDebugEnabled() && result != null) {
-						LOG.debug("descendants for folder: {} are : {}", folderId, result);
-					}
 				} else {
 					int level = 0;
 					ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
@@ -231,6 +221,9 @@ public class CmisNavigationService {
 					result = parentData;
 				}
 			}
+			if (result != null) {
+				LOG.debug("getDescendants result for folderId: {}, numItems: {}", folderId, result.size());
+			}
 			return result;
 		}
 
@@ -241,9 +234,6 @@ public class CmisNavigationService {
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
 				ObjectInfoHandler objectInfos, IUserObject userObject) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getDescendantsIntern for folder data :{}", folderId);
-			}
 			MDocumentObjectDAO docMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -302,9 +292,7 @@ public class CmisNavigationService {
 				Boolean includeAllowableActions, ObjectInfoHandler objectInfos, String renditionFilter,
 				IncludeRelationships includeRelationships, IUserObject userObject, MDocumentObjectDAO docMorphia,
 				List<String> listOfParentIds) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getDescendants child object data:{}", children);
-			}
+			LOG.debug("getDescendants child object data: {}", children);
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			ObjectInFolderList childList = getChildernList(repositoryId, children, folderId, includePathSegments,
 					filter, includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
@@ -400,10 +388,9 @@ public class CmisNavigationService {
 					result.setNumItems(BigInteger.valueOf(children.size()));
 					result.setHasMoreItems(children.size() > 0 + folderList.size());
 
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("getChildrenIntern result for {}, {} - NumItems {}", repositoryId, folderId,
-								result.getNumItems().toString());
-					}
+					LOG.debug("getChildrenIntern result for this folderId: {}, child count: {}", folderId,
+							result.getNumItems());
+
 				}
 			}
 			return result;
@@ -413,9 +400,7 @@ public class CmisNavigationService {
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, int level, int levels, boolean b,
 				ObjectInfoHandler objectInfos, IUserObject userObject) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getDescendantsRelationObjects for folder data :{}", folderId);
-			}
+			LOG.debug("getDescendantsRelationObjects for folder data: {}", folderId);
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
 					folderId.toString(), 0, 0, null);
@@ -468,11 +453,11 @@ public class CmisNavigationService {
 			ObjectData res = getFolderParentIntern(repositoryId, folderId, filter, false, IncludeRelationships.NONE,
 					userName, objectInfos);
 			if (res == null) {
-				LOG.error("Cannot get parent of a root folder of:{}", folderId);
+				LOG.error("Cannot get parent of a root folder of: {}", folderId);
 				throw new CmisInvalidArgumentException("Cannot get parent of a root folder");
 			}
-			if (LOG.isDebugEnabled() && res != null) {
-				LOG.debug("Parent for folder {} : {}", folderId, res.toString());
+			if (res != null) {
+				LOG.debug("Parent for folderId: {}, and result object count: {}", folderId, res);
 			}
 			return res;
 		}
@@ -483,9 +468,6 @@ public class CmisNavigationService {
 		private static ObjectData getFolderParentIntern(String repositoryId, String folderId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String user,
 				ObjectInfoHandler objectInfos) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getFolderParentIntern for folder data :{}", folderId);
-			}
 			IBaseObject folderParent = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			folderParent = DBUtils.BaseDAO.getByObjectId(repositoryId, data.getParentId(), null);
@@ -516,8 +498,8 @@ public class CmisNavigationService {
 			List<ObjectInFolderContainer> result = getFolderTreeIntern(repositoryId, folderId, filter,
 					includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, level, levels,
 					true, objectInfos, userObject);
-			if (LOG.isDebugEnabled() && result != null) {
-				LOG.debug("descendant folder objects: {}", result.toString());
+			if (result != null) {
+				LOG.debug("descendant folder objects count: {}", result.size());
 			}
 			return result;
 		}
@@ -585,8 +567,8 @@ public class CmisNavigationService {
 			List<ObjectParentData> result = getObjectParentsIntern(repositoryId, objectId, filter, objectInfos,
 					includeAllowableActions, includeRelationships, renditionFilter, includeRelativePathSegment,
 					userName);
-			if (LOG.isDebugEnabled() && result != null) {
-				LOG.debug("parent folders for object {} : {}", objectId, result.toString());
+			if (result != null) {
+				LOG.debug("getObjectParents result object count: {}", result.size());
 			}
 			return result;
 		}
@@ -636,7 +618,7 @@ public class CmisNavigationService {
 			ObjectList res = getCheckedOutIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
 					includeRelationships, renditionFilter, maxItemsInt, skipCountInt, extension, objectInfos,
 					userObject);
-			if (LOG.isDebugEnabled()) {
+			if (res != null) {
 				LOG.debug("checkedout objects: {}", res.getObjects());
 			}
 			return res;
@@ -663,7 +645,7 @@ public class CmisNavigationService {
 			} else {
 				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 				if (data == null) {
-					LOG.error("Unknown object id:{}", folderId);
+					LOG.error("Unknown object id: {}", folderId);
 					throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
 				}
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
@@ -717,19 +699,12 @@ public class CmisNavigationService {
 			results.setObjects(odList);
 			results.setNumItems(BigInteger.valueOf(documentCount));
 			results.setHasMoreItems(skipCount + 1 * maxItems < documentCount);
-
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getCheckedOutDocsIntern result for {}, {} - NumItems {}", repositoryId, folderId,
-						results.getNumItems().toString());
-			}
 			return results;
 		}
 
 		public static List<AccessControlListImplExt> getParentAcl(String repositoryId, String dataPath,
 				AccessControlListImplExt dataAcl) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getParentAcl for data path :{}", dataPath);
-			}
+			LOG.debug("getParentAcl for data path : {}", dataPath);
 			List<AccessControlListImplExt> acl = null;
 			String[] queryResult = dataPath.split(",");
 			if (queryResult.length > 0) {

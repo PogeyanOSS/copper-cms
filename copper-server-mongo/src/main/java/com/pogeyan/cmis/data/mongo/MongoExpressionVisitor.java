@@ -38,8 +38,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	@Override
 	public Object visitFilterExpression(FilterExpression filterExpression, String expressionString, Object expression) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("visitFilterExpression:{}", expressionString);
+		if (expressionString != null) {
+			LOG.debug("visitFilterExpression: {}", expressionString);
 		}
 		if (expression.getClass() == CriteriaContainerImpl.class) {
 			this.query.and((Criteria) expression);
@@ -51,8 +51,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	@Override
 	public Object visitBinary(BinaryExpression binaryExpression, BinaryOperator operator, Object leftSide,
 			Object rightSide) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("visitBinary:{} , leftSide:{}, rightSide:{}", binaryExpression.toString(), leftSide, rightSide);
+		if (binaryExpression != null) {
+			LOG.debug("visitBinary: {}, leftSide: {}, rightSide: {}", binaryExpression, leftSide, rightSide);
 		}
 		if (leftSide instanceof BinaryExpression) {
 			// If something is lower in the tree and is of the type AND or OR it
@@ -124,8 +124,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	@Override
 	public Object visitOrderByExpression(OrderByExpression orderByExpression, String expressionString,
 			List<Object> orders) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("visitOrderByExpression:{}", expressionString);
+		if (expressionString != null) {
+			LOG.debug("visitOrderByExpression: {}", expressionString);
 		}
 		String orderByQuery = orders.stream().filter(t -> t != null).map(n -> n.toString())
 				.collect(Collectors.joining(","));
@@ -166,8 +166,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	@Override
 	public Object visitOrder(OrderExpression orderExpression, Object filterResult, SortOrder sortOrder) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("visitOrder:{}", orderExpression.toString());
+		if (orderExpression != null) {
+			LOG.debug("visitOrder: {}", orderExpression);
 		}
 		if (filterResult instanceof PropertyExpression) {
 			PropertyExpression orderByProperty = (PropertyExpression) filterResult;
@@ -187,8 +187,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	@Override
 	public Object visitMethod(MethodExpression methodExpression, MethodOperator method, List<Object> parameters) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("visitMethod:{}", methodExpression.toString());
+		if (methodExpression != null) {
+			LOG.debug("visitMethod: {}", methodExpression);
 		}
 		if (parameters.size() != 2) {
 			throw new UnsupportedOperationException("Unsupported parameters length, it should be 2");

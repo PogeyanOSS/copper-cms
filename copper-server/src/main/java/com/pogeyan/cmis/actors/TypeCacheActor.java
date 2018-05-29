@@ -30,7 +30,7 @@ public class TypeCacheActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 	}
 
 	private JSONObject clearCache(QueryGetRequest request) throws CmisObjectNotFoundException, CmisRuntimeException {
-		LOG.info("methodName: {}, repositoryId: {}", "clearCache", request.getRepositoryId());
+		LOG.info("Method name: {}, repositoryId: {}", "clearCache", request.getRepositoryId());
 		CacheProviderServiceFactory.getTypeCacheServiceProvider().removeAll(request.getRepositoryId());
 		JSONObject j = new JSONObject();
 		j.put("status", true);

@@ -64,7 +64,7 @@ public class CmisDiscoveryService {
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
-				throw new CmisInvalidArgumentException("change log token should not be null!");
+				throw new CmisInvalidArgumentException("change log token value should not be null!");
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
@@ -136,9 +136,8 @@ public class CmisDiscoveryService {
 			objList.setObjects(lod);
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getContentChanges result data count:{}", objList.getNumItems());
-			}
+			LOG.debug("getContentChanges result data count: {}", objList.getNumItems());
+
 			return objList;
 		}
 

@@ -94,7 +94,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info(
-				"methodName: {}, get the first level of  child elements for folder object using this id: {},repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
+				"Method name: {}, get the first level of  child elements for folder object using this id: {}, repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
 				"getChildren", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		ObjectInFolderList children = CmisNavigationService.Impl.getChildren(request.getRepositoryId(), folderId,
 				filter, orderBy, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment,
@@ -129,8 +129,9 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info(
-				"methodName: {}, getting all child elements for folder object using this id: {},repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
-				"getChildren", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
+				"Method name: {}, getting all child elements for folder object using this id: {}, repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
+				"getDescendants", folderId, request.getRepositoryId(), includeRelationships, includePathSegment,
+				filter);
 		List<ObjectInFolderContainer> descendants = CmisNavigationService.Impl.getDescendants(request.getRepositoryId(),
 				folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter,
 				includePathSegment, null, request.getUserObject());
@@ -166,7 +167,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 
 		LOG.info(
-				"methodName: {},getFolderTree using this id: {},repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
+				"Method name: {}, getFolderTree using this id: {}, repositoryId: {}, includeRelationships: {}, includePathSegment: {}, query filter: {}",
 				"getFolderTree", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		List<ObjectInFolderContainer> folderTree = CmisNavigationService.Impl.getFolderTree(request.getRepositoryId(),
 				folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter,
@@ -194,8 +195,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		LOG.info("methodName: {},getting first level of parent using this id: {},repositoryId: {}, query filter: {}",
-				"getFolderTree", objectId, request.getRepositoryId(), filter);
+		LOG.info("Method name: {}, getting first level of parent using this id: {}, repositoryId: {}, query filter: {}",
+				"getFolderParent", objectId, request.getRepositoryId(), filter);
 		ObjectData parent = CmisNavigationService.Impl.getFolderParent(request.getRepositoryId(), objectId, filter,
 				null, request.getUserObject().getUserDN());
 
@@ -225,7 +226,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info(
-				"methodName: {},getting all parent objects using this id: {},repositoryId: {}, IncludeAllowableActions: {}, IncludeRelationships: {}, query filter: {}",
+				"Method name: {}, getting all parent objects using this id: {}, repositoryId: {}, includeAllowableActions: {}, includeRelationships: {}, query filter: {}",
 				"getObjectParents", objectId, request.getRepositoryId(), includeAllowableActions, includeRelationships,
 				filter);
 		List<ObjectParentData> parents = CmisNavigationService.Impl.getObjectParents(request.getRepositoryId(),
@@ -263,7 +264,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info(
-				"methodName: {},getting all checkout documents objects using this folder id: {},repositoryId: {}, IncludeAllowableActions: {}, IncludeRelationships: {}, query filter: {}",
+				"Method name: {}, getting all checkout documents objects using this folder id: {}, repositoryId: {}, includeAllowableActions: {}, includeRelationships: {}, query filter: {}",
 				"getCheckedOutDocs", folderId, request.getRepositoryId(), includeAllowableActions, includeRelationships,
 				filter);
 		ObjectList docs = CmisNavigationService.Impl.getCheckedOutDocs(request.getRepositoryId(), folderId, filter,

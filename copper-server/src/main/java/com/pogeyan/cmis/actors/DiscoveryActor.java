@@ -69,7 +69,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Holder<String> changeLogTokenHolder = new Holder<String>(changeLogToken);
 		LOG.info(
-				"methodName: {}, get latest content changes using this id: {},repositoryId: {}, includeAcl: {}, includePolicyIds :{}",
+				"Method name: {}, get latest content changes using this id: {}, repositoryId: {}, includeAcl: {}, includePolicyIds: {}",
 				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
 		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,

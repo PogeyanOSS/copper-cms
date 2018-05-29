@@ -88,11 +88,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Holder<String> objectsId = new Holder<String>(objectId.toString());
-		LOG.info("methodName: {}, checkOut the document using this ids: {},repositoryId: {}", "checkOut", objectId,
+		LOG.info("Method name: {}, checkOut the document using this ids: {}, repositoryId: {}", "checkOut", objectId,
 				request.getRepositoryId());
 		String pwcId = CmisVersioningServices.Impl.checkOut(request.getRepositoryId(), objectsId, null, null,
 				request.getUserName());
-		LOG.info("methodName: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
+		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), pwcId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
@@ -137,11 +137,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		 * p.getValue().get(0) :null)); }
 		 */
 		LOG.info(
-				"methodName: {}, checkIn the document using this ids: {},repositoryId: {}, version: {}, checkinComment: {}",
+				"Method name: {}, checkIn the document using this ids: {}, repositoryId: {}, version: {}, checkinComment: {}",
 				"checkIn", objectId, request.getRepositoryId(), major, checkinComment);
 		String versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), properties,
 				request.getContentStream(), objectIdHolder, major, checkinComment, null, request.getUserName());
-		LOG.info("methodName: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
+		LOG.info("Method name: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), versionId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
@@ -163,11 +163,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		LOG.info("methodName: {}, cancel checkout the document using this ids: {},repositoryId: {}", "cancelCheckOut",
+		LOG.info("Method name: {}, cancel checkout the document using this ids: {}, repositoryId: {}", "cancelCheckOut",
 				objectId, request.getRepositoryId());
 		String docId = CmisVersioningServices.Impl.cancelCheckOut(request.getRepositoryId(), objectId, null,
 				request.getUserName());
-		LOG.info("methodName: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
+		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), docId,
 				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
@@ -196,7 +196,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		Boolean includeAllowableActions = request.getBooleanParameter(QueryGetRequest.PARAM_ALLOWABLE_ACTIONS);
 		String userName = request.getUserName();
 		LOG.info(
-				"methodName: {}, getting all version objects using this id: {},repositoryId: {},versionSeriesId: {},includeAllowableActions: {} ",
+				"Method name: {}, getting all version objects using this id: {}, repositoryId: {}, versionSeriesId: {}, includeAllowableActions: {}",
 				"getAllVersions", objectId, request.getRepositoryId(), versionSeriesId, includeAllowableActions);
 		List<ObjectData> versions = CmisVersioningServices.Impl.getAllVersions(request.getRepositoryId(), objectId,
 				versionSeriesId, filter, includeAllowableActions, null, null, userName);
@@ -229,7 +229,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		Boolean includeAcl = request.getBooleanParameter(QueryGetRequest.PARAM_ACL);
 		String userName = request.getUserName();
 		LOG.info(
-				"methodName: {}, get object of latest version using this id: {},repositoryId: {},versionSeriesId: {},majorVersion: {},includeAllowableActions: {} ",
+				"Method name: {}, get object of latest version using this id: {}, repositoryId: {}, versionSeriesId: {}, majorVersion: {}, includeAllowableActions: {}",
 				"getObjectOfLatestVersion", objectId, request.getRepositoryId(), versionSeriesId, majorVersion,
 				includeAllowableActions);
 		ObjectData object = CmisVersioningServices.Impl.getObjectOfLatestVersion(request.getRepositoryId(), objectId,
@@ -259,7 +259,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		Boolean major = request.getBooleanParameter(QueryGetRequest.PARAM_MAJOR);
 		String userName = request.getUserName();
 		LOG.info(
-				"methodName: {}, get properties of latest version using this id: {},repositoryId: {},versionSeriesId: {},majorVersion: {}",
+				"Method name: {}, get properties of latest version using this id: {}, repositoryId: {}, versionSeriesId: {}, majorVersion: {}",
 				"getPropertiesOfLatestVersion", objectId, request.getRepositoryId(), versionSeriesId, major);
 		Properties properties = CmisVersioningServices.Impl.getPropertiesOfLatestVersion(request.getRepositoryId(),
 				objectId, versionSeriesId, major, filter, null, userName);
