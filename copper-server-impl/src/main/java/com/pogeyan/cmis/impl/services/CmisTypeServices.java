@@ -690,7 +690,7 @@ public class CmisTypeServices {
 			TypeDefinition typeDefinition = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(typeId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				typeDefinition = typeDef.get(0);
 			}
 
@@ -927,7 +927,7 @@ public class CmisTypeServices {
 			TypeDefinition typeDefinition = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(typeId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				typeDefinition = typeDef.get(0);
 			}
 			return typeDefinition;
@@ -946,7 +946,7 @@ public class CmisTypeServices {
 			if (typeId != null) {
 				List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 						Arrays.asList(typeId));
-				if (typeDef.size() > 0) {
+				if (typeDef != null && typeDef.size() > 0) {
 					object = typeDef.get(0);
 				}
 				if (object == null) {
@@ -1034,7 +1034,7 @@ public class CmisTypeServices {
 				TypeDefinition object = null;
 				List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 						Arrays.asList(typeId));
-				if (typeDef.size() > 0) {
+				if (typeDef != null && typeDef.size() > 0) {
 					object = typeDef.get(0);
 				}
 				if (object == null) {
@@ -1081,7 +1081,7 @@ public class CmisTypeServices {
 			TypeDefinition result = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(typeId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				result = typeDef.get(0);
 				if (result.getBaseTypeId().value().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
 					DocumentTypeDefinition docResult = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId);
@@ -1315,7 +1315,7 @@ public class CmisTypeServices {
 			TypeDefinition parent = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(parentId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				parent = typeDef.get(0);
 			}
 			if (parent != null) {
