@@ -61,7 +61,8 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		String changeLogToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_LOG_TOKEN);
 		Boolean includeProperties = request.getBooleanParameter(QueryGetRequest.PARAM_PROPERTIES);
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
-		String orderBy = request.getParameter(QueryGetRequest.PARAM_ORDER_BY);
+		// Set orderby value
+		String orderBy = "cmis:lastModificationDate asc";
 		Boolean includePolicyIds = request.getBooleanParameter(QueryGetRequest.PARAM_POLICY_IDS);
 		Boolean includeAcl = request.getBooleanParameter(QueryGetRequest.PARAM_ACL);
 		BigInteger maxItems = request.getBigIntegerParameter(QueryGetRequest.PARAM_MAX_ITEMS);

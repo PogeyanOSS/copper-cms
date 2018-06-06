@@ -726,7 +726,8 @@ public class CmisNavigationService {
 		}
 
 		private static String getOrderByName(String orderBy) {
-			if (orderBy.contains("\\s+")) {
+			String order[] = orderBy.split("\\s+");
+			if (order.length > 0) {
 				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy.split("\\s+")[0]) + " "
 						+ orderBy.split("\\s+")[1];
 			} else {
