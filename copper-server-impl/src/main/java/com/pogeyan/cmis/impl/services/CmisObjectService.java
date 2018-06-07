@@ -3443,8 +3443,7 @@ public class CmisObjectService {
 		public static String getObjectTypeId(Properties properties) {
 			PropertyData<?> typeProperty = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
 			if (typeProperty != null) {
-				LOG.debug("getObjectTypeId for: {}, properties: {}", PropertyIds.OBJECT_TYPE_ID,
-						typeProperty);
+				LOG.debug("getObjectTypeId for: {}, properties: {}", PropertyIds.OBJECT_TYPE_ID, typeProperty);
 			}
 
 			if (!(typeProperty instanceof PropertyId)) {
