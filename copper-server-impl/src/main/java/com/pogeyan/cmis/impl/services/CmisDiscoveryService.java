@@ -136,7 +136,7 @@ public class CmisDiscoveryService {
 			objList.setObjects(lod);
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
-			LOG.debug("getContentChanges result data count: {}", objList.getNumItems());
+			LOG.debug("getContentChanges result data count: {}", objList != null ? objList.getNumItems() : objList);
 
 			return objList;
 		}

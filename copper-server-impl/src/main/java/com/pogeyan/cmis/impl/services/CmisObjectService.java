@@ -140,8 +140,8 @@ public class CmisObjectService {
 							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, aclImp, "/",
 							null);
 					objectDAO.commit(folderObject);
-					LOG.info("Root folder created in Database: {} , repository: {} ", folderObject.getId(),
-							repositoryId);
+					LOG.info("Root folder created in Database: {} , repository: {} ",
+							folderObject != null ? folderObject.getId() : null, repositoryId);
 					addRootFolder(repositoryId);
 					return folderObject.getId();
 				}
@@ -353,7 +353,7 @@ public class CmisObjectService {
 			if (result != null) {
 				LOG.debug(
 						"Compiled ObjectDataInfo for this objectId: {}, repository:{}, policies : {}, acl : {}, changeEvent: {}",
-						data.getId(), repositoryId, result.getPolicyIds(), result.getAcl(),
+						data != null ? data.getId() : null, repositoryId, result.getPolicyIds(), result.getAcl(),
 						result.getChangeEventInfo());
 			}
 
@@ -765,7 +765,8 @@ public class CmisObjectService {
 				}
 				if (result != null) {
 					LOG.debug("Compiled Properties for this objectId: {}, repository: {}, result properties: {}",
-							data.getId(), repositoryId, result != null ? null : result.getProperties());
+							data != null ? data.getId() : null, repositoryId,
+							result != null ? null : result.getProperties());
 				}
 				return result;
 			} catch (Exception e) {
@@ -993,8 +994,9 @@ public class CmisObjectService {
 		public static List<ObjectData> getRelationships(String repositoryId, boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, IBaseObject spo, String user, int maxItems, int skipCount,
 				String[] mappedColumns) {
-			LOG.info("getRelationships on objectId: {}, repository: {}, includeRelationships for: {}", spo.getId(),
-					repositoryId, includeRelationships.value());
+			LOG.info("getRelationships on objectId: {}, repository: {}, includeRelationships for: {}",
+					spo != null ? spo.getId() : null, repositoryId,
+					includeRelationships != null ? includeRelationships.value() : null);
 
 			if (includeRelationships == IncludeRelationships.SOURCE) {
 				List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
@@ -1360,12 +1362,12 @@ public class CmisObjectService {
 				}
 				if (localService != null) {
 					localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
-					LOG.info("Folder: {} created ", result.getName());
+					LOG.info("Folder: {} created ", result != null ? result.getName() : null);
 				}
 
 			} catch (IOException e) {
 				objectMorphiaDAO.delete(folderId, true, null);
-				LOG.error("Folder creation exception: {}", e.getMessage());
+				LOG.error("Folder creation exception: {}", e);
 				throw new IllegalArgumentException(e);
 			}
 			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
@@ -1375,7 +1377,7 @@ public class CmisObjectService {
 		public static void createTypeFolder(String repositoryId, Properties properties, String userName) {
 			String typeId = getObjectTypeId(properties);
 
-			LOG.debug("createTypeFolder for custom type: {}", typeId != null ? typeId : null);
+			LOG.debug("createTypeFolder for custom type: {}", typeId);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
@@ -2440,8 +2442,7 @@ public class CmisObjectService {
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, id, properties, null, acl, null,
 					userObject.getUserDN(), null, ObjectFlowType.UPDATED);
 			if (properties == null) {
-				LOG.error("Method name: {}, no properties given for object id: {}", "updateProperties",
-						objectId.getValue());
+				LOG.error("Method name: {}, no properties given for object id: {}", "updateProperties", id);
 				throw new CmisRuntimeException(
 						"update properties: no properties given for object id: " + objectId.getValue());
 			}
@@ -2611,7 +2612,7 @@ public class CmisObjectService {
 					DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryTypes, data.getId());
 				}
 				if (secondaryTypes != null) {
-					LOG.debug("updateSecondaryProperties for: {}, object: {}", id, secondaryTypes.toString());
+					LOG.debug("updateSecondaryProperties for: {}, object: {}", id, secondaryTypes);
 				}
 			}
 
@@ -2811,7 +2812,7 @@ public class CmisObjectService {
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceAfterCreate(objectFlowService, docDetails, ObjectFlowType.UPDATED, null);
 
-			LOG.debug("appendContentStream updateObjects for object: {}, {}", id, updatecontentProps.toString());
+			LOG.debug("appendContentStream updateObjects for object: {}, {}", id, updatecontentProps);
 
 		}
 
@@ -2848,8 +2849,7 @@ public class CmisObjectService {
 			invokeObjectFlowServiceAfterCreate(objectFlowService, docDetails, ObjectFlowType.DELETED, null);
 
 			if (updatecontentProps != null) {
-				LOG.debug("deleteContentStream, removeFields id: {}, properties: {}", id,
-						updatecontentProps.toString());
+				LOG.debug("deleteContentStream, removeFields id: {}, properties: {}", id, updatecontentProps);
 			}
 		}
 
@@ -2911,7 +2911,7 @@ public class CmisObjectService {
 				List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
 						data.getAcl(), navigationMorphiaDAO, userObject);
 				if (data != null && children != null) {
-					LOG.debug("descendants for object: {}, {}", data.getId(), children.toString());
+					LOG.debug("descendants for object: {}, {}", data.getId(), children);
 				}
 
 				for (IBaseObject child : children) {
@@ -2934,6 +2934,7 @@ public class CmisObjectService {
 				}
 				localService.deleteFolder(data.getPath());
 				baseMorphiaDAO.delete(data.getId(), false, token);
+
 				LOG.info("ObjectId: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == false) {
@@ -3050,7 +3051,7 @@ public class CmisObjectService {
 			List<? extends IBaseObject> children = getDescendants(repositoryId, path, data.getInternalPath(),
 					data.getAcl(), navigationMorphiaDAO, userObject);
 			if (children != null && data != null) {
-				LOG.debug("descendants for object: {}, {}", data.getId(), children.toString());
+				LOG.debug("descendants for object: {}, {}", data.getId(), children);
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			// TODO: optimize here
@@ -3071,7 +3072,7 @@ public class CmisObjectService {
 			if (parentCheck != null) {
 				failedToDeleteIds.add(folderId.toString());
 			}
-			LOG.info("failedToDeleteIds for folder: {}, {}", folderId, failedToDeleteIds.toString());
+			LOG.info("failedToDeleteIds for folder: {}, {}", folderId, failedToDeleteIds);
 			result.setIds(failedToDeleteIds);
 			return result;
 		}
@@ -3314,7 +3315,7 @@ public class CmisObjectService {
 					}
 					if (updateProps != null) {
 						LOG.debug("updateObjects: {}, baseType: {}, props: {}", child.getId(), child.getBaseId(),
-								updateProps.toString());
+								updateProps);
 					}
 				}
 			}
@@ -3431,7 +3432,7 @@ public class CmisObjectService {
 			result.add(PropertyIds.OBJECT_TYPE_ID);
 			result.add(PropertyIds.BASE_TYPE_ID);
 			if (result != null && filter != null) {
-				LOG.debug("after splitFilter: {}, {}", filter, result.toString());
+				LOG.debug("after splitFilter: {}, {}", filter, result);
 			}
 			return result;
 		}
@@ -3443,7 +3444,7 @@ public class CmisObjectService {
 			PropertyData<?> typeProperty = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
 			if (typeProperty != null) {
 				LOG.debug("getObjectTypeId for: {}, properties: {}", PropertyIds.OBJECT_TYPE_ID,
-						typeProperty.toString());
+						typeProperty);
 			}
 
 			if (!(typeProperty instanceof PropertyId)) {
@@ -4076,8 +4077,9 @@ public class CmisObjectService {
 				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
 				try {
-					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc.getId(),
-							invokeMethod);
+					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
+							? doc.getId()
+							: null, invokeMethod);
 					boolean resultFlow = false;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterCreation(doc);

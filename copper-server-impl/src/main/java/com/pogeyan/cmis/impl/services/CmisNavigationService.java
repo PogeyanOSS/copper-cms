@@ -389,7 +389,7 @@ public class CmisNavigationService {
 					result.setHasMoreItems(children.size() > 0 + folderList.size());
 
 					LOG.debug("getChildrenIntern result for this folderId: {}, child count: {}", folderId,
-							result.getNumItems());
+							result != null ? result.getNumItems() : null);
 
 				}
 			}

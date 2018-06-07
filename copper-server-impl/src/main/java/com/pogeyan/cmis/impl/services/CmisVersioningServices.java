@@ -110,9 +110,9 @@ public class CmisVersioningServices {
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, docObj, filterCollection,
 					includeAllowableActions, false, true, objectInfos, null, null, userName);
-			if (objectData != null) {
-				LOG.debug("getObjectOfLatestVersion result data count: {}", objectData);
-			}
+
+			LOG.debug("getObjectOfLatestVersion result data count: {}", objectData);
+
 			return objectData;
 		}
 
@@ -191,7 +191,8 @@ public class CmisVersioningServices {
 			updateProps.put("versionSeriesCheckedOutId", documentObject.getId().toString());
 			updateProps.put("versionSeriesCheckedOutBy", userName);
 			documentObjectDAO.update(objectId.getValue(), updateProps);
-			LOG.info("Successfully checkout PWC for this document : {}", documentObject.getId());
+			LOG.info("Successfully checkout PWC for this document : {}",
+					documentObject != null ? documentObject.getId() : null);
 			return documentObject.getId();
 		}
 
@@ -223,7 +224,7 @@ public class CmisVersioningServices {
 			removeFields.add("versionSeriesCheckedOutId");
 			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			documentMorphiaDAO.delete(document.getId(), removeFields, false, true, updateToken);
-			LOG.info("Cancel checkout for this document :{} done", document.getId());
+			LOG.info("Cancel checkout for this document :{} done", document != null ? document.getId() : null);
 			return document.getId();
 		}
 
@@ -311,7 +312,7 @@ public class CmisVersioningServices {
 					}
 
 					documentObjectDAO.commit(documentObject);
-					LOG.debug("checked in object: {}", documentObject.getId());
+					LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
 				}
 			}
 			String fileName;

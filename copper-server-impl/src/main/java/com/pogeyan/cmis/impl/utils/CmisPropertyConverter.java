@@ -182,10 +182,10 @@ public class CmisPropertyConverter {
 
 				result.addProperty(createPropertyData(propDef, property.getValue()));
 			}
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("createUpdateProperties on objectIds: {} are : resultProperties{}", objectIds,
-						result.getPropertyList());
-			}
+
+			LOG.debug("createUpdateProperties on objectIds: {} are : resultProperties{}", objectIds,
+					result != null ? result.getPropertyList() : null);
+
 			return result;
 		}
 

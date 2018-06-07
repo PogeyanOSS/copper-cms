@@ -109,7 +109,7 @@ public class CmisTypeServices {
 									createFolderForType(tm, userName, repositoryId);
 								} catch (IOException e) {
 									typeManagerDAO.delete(tm.getId());
-									LOG.error("Folder creation exception:  {}", e.getMessage());
+									LOG.error("Folder creation exception:  {}", e);
 									throw new IllegalArgumentException(e.getMessage());
 								}
 							}
@@ -831,7 +831,7 @@ public class CmisTypeServices {
 		private static Map<String, PropertyDefinitionImpl<?>> getTypeProperties(TypeDefinition typeDefinition,
 				String repositoryId, List<TypeDefinition> innerChild, Boolean includeProperty) {
 
-			LOG.debug("getting type properties for: {}", typeDefinition.getId());
+			LOG.debug("getting type properties for: {}", typeDefinition != null ? typeDefinition.getId() : null);
 
 			boolean incluePro = includeProperty == null ? true : includeProperty;
 			Map<String, PropertyDefinitionImpl<?>> listProperty = null;
@@ -1333,7 +1333,7 @@ public class CmisTypeServices {
 
 		private static CmisDocumentTypeDefinitionImpl getDocumentTypeDefinition(CmisDocumentTypeDefinitionImpl result) {
 
-			LOG.debug("getting CmisDocumentTypeDefinitionImpl for: {}", result.getId());
+			LOG.debug("getting CmisDocumentTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisDocumentTypeDefinitionImpl resultDocument = new CmisDocumentTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1362,7 +1362,7 @@ public class CmisTypeServices {
 		 */
 		private static CmisFolderTypeDefinitionImpl getFolderTypeDefinition(TypeDefinition result) {
 
-			LOG.debug("getting CmisFolderTypeDefinitionImpl for: {}", result.getId());
+			LOG.debug("getting CmisFolderTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisFolderTypeDefinitionImpl resultFolder = new CmisFolderTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1389,7 +1389,7 @@ public class CmisTypeServices {
 		 * returns the typeDefinition into CmisItemTypeDefinition
 		 */
 		private static ItemTypeDefinitionImpl getItemTypeDefinition(TypeDefinition result) {
-			LOG.debug("getting ItemTypeDefinitionImpl for: {}", result.getId());
+			LOG.debug("getting ItemTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			ItemTypeDefinitionImpl resultItem = new ItemTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1418,7 +1418,7 @@ public class CmisTypeServices {
 		private static CmisRelationshipTypeDefinitionImpl getRelationshipTypeDefinitionWithSourceTarget(
 				TypeDefinition result, List<String> source, List<String> target) {
 
-			LOG.debug("getting CmisRelationshipTypeDefinitionImpl for: {}", result.getId());
+			LOG.debug("getting CmisRelationshipTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 
 			CmisRelationshipTypeDefinitionImpl resultDocument = new CmisRelationshipTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
@@ -1447,7 +1447,7 @@ public class CmisTypeServices {
 		 * returns the typeDefinition into CmisPolicyTypeDefinition
 		 */
 		private static CmisPolicyTypeDefinitionImpl getPolicyTypeDefinition(TypeDefinition result) {
-			LOG.debug("getting CmisPolicyTypeDefinitionImpl for: {}", result.getId());
+			LOG.debug("getting CmisPolicyTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisPolicyTypeDefinitionImpl resultPolicy = new CmisPolicyTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1475,7 +1475,7 @@ public class CmisTypeServices {
 		 */
 		private static CmisSecondaryTypeDefinitionImpl getSecondaryTypeDefinition(TypeDefinition result) {
 
-			LOG.debug("getting CmisSecondaryTypeDefinitionImpl for: {}", result.getId());
+			LOG.debug("getting CmisSecondaryTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisSecondaryTypeDefinitionImpl resultSecondary = new CmisSecondaryTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;

@@ -53,9 +53,8 @@ public class CmisAclServices {
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
 					false, objectInfos, null, null, userName);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("get acl result data: {}", objectData.getAcl().getAces());
-			}
+
+			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
 			return objectData.getAcl();
 		}
 
@@ -88,7 +87,7 @@ public class CmisAclServices {
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 
-			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl().getAces() : null);
+			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
 			return newData.getAcl();
 		}
 
@@ -142,7 +141,7 @@ public class CmisAclServices {
 			}
 
 			AccessControlListImplExt aclimpl = new AccessControlListImplExt(aces, aclPropagation, false);
-			LOG.debug("After validatedAces: {}", aclimpl.getAces());
+			LOG.debug("After validatedAces: {}", aclimpl != null ? aclimpl.getAces() : null);
 			return aclimpl;
 		}
 
