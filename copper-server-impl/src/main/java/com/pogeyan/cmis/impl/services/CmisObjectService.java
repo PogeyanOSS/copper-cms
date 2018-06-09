@@ -949,7 +949,8 @@ public class CmisObjectService {
 
 		public static List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter,
 				BigInteger maxItems, BigInteger skipCount, String userName) throws CmisInvalidArgumentException {
-			LOG.info("Method name: {}, checking renditions using this objectId: {}", "getRenditions", objectId);
+			// LOG.info("Method name: {}, checking renditions using this objectId: {}",
+			// "getRenditions", objectId);
 			if (objectId == null) {
 				LOG.error("getRenditions unknown objectId: {}", objectId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
@@ -2492,7 +2493,7 @@ public class CmisObjectService {
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef,
 					userObject.getUserDN() == null ? "" : userObject.getUserDN(), properties, data);
 			Long modifiedTime = System.currentTimeMillis();
-			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, modifiedTime);
 			updatecontentProps.put("modifiedAt", modifiedTime);
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
@@ -2738,6 +2739,7 @@ public class CmisObjectService {
 				LOG.error("set content failed changeToken does not match: {}", changeToken);
 				throw new CmisUpdateConflictException("set content failed: changeToken does not match");
 			}
+			Map<String, Object> updateProps = new HashMap<String, Object>();
 			if (overwrite != null && overwrite.booleanValue()) {
 				if (contentStream != null && contentStream.getStream() != null) {
 					localService.setContent(object.getId().toString(), contentStream.getFileName(),
@@ -2745,15 +2747,14 @@ public class CmisObjectService {
 
 					// update name and path, since its possible a new file is
 					// uploaded on this for replacing
-					Map<String, Object> updateProps = new HashMap<String, Object>();
 					updateProps.put("name", contentStream.getFileName());
 					updateProps.put("path", gettingPath(object.getPath(), contentStream.getFileName()));
-					baseMorphiaDAO.update(id, updateProps);
 				}
 			}
 			if (overwrite != null && overwrite.booleanValue()) {
 				TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 				updatecontentProps.put("token", token);
+				updatecontentProps.put("modifiedAt", token.getTime());
 				updatecontentProps.put("contentStreamLength", contentStream.getLength());
 				updatecontentProps.put("contentStreamMimeType", contentStream.getMimeType());
 				updatecontentProps.put("contentStreamFileName", contentStream.getFileName());
@@ -2782,7 +2783,7 @@ public class CmisObjectService {
 			IDocumentObject docDetails = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, id, null);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			Long modifiedTime = System.currentTimeMillis();
-			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
+			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, modifiedTime);
 			updatecontentProps.put("token", token);
 			if (isLastChunk != null) {
 				if (contentStream != null && contentStream.getStream() != null) {
@@ -3947,8 +3948,9 @@ public class CmisObjectService {
 						}
 					}
 				}
-				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
-				DBUtils.BaseDAO.updateAcl(repositoryId, data.getAcl(), token, objectId);
+				Long modifiedTime = System.currentTimeMillis();
+				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
+				DBUtils.BaseDAO.updateAcl(repositoryId, data.getAcl(), token, objectId, modifiedTime);
 				if (data != null) {
 					LOG.debug("updatedAcl: {}, for object: {}", data.getAcl(), objectId);
 				}

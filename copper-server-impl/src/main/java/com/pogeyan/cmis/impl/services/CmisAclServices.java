@@ -69,20 +69,21 @@ public class CmisAclServices {
 				LOG.error("Unknown object id: {}", objectId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
+			Long modifiedTime = System.currentTimeMillis();
+			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
 			switch (aclPropagation) {
 			case REPOSITORYDETERMINED: {
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
 				break;
 			}
 			case OBJECTONLY:
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
 				break;
 			case PROPAGATE:
 				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime);
 				break;
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
