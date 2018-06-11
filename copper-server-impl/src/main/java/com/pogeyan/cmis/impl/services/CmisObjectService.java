@@ -3984,7 +3984,7 @@ public class CmisObjectService {
 							t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
-						children = navigationMorphiaDAO.getDescendants(path, principalIds, false, null, null);
+						children = navigationMorphiaDAO.getDescendants(path, principalIds, false, null, null, null);
 						objectOnly = false;
 						break;
 					}
@@ -3992,7 +3992,7 @@ public class CmisObjectService {
 			}
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
-				children = navigationMorphiaDAO.getDescendants(path, principalIds, true, null, null);
+				children = navigationMorphiaDAO.getDescendants(path, principalIds, true, null, null, null);
 			}
 
 			LOG.debug("Descentdants for path: {}, {}", path, children);
@@ -4028,7 +4028,7 @@ public class CmisObjectService {
 							t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
-						children = navigationMorphiaDAO.getChildren(path, principalIds, false, -1, -1, null, null,
+						children = navigationMorphiaDAO.getChildren(path, principalIds, false, -1, -1, null, null, null,
 								null);
 						objectOnly = false;
 						break;
@@ -4038,7 +4038,7 @@ public class CmisObjectService {
 
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
-				children = navigationMorphiaDAO.getChildren(path, principalIds, true, -1, -1, null, null, null);
+				children = navigationMorphiaDAO.getChildren(path, principalIds, true, -1, -1, null, null, null, null);
 
 			}
 

@@ -25,12 +25,12 @@ public class App {
 		// String filterExpressionQuery = "name eq 'fd' and name ne 'sd'";
 		String filterExpressionQuery = "contains(name, 'fd')";
 		FilterExpression expression = UriParser.parseFilter(filterExpressionQuery);
-		Object filterExp = expression.accept(new MongoExpressionVisitor<MDocumentObject>(query));
+		Object filterExp = expression.accept(new MongoExpressionVisitor<MDocumentObject>(query, null));
 		System.out.print("output: " + filterExp != null ? filterExp.toString() : "error");
 
 		String orderByExpressionQuery = "name asc, repositoryId desc";
 		OrderByExpression orderByExpression = UriParser.parseOrderBy(orderByExpressionQuery);
-		Object orderByExp = orderByExpression.accept(new MongoExpressionVisitor<MDocumentObject>(query));
+		Object orderByExp = orderByExpression.accept(new MongoExpressionVisitor<MDocumentObject>(query, null));
 		System.out.print("output: " + orderByExp != null ? orderByExp.toString() : "error");
 	}
 }

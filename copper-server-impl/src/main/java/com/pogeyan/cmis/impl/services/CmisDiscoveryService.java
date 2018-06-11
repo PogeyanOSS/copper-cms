@@ -49,6 +49,7 @@ import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.api.data.IBaseObject;
@@ -62,6 +63,8 @@ public class CmisDiscoveryService {
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
+			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
 				throw new CmisInvalidArgumentException("change log token value should not be null!");
@@ -90,10 +93,10 @@ public class CmisDiscoveryService {
 
 			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO.getLatestChanges(
 					Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray, orderBy,
-					Helpers.splitFilterQuery(filter));
+					Helpers.splitFilterQuery(filter), typeManagerDAO);
 			if (latestChangesObjects.size() > 0) {
 				childrenCount = discoveryObjectMorphiaDAO.getLatestTokenChildrenSize(
-						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter));
+						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter), typeManagerDAO);
 				for (IBaseObject object : latestChangesObjects) {
 					if (object != null) {
 						if (includeAcl) {

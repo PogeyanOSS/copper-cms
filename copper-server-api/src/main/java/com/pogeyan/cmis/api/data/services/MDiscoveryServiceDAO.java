@@ -25,7 +25,8 @@ public interface MDiscoveryServiceDAO {
 	 * token,maxItems,skipCount.
 	 */
 	public List<? extends IBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns,
-			String orderBy, String filterExpression);
+			String orderBy, String filterExpression, MTypeManagerDAO typeManager);
 
-	public long getLatestTokenChildrenSize(long latestChangeToken, String filterExpression);
+	public long getLatestTokenChildrenSize(long latestChangeToken, String filterExpression,
+			MTypeManagerDAO typeManager);
 }
