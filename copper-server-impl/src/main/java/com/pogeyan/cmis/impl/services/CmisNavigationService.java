@@ -447,10 +447,6 @@ public class CmisNavigationService {
 					}
 					childrenOfFolderId.add(oifc);
 				}
-			} else {
-				ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
-				oifc.setChildren(new ArrayList<ObjectInFolderContainer>());
-				childrenOfFolderId.add(oifc);
 			}
 			return childrenOfFolderId;
 		}
