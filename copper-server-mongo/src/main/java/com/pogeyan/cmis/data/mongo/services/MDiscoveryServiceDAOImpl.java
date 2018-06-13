@@ -16,11 +16,13 @@
 package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
+import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
@@ -70,7 +72,7 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	@Override
 	public List<MBaseObject> getLatestChanges(long changeLogToken, int maxItems, String[] mappedColumns, String orderBy,
-			String filterExpression, MTypeManagerDAO typeManager) {
+			String filterExpression, MTypeManagerDAO typeManager, Boolean aclPropagation, String[] principalIds) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", changeLogToken);
 		if (!StringUtils.isEmpty(orderBy)) {
 			if (this.isOrderByParsable(orderBy)) {
@@ -98,13 +100,16 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 		if (mappedColumns != null && mappedColumns.length > 0) {
 			query = query.retrievedFields(true, mappedColumns);
 		}
+		if (aclPropagation) {
+			query.or(getAclCriteria(principalIds, query));
+		}
 		return query.asList();
 	}
 
 	@SuppressWarnings({ "deprecation", "unchecked" })
 	@Override
-	public long getLatestTokenChildrenSize(long latestChangeToken, String filterExpression,
-			MTypeManagerDAO typeManager) {
+	public long getLatestTokenChildrenSize(long latestChangeToken, String filterExpression, MTypeManagerDAO typeManager,
+			Boolean aclPropagation, String[] principalIds) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("token.time >", latestChangeToken);
 		if (!StringUtils.isEmpty(filterExpression)) {
 			try {
@@ -113,6 +118,9 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 						.accept(new MongoExpressionVisitor<MBaseObject>(query, typeManager));
 			} catch (ExpressionParserException | ExceptionVisitExpression e) {
 			}
+		}
+		if (aclPropagation) {
+			query.or(getAclCriteria(principalIds, query));
 		}
 		return query.countAll();
 	}
@@ -125,6 +133,13 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 		} catch (ExpressionParserException e) {
 			return false;
 		}
+	}
+
+	private Criteria[] getAclCriteria(String[] principalIds, Query<MBaseObject> query) {
+		Criteria[] checkAcl = Stream.of(principalIds)
+				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
+				.toArray(s -> new Criteria[s]);
+		return checkAcl;
 	}
 
 }
