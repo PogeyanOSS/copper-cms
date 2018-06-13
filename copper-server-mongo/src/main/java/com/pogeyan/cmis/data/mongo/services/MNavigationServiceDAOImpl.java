@@ -30,6 +30,7 @@ import org.mongodb.morphia.query.Query;
 
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.uri.UriParser;
 import com.pogeyan.cmis.api.uri.expression.ExceptionVisitExpression;
 import com.pogeyan.cmis.api.uri.expression.ExpressionParserException;
@@ -62,11 +63,22 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 * com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getChildren(java
 	 * .lang.String, java.lang.String[], boolean, int, int, java.lang.String,
 	 * java.lang.String[], java.lang.String)
+	 * 
+	 * **Input Format** Double type properties.dummy eq 1528589317128l + d here if
+	 * we pass double append d in the last place of value.
+	 * 
+	 * Long type properties.dummy eq 1528589317128l + l here if we pass double
+	 * append l in the last place of value.
+	 * 
+	 * Decimal type properties.dummy eq 1528589317128l + m here if we pass double
+	 * append m in the last place of value.
+	 * 
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MBaseObject> getChildren(String path, String[] principalIds, boolean aclPropagation, int maxItems,
-			int skipCount, String orderBy, String[] mappedColumns, String filterExpression) {
+			int skipCount, String orderBy, String[] mappedColumns, String filterExpression,
+			MTypeManagerDAO typeManager) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath", path)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (!StringUtils.isEmpty(orderBy)) {
@@ -74,7 +86,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 				try {
 					OrderByExpression orderByExpression = UriParser.parseOrderBy(orderBy);
 					query = (Query<MBaseObject>) orderByExpression
-							.accept(new MongoExpressionVisitor<MBaseObject>(query));
+							.accept(new MongoExpressionVisitor<MBaseObject>(query, typeManager));
 				} catch (ExpressionParserException | ExceptionVisitExpression e) {
 				}
 			} else {
@@ -84,7 +96,8 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		if (!StringUtils.isEmpty(filterExpression)) {
 			try {
 				FilterExpression expression = UriParser.parseFilter(filterExpression);
-				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
+				query = (Query<MBaseObject>) expression
+						.accept(new MongoExpressionVisitor<MBaseObject>(query, typeManager));
 			} catch (ExpressionParserException | ExceptionVisitExpression e) {
 			}
 		}
@@ -144,14 +157,15 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
-			String[] mappedColumns, String filterExpression) {
+			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager) {
 		Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (!StringUtils.isEmpty(filterExpression)) {
 			try {
 				FilterExpression expression = UriParser.parseFilter(filterExpression);
-				query = (Query<MBaseObject>) expression.accept(new MongoExpressionVisitor<MBaseObject>(query));
+				query = (Query<MBaseObject>) expression
+						.accept(new MongoExpressionVisitor<MBaseObject>(query, typeManager));
 			} catch (ExpressionParserException | ExceptionVisitExpression e) {
 			}
 		}

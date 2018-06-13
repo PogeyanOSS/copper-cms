@@ -2,15 +2,19 @@ package com.pogeyan.cmis.data.mongo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.uri.expression.BinaryExpression;
 import com.pogeyan.cmis.api.uri.expression.BinaryOperator;
 import com.pogeyan.cmis.api.uri.expression.ExpressionVisitor;
@@ -31,9 +35,11 @@ import com.pogeyan.cmis.impl.services.CmisNavigationService;
 public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisNavigationService.class);
 	private Query<T> query;
+	private MTypeManagerDAO typeManager;
 
-	public MongoExpressionVisitor(Query<T> query) {
+	public MongoExpressionVisitor(Query<T> query, MTypeManagerDAO typeManager) {
 		this.query = query;
+		this.typeManager = typeManager;
 	}
 
 	@Override
@@ -76,22 +82,22 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			switch (operator) {
 			case EQ:
 				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
-						.equal(getStringObjectValue(rightSideValue));
+						.equal(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
 			case NE:
 				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
-						.notEqual(getStringObjectValue(rightSideValue));
+						.notEqual(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
 			case GE:
 				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
-						.greaterThanOrEq(getNumberObjectValue(rightSideValue));
+						.greaterThanOrEq(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
 			case GT:
 				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
-						.greaterThan(getNumberObjectValue(rightSideValue));
+						.greaterThan(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
 			case LE:
 				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
-						.lessThanOrEq(getNumberObjectValue(rightSideValue));
+						.lessThanOrEq(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
 			case LT:
 				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
-						.lessThan(getNumberObjectValue(rightSideValue));
+						.lessThan(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
 			default:
 				// Other operators are not supported for SQL Statements
 				throw new UnsupportedOperationException("Unsupported operator: " + operator.toUriLiteral());
@@ -162,6 +168,42 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			}
 		}
 		return convertValue;
+	}
+
+	public Object getPropertyValue(String propId, String value) {
+		if (this.typeManager != null) {
+			Map<String, PropertyDefinition<?>> prop = this.typeManager.getAllPropertyById(propId);
+			if (prop != null) {
+				try {
+					PropertyDefinition<?> propDef = prop.get(propId);
+					if (propDef != null) {
+						if (propDef.getPropertyType().equals(PropertyType.STRING)) {
+							return value;
+						} else if (propDef.getPropertyType().equals(PropertyType.BOOLEAN)) {
+							return Boolean.parseBoolean(value);
+						} else if (propDef.getPropertyType().equals(PropertyType.DECIMAL)) {
+							return Double.parseDouble(value);
+						} else if (propDef.getPropertyType().equals(PropertyType.DATETIME)) {
+							return Long.parseLong(value);
+						} else if (propDef.getPropertyType().equals(PropertyType.ID)) {
+							return value;
+						} else if (propDef.getPropertyType().equals(PropertyType.INTEGER)) {
+							return Integer.parseInt(value);
+						}
+					}
+				} catch (Exception e) {
+					LOG.error("class name:{},method name:{}, exception: {}", "MongoExpressionVisitor",
+							"getPropertyValue", e);
+				}
+
+			}
+		} else {
+			LOG.error("class name:{},method name:{}, exception: {}", "MongoExpressionVisitor", "getPropertyValue",
+					"typeManager instance null");
+		}
+
+		return null;
+
 	}
 
 	@Override
