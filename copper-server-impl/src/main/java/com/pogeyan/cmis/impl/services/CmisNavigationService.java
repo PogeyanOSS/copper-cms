@@ -238,13 +238,14 @@ public class CmisNavigationService {
 						result = getDescendantsRelationObjects(repositoryId, folderId, filter, includeAllowableActions,
 								includeRelationships, renditionFilter, includePathSegment, level, levels, false,
 								objectInfos, userObject);
+						oifc.setObject(oifd);
+						oifc.setChildren(result);
+						List<ObjectInFolderContainer> parentData = new ArrayList<ObjectInFolderContainer>();
+						parentData.add(oifc);
+						result = parentData;
 					}
 
-					oifc.setObject(oifd);
-					oifc.setChildren(result);
-					List<ObjectInFolderContainer> parentData = new ArrayList<ObjectInFolderContainer>();
-					parentData.add(oifc);
-					result = parentData;
+
 				}
 			}
 			if (result != null)
