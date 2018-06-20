@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -129,7 +130,7 @@ public class CmisNavigationService {
 							if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 								List<Ace> listAce = acl.getAces().stream()
 										.filter(t -> Arrays.stream(principalIds).parallel()
-												.anyMatch(t.getPrincipalId()::contains) == true)
+												.anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
 										.collect(Collectors.toList());
 								if (listAce.size() >= 1) {
 									children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems,
@@ -263,7 +264,7 @@ public class CmisNavigationService {
 						if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 							List<Ace> listAce = acl.getAces().stream()
 									.filter(t -> Arrays.stream(principalIds).parallel()
-											.anyMatch(t.getPrincipalId()::contains) == true)
+											.anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
 									.collect(Collectors.toList());
 							if (listAce.size() >= 1) {
 								children = navigationMorphiaDAO.getDescendants(path, principalIds, false, filterArray,
@@ -535,7 +536,7 @@ public class CmisNavigationService {
 						if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 							List<Ace> listAce = acl.getAces().stream()
 									.filter(t -> Arrays.stream(principalIds).parallel()
-											.anyMatch(t.getPrincipalId()::contains) == true)
+											.anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
 									.collect(Collectors.toList());
 							if (listAce.size() >= 1) {
 								children = navigationMorphiaDAO.getFolderTreeIds(path, principalIds, false);
@@ -662,7 +663,7 @@ public class CmisNavigationService {
 							if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 								List<Ace> listAce = acl.getAces().stream()
 										.filter(t -> Arrays.stream(principalIds).parallel()
-												.anyMatch(t.getPrincipalId()::contains) == true)
+												.anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
 										.collect(Collectors.toList());
 								if (listAce.size() >= 1) {
 									document = documentMorphiaDAO.getCheckOutDocs(folderId, principalIds, false,

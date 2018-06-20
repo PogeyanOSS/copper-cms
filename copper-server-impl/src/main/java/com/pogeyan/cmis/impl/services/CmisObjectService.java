@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1541,8 +1542,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -2128,9 +2128,11 @@ public class CmisObjectService {
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 
 			String sourceTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId()
+					: null;
 			String targetTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId() : null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId()
+					: null;
 			if (sourceTypeId == null) {
 				LOG.error("Create relationship exception: {}", "wrong sourceId,SourceObject should not be null");
 				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
@@ -2501,7 +2503,8 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get(PropertyIds.DESCRIPTION) != null
-					? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString() : null;
+					? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString()
+					: null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -3205,7 +3208,8 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName() : child.getName();
+									? docObject.getContentStreamFileName()
+									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3302,7 +3306,8 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName() : child.getName();
+								? docObject.getContentStreamFileName()
+								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3923,8 +3928,10 @@ public class CmisObjectService {
 					// }
 					// }
 					for (List<Ace> ace : parentAce) {
-						List<Ace> listAce = ace.stream().filter(t -> Arrays.stream(getPrincipalIds).parallel()
-								.anyMatch(t.getPrincipalId()::contains) == true).collect(Collectors.toList());
+						List<Ace> listAce = ace.stream()
+								.filter(t -> Arrays.stream(getPrincipalIds).parallel()
+										.anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
+								.collect(Collectors.toList());
 						if (listAce.size() >= 1) {
 							acessPermission = true;
 							break;
@@ -3983,7 +3990,7 @@ public class CmisObjectService {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 					List<Ace> listAce = acl.getAces().stream().filter(
-							t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
+							t -> Arrays.stream(principalIds).parallel().anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
 						children = navigationMorphiaDAO.getDescendants(path, principalIds, false, null, null, null);
@@ -4027,7 +4034,7 @@ public class CmisObjectService {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 					List<Ace> listAce = acl.getAces().stream().filter(
-							t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
+							t -> Arrays.stream(principalIds).parallel().anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
 						children = navigationMorphiaDAO.getChildren(path, principalIds, false, -1, -1, null, null, null,
@@ -4081,7 +4088,8 @@ public class CmisObjectService {
 			if (objectFlowService != null) {
 				try {
 					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
-							? doc.getId() : null, invokeMethod);
+							? doc.getId()
+							: null, invokeMethod);
 					boolean resultFlow = false;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterCreation(doc);
