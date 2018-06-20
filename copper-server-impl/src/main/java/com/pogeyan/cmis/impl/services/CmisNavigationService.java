@@ -200,7 +200,7 @@ public class CmisNavigationService {
 				levels = depth.intValue();
 			}
 			List<ObjectInFolderContainer> result = null;
-
+			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			if (data != null) {
 				if (data.getBaseId().equals(BaseTypeId.CMIS_FOLDER)) {
@@ -217,9 +217,29 @@ public class CmisNavigationService {
 							filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
 							includeRelationships, userObject.getUserDN());
 					oifd.setObject(objectData);
-					result = getDescendantsRelationObjects(repositoryId, folderId, filter, includeAllowableActions,
-							includeRelationships, renditionFilter, includePathSegment, level, levels, false,
-							objectInfos, userObject);
+					boolean acl = false;
+					if (data.getAcl() != null && data.getAcl().getAces().size() > 0) {
+						if (data.getAcl() != null) {
+							if (data.getAcl().getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")) {
+								acl = true;
+							} else {
+								List<Ace> listAce = data.getAcl().getAces().stream()
+										.filter(t -> Arrays.stream(principalIds).parallel()
+												.anyMatch(x -> Objects.equals(x.toLowerCase(),
+														t.getPrincipalId().toLowerCase())) == true)
+										.collect(Collectors.toList());
+								if (listAce.size() >= 1) {
+									acl = true;
+								}
+							}
+						}
+					}
+					if (acl) {
+						result = getDescendantsRelationObjects(repositoryId, folderId, filter, includeAllowableActions,
+								includeRelationships, renditionFilter, includePathSegment, level, levels, false,
+								objectInfos, userObject);
+					}
+
 					oifc.setObject(oifd);
 					oifc.setChildren(result);
 					List<ObjectInFolderContainer> parentData = new ArrayList<ObjectInFolderContainer>();
@@ -227,7 +247,9 @@ public class CmisNavigationService {
 					result = parentData;
 				}
 			}
-			if (result != null) {
+			if (result != null)
+
+			{
 				LOG.debug("getDescendants result for folderId: {}, numItems: {}", folderId, result.size());
 			}
 			return result;
