@@ -758,14 +758,17 @@ public class CmisObjectService {
 				if (data.getProperties() != null) {
 					readCustomProperties(repositoryId, data, result, type, filter);
 				}
-				if (filter != null) {
-					if (!filter.isEmpty()) {
-						LOG.warn("Unknown filter properties: {} ", filter.toString());
-					}
-				}
+				// if (filter != null) {
+				// if (!filter.isEmpty()) {
+				// LOG.warn("Unknown filter properties: {} ",
+				// filter.toString());
+				// }
+				// }
 				if (result != null) {
-					LOG.debug("Compiled Properties for this objectId: {}, repository: {}, result properties: {}",
+					LOG.debug(
+							"Compiled Properties for this objectId: {}, repository: {}, with filter properties: {}, result properties: {}",
 							data != null ? data.getId() : null, repositoryId,
+							filter != null && !filter.isEmpty() ? filter.toString() : null,
 							result != null ? null : result.getProperties());
 				}
 				return result;
@@ -949,7 +952,8 @@ public class CmisObjectService {
 
 		public static List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter,
 				BigInteger maxItems, BigInteger skipCount, String userName) throws CmisInvalidArgumentException {
-			// LOG.info("Method name: {}, checking renditions using this objectId: {}",
+			// LOG.info("Method name: {}, checking renditions using this
+			// objectId: {}",
 			// "getRenditions", objectId);
 			if (objectId == null) {
 				LOG.error("getRenditions unknown objectId: {}", objectId);
@@ -1537,7 +1541,8 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the folderID
+		 * returns an documentObject for particular document based on the
+		 * folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
@@ -2123,11 +2128,9 @@ public class CmisObjectService {
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 
 			String sourceTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId()
-					: null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null).getTypeId() : null;
 			String targetTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null) != null
-					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId()
-					: null;
+					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId() : null;
 			if (sourceTypeId == null) {
 				LOG.error("Create relationship exception: {}", "wrong sourceId,SourceObject should not be null");
 				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
@@ -2498,8 +2501,7 @@ public class CmisObjectService {
 			updatecontentProps.put("modifiedBy", userObject.getUserDN());
 			updatecontentProps.put("token", token);
 			String description = props.getProperties().get(PropertyIds.DESCRIPTION) != null
-					? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString()
-					: null;
+					? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString() : null;
 			if (description != null) {
 				updatecontentProps.put("description", description);
 			}
@@ -2952,7 +2954,8 @@ public class CmisObjectService {
 								doc.getPath(), doc.getContentStreamMimeType());
 						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 						if (!contentDeleted) {
-							// LOG.error("Unknown ContentStreamID:{}", doc.getId());
+							// LOG.error("Unknown ContentStreamID:{}",
+							// doc.getId());
 							// throw new CmisStorageException("Deletion content
 							// failed!");
 						}
@@ -3202,8 +3205,7 @@ public class CmisObjectService {
 							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 									child.getId(), null);
 							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName()
-									: child.getName();
+									? docObject.getContentStreamFileName() : child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 							updatePropsDoc.put("path", cmisPath);
@@ -3300,8 +3302,7 @@ public class CmisObjectService {
 						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
 								child.getId(), null);
 						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName()
-								: child.getName();
+								? docObject.getContentStreamFileName() : child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
 						updatePropsDoc.put("path", pathCmis);
@@ -3912,7 +3913,8 @@ public class CmisObjectService {
 					// }
 					// }
 					// if (!acessPermission) {
-					// List<Ace> dataAce = data.getAcl().getAces().stream().filter(t
+					// List<Ace> dataAce =
+					// data.getAcl().getAces().stream().filter(t
 					// -> Arrays.stream(getPrincipalIds)
 					// .parallel().anyMatch(t.getPrincipalId()::contains) ==
 					// true).collect(Collectors.toList());
@@ -4079,8 +4081,7 @@ public class CmisObjectService {
 			if (objectFlowService != null) {
 				try {
 					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
-							? doc.getId()
-							: null, invokeMethod);
+							? doc.getId() : null, invokeMethod);
 					boolean resultFlow = false;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.afterCreation(doc);
