@@ -3929,8 +3929,8 @@ public class CmisObjectService {
 					// }
 					for (List<Ace> ace : parentAce) {
 						List<Ace> listAce = ace.stream()
-								.filter(t -> Arrays.stream(getPrincipalIds).parallel()
-										.anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
+								.filter(t -> Arrays.stream(getPrincipalIds).parallel().anyMatch(
+										x -> Objects.equals(x.toLowerCase(), t.getPrincipalId().toLowerCase())) == true)
 								.collect(Collectors.toList());
 						if (listAce.size() >= 1) {
 							acessPermission = true;
@@ -3989,8 +3989,9 @@ public class CmisObjectService {
 			for (AccessControlListImplExt acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-					List<Ace> listAce = acl.getAces().stream().filter(
-							t -> Arrays.stream(principalIds).parallel().anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
+					List<Ace> listAce = acl.getAces().stream()
+							.filter(t -> Arrays.stream(principalIds).parallel().anyMatch(
+									x -> Objects.equals(x.toLowerCase(), t.getPrincipalId().toLowerCase())) == true)
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
 						children = navigationMorphiaDAO.getDescendants(path, principalIds, false, null, null, null);
@@ -4033,8 +4034,9 @@ public class CmisObjectService {
 			for (AccessControlListImplExt acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
 						|| acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-					List<Ace> listAce = acl.getAces().stream().filter(
-							t -> Arrays.stream(principalIds).parallel().anyMatch(x -> Objects.equals(x, t.getPrincipalId())) == true)
+					List<Ace> listAce = acl.getAces().stream()
+							.filter(t -> Arrays.stream(principalIds).parallel().anyMatch(
+									x -> Objects.equals(x.toLowerCase(), t.getPrincipalId().toLowerCase())) == true)
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
 						children = navigationMorphiaDAO.getChildren(path, principalIds, false, -1, -1, null, null, null,
