@@ -245,7 +245,6 @@ public class CmisNavigationService {
 						result = parentData;
 					}
 
-
 				}
 			}
 			if (result != null)

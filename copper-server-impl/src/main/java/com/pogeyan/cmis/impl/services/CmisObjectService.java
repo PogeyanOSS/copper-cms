@@ -781,13 +781,18 @@ public class CmisObjectService {
 
 		public static AllowableActions getAllowableActions(String repositoryId, IBaseObject data, String objectId,
 				String userName) {
-			if (data != null && objectId != null) {
+			if (data == null && objectId != null) {
 				try {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 				} catch (Exception e) {
 					LOG.error("getAllowableActions Exception: {}", ExceptionUtils.getStackTrace(e));
 					throw new MongoException(e.toString());
 				}
+			}
+
+			if (data == null && objectId == null) {
+				LOG.error("getRenditions unknown objectId: {}", objectId);
+				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 
 			if (data == null) {
@@ -963,17 +968,18 @@ public class CmisObjectService {
 			// LOG.info("Method name: {}, checking renditions using this
 			// objectId: {}",
 			// "getRenditions", objectId);
-			if (objectId == null) {
-				LOG.error("getRenditions unknown objectId: {}", objectId);
-				throw new CmisInvalidArgumentException("Object Id must be set.");
-			}
-			if (data != null && objectId != null) {
+			if (data == null && objectId != null) {
 				try {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 				} catch (Exception e) {
 					LOG.error("getRenditions Exception: {}", ExceptionUtils.getStackTrace(e));
 					throw new MongoException(e.toString());
 				}
+			}
+
+			if (data == null && objectId == null) {
+				LOG.error("getRenditions unknown objectId: {}", objectId);
+				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 
 			if (data == null) {
