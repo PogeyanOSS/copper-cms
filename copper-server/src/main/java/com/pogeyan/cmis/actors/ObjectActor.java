@@ -224,7 +224,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		LOG.info("Method name: {}, getting allowable actions using this id: {}, repositoryId: {}",
 				"getAllowableActions", t.getObjectId(), t.getRepositoryId());
-		AllowableActions allowableActions = CmisObjectService.Impl.getAllowableActions(t.getRepositoryId(),
+		AllowableActions allowableActions = CmisObjectService.Impl.getAllowableActions(t.getRepositoryId(), null,
 				t.getObjectId(), t.getUserObject().getUserDN());
 		JSONObject resultAllowableActions = JSONConverter.convert(allowableActions);
 		return resultAllowableActions;
@@ -241,7 +241,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		BigInteger skipCount = t.getBigIntegerParameter(QueryGetRequest.PARAM_SKIP_COUNT);
 		LOG.info("Method name: {}, getting renditions using this id: {}, repositoryId: {}", "getRenditions", objectId,
 				t.getRepositoryId());
-		List<RenditionData> renditions = CmisObjectService.Impl.getRenditions(t.getRepositoryId(), objectId,
+		List<RenditionData> renditions = CmisObjectService.Impl.getRenditions(t.getRepositoryId(), null, objectId,
 				renditionFilter, maxItems, skipCount, null);
 		JSONArray resultRenditions = new JSONArray();
 		if (renditions != null) {

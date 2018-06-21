@@ -181,25 +181,30 @@ public class CmisUtils {
 					mimeType = "image/png";
 				} else {
 					try {
-						IDocumentObject documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-								so.getId(), null);
-						if (documentData == null) {
-							LOG.error("getRenditions Object is null in {} repository!", repositoryId);
-							throw new CmisObjectNotFoundException("Object must not be null!");
-						}
-						Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-						IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-						if (documentData.getContentStreamFileName() != null) {
-							ContentStream contentStream = localService.getContent(
-									documentData.getContentStreamFileName(), so.getPath(),
-									documentData.getContentStreamMimeType(),
-									BigInteger.valueOf(documentData.getContentStreamLength()));
-							if (contentStream.equals(null)) {
-								LOG.error("ContentStream should not be :{}", contentStream);
-								throw new CmisObjectNotFoundException("Unkonwn ObjectId");
-							}
-							mimeType = contentStream.getMimeType();
-						}
+						// IDocumentObject documentData =
+						// DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+						// so.getId(), null);
+						// if (documentData == null) {
+						// LOG.error("getRenditions Object is null in {} repository!", repositoryId);
+						// throw new CmisObjectNotFoundException("Object must not be null!");
+						// }
+						// Map<String, String> parameters =
+						// RepositoryManagerFactory.getFileDetails(repositoryId);
+						// IStorageService localService =
+						// StorageServiceFactory.createStorageService(parameters);
+						// if (documentData.getContentStreamFileName() != null) {
+						// ContentStream contentStream = localService.getContent(
+						// documentData.getContentStreamFileName(), so.getPath(),
+						// documentData.getContentStreamMimeType(),
+						// BigInteger.valueOf(documentData.getContentStreamLength()));
+						// if (contentStream.equals(null)) {
+						// LOG.error("ContentStream should not be :{}", contentStream);
+						// throw new CmisObjectNotFoundException("Unkonwn ObjectId");
+						// }
+						// mimeType = contentStream.getMimeType();
+						//
+						// }
+						mimeType = "image/png";
 					} catch (Exception e) {
 						LOG.error("getRenditions Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
 						throw new CmisObjectNotFoundException(e.toString());

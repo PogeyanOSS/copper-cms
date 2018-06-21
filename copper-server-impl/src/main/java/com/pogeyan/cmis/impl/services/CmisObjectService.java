@@ -313,7 +313,7 @@ public class CmisObjectService {
 			result.setProperties(compileProperties(repositoryId, data, filter, objectInfo));
 
 			if (includeAllowableActions) {
-				AllowableActions action = getAllowableActions(repositoryId, data.getId(), userName);
+				AllowableActions action = getAllowableActions(repositoryId, data, null, userName);
 				result.setAllowableActions(action);
 			}
 
@@ -321,7 +321,7 @@ public class CmisObjectService {
 				Acl acl = (Acl) data.getAcl();
 				result.setAcl(acl);
 			}
-			List<RenditionData> renditions = getRenditions(repositoryId, data.getId(), renditionFilter,
+			List<RenditionData> renditions = getRenditions(repositoryId, data, null, renditionFilter,
 					BigInteger.valueOf(1), BigInteger.valueOf(0), userName);
 			result.setRenditions(renditions);
 
@@ -779,13 +779,15 @@ public class CmisObjectService {
 			}
 		}
 
-		public static AllowableActions getAllowableActions(String repositoryId, String objectId, String userName) {
-			IBaseObject data = null;
-			try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
-			} catch (Exception e) {
-				LOG.error("getAllowableActions Exception: {}", ExceptionUtils.getStackTrace(e));
-				throw new MongoException(e.toString());
+		public static AllowableActions getAllowableActions(String repositoryId, IBaseObject data, String objectId,
+				String userName) {
+			if (data != null && objectId != null) {
+				try {
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+				} catch (Exception e) {
+					LOG.error("getAllowableActions Exception: {}", ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
 			}
 
 			if (data == null) {
@@ -833,7 +835,11 @@ public class CmisObjectService {
 					isRootFolder = true;
 				}
 			} else if (isDocument == true) {
-				documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, so.getId(), null);
+				if (so instanceof IDocumentObject) {
+					documentData = (IDocumentObject) so;
+				} else {
+					documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, so.getId(), null);
+				}
 
 				if (documentData.getContentStreamMimeType() != null) {
 					hasContent = true;
@@ -951,8 +957,9 @@ public class CmisObjectService {
 			return value.booleanValue();
 		}
 
-		public static List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter,
-				BigInteger maxItems, BigInteger skipCount, String userName) throws CmisInvalidArgumentException {
+		public static List<RenditionData> getRenditions(String repositoryId, IBaseObject data, String objectId,
+				String renditionFilter, BigInteger maxItems, BigInteger skipCount, String userName)
+				throws CmisInvalidArgumentException {
 			// LOG.info("Method name: {}, checking renditions using this
 			// objectId: {}",
 			// "getRenditions", objectId);
@@ -960,12 +967,13 @@ public class CmisObjectService {
 				LOG.error("getRenditions unknown objectId: {}", objectId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
-			IBaseObject data = null;
-			try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
-			} catch (Exception e) {
-				LOG.error("getRenditions Exception: {}", ExceptionUtils.getStackTrace(e));
-				throw new MongoException(e.toString());
+			if (data != null && objectId != null) {
+				try {
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+				} catch (Exception e) {
+					LOG.error("getRenditions Exception: {}", ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
 			}
 
 			if (data == null) {
@@ -3782,7 +3790,7 @@ public class CmisObjectService {
 			objInfo.setBaseType(typeDef.getBaseTypeId());
 			objInfo.setObject(od);
 
-			List<RenditionData> renditions = getRenditions(repositoryId, so.getId(), null, BigInteger.ZERO,
+			List<RenditionData> renditions = getRenditions(repositoryId, so, null, null, BigInteger.ZERO,
 					BigInteger.ZERO, null);
 			if (renditions == null || renditions.size() == 0) {
 				objInfo.setRenditionInfos(null);
