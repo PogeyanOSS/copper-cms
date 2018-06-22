@@ -98,6 +98,7 @@ import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
+import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
@@ -3107,13 +3108,13 @@ public class CmisObjectService {
 				throws CmisObjectNotFoundException, CmisNotSupportedException {
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
-			MNavigationServiceDAO navigationMorphiaDAO = null;
+			MNavigationDocServiceDAO navigationMorphiaDAO = null;
 			MDocumentObjectDAO documentMorphiaDAO = null;
 			try {
 				baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MBaseObjectDAO.class);
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-						MNavigationServiceDAO.class);
+						MNavigationDocServiceDAO.class);
 				documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MDocumentObjectDAO.class);
 				String id = objectId.getValue();
@@ -3206,10 +3207,10 @@ public class CmisObjectService {
 							updateProps);
 				}
 				String path = data.getInternalPath() + data.getId() + ",";
-				List<? extends IBaseObject> children = getChildrens(repositoryId, path, data.getInternalPath(),
+				List<? extends IDocumentObject> children = getChildrens(repositoryId, path, data.getInternalPath(),
 						data.getAcl(), navigationMorphiaDAO, userObject);
 				if (children != null && children.size() > 0) {
-					for (IBaseObject child : children) {
+					for (IDocumentObject child : children) {
 						if (child.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 							String childPath = child.getInternalPath() + child.getId() + ",";
 							String updateChildPath = updatePath + data.getId() + "," + child.getId() + ",";
@@ -3219,10 +3220,7 @@ public class CmisObjectService {
 									cmisPath, userObject, child.getInternalPath(), child.getAcl(), modifiedTime);
 						} else {
 							Map<String, Object> updatePropsDoc = new HashMap<String, Object>();
-							IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-									child.getId(), null);
-							String docName = docObject.getContentStreamFileName() != null
-									? docObject.getContentStreamFileName()
+							String docName = child.getContentStreamFileName() != null ? child.getContentStreamFileName()
 									: child.getName();
 							String cmisPath = cmisUpdatePath + "/" + docName;
 							updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
@@ -3288,7 +3286,7 @@ public class CmisObjectService {
 		 * Checks the child folders
 		 */
 		private static void moveChildFolder(String repositoryId, String path, MBaseObjectDAO baseMorphiaDAO,
-				MNavigationServiceDAO navigationMorphiaDAO, MDocumentObjectDAO documentMorphiaDAO, String childPath,
+				MNavigationDocServiceDAO navigationMorphiaDAO, MDocumentObjectDAO documentMorphiaDAO, String childPath,
 				String parentPath, String childId, String parentId, String cmisPath, IUserObject userObject,
 				String dataPath, AccessControlListImplExt dataAcl, Long modifiedTime) {
 			if (childPath != null) {
@@ -3304,10 +3302,10 @@ public class CmisObjectService {
 			updateProps.put("modifiedBy", userObject.getUserDN());
 			updateProps.put("token", token);
 			baseMorphiaDAO.update(childId, updateProps);
-			List<? extends IBaseObject> children = getChildrens(repositoryId, path, dataPath, dataAcl,
+			List<? extends IDocumentObject> children = getChildrens(repositoryId, path, dataPath, dataAcl,
 					navigationMorphiaDAO, userObject);
 			if (children != null && children.size() > 0) {
-				for (IBaseObject child : children) {
+				for (IDocumentObject child : children) {
 					if (child.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 						String childPaths = child.getInternalPath() + child.getId() + ",";
 						String childUpdatePaths = childPath + child.getId() + ",";
@@ -3317,10 +3315,7 @@ public class CmisObjectService {
 								userObject, child.getInternalPath(), child.getAcl(), modifiedTime);
 					} else {
 						Map<String, Object> updatePropsDoc = new HashMap<String, Object>();
-						IDocumentObject docObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-								child.getId(), null);
-						String docName = docObject.getContentStreamFileName() != null
-								? docObject.getContentStreamFileName()
+						String docName = child.getContentStreamFileName() != null ? child.getContentStreamFileName()
 								: child.getName();
 						String pathCmis = cmisPath + "/" + docName;
 						updatePropsDoc.put("internalPath", childPath);
@@ -4025,8 +4020,9 @@ public class CmisObjectService {
 
 		}
 
-		private static List<? extends IBaseObject> getChildrens(String repositoryId, String path, String dataPath,
-				AccessControlListImplExt dataAcl, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject) {
+		private static List<? extends IDocumentObject> getChildrens(String repositoryId, String path, String dataPath,
+				AccessControlListImplExt dataAcl, MNavigationDocServiceDAO navigationMorphiaDAO,
+				IUserObject userObject) {
 
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
@@ -4042,7 +4038,7 @@ public class CmisObjectService {
 						.collect(Collectors.<AccessControlListImplExt>toList());
 			}
 
-			List<? extends IBaseObject> children = new ArrayList<>();
+			List<? extends IDocumentObject> children = new ArrayList<>();
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
 			for (AccessControlListImplExt acl : mAcl) {
