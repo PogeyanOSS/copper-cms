@@ -184,8 +184,8 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Gets the all descendants containees of a folder and all of their children to
-		 * a specified depth
+		 * Gets the all descendants containees of a folder and all of their
+		 * children to a specified depth
 		 */
 		public static List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
@@ -216,7 +216,7 @@ public class CmisNavigationService {
 					ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data,
-							filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
+							filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
 							includeRelationships, userObject.getUserDN());
 					oifd.setObject(objectData);
 					boolean acl = false;
@@ -449,7 +449,7 @@ public class CmisNavigationService {
 				name = name + "," + relId.getProperties().get("relation_name").toString();
 				targetObject.setName(name);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, targetObject,
-						filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
+						filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
 						includeRelationships, userObject.getUserDN());
 				oifd.setObject(objectData);
 
@@ -514,7 +514,8 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Gets the set of descendant folder objects contained in the specified folder
+		 * Gets the set of descendant folder objects contained in the specified
+		 * folder
 		 */
 		public static List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
@@ -541,7 +542,8 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Return the folder tree as a list in the format of ObjectInFolderContainer.
+		 * Return the folder tree as a list in the format of
+		 * ObjectInFolderContainer.
 		 */
 		private static List<ObjectInFolderContainer> getFolderTreeIntern(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
