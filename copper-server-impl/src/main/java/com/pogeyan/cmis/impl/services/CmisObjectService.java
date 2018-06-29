@@ -148,7 +148,8 @@ public class CmisObjectService {
 					return folderObject.getId();
 				}
 			} catch (MongoException e) {
-				LOG.error("addRootFolder exception: {}", ExceptionUtils.getStackTrace(e));
+				LOG.error("addRootFolder exception: {}, repositoryId: {}", ExceptionUtils.getStackTrace(e),
+						repositoryId);
 			}
 
 			return null;
@@ -166,10 +167,10 @@ public class CmisObjectService {
 				BaseTypeId baseTypeId)
 				throws CmisInvalidArgumentException, IllegalArgumentException, CmisObjectNotFoundException {
 			if (objectId == null && filter == null) {
-				LOG.error("ObjectId and filter is null");
+				LOG.error("getObject objectId and filter is null in repository: {}", repositoryId);
 				throw new CmisInvalidArgumentException("Object Id should not be null");
 			} else if (objectId == null) {
-				LOG.error("ObjectId is null");
+				LOG.error("getObject objectId is null in repository: {}", repositoryId);
 				throw new CmisInvalidArgumentException("Object Id should not be null.");
 			}
 
@@ -188,7 +189,7 @@ public class CmisObjectService {
 					data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 				}
 			} catch (Exception e) {
-				LOG.error("getObject Exception: {}", ExceptionUtils.getStackTrace(e));
+				LOG.error("getObject Exception: {}, repository: {}", ExceptionUtils.getStackTrace(e), repositoryId);
 				throw new MongoException(e.toString());
 			}
 			if (data == null) {
@@ -219,10 +220,10 @@ public class CmisObjectService {
 					typeId, repositoryId, primaryKeyField);
 
 			if (typeId == null && filter == null) {
-				LOG.error("ObjectId and filter is null");
+				LOG.error("getObjectForRestAPI objectId and filter is null in repository: {}", repositoryId);
 				throw new CmisInvalidArgumentException("Object Id should not be null");
 			} else if (typeId == null) {
-				LOG.error("ObjectId is null");
+				LOG.error("getObjectForRestAPI objectId is null in repositoryId: {}", repositoryId);
 				throw new CmisInvalidArgumentException("Object Id should not be null");
 			}
 
@@ -239,7 +240,8 @@ public class CmisObjectService {
 						checkPrimaryKeyType(primaryKeyValue, type.getPropertyDefinitions().get(primaryKeyField)),
 						filterArray);
 			} catch (Exception e) {
-				LOG.error("getObjectForRestAPI Exception: {}", ExceptionUtils.getStackTrace(e));
+				LOG.error("getObjectForRestAPI Exception: {}, repository: {}", ExceptionUtils.getStackTrace(e),
+						repositoryId);
 				throw new MongoException(e.toString());
 			}
 			if (data == null) {
@@ -268,9 +270,9 @@ public class CmisObjectService {
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 				Boolean includePolicyIds, Boolean includeAcl, ObjectInfoHandler objectInfos, String userName) {
 			// check id
-			LOG.info("getObjectByPath compileObjectData for: {}", path);
+			LOG.info("getObjectByPath compileObjectData for: {}, repositoryid: {}", path, repositoryId);
 			if (path == null && filter == null) {
-				LOG.error("Unknown object id: {}", path);
+				LOG.error("getObjectByPath unknown object id: {}, repository: {}", path, repositoryId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 
@@ -278,7 +280,8 @@ public class CmisObjectService {
 			try {
 				data = DBUtils.BaseDAO.getByPath(repositoryId, path);
 			} catch (Exception e) {
-				LOG.error("getObjectByPath Exception: {}", ExceptionUtils.getStackTrace(e));
+				LOG.error("getObjectByPath Exception: {}, repository: {}", ExceptionUtils.getStackTrace(e),
+						repositoryId);
 				throw new MongoException(e.toString());
 			}
 
@@ -775,7 +778,7 @@ public class CmisObjectService {
 				}
 				return result;
 			} catch (Exception e) {
-				LOG.error("Method name: {}, error: {}", "compileProperties", e);
+				LOG.error("Method name: {}, error: {}, repository: {}", "compileProperties", e, repositoryId);
 				throw new CmisRuntimeException(e.getMessage(), e);
 			}
 		}
@@ -786,13 +789,14 @@ public class CmisObjectService {
 				try {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 				} catch (Exception e) {
-					LOG.error("getAllowableActions Exception: {}", ExceptionUtils.getStackTrace(e));
+					LOG.error("getAllowableActions Exception: {}, repository: {}", ExceptionUtils.getStackTrace(e),
+							repositoryId);
 					throw new MongoException(e.toString());
 				}
 			}
 
 			if (data == null && objectId == null) {
-				LOG.error("getRenditions unknown objectId: {}", objectId);
+				LOG.error("getAllowableActions unknown objectId: {}, repository: {}", objectId, repositoryId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 
@@ -973,13 +977,14 @@ public class CmisObjectService {
 				try {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 				} catch (Exception e) {
-					LOG.error("getRenditions Exception: {}", ExceptionUtils.getStackTrace(e));
+					LOG.error("getRenditions Exception: {}, repositoryId: {}", ExceptionUtils.getStackTrace(e),
+							repositoryId);
 					throw new MongoException(e.toString());
 				}
 			}
 
 			if (data == null && objectId == null) {
-				LOG.error("getRenditions unknown objectId: {}", objectId);
+				LOG.error("getRenditions unknown objectId: {}, repositoryId: {}", objectId, repositoryId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 
@@ -1115,24 +1120,27 @@ public class CmisObjectService {
 		public static IBaseObject getObjectById(String repositoryId, String objectId) {
 			// check id
 			if (objectId == null) {
-				LOG.error("Method name: {}, unknown object id: {}", "getObjectById", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repositoryId: {}", "getObjectById", objectId,
+						repositoryId);
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 			IBaseObject data = null;
 			try {
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			} catch (Exception e) {
-				LOG.error("getObjectById Exception: {}", ExceptionUtils.getStackTrace(e));
+				LOG.error("getObjectById Exception: {}, repositoryId: {}", ExceptionUtils.getStackTrace(e),
+						repositoryId);
 				throw new MongoException(e.toString());
 			}
 
 			if (data == null) {
-				LOG.error("Method name:{}, object must not be null: {}", "getObjectById", objectId);
+				LOG.error("Method name:{}, object must not be null: {}, repositoryId: {}", "getObjectById", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Object must not be null!");
 			}
 
 			if (data != null) {
-				LOG.debug("getObjectById result object: {}", data);
+				LOG.debug("getObjectById result object: {}, repositoryId: {}", data, repositoryId);
 			}
 			return data;
 		}
@@ -1179,7 +1187,8 @@ public class CmisObjectService {
 								});
 							});
 						} else {
-							LOG.error("Unknown propertiesTypes: {}", map.getKey());
+							LOG.error("Method name: {}, unknown propertiesTypes: {}, repositoryId: {}",
+									"readCustomProperties", map.getKey(), repositoryId);
 							throw new IllegalArgumentException("Property '" + map.getKey() + "' is unknown!");
 						}
 					} else {
@@ -1323,13 +1332,14 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String folderName = (String) pd.getFirstValue();
 			if (folderName == null || folderName.length() == 0) {
-				LOG.error("Unknown folder name: {}", folderName);
+				LOG.error("createFolderIntern unknown folder name: {}, repositoryId: {}", folderName, repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a folder without a name.");
 			}
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(folderName)) {
-				LOG.error("{}, : {} ", NameValidator.ERROR_ILLEGAL_NAME, folderName);
+				LOG.error("createFolderIntern error: {}, : {}, repositoryId: {} ", NameValidator.ERROR_ILLEGAL_NAME,
+						folderName, repositoryId);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + folderName);
 			}
 
@@ -1344,12 +1354,14 @@ public class CmisObjectService {
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 			// if (typeDef.getBaseTypeId().equals(other))
 			if (typeDef == null) {
-				LOG.error("Method name: {}, unknown typeId: {}", "createFolder", typeDef);
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createFolder", typeDef,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
 			}
 
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
-				LOG.error("Cannot create a folder with a non-folder type: {}", typeDef.getId());
+				LOG.error("createFolderIntern cannot create a folder with a non-folder type: {}, repositoryId: {}",
+						typeDef.getId(), repositoryId);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a folder, with a non-folder type: " + typeDef.getId());
 			}
@@ -1362,7 +1374,7 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("Parent is unknown: {}", parent);
+				LOG.error("createFolderIntern parent is unknown: {}, repositoryId: {}", parent, repositoryId);
 				throw new CmisObjectNotFoundException("Parent is unknown !");
 			}
 
@@ -1388,7 +1400,7 @@ public class CmisObjectService {
 
 			} catch (IOException e) {
 				objectMorphiaDAO.delete(folderId, true, null);
-				LOG.error("Folder creation exception: {}", e);
+				LOG.error("createFolderIntern folder creation exception: {}, repositoryId: {}", e, repositoryId);
 				throw new IllegalArgumentException(e);
 			}
 			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
@@ -1430,7 +1442,8 @@ public class CmisObjectService {
 			IBaseObject folderObject = DBUtils.BaseDAO.getByName(repositoryId, folderName,
 					parentData.getId().toString());
 			if (folderObject != null) {
-				LOG.error("Already present FolderObject:{}", folderObject.getId());
+				LOG.error("createFolderObject already present FolderObject:{}, repositoryId: {}", folderObject.getId(),
+						repositoryId);
 				throw new IllegalArgumentException(folderName + " is already present");
 			}
 
@@ -1574,7 +1587,7 @@ public class CmisObjectService {
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userName, removeACEs);
 			List<String> secondaryObjectTypeIds = null;
 			if (properties == null || properties.getProperties() == null) {
-				LOG.error("Unknown properties: {}", properties);
+				LOG.error("createDocumentIntern unknown properties: {}, repositoryId: {}", properties, repositoryId);
 				throw new CmisInvalidArgumentException("Properties must be set!");
 			}
 
@@ -1590,7 +1603,7 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String documentName = (String) pd.getFirstValue();
 			if (documentName == null || documentName.length() == 0) {
-				LOG.error("Unknown document name");
+				LOG.error("createDocumentIntern unknown document name, repositoryId: {}", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a document without a name.");
 			}
 
@@ -1601,7 +1614,8 @@ public class CmisObjectService {
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
-				LOG.error("{}, : {} ", NameValidator.ERROR_ILLEGAL_NAME, documentName);
+				LOG.error("createDocumentIntern error: {}, : {}, repositoryId: {}", NameValidator.ERROR_ILLEGAL_NAME,
+						documentName, repositoryId);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName);
 			}
 
@@ -1612,11 +1626,13 @@ public class CmisObjectService {
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 
 			if (typeDef == null) {
-				LOG.error("Method name : {}, unknown typeId: {}", "createDocument", typeDef);
+				LOG.error("Method name : {}, unknown typeId: {}, repositoryId: {}", "createDocument", typeDef,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
 			}
 			if (typeDef.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT) {
-				LOG.error("Type: {} is not a document type!", typeDef.getBaseTypeId());
+				LOG.error("createDocumentIntern Type: {} is not a document type!, repositoryId: {}",
+						typeDef.getBaseTypeId(), repositoryId);
 				throw new CmisInvalidArgumentException("Type must be a document type!");
 			}
 
@@ -1636,7 +1652,7 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("Unknown parent: {}", parent);
+				LOG.error("createDocumentIntern unknown parent: {}, repositoryId: {}", parent, repositoryId);
 				throw new CmisObjectNotFoundException("Parent is unknown !");
 			}
 
@@ -1663,7 +1679,7 @@ public class CmisObjectService {
 					}
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
-					LOG.error("File creation exception: {}", ex);
+					LOG.error("createDocumentIntern file creation exception: {}, repositoryId: {}", ex, repositoryId);
 					throw new IllegalArgumentException(ex);
 				}
 			}
@@ -1827,13 +1843,14 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String documentName = (String) pd.getFirstValue();
 			if (null == documentName || documentName.length() == 0) {
-				LOG.error("Unknown document name: {}", documentName);
+				LOG.error("createDocumentFromSource unknown document name: {}, repositoryId: {}", documentName,
+						repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a document without a name.");
 			}
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
-				LOG.error("{}, : {} ", NameValidator.ERROR_ILLEGAL_NAME, documentName);
+				LOG.error("createDocumentFromSource error: {}, : {} ", NameValidator.ERROR_ILLEGAL_NAME, documentName);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName);
 			}
 			String typeId = getObjectTypeId(properties);
@@ -1841,11 +1858,13 @@ public class CmisObjectService {
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 
 			if (typeDef == null) {
-				LOG.error("Method name: {}, unknown typeId: {}", "createDocumentFromSource", typeDef);
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createDocumentFromSource", typeDef,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
 			}
 			if (typeDef.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT) {
-				LOG.error("Type: {} must be a document type!", typeDef.getBaseTypeId());
+				LOG.error("createDocumentFromSource Type: {} must be a document type!, repositoryId: {}",
+						typeDef.getBaseTypeId(), repositoryId);
 				throw new CmisInvalidArgumentException("Type must be a document type!");
 			}
 
@@ -1870,7 +1889,7 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("Unknown parent: {}", parent);
+				LOG.error("createDocumentFromSource unknown parent: {}, repositoryId: {}", parent, repositoryId);
 				throw new CmisObjectNotFoundException("Parent is unknown !");
 			}
 
@@ -1899,7 +1918,8 @@ public class CmisObjectService {
 
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
-					LOG.error("File creation exception: {}", ex);
+					LOG.error("createDocumentFromSource file creation exception: {}, repositoryId: {}", ex,
+							repositoryId);
 					throw new IllegalArgumentException(ex);
 				}
 			}
@@ -1945,13 +1965,14 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String itemName = (String) pd.getFirstValue();
 			if (null == itemName || itemName.length() == 0) {
-				LOG.error("Unknown item name: {}", itemName);
+				LOG.error("createItemIntern unknown item name: {}, repositoryId: {}", itemName, repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a folder without a name.");
 			}
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(itemName)) {
-				LOG.error("{}, : {} ", NameValidator.ERROR_ILLEGAL_NAME, itemName);
+				LOG.error("createItemIntern error: {}, : {}, repositoryId: {}", NameValidator.ERROR_ILLEGAL_NAME,
+						itemName, repositoryId);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME, " Name is: " + itemName);
 			}
 
@@ -1963,12 +1984,13 @@ public class CmisObjectService {
 			String typeId = getObjectTypeId(properties);
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 			if (typeDef == null) {
-				LOG.error("Method name: {}, unknown typeId: {}", "createItem", typeDef);
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createItem", typeDef, repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
 			}
 			// check if the given type is a folder type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_ITEM)) {
-				LOG.error("Cannot create a folder with a non-folder type: {} " + typeDef.getId());
+				LOG.error("createItemIntern cannot create a folder with a non-folder type: {}, repositoryId: {}"
+						+ typeDef.getId(), repositoryId);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a folder, with a non-folder type: " + typeDef.getId());
 			}
@@ -2013,7 +2035,8 @@ public class CmisObjectService {
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IBaseObject itemObject = DBUtils.BaseDAO.getByName(repositoryId, itemName, parentData.getId().toString());
 			if (itemObject != null) {
-				LOG.error("object id already present: {}", itemObject.getId());
+				LOG.error("createItemObject object id already present: {}, repositoryId: {}", itemObject.getId(),
+						repositoryId);
 				throw new IllegalArgumentException(itemName + " is already present");
 			}
 
@@ -2079,35 +2102,41 @@ public class CmisObjectService {
 			}
 			PropertyData<?> relationTypeProperty = properties.getProperties().get("relation_name");
 			if (relationTypeProperty == null) {
-				LOG.error("Create relationship exception: {}", "cannot create a relationship without a relation_name.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"cannot create a relationship without a relation_name.", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a relationship without a relation_name.");
 			}
 			String relationName = (String) relationTypeProperty.getFirstValue();
 			if (relationName == null || relationName.isEmpty()) {
-				LOG.error("Create relationship exception: {}", "cannot create a relationship without a relation_name.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"cannot create a relationship without a relation_name.", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a relationship without a relation_name.");
 			}
 			// get required properties
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.SOURCE_ID);
 			if (pd == null) {
-				LOG.error("Create relationship exception: {}", "cannot create a relationship without a sourceId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"cannot create a relationship without a sourceId.", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a relationship without a sourceId.");
 			}
 
 			String sourceId = (String) pd.getFirstValue();
 			if (null == sourceId || sourceId.length() == 0) {
-				LOG.error("Create relationship exception: {}", "cannot create a relationship without a sourceId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"cannot create a relationship without a sourceId.", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a relationship without a sourceId.");
 			}
 
 			pd = properties.getProperties().get(PropertyIds.TARGET_ID);
 			if (pd == null) {
-				LOG.error("Create relationship exception: {}", "cannot create a relationship without a targetId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"cannot create a relationship without a targetId.", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a relationship without a targetId.");
 			}
 			String targetId = (String) pd.getFirstValue();
 			if (null == targetId || targetId.length() == 0) {
-				LOG.error("Create relationship exception: {}", "cannot create a relationship without a targetId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"cannot create a relationship without a targetId.", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a relationship without a targetId.");
 			}
 			// TODO:after implement Version
@@ -2115,8 +2144,8 @@ public class CmisObjectService {
 			// CmisVersion.CMIS_1_0;
 			String typeId = (String) properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID).getFirstValue();
 			if (!typeId.equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONSHIP.value())) {
-				LOG.error("Create relationship typeId must use cmis base type: {}",
-						CustomTypeId.CMIS_EXT_RELATIONSHIP.value());
+				LOG.error("Create relationship typeId must use cmis base type: {}, repositoryId: {}",
+						CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), repositoryId);
 				throw new CmisInvalidArgumentException(
 						"TypeId must use cmis base type{" + CustomTypeId.CMIS_EXT_RELATIONSHIP.value() + "}");
 			}
@@ -2124,8 +2153,8 @@ public class CmisObjectService {
 
 			// check if the given type is a relationship type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_RELATIONSHIP)) {
-				LOG.error("Create relationship exception: {}, {}",
-						"cannot create a relationship with a non-relationship type: ", typeDef.getId());
+				LOG.error("Create relationship exception: {}, {}, repositoryId: {}",
+						"cannot create a relationship with a non-relationship type: ", typeDef.getId(), repositoryId);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship, with a non-relationship type: " + typeDef.getId());
 			}
@@ -2149,11 +2178,13 @@ public class CmisObjectService {
 					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null).getTypeId()
 					: null;
 			if (sourceTypeId == null) {
-				LOG.error("Create relationship exception: {}", "wrong sourceId,SourceObject should not be null");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"wrong sourceId,SourceObject should not be null", repositoryId);
 				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
 			}
 			if (targetTypeId == null) {
-				LOG.error("Create relationship exception: {}", "wrong targetId,TargetObject should not be null");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"wrong targetId,TargetObject should not be null", repositoryId);
 				throw new CmisInvalidArgumentException("Wrong sourceId,TargetObject should not be null");
 			}
 			validateRelationshipDocuments(repositoryId, relationName, sourceTypeId, targetTypeId, false,
@@ -2161,7 +2192,8 @@ public class CmisObjectService {
 			// get name from properties
 			pd = propMap.get(PropertyIds.NAME);
 			if (pd == null) {
-				LOG.error("Create relationship exception: {}", "cannot create a relationship without a Name.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}",
+						"cannot create a relationship without a Name.", repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a relationship without a Name.");
 			}
 			String name = (String) pd.getFirstValue();
@@ -2206,13 +2238,15 @@ public class CmisObjectService {
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
 					user, user, token, p._1(), custom, policies, aclAdd, p._2(), parentData.getId().toString());
 			if (result.equals(null)) {
-				LOG.error("Unknown relation object: {}", result);
+				LOG.error("createRelationshipObject unknown relation object: {}, repositoryId: {}", result,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Impossible to create folder properties");
 			}
 
 			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, result.getId(), null);
 			if (itemObject != null) {
-				LOG.error("Relationship object already present: {}", itemObject.getId());
+				LOG.error("Relationship object already present: {}, repositoryId: {}", itemObject.getId(),
+						repositoryId);
 				throw new IllegalArgumentException(typeId + " is already present");
 			}
 
@@ -2236,20 +2270,23 @@ public class CmisObjectService {
 					.getProperties();
 			String sourceTable = relationProps.get("source_table").toString();
 			if (sourceTable == null) {
-				LOG.error("SourceTable  not present in relationship object: {}", sourceTable);
+				LOG.error("SourceTable  not present in relationship object: {}, repositoryId: {}", sourceTable,
+						repositoryId);
 				throw new IllegalArgumentException("SourceTable  not present in relationShipObject");
 			}
 			String targetTable = relationProps.get("target_table").toString();
 			if (targetTable == null) {
-				LOG.error("target table  not present in relationship object: {}", sourceTable);
+				LOG.error("target table  not present in relationship object: {}, repositoryId: {}", sourceTable,
+						repositoryId);
 				throw new IllegalArgumentException("targetTable  not present in relationShipObject");
 			}
 			if (!sourceTable.equalsIgnoreCase(sourceTypeId)) {
-				LOG.error("Wrong source relationship document object: {}", sourceTypeId);
+				LOG.error("Wrong source relationship document object: {}, repositoryId: {}", sourceTypeId,
+						repositoryId);
 				throw new IllegalArgumentException("Wrong relationShipDocumentObject");
 			}
 			if (!targetTable.equalsIgnoreCase(targetTypeId)) {
-				LOG.error("Wrong target relationship document object: {}", targetTable);
+				LOG.error("Wrong target relationship document object: {}, repositoryId: {}", targetTable, repositoryId);
 				throw new IllegalArgumentException("Wrong relationShipDocumentObject");
 			}
 		}
@@ -2322,11 +2359,12 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String policyName = (String) pd.getFirstValue();
 			if (null == policyName || policyName.length() == 0) {
-				LOG.error("Unknown policy name: {}", policyName);
+				LOG.error("createPolicyIntern unknown policy name: {}, repositoryId: {}", policyName, repositoryId);
 				throw new CmisInvalidArgumentException("Cannot create a policy without a name.");
 			}
 			if (!NameValidator.impl.isValidName(policyName)) {
-				LOG.error("{}, : {} ", NameValidator.ERROR_ILLEGAL_NAME, policyName);
+				LOG.error("createPolicyIntern error: {}, : {}, repositoryId: {}", NameValidator.ERROR_ILLEGAL_NAME,
+						policyName, repositoryId);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME, " Name is: " + policyName);
 			}
 
@@ -2338,12 +2376,13 @@ public class CmisObjectService {
 			String typeId = getObjectTypeId(properties);
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
 			if (typeDef == null) {
-				LOG.error("Unknown typeId: {}", typeDef);
+				LOG.error("createPolicyIntern unknown typeId: {}, repositoryId: {}", typeDef, repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
 			}
 			// check if the given type is a folder type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_POLICY)) {
-				LOG.error("Cannot create a policy with a non-folder type: {}", typeDef.getId());
+				LOG.error("createPolicyIntern cannot create a policy with a non-folder type: {}, repositoryId: {}",
+						typeDef.getId(), repositoryId);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a policy with a non-folder type: " + typeDef.getId());
 			}
@@ -2367,7 +2406,7 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("Parent is unknown:{}", parent);
+				LOG.error("createPolicyIntern parent is unknown:{}, repositoryId: {}", parent, repositoryId);
 				throw new CmisObjectNotFoundException("Parent is unknown !");
 			}
 
@@ -2399,7 +2438,8 @@ public class CmisObjectService {
 			IBaseObject policyObject = DBUtils.BaseDAO.getByName(repositoryId, policyName,
 					parentData.getId().toString());
 			if (policyObject != null) {
-				LOG.error("policy Object already present: {}", policyObject.getName());
+				LOG.error("createPolicyObject policy Object already present: {}, repositoryId: {}",
+						policyObject.getName(), repositoryId);
 				throw new IllegalArgumentException(policyName + " is already present");
 			}
 
@@ -2440,7 +2480,8 @@ public class CmisObjectService {
 					updateProperties(repositoryId, objId, changeToken, properties, null, objectInfos, userObject);
 					result.add(new BulkUpdateObjectIdAndChangeTokenImpl(obj.getId(), changeToken.getValue()));
 				} catch (Exception e) {
-					LOG.error("updating properties in bulk upadate failed for object: {}, {}", obj.getId(), e);
+					LOG.error("updating properties in bulk upadate failed for object: {}, {}, repositoryId: {}",
+							obj.getId(), e, repositoryId);
 				}
 			}
 			if (result != null) {
@@ -2463,7 +2504,8 @@ public class CmisObjectService {
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, id, properties, null, acl, null,
 					userObject.getUserDN(), null, ObjectFlowType.UPDATED);
 			if (properties == null) {
-				LOG.error("Method name: {}, no properties given for object id: {}", "updateProperties", id);
+				LOG.error("Method name: {}, no properties given for object id: {}, repositoryId: {}",
+						"updateProperties", id, repositoryId);
 				throw new CmisRuntimeException(
 						"update properties: no properties given for object id: " + objectId.getValue());
 			}
@@ -2478,12 +2520,13 @@ public class CmisObjectService {
 						MNavigationServiceDAO.class);
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null);
 			} catch (MongoException e) {
-				LOG.error("Unknown object: {}", objectId);
+				LOG.error("updateProperties unknown object: {}, repositoryId: {}", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(data.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
-				LOG.error("updateProperties failed: changeToken does not match: {}", changeToken);
+				LOG.error("updateProperties failed: changeToken does not match: {}, repositoryId: {}", changeToken,
+						repositoryId);
 				throw new CmisUpdateConflictException("updateProperties failed: changeToken does not match");
 			}
 
@@ -2500,7 +2543,7 @@ public class CmisObjectService {
 					try {
 						localService.rename(data.getPath(), gettingPath(data.getPath(), customData.getFirstValue()));
 					} catch (Exception e) {
-						LOG.error("Folder rename exception: {}", e);
+						LOG.error("updateProperties folder rename exception: {}, repositoryId: {}", e, repositoryId);
 						throw new IllegalArgumentException(e);
 					}
 
@@ -2732,7 +2775,7 @@ public class CmisObjectService {
 				// }
 				return contentStream;
 			} catch (Exception e) {
-				LOG.error("this file does not exist: {}", objectId);
+				LOG.error("getContentStream this file does not exist: {}, repositoryId: {}", objectId, repositoryId);
 				MetricsInputs.markDownloadErrorMeter();
 				throw new CmisObjectNotFoundException("this file does not exist : " + objectId);
 			}
@@ -2756,7 +2799,8 @@ public class CmisObjectService {
 					null);
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(object.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
-				LOG.error("set content failed changeToken does not match: {}", changeToken);
+				LOG.error("set content failed changeToken does not match: {}, repositoryId: {}", changeToken,
+						repositoryId);
 				throw new CmisUpdateConflictException("set content failed: changeToken does not match");
 			}
 			Map<String, Object> updateProps = new HashMap<String, Object>();
@@ -2850,6 +2894,8 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(docDetails.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
+				LOG.error("delete content failed: changeToken does not match in repositoryId: {}", changeToken,
+						repositoryId);
 				throw new CmisUpdateConflictException("delete content failed: changeToken does not match");
 			}
 			boolean contentDeleted = localService.deleteContent(docDetails.getContentStreamFileName(),
@@ -2895,11 +2941,11 @@ public class CmisObjectService {
 						MNavigationServiceDAO.class);
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			} catch (MongoException e) {
-				LOG.error("Object not found!");
+				LOG.error("deleteObject object not found in repositoryId: {}", repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
-				LOG.error("deleteTree failed: {}", "can't delete a root folder.");
+				LOG.error("deleteObject failed: {}, repositoryId: {}", "can't delete a root folder.", repositoryId);
 				throw new CmisNotSupportedException("can't delete a root folder");
 			}
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -2920,7 +2966,7 @@ public class CmisObjectService {
 				MDocumentObjectDAO docMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO,
 				IStorageService localService, IUserObject userObject, Boolean allVersions) {
 			if (data == null) {
-				LOG.error("Object not found!");
+				LOG.error("deleteObjectChildrens object not found! in repositoryId: {}", repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
@@ -3036,33 +3082,36 @@ public class CmisObjectService {
 				// (t) -> new MDocumentObjectDAOImpl(IDocumentObject.class, t));
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			} catch (MongoException e) {
-				LOG.error("Object not found: {}", folderId);
+				LOG.error("deleteTree object not found: {}, repositoryId: {}", folderId, repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			List<String> failedToDeleteIds = new ArrayList<String>();
 			FailedToDeleteDataImpl result = new FailedToDeleteDataImpl();
 
 			if (data == null) {
-				LOG.error("Cannot delete object with id: {}, {}", folderId, "Object does not exist.");
+				LOG.error("deleteTree cannot delete object with id: {}, {}, repositoryId: {}", folderId,
+						"Object does not exist.", repositoryId);
 				throw new CmisInvalidArgumentException(
 						"Cannot delete object with id  " + folderId + ". Object does not exist.");
 			}
 
 			if (!(data.getBaseId() == BaseTypeId.CMIS_FOLDER)) {
-				LOG.error("deleteTree can only be invoked on a folder but id: {}  does not refer to a folder",
-						folderId);
+				LOG.error(
+						"deleteTree can only be invoked on a folder but id: {}  does not refer to a folder, repositoryId: {}",
+						folderId, repositoryId);
 				throw new CmisInvalidArgumentException("deleteTree can only be invoked on a folder, but id " + folderId
 						+ " does not refer to a folder");
 			}
 
 			if (unfileObjects == UnfileObject.UNFILE) {
-				LOG.error("deleteTree: {}", " This repository does not support unfile operations.");
+				LOG.error("deleteTree: {}, repositoryId: {}", " This repository does not support unfile operations.",
+						repositoryId);
 				throw new CmisNotSupportedException("This repository does not support unfile operations.");
 			}
 
 			// check if it is the root folder
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
-				LOG.error("deleteTree: {}", "can't delete a root folder.");
+				LOG.error("deleteTree: {}, repositoryId: {}", "can't delete a root folder.", repositoryId);
 				throw new CmisNotSupportedException("can't delete a root folder");
 			}
 
@@ -3120,24 +3169,26 @@ public class CmisObjectService {
 				String id = objectId.getValue();
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null);
 			} catch (MongoException e) {
-				LOG.error("Object not found:{}", objectId.getValue());
+				LOG.error("moveObject object not found:{}, repositoryId: {}", objectId.getValue(), repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
 			if (data == null) {
-				LOG.error("Unknown object: {}", objectId.getValue());
+				LOG.error("moveObject unknown object: {}, repositoryId: {}", objectId.getValue(), repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object: " + objectId.getValue());
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
-				LOG.error("RootFolder: {}, have no move operation: {}", data.getId(), objectId.getValue());
+				LOG.error("moveObject rootFolder: {}, have no move operation: {}, repositoryId: {}", data.getId(),
+						objectId.getValue(), repositoryId);
 				throw new CmisNotSupportedException("RootFolder " + data.getId() + " have no move operation");
 			}
 			IBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, targetFolderId, null);
 			if (null == soTarget) {
-				LOG.error("Unknown target folder: {}", targetFolderId);
+				LOG.error("moveObject unknown target folder: {}, repositoryId: {}", targetFolderId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown target folder: " + targetFolderId);
 			} else if (soTarget.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 			} else {
-				LOG.error("Destination move operation must be a folder: {}", targetFolderId);
+				LOG.error("moveObject destination move operation must be a folder: {}, repositoryId: {}",
+						targetFolderId, repositoryId);
 				throw new CmisNotSupportedException(
 						"Destination " + targetFolderId + " of a move operation must be a folder");
 			}
@@ -3145,11 +3196,11 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			IBaseObject soSource = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceFolderId, null);
 			if (null == soSource) {
-				LOG.error("Unknown source folder: {}", sourceFolderId);
+				LOG.error("moveObject unknown source folder: {}, repositoryId: {}", sourceFolderId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown source folder: " + sourceFolderId);
 			} else if (soSource.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 			} else {
-				LOG.error("Source move operation must be a folder:{}", sourceFolderId);
+				LOG.error("moveObject source move operation must be a folder:{}", sourceFolderId);
 				throw new CmisNotSupportedException(
 						"Source " + sourceFolderId + " of a move operation must be a folder");
 			}
@@ -3159,7 +3210,9 @@ public class CmisObjectService {
 				if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 					boolean checkParent = checkParentFolder(data.getPath(), soSource.getName());
 					if (!checkParent) {
-						LOG.error("Destination is not a parent folder for this document: {}", targetFolderId);
+						LOG.error(
+								"moveObject destination is not a parent folder for this document: {}, repositoryId: {}",
+								targetFolderId, repositoryId);
 						throw new CmisNotSupportedException(
 								"Destination " + targetFolderId + " is not a parent folder for this document");
 					}
@@ -3175,16 +3228,16 @@ public class CmisObjectService {
 						}
 
 					} catch (Exception ex) {
-						LOG.error("Move Object failed: {}", ex);
+						LOG.error("Move Object failed: {}, repositoryId: {}", ex, repositoryId);
 						throw new IllegalArgumentException(ex);
 					}
 				} else if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 					try {
 						localService.moveFolder(soTarget.getId().toString(), data.getPath(), soTarget.getPath());
-						LOG.info("Folder: {}, moved from source: {}, to target location: {}",
-								soTarget.getId().toString(), data.getPath(), soTarget.getPath());
+						LOG.info("Folder: {}, moved from source: {}, to target location: {}, repositoryId: {}",
+								soTarget.getId().toString(), data.getPath(), soTarget.getPath(), repositoryId);
 					} catch (Exception ex) {
-						LOG.error("Move Object Filed: {}", ex);
+						LOG.error("Move Object Filed: {}, repositoryId: {}", ex, repositoryId);
 						throw new IllegalArgumentException(ex);
 					}
 				}
@@ -3348,12 +3401,14 @@ public class CmisObjectService {
 			// Set<String> addedProps = new HashSet<String>();
 
 			if (properties == null || properties.getProperties() == null) {
-				LOG.error("Method name: {}, unknown properties: {}", "compileWriteProperties", properties);
+				LOG.error("Method name: {}, unknown properties: {}, repositoryId: {}", "compileWriteProperties",
+						properties, repositoryId);
 				throw new IllegalArgumentException("No properties!");
 			}
 
 			if (type == null) {
-				LOG.error("Method name: {}, unknown typeId: {}", "compileWriteProperties", type);
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "compileWriteProperties", type,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + type.getId() + "' is unknown!");
 			}
 
@@ -3391,7 +3446,8 @@ public class CmisObjectService {
 
 				}
 				if (propTypes == null) {
-					LOG.error("Method name: {}, unknown propertiesTypes: {}", "compileWriteProperties", prop.getId());
+					LOG.error("Method name: {}, unknown propertiesTypes: {}, repositoryId: {}",
+							"compileWriteProperties", prop.getId(), repositoryId);
 					throw new IllegalArgumentException("Property '" + prop.getId() + "' is unknown!");
 				}
 
@@ -3689,17 +3745,18 @@ public class CmisObjectService {
 		private static boolean checkAddProperty(String repositoryId, Properties properties, TypeDefinition type,
 				Set<String> filter, String id) {
 			if (properties == null || properties.getProperties() == null) {
-				LOG.error("Method name: {}, unknown properties: {}", "checkAddProperty", properties);
+				LOG.error("Method name: {}, unknown properties: {}, repositoryId: {}", "checkAddProperty", properties,
+						repositoryId);
 				throw new IllegalArgumentException("Properties must not be null!");
 			}
 
 			if (id == null) {
-				LOG.error("Unknown object id: {}", id);
+				LOG.error("Unknown object id: {}, repositoryId: {}", id, repositoryId);
 				throw new IllegalArgumentException("Id must not be null!");
 			}
 
 			if (type == null) {
-				LOG.error("Unknown typeId: {}", type);
+				LOG.error("Unknown typeId: {}, repositoryId: {}", type, repositoryId);
 				throw new IllegalArgumentException("Unknown type: " + type.getId());
 			}
 
@@ -3740,7 +3797,7 @@ public class CmisObjectService {
 				if (secondaryObjectTypeIds == null) {
 					return false;
 				} else {
-					LOG.error("Unknown property: {} ", id);
+					LOG.error("Unknown property: {}, repositoryId: {}", id, repositoryId);
 					throw new IllegalArgumentException("Unknown property: " + id);
 				}
 			}
@@ -4167,15 +4224,15 @@ public class CmisObjectService {
 			if (parameters.get("root") != null) {
 				try {
 					if (localService != null) {
-						LOG.debug("localService calling createFolder: {}, {}",
+						LOG.debug("localService calling createFolder: {}, {}, repositoryId: {}",
 								localService.getClass().getName() != null ? localService.getClass().getName() : null,
-								parameters.get("root"));
+								parameters.get("root"), repositoryId);
 					}
 
 					localService.createFolder(parameters.get("root"), parameters.get("root"),
 							"/" + parameters.get("root"));
 				} catch (IOException e) {
-					LOG.error("Folder creation exception: {}", e.getMessage());
+					LOG.error("Folder creation exception: {}, repositoryId: {}", e.getMessage(), repositoryId);
 					throw new IllegalArgumentException(e.getMessage());
 				}
 			}

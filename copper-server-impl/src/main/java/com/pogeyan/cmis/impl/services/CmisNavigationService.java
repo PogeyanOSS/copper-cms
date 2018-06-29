@@ -101,7 +101,7 @@ public class CmisNavigationService {
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			if (data == null) {
-				LOG.error("Unknown object id: {}", folderId);
+				LOG.error("getChildrenIntern unknown object id: {}, repository: {}", folderId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
 			}
 
@@ -195,7 +195,8 @@ public class CmisNavigationService {
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
 			} else if (depth.intValue() == 0) {
-				LOG.error("A zero depth is not allowed for getDescendants: {}", folderId);
+				LOG.error("getDescendants a zero depth is not allowed for getDescendants: {}, repository: {}", folderId,
+						repositoryId);
 				throw new CmisInvalidArgumentException("A zero depth is not allowed for getDescendants().");
 			} else {
 				levels = depth.intValue();
@@ -486,7 +487,8 @@ public class CmisNavigationService {
 			ObjectData res = getFolderParentIntern(repositoryId, folderId, filter, false, IncludeRelationships.NONE,
 					userName, objectInfos);
 			if (res == null) {
-				LOG.error("Cannot get parent of a root folder of: {}", folderId);
+				LOG.error("getFolderParent cannot get parent of a root folder of: {}, repository: {}", folderId,
+						repositoryId);
 				throw new CmisInvalidArgumentException("Cannot get parent of a root folder");
 			}
 			if (res != null) {
@@ -522,7 +524,8 @@ public class CmisNavigationService {
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
 			} else if (depth.intValue() == 0) {
-				LOG.error("A zero depth is not allowed for getDescendants().");
+				LOG.error("getFolderTree a zero depth is not allowed for getDescendants() in repository: {}",
+						repositoryId);
 				throw new CmisInvalidArgumentException("A zero depth is not allowed for getDescendants().");
 			} else {
 				levels = depth.intValue();
@@ -677,7 +680,7 @@ public class CmisNavigationService {
 			} else {
 				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 				if (data == null) {
-					LOG.error("Unknown object id: {}", folderId);
+					LOG.error("getCheckedOutIntern unknown object id: {}, repository: {}", folderId, repositoryId);
 					throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
 				}
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());

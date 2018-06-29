@@ -65,7 +65,8 @@ public class CmisVersioningServices {
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			List<ObjectData> objectData = new ArrayList<ObjectData>();
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id:{}", "getAllVersions", objectId);
+				LOG.error("Method name: {}, unknown object Id:{}, repositoryid: {}", "getAllVersions", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("unknown object Id" + objectId);
 			}
 			String versionReferenceId = data.getVersionReferenceId();
@@ -98,14 +99,16 @@ public class CmisVersioningServices {
 				String userName) throws CmisObjectNotFoundException {
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id: {}", "getObjectOfLatestVersion", objectId);
+				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}", "getObjectOfLatestVersion",
+						objectId, repositoryId);
 				throw new CmisObjectNotFoundException("unknown object Id " + objectId);
 			}
 			String versionReferenceId = data.getVersionReferenceId();
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
 			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
 			if (docObj == null) {
-				LOG.error("Error while getting latest version: {}", objectId);
+				LOG.error("getObjectOfLatestVersion error while getting latest version: {}, repositoryid: {}", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("error while getting latest version " + objectId);
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, docObj, filterCollection,
@@ -122,7 +125,8 @@ public class CmisVersioningServices {
 			IBaseObject latestVersionDocument = null;
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id: {}", "getPropertiesOfLatestVersion", objectId);
+				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}", "getPropertiesOfLatestVersion",
+						objectId, repositoryId);
 				throw new CmisObjectNotFoundException("unknown object Id" + objectId);
 			}
 
@@ -145,17 +149,19 @@ public class CmisVersioningServices {
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue(), null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id: {}", "checkOut", objectId);
+				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}", "checkOut", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("unknown object Id " + objectId);
 			}
 
 			if (data.getIsVersionSeriesCheckedOut()) {
-				LOG.error("Document: {} is already checked out.", objectId.getValue());
+				LOG.error("checkOut document: {} is already checked out, repositoryid: {}", objectId.getValue(),
+						repositoryId);
 				throw new CmisUpdateConflictException("Document " + objectId.getValue() + " is already checked out.");
 			}
 
 			if (data.getIsLatestVersion() == false) {
-				LOG.error("Only latest version can able to check out.");
+				LOG.error("checkOut only latest version can able to check out in repositoryid: {}", repositoryId);
 				throw new CmisUpdateConflictException("Only latest version can able to check out.");
 			}
 
@@ -203,12 +209,14 @@ public class CmisVersioningServices {
 
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown pwc object Id: {}", "cancelCheckOut", objectId);
+				LOG.error("Method name: {}, unknown pwc object Id: {}, repositoryid: {}", "cancelCheckOut", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("unknown pwc object Id " + objectId);
 			}
 
 			if (data.getIsPrivateWorkingCopy() == false) {
-				LOG.error("pwc: {} is not private working copy.", objectId);
+				LOG.error("cancelCheckOut pwc: {}, is not private working copy in repositoryid: {}", objectId,
+						repositoryId);
 				throw new CmisUpdateConflictException("pwc " + objectId + " is not private working copy.");
 			}
 
@@ -235,12 +243,13 @@ public class CmisVersioningServices {
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue(), null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id :{}", "checkIn", objectId);
+				LOG.error("Method name: {}, unknown object Id :{}, repositoryid: {}", "checkIn", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("unknown object Id " + objectId);
 			}
 
 			if (data.getVersionSeriesId() == null) {
-				LOG.error("document is not versionable: {}", objectId);
+				LOG.error("checkIn document is not versionable: {}, repositoryid: {}", objectId, repositoryId);
 				throw new CmisUpdateConflictException(objectId + "document is not versionable");
 			}
 
@@ -341,7 +350,7 @@ public class CmisVersioningServices {
 					localService.writeContent(documentObject.getId().toString(), fileName, documentObject.getPath(),
 							versionCustomContentStream);
 				} catch (Exception e) {
-					LOG.error("File creation exception:  {}", e);
+					LOG.error("checkIn file creation exception:  {}, repositoryid: {}", e, repositoryId);
 				}
 				updatecontentProps.put("contentStreamLength", contentStreamParam.getLength());
 				updatecontentProps.put("contentStreamFileName", fileName);

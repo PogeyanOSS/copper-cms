@@ -48,7 +48,7 @@ public class CmisAclServices {
 				throws CmisObjectNotFoundException {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Unknown object id: {}", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
@@ -66,7 +66,7 @@ public class CmisAclServices {
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Unknown object id: {}", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			Long modifiedTime = System.currentTimeMillis();

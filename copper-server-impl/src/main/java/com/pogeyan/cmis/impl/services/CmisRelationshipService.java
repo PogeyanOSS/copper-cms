@@ -51,12 +51,14 @@ public class CmisRelationshipService {
 			try {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			} catch (Exception e) {
-				LOG.error("getObjectRelationships Exception: {}", ExceptionUtils.getStackTrace(e));
+				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}",
+						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId);
 				throw new MongoException(e.toString());
 			}
 
 			if (so == null) {
-				LOG.error("getObjectRelationships Exception: {}, {}", "Unknown object id", objectId);
+				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}",
+						"getObjectRelationships", "Unknown object id", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
