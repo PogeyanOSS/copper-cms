@@ -15,27 +15,26 @@
  */
 package com.pogeyan.cmis.ldap.auth;
 
-import javax.management.modelmbean.InvalidTargetObjectTypeException;
-
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.api.auth.IAuthStoreSettings;
 
 public class LDAPAuthFactory implements IAuthFactory {
-	final IAuthStoreSettings authStoreSetting = new LDAPAuthStoreSettings();
-	final LDAPAuthService authService = new LDAPAuthService();
-
-	public LDAPAuthFactory() throws InvalidTargetObjectTypeException {
-		authService.setAuthStoreSettings(this.authStoreSetting);
-	}
 
 	@Override
 	public IAuthStoreSettings getStoreSetting() {
-		return this.authStoreSetting;
+		IAuthStoreSettings authStoreSetting = new LDAPAuthStoreSettings();
+		return authStoreSetting;
 	}
 
 	@Override
-	public IAuthService getAuthService() {
+	public IAuthService getAuthService(IAuthStoreSettings authStoreSetting) {
+		LDAPAuthService authService = new LDAPAuthService();
+		try {
+			authService.setAuthStoreSettings(authStoreSetting);
+		} catch (Exception e) {
+
+		}
 		return authService;
 	}
 }

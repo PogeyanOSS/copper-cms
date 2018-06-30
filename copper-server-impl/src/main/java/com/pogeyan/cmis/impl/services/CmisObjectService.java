@@ -4228,9 +4228,7 @@ public class CmisObjectService {
 								localService.getClass().getName() != null ? localService.getClass().getName() : null,
 								parameters.get("root"), repositoryId);
 					}
-					LOG.info("Add folder path: {}, for repository: {}, localService:{}", parameters.get("root"),
-							repositoryId, localService.getClass() != null ? localService.getClass().getName() : null);
-
+				
 					localService.createFolder(parameters.get("root"), parameters.get("root"),
 							"/" + parameters.get("root"));
 				} catch (IOException e) {

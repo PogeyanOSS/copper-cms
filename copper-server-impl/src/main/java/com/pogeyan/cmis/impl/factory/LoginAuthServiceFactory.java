@@ -22,6 +22,7 @@ import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.auth.IAuthService;
+import com.pogeyan.cmis.api.auth.IAuthStoreSettings;
 
 public class LoginAuthServiceFactory {
 	static Map<String, IAuthFactory> authFactory = new HashMap<String, IAuthFactory>();
@@ -31,8 +32,9 @@ public class LoginAuthServiceFactory {
 		if (loginSettings.containsKey("type")) {
 			String type = loginSettings.get("type");
 			if (authFactory.get(type) != null) {
-				authFactory.get(type).getStoreSetting().setStoreSetting(loginSettings);
-				return authFactory.get(type).getAuthService();
+				IAuthStoreSettings authStoreSetting = authFactory.get(type).getStoreSetting();
+				authStoreSetting.setStoreSetting(loginSettings);
+				return authFactory.get(type).getAuthService(authStoreSetting);
 			} else {
 				return null;
 			}
