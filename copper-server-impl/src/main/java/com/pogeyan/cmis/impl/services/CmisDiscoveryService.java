@@ -101,6 +101,8 @@ public class CmisDiscoveryService {
 						ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
 								includeProperties, includePolicyIds, includeAcl);
 						lod.add(odImpl);
+						// Acl Check for propagate or object only
+
 						// if (includeAcl) {
 						// List<AccessControlListImplExt> mAcl =
 						// CmisNavigationService.Impl.getParentAcl(repositoryId,
@@ -191,16 +193,6 @@ public class CmisDiscoveryService {
 			return odImpl;
 
 		}
-
-		// private static List<Ace> getListAce(AccessControlListImplExt acl, String[]
-		// principalIds) {
-		// List<Ace> listAce = acl.getAces().stream()
-		// .filter(t ->
-		// Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains)
-		// == true)
-		// .collect(Collectors.toList());
-		// return listAce;
-		// }
 
 		/**
 		 * Splits a filter statement into a collection of properties. If

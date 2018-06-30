@@ -92,9 +92,6 @@ public class CmisNavigationService {
 				throws CmisObjectNotFoundException {
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
-			// MNavigationServiceDAO navigationMorphiaDAO =
-			// DatabaseServiceFactory.getInstance(repositoryId)
-			// .getObjectService(repositoryId, MNavigationServiceDAO.class);
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -184,8 +181,8 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Gets the all descendants containees of a folder and all of their
-		 * children to a specified depth
+		 * Gets the all descendants containees of a folder and all of their children to
+		 * a specified depth
 		 */
 		public static List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
@@ -264,12 +261,6 @@ public class CmisNavigationService {
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
 				ObjectInfoHandler objectInfos, IUserObject userObject) {
-			// MDocumentObjectDAO docMorphiaDAO =
-			// DatabaseServiceFactory.getInstance(repositoryId)
-			// .getObjectService(repositoryId, MDocumentObjectDAO.class);
-			// MNavigationServiceDAO navigationMorphiaDAO =
-			// DatabaseServiceFactory.getInstance(repositoryId)
-			// .getObjectService(repositoryId, MNavigationServiceDAO.class);
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -514,8 +505,7 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Gets the set of descendant folder objects contained in the specified
-		 * folder
+		 * Gets the set of descendant folder objects contained in the specified folder
 		 */
 		public static List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
@@ -542,8 +532,7 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Return the folder tree as a list in the format of
-		 * ObjectInFolderContainer.
+		 * Return the folder tree as a list in the format of ObjectInFolderContainer.
 		 */
 		private static List<ObjectInFolderContainer> getFolderTreeIntern(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,

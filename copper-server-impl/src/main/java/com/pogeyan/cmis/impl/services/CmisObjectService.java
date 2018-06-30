@@ -2949,10 +2949,6 @@ public class CmisObjectService {
 				throw new CmisNotSupportedException("can't delete a root folder");
 			}
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-
-			// MDocumentObjectDAOImpl docMorphia =
-			// RepositoryManager.get().getContentDBMongoClient(repositoryId,
-			// (t) -> new MDocumentObjectDAOImpl(IDocumentObject.class, t));
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
 			deleteObjectChildrens(repositoryId, data, baseMorphiaDAO, docMorphiaDAO, navigationMorphiaDAO, localService,
@@ -3071,15 +3067,11 @@ public class CmisObjectService {
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MNavigationServiceDAO navigationMorphiaDAO = null;
-			// MDocumentObjectDAOImpl docMorphiaDAO = null;
 			try {
 				baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MBaseObjectDAO.class);
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
-				// docMorphiaDAO =
-				// RepositoryManager.get().getContentDBMongoClient(repositoryId,
-				// (t) -> new MDocumentObjectDAOImpl(IDocumentObject.class, t));
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			} catch (MongoException e) {
 				LOG.error("deleteTree object not found: {}, repositoryId: {}", folderId, repositoryId);
@@ -4228,7 +4220,7 @@ public class CmisObjectService {
 								localService.getClass().getName() != null ? localService.getClass().getName() : null,
 								parameters.get("root"), repositoryId);
 					}
-				
+
 					localService.createFolder(parameters.get("root"), parameters.get("root"),
 							"/" + parameters.get("root"));
 				} catch (IOException e) {
