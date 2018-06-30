@@ -75,7 +75,7 @@ public class CmisTypeServices {
 	public static class Impl {
 
 		public static void addBaseType(String repositoryId, String userName) throws MongoException {
-			LOG.info("addBaseType for {}", repositoryId);
+			LOG.info("addBaseType for this repo: {}", repositoryId);
 			try {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
@@ -86,6 +86,7 @@ public class CmisTypeServices {
 				} else {
 					List<? extends TypeDefinition> typeDef = typeManagerDAO.getById(null);
 					if (typeDef != null && typeDef.size() > 0) {
+						LOG.info("BaseType already created for repository: {}", repositoryId);
 						typeDef.stream().forEach((k) -> {
 							if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
 								CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
@@ -109,17 +110,18 @@ public class CmisTypeServices {
 									createFolderForType(tm, userName, repositoryId);
 								} catch (IOException e) {
 									typeManagerDAO.delete(tm.getId());
-									LOG.error("Folder creation exception:  {}", e.getMessage());
+									LOG.error("Folder creation exception:  {}, repositoryId: {}", e, repositoryId);
 									throw new IllegalArgumentException(e.getMessage());
 								}
 							}
 							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, tm.getId(), tm);
 						}
+						LOG.info("BaseType created for this repository: {}", repositoryId);
 					}
 				}
 
 			} catch (MongoException e) {
-				LOG.error("MongoObject shouldnot be null: {}", e.getMessage());
+				LOG.error("MongoObject shouldnot be null: {}, repository: {}", e, repositoryId);
 				throw new MongoException("MongoObject shouldnot be null");
 			}
 		}
@@ -499,7 +501,6 @@ public class CmisTypeServices {
 		 */
 		public static TypeDefinition createType(String repositoryId, TypeDefinition type, ExtensionsData extension,
 				String userName) throws IllegalArgumentException {
-			LOG.info("createType for type: {} , repository: {} ", type, repositoryId);
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> Mproperty = null;
 			List<TypeDefinition> innerChild = new ArrayList<TypeDefinition>();
@@ -508,15 +509,15 @@ public class CmisTypeServices {
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			TypeDefinition object = null;
 			if (type == null) {
-				LOG.error("Type must be set!");
+				LOG.error("Type must be set! in repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must be set!");
 			}
 			if (type.getId() == null || type.getId().trim().length() == 0) {
-				LOG.error("Type must have a valid id!");
+				LOG.error("Type must have a valid id! in repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must have a valid id!");
 			}
 			if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
-				LOG.error("Type must have a valid parent id!");
+				LOG.error("Type must have a valid parent id! in repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must have a valid parent id!");
 			}
 
@@ -526,7 +527,7 @@ public class CmisTypeServices {
 				object = typeDef.get(0);
 			}
 			if (object != null) {
-				LOG.error(type.getId(), " is already present!");
+				LOG.error(type.getId() + ": {}, repository: {}", " is already present!", repositoryId);
 				throw new IllegalArgumentException(type.getId() + " is already present");
 			}
 			if (type.getPropertyDefinitions() != null) {
@@ -547,10 +548,7 @@ public class CmisTypeServices {
 						}, LinkedHashMap::new));
 			}
 			typeMutability = new TypeMutabilityImpl(true, false, true);
-			LOG.info("Added new type {}", type.getId());
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Added type {}", type.getId());
-			}
+			LOG.info("Successfully added new type: {}", type.getId());
 			addIndex(repositoryId, Mproperty);
 			if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
@@ -562,7 +560,7 @@ public class CmisTypeServices {
 					createFolderForType(type, userName, repositoryId);
 				} catch (IOException e) {
 					typeManagerDAO.delete(type.getId());
-					LOG.error("Folder creation exception:  {}", e.getMessage());
+					LOG.error("Type folder creation exception:  {}, repository: {}", e, repositoryId);
 					throw new IllegalArgumentException(e.getMessage());
 				}
 				TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType);
@@ -577,7 +575,7 @@ public class CmisTypeServices {
 					}
 				} catch (IOException e) {
 					typeManagerDAO.delete(type.getId());
-					LOG.error("Folder creation exception:  {}", e.getMessage());
+					LOG.error("Type  folder creation exception:  {}, repository: {}", e, repositoryId);
 					throw new IllegalArgumentException(e.getMessage());
 				}
 				TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType);
@@ -591,20 +589,19 @@ public class CmisTypeServices {
 		 */
 		public static TypeDefinition updateType(String repositoryId, TypeDefinition type, ExtensionsData extension)
 				throws IllegalArgumentException {
-			LOG.info("updateType for type: {} , repository: {}", type, repositoryId);
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> Mproperty = null;
 			TypeDefinition object = null;
 			if (type == null) {
-				LOG.error("Type must be set!");
+				LOG.error("Type must be set in repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must be set!");
 			}
 			if (type.getId() == null || type.getId().trim().length() == 0) {
-				LOG.error("Type must have a valid id!");
+				LOG.error("Type must have a valid id in  repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must have a valid id!");
 			}
 			if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
-				LOG.error("Type must have a valid parent id!");
+				LOG.error("Type must have a valid parent id repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must have a valid parent id!");
 			}
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -616,7 +613,7 @@ public class CmisTypeServices {
 				object = tyeDef.get(0);
 			}
 			if (object == null) {
-				LOG.error(type.getId(), " is unknown");
+				LOG.error(type.getId() + ": {}, repository: {}", " is unknown", repositoryId);
 				throw new IllegalArgumentException("Unknown TypeId" + type.getId());
 			}
 			if (type.getPropertyDefinitions() != null) {
@@ -628,10 +625,7 @@ public class CmisTypeServices {
 			}
 
 			typeMutability = new TypeMutabilityImpl(false, true, true);
-
-			if (LOG.isDebugEnabled()) {
-				LOG.info("Updated type {}", type.getId());
-			}
+			LOG.info("Successfully updated type: {}", type.getId());
 			addIndex(repositoryId, Mproperty);
 			if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 				DocumentTypeDefinition doctype = (DocumentTypeDefinition) type;
@@ -654,7 +648,6 @@ public class CmisTypeServices {
 		 */
 		public static void deleteType(String repositoryId, String type, ExtensionsData extension)
 				throws IllegalArgumentException {
-			LOG.info("deleteType for type: {} , repository: {}", type, repositoryId);
 			TypeDefinition object = null;
 
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -663,7 +656,7 @@ public class CmisTypeServices {
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 
 			if (type == null) {
-				LOG.error(type, "Type is not available to delete");
+				LOG.error("Type is not available to delete: {}, repository: {}", type, repositoryId);
 				throw new IllegalArgumentException("Type must be set!");
 			}
 			List<? extends TypeDefinition> tyeDef = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(type));
@@ -672,7 +665,7 @@ public class CmisTypeServices {
 			}
 
 			if (object == null) {
-				LOG.error(type, " does not exists");
+				LOG.error(type + ": {}, repository: {}", " does not exists", repositoryId);
 				throw new IllegalArgumentException("Unknown TypeId " + type);
 			}
 			// Map<String, String> parameters =
@@ -687,21 +680,19 @@ public class CmisTypeServices {
 			}
 			typeManagerDAO.delete(type);
 			CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);
-			if (LOG.isDebugEnabled()) {
-				LOG.info("Deleted type: {}", type);
-			}
+			LOG.info("Successfully deleted type: {}", type);
 		}
 
 		public static TypeDefinition getTypeDefinition(String repositoryId, String typeId, ExtensionsData extension) {
 			if (typeId == null) {
-				LOG.error("typeId should not be null");
+				LOG.error("getTypeDefinition typeId should not be null in repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must be set!");
 			}
 
 			TypeDefinition typeDefinition = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(typeId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				typeDefinition = typeDef.get(0);
 			}
 
@@ -721,7 +712,7 @@ public class CmisTypeServices {
 				// TypeDefinition emptyTypeDefinition =
 				// typeDefinitionContainer.getTypeDefinition();
 				// return emptyTypeDefinition;
-				LOG.error("typeId should not be null");
+				LOG.error("getTypeDefinition typeId should not be null in repository: {}", repositoryId);
 				throw new CmisObjectNotFoundException("Type must be set!");
 
 			}
@@ -730,6 +721,8 @@ public class CmisTypeServices {
 		}
 
 		private static TypeDefinition gettingAllTypeDefinition(String repositoryId, TypeDefinition typeDefinition) {
+
+			LOG.debug("gettingAllTypeDefinition for this typeId: {}", typeDefinition.getId());
 			CmisDocumentTypeDefinitionImpl resultDocument = null;
 			CmisFolderTypeDefinitionImpl resultFolder = null;
 			ItemTypeDefinitionImpl resultItem = null;
@@ -832,13 +825,17 @@ public class CmisTypeServices {
 				typeDefinitionContainer.getTypeDefinition().getPropertyDefinitions().size();
 				return typeDefinitionContainer.getTypeDefinition();
 			} else {
-				LOG.error("unknown typeId {}", typeDefinition.getId());
+				LOG.error("gettingAllTypeDefinition unknown typeId: {}, repository: {}", typeDefinition.getId(),
+						repositoryId);
 				throw new CmisObjectNotFoundException("unknown typeId: " + typeDefinition.getId());
 			}
 		}
 
 		private static Map<String, PropertyDefinitionImpl<?>> getTypeProperties(TypeDefinition typeDefinition,
 				String repositoryId, List<TypeDefinition> innerChild, Boolean includeProperty) {
+
+			LOG.debug("getting type properties for: {}", typeDefinition != null ? typeDefinition.getId() : null);
+
 			boolean incluePro = includeProperty == null ? true : includeProperty;
 			Map<String, PropertyDefinitionImpl<?>> listProperty = null;
 
@@ -923,9 +920,9 @@ public class CmisTypeServices {
 		 * get TypeDefinition using properties
 		 */
 		public static TypeDefinition getTypeRelationshipDefinition(String repositoryId, String typeId, boolean cmis11) {
-			LOG.info("getTypeRelationshipDefinition for type: {} , repository: {}", typeId, repositoryId);
+			LOG.info("getTypeRelationshipDefinition for type: {}, repository: {}", typeId, repositoryId);
 			if (typeId == null) {
-				LOG.error("typeId should not be null");
+				LOG.error("getTypeRelationshipDefinition typeId should not be null in repository: {}", repositoryId);
 				throw new IllegalArgumentException("Type must be set!");
 			}
 			List<TypeDefinition> innerChild = new ArrayList<TypeDefinition>();
@@ -933,7 +930,7 @@ public class CmisTypeServices {
 			TypeDefinition typeDefinition = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(typeId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				typeDefinition = typeDef.get(0);
 			}
 			return typeDefinition;
@@ -945,7 +942,6 @@ public class CmisTypeServices {
 		public static TypeDefinitionList getTypeChildren(String repositoryId, String typeId,
 				Boolean includePropertyDefinitions, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension)
 				throws IllegalArgumentException {
-			LOG.info("getTypeChildren for type: {} , repository: {}", typeId, repositoryId);
 			boolean inclPropDefs = includePropertyDefinitions == null ? false : includePropertyDefinitions;
 			int skip = skipCount == null ? 0 : skipCount.intValue();
 			int max = maxItems == null ? -1 : maxItems.intValue();
@@ -953,11 +949,11 @@ public class CmisTypeServices {
 			if (typeId != null) {
 				List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 						Arrays.asList(typeId));
-				if (typeDef.size() > 0) {
+				if (typeDef != null && typeDef.size() > 0) {
 					object = typeDef.get(0);
 				}
 				if (object == null) {
-					LOG.error("Unknown TypeId {}", typeId);
+					LOG.error("getTypeChildren unknown TypeId : {}, repository: {}", typeId, repositoryId);
 					throw new IllegalArgumentException("Unknown TypeID " + typeId);
 				}
 			}
@@ -1034,7 +1030,6 @@ public class CmisTypeServices {
 		public static List<TypeDefinitionContainer> getTypeDescendants(String repositoryId, String typeId,
 				BigInteger depth, Boolean includePropertyDefinitions, ExtensionsData extension)
 				throws IllegalArgumentException, CmisInvalidArgumentException {
-			LOG.info("getTypeDescendants for type: {} , repository: {}", typeId, repositoryId);
 			boolean inclPropDefs = includePropertyDefinitions == null ? true : includePropertyDefinitions;
 			MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
@@ -1042,12 +1037,12 @@ public class CmisTypeServices {
 				TypeDefinition object = null;
 				List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 						Arrays.asList(typeId));
-				if (typeDef.size() > 0) {
+				if (typeDef != null && typeDef.size() > 0) {
 					object = typeDef.get(0);
 				}
 				if (object == null) {
-					LOG.error("Unknown TypeID {}", typeId);
-					throw new IllegalArgumentException("Unknown TypeID " + typeId);
+					LOG.error("getTypeDescendants unknown typeID : {}, repository: {}", typeId, repositoryId);
+					throw new IllegalArgumentException("Unknown typeID " + typeId);
 				}
 
 			}
@@ -1070,7 +1065,7 @@ public class CmisTypeServices {
 						includePropertyDefinitions);
 			}
 			if (result == null) {
-				LOG.error("unknown typeId {}", typeId);
+				LOG.error("getTypeDescendants unknown typeId: {}, repository: {}", typeId, repositoryId);
 				throw new CmisInvalidArgumentException("unknown typeId: " + typeId);
 			}
 
@@ -1089,7 +1084,7 @@ public class CmisTypeServices {
 			TypeDefinition result = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(typeId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				result = typeDef.get(0);
 				if (result.getBaseTypeId().value().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
 					DocumentTypeDefinition docResult = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId);
@@ -1323,13 +1318,11 @@ public class CmisTypeServices {
 			TypeDefinition parent = null;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 					Arrays.asList(parentId));
-			if (typeDef.size() > 0) {
+			if (typeDef != null && typeDef.size() > 0) {
 				parent = typeDef.get(0);
 			}
 			if (parent != null) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("getTypeParent from repository: {}, parentTypeId: {}", repositoryId, parent.getId());
-				}
+				LOG.debug("getTypeParent from repository: {}, parentTypeId: {}", repositoryId, parent.getId());
 				if (parent.getParentTypeId() == null) {
 					innerChild.add(parent);
 				} else {
@@ -1342,6 +1335,8 @@ public class CmisTypeServices {
 		}
 
 		private static CmisDocumentTypeDefinitionImpl getDocumentTypeDefinition(CmisDocumentTypeDefinitionImpl result) {
+
+			LOG.debug("getting CmisDocumentTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisDocumentTypeDefinitionImpl resultDocument = new CmisDocumentTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1369,6 +1364,8 @@ public class CmisTypeServices {
 		 * returns the typeDefinition into CmisFolderTypeDefinition
 		 */
 		private static CmisFolderTypeDefinitionImpl getFolderTypeDefinition(TypeDefinition result) {
+
+			LOG.debug("getting CmisFolderTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisFolderTypeDefinitionImpl resultFolder = new CmisFolderTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1395,6 +1392,7 @@ public class CmisTypeServices {
 		 * returns the typeDefinition into CmisItemTypeDefinition
 		 */
 		private static ItemTypeDefinitionImpl getItemTypeDefinition(TypeDefinition result) {
+			LOG.debug("getting ItemTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			ItemTypeDefinitionImpl resultItem = new ItemTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1422,6 +1420,9 @@ public class CmisTypeServices {
 		 */
 		private static CmisRelationshipTypeDefinitionImpl getRelationshipTypeDefinitionWithSourceTarget(
 				TypeDefinition result, List<String> source, List<String> target) {
+
+			LOG.debug("getting CmisRelationshipTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
+
 			CmisRelationshipTypeDefinitionImpl resultDocument = new CmisRelationshipTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1449,6 +1450,7 @@ public class CmisTypeServices {
 		 * returns the typeDefinition into CmisPolicyTypeDefinition
 		 */
 		private static CmisPolicyTypeDefinitionImpl getPolicyTypeDefinition(TypeDefinition result) {
+			LOG.debug("getting CmisPolicyTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisPolicyTypeDefinitionImpl resultPolicy = new CmisPolicyTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;
@@ -1475,6 +1477,8 @@ public class CmisTypeServices {
 		 * returns the typeDefinition into CmisSecondaryTypeDefinition
 		 */
 		private static CmisSecondaryTypeDefinitionImpl getSecondaryTypeDefinition(TypeDefinition result) {
+
+			LOG.debug("getting CmisSecondaryTypeDefinitionImpl for: {}", result != null ? result.getId() : null);
 			CmisSecondaryTypeDefinitionImpl resultSecondary = new CmisSecondaryTypeDefinitionImpl();
 			TypeMutabilityImpl typeMutability = null;
 			Map<String, PropertyDefinitionImpl<?>> listPropertyDefinition = null;

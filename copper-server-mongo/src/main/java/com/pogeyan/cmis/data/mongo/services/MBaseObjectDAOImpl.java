@@ -17,7 +17,6 @@ package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
@@ -53,6 +52,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 		} else {
 			UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
 			update = update.set("token", MBaseObject.convertMongoToken(token));
+			update = update.set("modifiedAt", token.getTime());
 			update = update.unset("properties");
 			update(query, update);
 		}

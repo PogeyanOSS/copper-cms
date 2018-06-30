@@ -66,6 +66,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 		} else {
 			UpdateOperations<MDocumentObject> update = createUpdateOperations();
 			update = update.set("token", MBaseObject.convertMongoToken(token));
+			update = update.set("modifiedAt", token.getTime());
 			if (removefields) {
 				for (String field : removeProps) {
 					update = update.unset(field);

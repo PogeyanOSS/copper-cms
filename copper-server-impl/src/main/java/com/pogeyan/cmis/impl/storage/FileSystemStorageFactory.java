@@ -22,14 +22,14 @@ import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 
 public class FileSystemStorageFactory implements IStorageFactory {
-	final FileSystemStorageService fileSystemService = new FileSystemStorageService();
 
 	@Override
 	public IStorageService getStorageService(Map<String, String> parameters) {
+		FileSystemStorageService fileSystemService = new FileSystemStorageService();
 		FileSystemStorageStoreSettings fileStoreSetting = new FileSystemStorageStoreSettings(
 				parameters.get("location"));
-		this.fileSystemService.setStoreSettings((IRepositoryStorageSettings) fileStoreSetting);
-		return this.fileSystemService;
+		fileSystemService.setStoreSettings((IRepositoryStorageSettings) fileStoreSetting);
+		return fileSystemService;
 	}
 
 	@Override

@@ -41,12 +41,16 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyUriImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class CmisPropertyConverter {
+	private static final Logger LOG = LoggerFactory.getLogger(CmisPropertyConverter.class);
+
 	public static class Impl {
 
 		public static Properties createNewProperties(Map<String, List<String>> propertiesdata, String repositoryId) {
@@ -103,7 +107,10 @@ public class CmisPropertyConverter {
 			List<TypeDefinition> secondaryTypes = new ArrayList<>();
 			List<TypeDefinition> objectType = new ArrayList<>();
 			List<TypeDefinition> innerObjectType = new ArrayList<>();
-
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("createUpdateProperties on objectIds: {} getting type definition using this id : {}",
+						objectIds, typeId);
+			}
 			Map<String, List<String>> properties = propertiesdata;
 			if (properties == null) {
 				return null;
@@ -175,6 +182,9 @@ public class CmisPropertyConverter {
 
 				result.addProperty(createPropertyData(propDef, property.getValue()));
 			}
+
+			LOG.debug("createUpdateProperties on objectIds: {} are : resultProperties{}", objectIds,
+					result != null ? result.getPropertyList() : null);
 
 			return result;
 		}

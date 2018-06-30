@@ -46,56 +46,49 @@ public class CmisAclServices {
 		public static Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions,
 				ExtensionsData extension, ObjectInfoHandler objectInfos, String userName)
 				throws CmisObjectNotFoundException {
-			LOG.info("getAcl on objectId: {} , repository: {}", objectId, repositoryId);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Unknown object id: {}", objectId);
-				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAcl", objectId, repositoryId);
+				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
 					false, objectInfos, null, null, userName);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Acl: {}", objectData.getAcl().getAces());
-			}
+
+			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
 			return objectData.getAcl();
 		}
 
 		public static Acl applyAcl(String repositoryId, String objectId, Acl aclAdd, Acl aclRemove,
 				AclPropagation aclPropagation, ExtensionsData extension, ObjectInfoHandler objectInfos,
 				CapabilityAcl capability, String userName) throws CmisObjectNotFoundException {
-			LOG.info("applyAcl on objectId: {} , repository: {}", objectId, repositoryId);
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
-			if (LOG.isDebugEnabled() && addAces != null && removeAces != null) {
-				LOG.debug("Adding {} , removing {} given ACEs", addAces.getAces(), removeAces.getAces());
-			}
-
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Unknown object id: {}", objectId);
-				throw new CmisObjectNotFoundException("Unknown object id: ", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
+				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
+			Long modifiedTime = System.currentTimeMillis();
+			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
 			switch (aclPropagation) {
 			case REPOSITORYDETERMINED: {
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
 				break;
 			}
 			case OBJECTONLY:
 				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
 				break;
 			case PROPAGATE:
 				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId);
+				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime);
 				break;
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("newData after applyAcl: {}", newData.getAcl().getAces());
-			}
+
+			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
 			return newData.getAcl();
 		}
 
@@ -149,10 +142,7 @@ public class CmisAclServices {
 			}
 
 			AccessControlListImplExt aclimpl = new AccessControlListImplExt(aces, aclPropagation, false);
-			if (LOG.isDebugEnabled() && aclimpl != null) {
-				LOG.debug("ValidatedAcl: {}", aclimpl.getAces());
-			}
-
+			LOG.debug("After validatedAces: {}", aclimpl != null ? aclimpl.getAces() : null);
 			return aclimpl;
 		}
 

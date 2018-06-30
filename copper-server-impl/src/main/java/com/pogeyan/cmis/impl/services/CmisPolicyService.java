@@ -39,11 +39,11 @@ public class CmisPolicyService {
 		 */
 		public static List<ObjectData> getAppliedPolicies(String repositoryId, String objectId, String filter,
 				String username) throws CmisObjectNotFoundException {
-			LOG.info("getAppliedPolicies on objectId: {} , repository: {}", objectId, repositoryId);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
-				LOG.error("Unknown object id:{}", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAppliedPolicies", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			List<String> polIds = data.getPolicies();
@@ -56,8 +56,8 @@ public class CmisPolicyService {
 					res.add(objectData);
 				}
 			}
-			if (LOG.isDebugEnabled() && res != null) {
-				LOG.debug("Applied Policies: {}", res.toString());
+			if (res != null) {
+				LOG.debug("Applied policies result count: {}", res.size());
 			}
 			return res;
 		}
@@ -67,26 +67,26 @@ public class CmisPolicyService {
 		 */
 		public static void removePolicy(String repositoryId, String policyId, String objectId, String userName)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException {
-
-			LOG.info("removePolicy on objectId: {} , with policyId: {} , repository: {}", objectId, policyId,
-					repositoryId);
 			List<String> polIds = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Unknown object id:{}", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "removePolicy", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			polIds = data.getPolicies();
 			if (null == polIds || !(polIds.contains(policyId))) {
-				LOG.error("policyId:{},cannot be removed, because it is not applied to object:{} ", policyId, objectId);
+				LOG.error(
+						"Method name: {}, policyId: {}, cannot be removed because it is not applied to object: {}, repository: {}",
+						"removePolicy", policyId, objectId, repositoryId);
 				throw new CmisInvalidArgumentException(
-						"Policy id " + policyId + "cannot be removed, because it is not applied to object " + objectId);
+						"Policy id " + policyId + "cannot be removed because it is not applied to object " + objectId);
 			}
 			polIds.remove(policyId);
 			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("PolicyObject after removing policy: {} is : {} ", policyId, polIds.toString());
+			if (polIds != null) {
+				LOG.debug("PolicyObject after removing policyids are: {}", polIds);
 			}
 		}
 
@@ -95,35 +95,35 @@ public class CmisPolicyService {
 		 */
 		public static void applyPolicy(String repositoryId, String policyId, String objectId)
 				throws CmisObjectNotFoundException, CmisInvalidArgumentException {
-
-			LOG.info("applyPolicy on objectId: {} , with policyId: {} , repository : {}", objectId, policyId,
-					repositoryId);
 			List<String> polIds = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Unknown object id:{}", objectId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyPolicy", objectId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null);
 			if (policy == null) {
-				LOG.error("Unknown policy id:{}", policyId);
+				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}", "applyPolicy", policyId,
+						repositoryId);
 				throw new CmisObjectNotFoundException("Unknown policy id: " + policyId);
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			polIds = data.getPolicies();
 			if (null != polIds && polIds.contains(policyId)) {
-				LOG.error("policyId:{},cannot be added,  because it is already applied to object:{} ", policyId,
-						objectId);
+				LOG.error(
+						"Method name: {}, policyId: {}, cannot be added because it is already applied to object: {}, repository: {}",
+						"applyPolicy", policyId, objectId, repositoryId);
 				throw new CmisInvalidArgumentException("Policy id " + policyId
-						+ "cannot be added, because it is already applied to object " + objectId);
+						+ "cannot be added because it is already applied to object " + objectId);
 			}
 			if (polIds == null) {
 				polIds = new ArrayList<String>();
 			}
 			polIds.add(policyId);
 			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("PolicyObject after adding policy: {} is : {} ", policyId, polIds.toString());
+			if (polIds != null) {
+				LOG.debug("PolicyObject after adding policyids are: {}", polIds);
 			}
 		}
 	}

@@ -52,8 +52,8 @@ public final class NameValidator {
 		}
 
 		/**
-		 * check whether id contains only valid characters. Not allowed are '/',
-		 * '\\', ':', '\"', '*'. '?', '<','>', '|'"
+		 * check whether id contains only valid characters. Not allowed are '/', '\\',
+		 * ':', '\"', '*'. '?', '<','>', '|'"
 		 * 
 		 * @param s
 		 *            string to verify

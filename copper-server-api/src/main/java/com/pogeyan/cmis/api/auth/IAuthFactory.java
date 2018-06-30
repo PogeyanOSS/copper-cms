@@ -21,5 +21,5 @@ public interface IAuthFactory {
 
 	public IAuthStoreSettings getStoreSetting();
 
-	public IAuthService getAuthService() throws InvalidTargetObjectTypeException;
+	public IAuthService getAuthService(IAuthStoreSettings authStoreSetting) throws InvalidTargetObjectTypeException;
 }

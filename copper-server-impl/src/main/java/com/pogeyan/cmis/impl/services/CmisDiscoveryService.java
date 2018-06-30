@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.data.PolicyIdList;
@@ -46,9 +45,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.auth.IUserObject;
-import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
+import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.api.data.IBaseObject;
@@ -60,12 +59,13 @@ public class CmisDiscoveryService {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
-			LOG.info("getContentChanges on change log token : {} , repository: {}", changeLogToken, repositoryId);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
+			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
-				throw new CmisInvalidArgumentException("change log token should not be null!");
+				throw new CmisInvalidArgumentException("change log token value should not be null!");
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
@@ -91,52 +91,58 @@ public class CmisDiscoveryService {
 
 			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO.getLatestChanges(
 					Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray, orderBy,
-					Helpers.splitFilterQuery(filter));
+					Helpers.splitFilterQuery(filter), typeManagerDAO, includeAcl, principalIds);
 			if (latestChangesObjects.size() > 0) {
 				childrenCount = discoveryObjectMorphiaDAO.getLatestTokenChildrenSize(
-						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter));
+						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter), typeManagerDAO,
+						includeAcl, principalIds);
 				for (IBaseObject object : latestChangesObjects) {
 					if (object != null) {
-						if (includeAcl) {
-							List<AccessControlListImplExt> mAcl = CmisNavigationService.Impl.getParentAcl(repositoryId,
-									object.getInternalPath(), object.getAcl());
-							boolean objectOnly = true;
-							for (AccessControlListImplExt acl : mAcl) {
-								if (acl != null) {
-									if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-										List<Ace> listAce = getListAce(acl, principalIds);
-										if (listAce.size() >= 1) {
-											ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
-													filterCollection, includeProperties, includePolicyIds, includeAcl);
-											lod.add(odImpl);
-											objectOnly = false;
-											break;
-										}
-									} 
-								}
-							}
+						ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
+								includeProperties, includePolicyIds, includeAcl);
+						lod.add(odImpl);
+						// Acl Check for propagate or object only
 
-							if (objectOnly) {
-								List<Ace> listAce = getListAce(object.getAcl(), principalIds);
-								if (listAce.size() >= 1) {
-									ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-											includeProperties, includePolicyIds, includeAcl);
-									lod.add(odImpl);
-								}
-							}
-						} else {
-							ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-									includeProperties, includePolicyIds, includeAcl);
-							lod.add(odImpl);
-						}
+						// if (includeAcl) {
+						// List<AccessControlListImplExt> mAcl =
+						// CmisNavigationService.Impl.getParentAcl(repositoryId,
+						// object.getInternalPath(), object.getAcl());
+						// boolean objectOnly = true;
+						// for (AccessControlListImplExt acl : mAcl) {
+						// if (acl != null) {
+						// if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+						// List<Ace> listAce = getListAce(acl, principalIds);
+						// if (listAce.size() >= 1) {
+						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
+						// filterCollection, includeProperties, includePolicyIds, includeAcl);
+						// lod.add(odImpl);
+						// objectOnly = false;
+						// break;
+						// }
+						// }
+						// }
+						// }
+						//
+						// if (objectOnly) {
+						// List<Ace> listAce = getListAce(object.getAcl(), principalIds);
+						// if (listAce.size() >= 1) {
+						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
+						// filterCollection,
+						// includeProperties, includePolicyIds, includeAcl);
+						// lod.add(odImpl);
+						// }
+						// }
+						// } else {
+						// }
 					}
 				}
 
 			}
 
-	objList.setObjects(lod);
+			objList.setObjects(lod);
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
+			LOG.debug("getContentChanges result data count: {}", objList != null ? objList.getNumItems() : objList);
 
 			return objList;
 		}
@@ -188,13 +194,6 @@ public class CmisDiscoveryService {
 
 		}
 
-		private static List<Ace> getListAce(AccessControlListImplExt acl, String[] principalIds) {
-			List<Ace> listAce = acl.getAces().stream()
-					.filter(t -> Arrays.stream(principalIds).parallel().anyMatch(t.getPrincipalId()::contains) == true)
-					.collect(Collectors.toList());
-			return listAce;
-		}
-
 		/**
 		 * Splits a filter statement into a collection of properties. If
 		 * <code>filter</code> is <code>null</code>, empty or one of the properties is
@@ -229,7 +228,8 @@ public class CmisDiscoveryService {
 		}
 
 		private static String getOrderByName(String orderBy) {
-			if (orderBy.contains("\\s+")) {
+			String order[] = orderBy.split("\\s+");
+			if (order.length > 0) {
 				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy.split("\\s+")[0]) + " "
 						+ orderBy.split("\\s+")[1];
 			} else {

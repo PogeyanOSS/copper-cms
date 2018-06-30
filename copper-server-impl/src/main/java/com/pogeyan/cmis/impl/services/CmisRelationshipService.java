@@ -47,17 +47,18 @@ public class CmisRelationshipService {
 				Boolean includeSubRelationshipTypes, RelationshipDirection relationshipDirection, String typeId,
 				String filter, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
 				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException, MongoException {
-			LOG.info("getObjectRelationships on object: {} , repository: {},", repositoryId, objectId);
 			IBaseObject so = null;
 			try {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			} catch (Exception e) {
-				LOG.error("getObjectRelationships Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}",
+						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId);
 				throw new MongoException(e.toString());
 			}
 
 			if (so == null) {
-				LOG.error("getObjectRelationships Exception: {},{}", "Unknown object id", objectId);
+				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}",
+						"getObjectRelationships", "Unknown object id", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
@@ -93,8 +94,8 @@ public class CmisRelationshipService {
 			result.setNumItems(BigInteger.valueOf(totalSize.size()));
 			result.setHasMoreItems(totalSize.size() > maxItemsInt - 1);
 
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("ObjectRelationships: {}", result.getObjects());
+			if (result != null) {
+				LOG.debug("ObjectRelationships result count: {}", result.getNumItems());
 			}
 			return result;
 

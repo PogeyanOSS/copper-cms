@@ -33,7 +33,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
@@ -166,7 +165,9 @@ public class CmisUtils {
 
 		public static List<RenditionData> getRenditions(String repositoryId, IBaseObject so, String renditionFilter,
 				long maxItems, long skipCount, String user) {
-
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("getRenditions data using this id:{}", so.getId());
+			}
 			String tokenizer = "[\\s;]";
 			if (null == renditionFilter) {
 				return null;
@@ -180,28 +181,33 @@ public class CmisUtils {
 					mimeType = "image/png";
 				} else {
 					try {
-						IDocumentObject documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-								so.getId(), null);
-						if (documentData == null) {
-							LOG.error("getRenditions Object is null in {} repository!", repositoryId);
-							throw new CmisObjectNotFoundException("Object must not be null!");
-						}
-						Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-						IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-						if (documentData.getContentStreamFileName() != null) {
-							ContentStream contentStream = localService.getContent(
-									documentData.getContentStreamFileName(), so.getPath(),
-									documentData.getContentStreamMimeType(),
-									BigInteger.valueOf(documentData.getContentStreamLength()));
-							if (contentStream.equals(null)) {
-								LOG.error("ContentStream should not be :{}", contentStream);
-								throw new CmisObjectNotFoundException("Unkonwn ObjectId");
-							}
-							mimeType = contentStream.getMimeType();
-						}
+						// IDocumentObject documentData =
+						// DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+						// so.getId(), null);
+						// if (documentData == null) {
+						// LOG.error("getRenditions Object is null in {} repository!", repositoryId);
+						// throw new CmisObjectNotFoundException("Object must not be null!");
+						// }
+						// Map<String, String> parameters =
+						// RepositoryManagerFactory.getFileDetails(repositoryId);
+						// IStorageService localService =
+						// StorageServiceFactory.createStorageService(parameters);
+						// if (documentData.getContentStreamFileName() != null) {
+						// ContentStream contentStream = localService.getContent(
+						// documentData.getContentStreamFileName(), so.getPath(),
+						// documentData.getContentStreamMimeType(),
+						// BigInteger.valueOf(documentData.getContentStreamLength()));
+						// if (contentStream.equals(null)) {
+						// LOG.error("ContentStream should not be :{}", contentStream);
+						// throw new CmisObjectNotFoundException("Unkonwn ObjectId");
+						// }
+						// mimeType = contentStream.getMimeType();
+						//
+						// }
+						mimeType = "image/png";
 					} catch (Exception e) {
-						LOG.error("getObject Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
-						throw new MongoException(e.toString());
+						LOG.error("getRenditions Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+						throw new CmisObjectNotFoundException(e.toString());
 					}
 				}
 

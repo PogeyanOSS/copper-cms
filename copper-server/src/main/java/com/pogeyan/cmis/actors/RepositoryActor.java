@@ -186,6 +186,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+		LOG.info("Method name: {}, getting type definition  using this typeId: {}, repositoryId: {}",
+				"getTypeDefinition", typeId, request.getRepositoryId());
 		TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(request.getRepositoryId(), typeId, null);
 		JSONObject resultType = JSONConverter.convert(type, dateTimeFormat);
 		return resultType;
@@ -203,7 +205,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				false);
 		BigInteger maxItems = request.getBigIntegerParameter(QueryGetRequest.PARAM_MAX_ITEMS);
 		BigInteger skipCount = request.getBigIntegerParameter(QueryGetRequest.PARAM_SKIP_COUNT);
-
+		LOG.info(
+				"Method name: {}, getting type children  using this typeId: {}, repositoryId: {}, maxItems: {}, skipCount: {}, includePropertyDefinitions: {}",
+				"getTypeChildren", typeId, request.getRepositoryId(), maxItems, skipCount, includePropertyDefinitions);
 		TypeDefinitionList typeList = CmisTypeServices.Impl.getTypeChildren(request.getRepositoryId(), typeId,
 				includePropertyDefinitions, maxItems, skipCount, null);
 		JSONObject jsonTypeList = JSONConverter.convert(typeList, dateTimeFormat);
@@ -222,7 +226,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		BigInteger depth = request.getBigIntegerParameter(QueryGetRequest.PARAM_DEPTH);
 		boolean includePropertyDefinitions = request.getBooleanParameter(QueryGetRequest.PARAM_PROPERTY_DEFINITIONS,
 				false);
-
+		LOG.info(
+				"Method name: {}, getting type descendants using this typeId: {}, repositoryId: {}, depth: {}, includePropertyDefinitions: {}",
+				"getTypeDescendants", typeId, request.getRepositoryId(), depth, includePropertyDefinitions);
 		List<TypeDefinitionContainer> typeTree = CmisTypeServices.Impl.getTypeDescendants(request.getRepositoryId(),
 				typeId, depth, includePropertyDefinitions, null);
 
@@ -265,7 +271,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		@SuppressWarnings("unchecked")
 		TypeDefinition typeIn = JSONConverter.convertTypeDefinition((Map<String, Object>) typeJson);
-
+		LOG.info("Method name: {}, creating the new type for this typeId: {}, repositoryId: {}", "createType",
+				typeIn.getId(), request.getRepositoryId());
 		TypeDefinition typeOut = CmisTypeServices.Impl.createType(request.getRepositoryId(), typeIn, null,
 				request.getUserName());
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
@@ -301,7 +308,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		@SuppressWarnings("unchecked")
 		TypeDefinition typeIn = JSONConverter.convertTypeDefinition((Map<String, Object>) typeJson);
-
+		LOG.info("Method name: {}, update type using this typeId: {}, repositoryId: {}", "updateType", typeIn.getId(),
+				request.getRepositoryId());
 		TypeDefinition typeOut = CmisTypeServices.Impl.updateType(request.getRepositoryId(), typeIn, null);
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
 
@@ -315,6 +323,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
 		String typeId = request.getParameter(QueryGetRequest.CONTROL_TYPE_ID);
+		LOG.info("Method name: {}, delete the type using this typeId: {}, repositoryId: {}", "deleteType", typeId,
+				request.getRepositoryId());
 		CmisTypeServices.Impl.deleteType(request.getRepositoryId(), typeId, null);
 		return null;
 

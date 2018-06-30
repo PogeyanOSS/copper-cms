@@ -56,6 +56,7 @@ public class DBUtils {
 		public static final String ACL = "acl";
 		public static final String POLICIES = "policies";
 		public static final String SECONDARYTYPEIDS = "secondaryTypeIds";
+		public static final String MODIFIEDAT = "modifiedAt";
 	}
 
 	public static class BaseDAO {
@@ -180,13 +181,15 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, String objectId) {
+		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, String objectId,
+				long modifiedTime) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
 				{
 					put(Variables.ACL, acl);
 					put(Variables.TOKEN, token);
+					put(Variables.MODIFIEDAT, modifiedTime);
 				}
 			};
 			objectMorphiaDAO.update(objectId, updateProps);

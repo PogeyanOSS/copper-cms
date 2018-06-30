@@ -22,16 +22,16 @@ import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.api.auth.IAuthStoreSettings;
 
 public class LocalRepoAuthFactory implements IAuthFactory {
-	final IAuthStoreSettings authStoreSetting = new LocalStoreSetting();
-	final LocalAuthService authService = new LocalAuthService();
 
 	@Override
 	public IAuthStoreSettings getStoreSetting() {
+		IAuthStoreSettings authStoreSetting = new LocalStoreSetting();
 		return authStoreSetting;
 	}
 
 	@Override
-	public IAuthService getAuthService() throws InvalidTargetObjectTypeException {
+	public IAuthService getAuthService(IAuthStoreSettings authStoreSetting) throws InvalidTargetObjectTypeException {
+		LocalAuthService authService = new LocalAuthService();
 		authService.setAuthStoreSettings(authStoreSetting);
 		return authService;
 	}

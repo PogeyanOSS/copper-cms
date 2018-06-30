@@ -25,6 +25,8 @@ import org.apache.chemistry.opencmis.commons.impl.JSONConstants;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
@@ -36,6 +38,7 @@ import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 
 public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
+	private static final Logger LOG = LoggerFactory.getLogger(DiscoveryActor.class);
 
 	@Override
 	public String getName() {
@@ -58,13 +61,17 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		String changeLogToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_LOG_TOKEN);
 		Boolean includeProperties = request.getBooleanParameter(QueryGetRequest.PARAM_PROPERTIES);
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
-		String orderBy = request.getParameter(QueryGetRequest.PARAM_ORDER_BY);
+		// Set orderby value
+		String orderBy = "cmis:lastModificationDate asc";
 		Boolean includePolicyIds = request.getBooleanParameter(QueryGetRequest.PARAM_POLICY_IDS);
 		Boolean includeAcl = request.getBooleanParameter(QueryGetRequest.PARAM_ACL);
 		BigInteger maxItems = request.getBigIntegerParameter(QueryGetRequest.PARAM_MAX_ITEMS);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		Holder<String> changeLogTokenHolder = new Holder<String>(changeLogToken);
+		LOG.info(
+				"Method name: {}, get latest content changes using this id: {}, repositoryId: {}, includeAcl: {}, includePolicyIds: {}",
+				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
 		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
 				request.getUserObject());

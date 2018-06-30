@@ -56,6 +56,7 @@ import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
+import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.IRepository;
@@ -73,6 +74,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MDOCUMENTTYPEMANAGERDAO = "MDocumentTypeManagerDAO";
 	private static String MNAVIGATIONSERVICEDAO = "MNavigationServiceDAO";
 	private static String MTYPEMANAGERDAO = "MTypeManagerDAO";
+	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
 	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
 	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
@@ -86,6 +88,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		objectServiceClass.put(MNavigationServiceDAO.class, MongoClientFactory.MNAVIGATIONSERVICEDAO);
 		objectServiceClass.put(MDocumentTypeManagerDAO.class, MongoClientFactory.MDOCUMENTTYPEMANAGERDAO);
 		objectServiceClass.put(MTypeManagerDAO.class, MongoClientFactory.MTYPEMANAGERDAO);
+		objectServiceClass.put(MNavigationDocServiceDAO.class, MongoClientFactory.MNAVIGATIONDOCSERVICEDAO);
 		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
 		morphia.getMapper().getConverters().addConverter(new AceConverter());
 		morphia.getMapper().getConverters().addConverter(new TokenConverter());
@@ -125,6 +128,10 @@ public class MongoClientFactory implements IDBClientFactory {
 		}
 		if (className.equals(MongoClientFactory.MTYPEMANAGERDAO)) {
 			return (T) getContentDBMongoClient(repositoryId, (t) -> new MTypeManagerDAOImpl(MTypeObject.class, t));
+		}
+		if (className.equals(MongoClientFactory.MNAVIGATIONDOCSERVICEDAO)) {
+			return (T) getContentDBMongoClient(repositoryId,
+					(t) -> new MNavigationDocServiceImpl(MDocumentObject.class, t));
 		}
 		return null;
 	}
@@ -182,8 +189,8 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	/**
-	 * Finds all substrings in MongoCilent connection details from the
-	 * corresponding Environmental property.
+	 * Finds all substrings in MongoCilent connection details from the corresponding
+	 * Environmental property.
 	 */
 	private List<String> getClientProperties(String props) {
 		List<String> properties = new ArrayList<String>();

@@ -24,6 +24,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
@@ -35,6 +37,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.services.CmisAclServices;
 
 public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
+	private static final Logger LOG = LoggerFactory.getLogger(AclActor.class);
 
 	@Override
 	public String getName() {
@@ -56,6 +59,8 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String aclPro = t.getAclPropagation();
 		String objectId = t.getObjectId();
+		LOG.info("Method name: {}, apply acl for object using this id: {}, repositoryId: {}, addAcl: {}, removeAcl: {}",
+				"applyACL", objectId, t.getRepositoryId(), t.getAddAcl(), t.getRemoveAcl());
 		Acl objectAcl = CmisAclServices.Impl.applyAcl(t.getRepositoryId(), objectId, t.getAddAcl(), t.getRemoveAcl(),
 				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject().getUserDN());
 		if (objectAcl == null) {
@@ -73,6 +78,8 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = t.getObjectId();
 		Boolean onlyBasicPermissions = t.getBooleanParameter(QueryGetRequest.PARAM_ONLY_BASIC_PERMISSIONS);
+		LOG.info("Method name: {}, get acl using this id: {}, repositoryId: {}, onlyBasicPermissions: {}", "getAcl",
+				objectId, t.getRepositoryId(), onlyBasicPermissions);
 		Acl objectAcl = CmisAclServices.Impl.getAcl(t.getRepositoryId(), objectId, onlyBasicPermissions, null, null,
 				t.getUserObject().getUserDN());
 		if (objectAcl == null) {

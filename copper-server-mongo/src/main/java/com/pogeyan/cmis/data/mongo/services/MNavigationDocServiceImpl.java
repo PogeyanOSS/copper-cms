@@ -1,18 +1,3 @@
-/**
- * Copyright 2017 Pogeyan Technologies
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
@@ -29,20 +14,18 @@ import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.Query;
 
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
-import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
+import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.uri.UriParser;
 import com.pogeyan.cmis.api.uri.expression.ExceptionVisitExpression;
 import com.pogeyan.cmis.api.uri.expression.ExpressionParserException;
 import com.pogeyan.cmis.api.uri.expression.FilterExpression;
 import com.pogeyan.cmis.api.uri.expression.OrderByExpression;
-import com.pogeyan.cmis.data.mongo.MBaseObject;
+import com.pogeyan.cmis.data.mongo.MDocumentObject;
 import com.pogeyan.cmis.data.mongo.MongoExpressionVisitor;
-import com.pogeyan.cmis.impl.uri.expression.ExpressionParserInternalError;
 
-public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MNavigationServiceDAO {
-
-	public MNavigationServiceDAOImpl(Class<MBaseObject> entityClass, Datastore ds) {
+public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectId> implements MNavigationDocServiceDAO {
+	public MNavigationDocServiceImpl(Class<MDocumentObject> entityClass, Datastore ds) {
 		super(entityClass, ds);
 	}
 
@@ -76,17 +59,17 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<MBaseObject> getChildren(String path, String[] principalIds, boolean aclPropagation, int maxItems,
+	public List<MDocumentObject> getChildren(String path, String[] principalIds, boolean aclPropagation, int maxItems,
 			int skipCount, String orderBy, String[] mappedColumns, String filterExpression,
 			MTypeManagerDAO typeManager) {
-		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath", path)
+		Query<MDocumentObject> query = createQuery().disableValidation().filter("internalPath", path)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (!StringUtils.isEmpty(orderBy)) {
 			if (this.isOrderByParsable(orderBy)) {
 				try {
 					OrderByExpression orderByExpression = UriParser.parseOrderBy(orderBy);
-					query = (Query<MBaseObject>) orderByExpression
-							.accept(new MongoExpressionVisitor<MBaseObject>(query, typeManager));
+					query = (Query<MDocumentObject>) orderByExpression
+							.accept(new MongoExpressionVisitor<MDocumentObject>(query, typeManager));
 				} catch (ExpressionParserException | ExceptionVisitExpression e) {
 				}
 			} else {
@@ -96,8 +79,8 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		if (!StringUtils.isEmpty(filterExpression)) {
 			try {
 				FilterExpression expression = UriParser.parseFilter(filterExpression);
-				query = (Query<MBaseObject>) expression
-						.accept(new MongoExpressionVisitor<MBaseObject>(query, typeManager));
+				query = (Query<MDocumentObject>) expression
+						.accept(new MongoExpressionVisitor<MDocumentObject>(query, typeManager));
 			} catch (ExpressionParserException | ExceptionVisitExpression e) {
 			}
 		}
@@ -127,7 +110,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 
 	@Override
 	public long getChildrenSize(String path, String[] principalIds, boolean aclPropagation) {
-		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath", path)
+		Query<MDocumentObject> query = createQuery().disableValidation().filter("internalPath", path)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (aclPropagation) {
 			query.or(getAclCriteria(principalIds, query));
@@ -156,16 +139,16 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<MBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
+	public List<MDocumentObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
 			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager) {
 		Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp)
+		Query<MDocumentObject> query = createQuery().disableValidation().filter("internalPath =", exp)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (!StringUtils.isEmpty(filterExpression)) {
 			try {
 				FilterExpression expression = UriParser.parseFilter(filterExpression);
-				query = (Query<MBaseObject>) expression
-						.accept(new MongoExpressionVisitor<MBaseObject>(query, typeManager));
+				query = (Query<MDocumentObject>) expression
+						.accept(new MongoExpressionVisitor<MDocumentObject>(query, typeManager));
 			} catch (ExpressionParserException | ExceptionVisitExpression e) {
 			}
 		}
@@ -180,23 +163,25 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	}
 
 	@Override
-	public List<MBaseObject> getFolderTreeIds(String path, String[] principalIds, boolean aclPropagation) {
+	public List<MDocumentObject> getFolderTreeIds(String path, String[] principalIds, boolean aclPropagation) {
 		if (aclPropagation) {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp).field("baseId")
-					.equalIgnoreCase("cmis:folder").field("token.changeType").notEqual(TokenChangeType.DELETED.value());
+			Query<MDocumentObject> query = createQuery().disableValidation().filter("internalPath =", exp)
+					.field("baseId").equalIgnoreCase("cmis:folder").field("token.changeType")
+					.notEqual(TokenChangeType.DELETED.value());
 			query.or(getAclCriteria(principalIds, query));
 			return query.asList();
 		} else {
 			Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
-			Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp).field("baseId")
-					.equalIgnoreCase("cmis:folder").field("token.changeType").notEqual(TokenChangeType.DELETED.value());
+			Query<MDocumentObject> query = createQuery().disableValidation().filter("internalPath =", exp)
+					.field("baseId").equalIgnoreCase("cmis:folder").field("token.changeType")
+					.notEqual(TokenChangeType.DELETED.value());
 			return query.asList();
 		}
 
 	}
 
-	private Criteria[] getAclCriteria(String[] principalIds, Query<MBaseObject> query) {
+	private Criteria[] getAclCriteria(String[] principalIds, Query<MDocumentObject> query) {
 		Criteria[] checkAcl = Stream.of(principalIds)
 				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
 				.toArray(s -> new Criteria[s]);
@@ -205,5 +190,4 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 		Criteria[] result = ArrayUtils.addAll(checkAclRepo, checkAcl);
 		return result;
 	}
-
 }
