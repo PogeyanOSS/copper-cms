@@ -380,17 +380,19 @@ public class DBUtils {
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
-			if (typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
-				typeDef = typeManagerDAO.getById(typeId);
-				typeDef.stream().forEach((k) -> {
-					if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-						CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
-								docManagerDAO.getByTypeId(k.getId()));
-					} else {
-						CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
-					}
+			if (typeDef == null || typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
+				if (typeId != null) {
+					typeDef = typeManagerDAO.getById(typeId);
+					typeDef.stream().forEach((k) -> {
+						if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
+									docManagerDAO.getByTypeId(k.getId()));
+						} else {
+							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
+						}
 
-				});
+					});
+				}
 			}
 			return typeDef;
 		}
