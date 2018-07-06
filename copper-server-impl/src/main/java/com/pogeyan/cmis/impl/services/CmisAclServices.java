@@ -16,7 +16,11 @@
 package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -141,6 +145,9 @@ public class CmisAclServices {
 				}
 			}
 
+			Set<Ace> removeDuplicate = aces.stream()
+					.collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Ace::getPrincipalId))));
+			aces = new ArrayList<Ace>(removeDuplicate);
 			AccessControlListImplExt aclimpl = new AccessControlListImplExt(aces, aclPropagation, false);
 			LOG.debug("After validatedAces: {}", aclimpl != null ? aclimpl.getAces() : null);
 			return aclimpl;
