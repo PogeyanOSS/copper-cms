@@ -18,12 +18,14 @@ package com.pogeyan.cmis.impl.utils;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.RenditionData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
@@ -36,9 +38,6 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
-import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
-import com.pogeyan.cmis.api.storage.IStorageService;
-import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 
 public class CmisUtils {
 
@@ -72,7 +71,11 @@ public class CmisUtils {
 				AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId),
 						Arrays.asList(permission));
 				aceList.add(ace);
-				return acl;
+				Set<Ace> aces = aceList.stream().collect(
+						Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Ace::getPrincipalId))));
+				aceList = new ArrayList<Ace>(aces);
+				AccessControlListImplExt aclImp = new AccessControlListImplExt(aceList);
+				return aclImp;
 			} else {
 				return getAclFor(principalId, permission);
 			}
