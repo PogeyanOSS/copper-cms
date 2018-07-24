@@ -1250,6 +1250,11 @@ public class CmisObjectService {
 									calenderList.add(lastModifiedCalender);
 								});
 								addPropertyDateTime(repositoryId, props, typeId, filter, id, calenderList);
+							} else {
+								Long value = convertInstanceOfObject(valueOfType, Long.class);
+								GregorianCalendar lastModifiedCalender = new GregorianCalendar();
+								lastModifiedCalender.setTimeInMillis(value);
+								addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender);
 							}
 
 						} else if (propertyType == PropertyType.DECIMAL) {
