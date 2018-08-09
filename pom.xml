@@ -13,7 +13,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<app.version>0.4.0</app.version>
+		<app.version>1.0.0</app.version>
 		<slf4j.version>1.7.21</slf4j.version>
 		<log4j.version>2.7</log4j.version>
 		<akka.version>2.4.14</akka.version>
