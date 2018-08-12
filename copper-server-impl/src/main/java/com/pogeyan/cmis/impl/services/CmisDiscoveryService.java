@@ -99,7 +99,7 @@ public class CmisDiscoveryService {
 				for (IBaseObject object : latestChangesObjects) {
 					if (object != null) {
 						ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-								includeProperties, includePolicyIds, includeAcl);
+								includeProperties, includePolicyIds, includeAcl, userObject);
 						lod.add(odImpl);
 						// Acl Check for propagate or object only
 
@@ -148,7 +148,8 @@ public class CmisDiscoveryService {
 		}
 
 		private static ObjectDataImpl getObjectDataImpl(String repositoryId, IBaseObject object,
-				Set<String> filterCollection, Boolean includeProperties, Boolean includePolicyIds, Boolean includeAcl) {
+				Set<String> filterCollection, Boolean includeProperties, Boolean includePolicyIds, Boolean includeAcl,
+				IUserObject userObject) {
 			ObjectDataImpl odImpl = new ObjectDataImpl();
 			if (!includeProperties) {
 				Map<String, Object> custom = new HashMap<>();
@@ -166,7 +167,8 @@ public class CmisDiscoveryService {
 				result.addProperty(pd);
 				props = result;
 			} else {
-				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo);
+				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo,
+						userObject);
 			}
 
 			odImpl.setProperties(props);

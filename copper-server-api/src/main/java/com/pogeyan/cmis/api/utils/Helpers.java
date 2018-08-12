@@ -404,4 +404,31 @@ public class Helpers {
 		result.add(PropertyIds.BASE_TYPE_ID);
 		return result;
 	}
+
+	public static String[] getTypeMappedColumns(List<String> fieldAccess) {
+		List<String> mappedCloumns = new ArrayList<>();
+		mappedCloumns.add("_id");
+		mappedCloumns.add("localName");
+		mappedCloumns.add("localNamespace");
+		mappedCloumns.add("displayName");
+		mappedCloumns.add("queryName");
+		mappedCloumns.add("description");
+		mappedCloumns.add("baseTypeId");
+		mappedCloumns.add("parent");
+		mappedCloumns.add("isFileable");
+		mappedCloumns.add("isQueryable");
+		mappedCloumns.add("isFulltextIndexed");
+		mappedCloumns.add("isIncludedInSupertypeQuery");
+		mappedCloumns.add("isControllablePolicy");
+		mappedCloumns.add("typeMutability");
+		mappedCloumns.add("isControllableAcl");
+		for (String id : fieldAccess) {
+			mappedCloumns.add("propertyDefinition." + id);
+		}
+		mappedCloumns.add("propertyDefinition.cmis:name");
+		mappedCloumns.add("propertyDefinition.cmis:objectTypeId");
+		String[] values = mappedCloumns.stream().toArray(String[]::new);
+		return values;
+
+	}
 }

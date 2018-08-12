@@ -98,7 +98,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
-				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);
+				request.getUserObject(), BaseTypeId.CMIS_POLICY);
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");
 		}
@@ -125,7 +125,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
-				request.getUserObject().getUserDN(), BaseTypeId.CMIS_POLICY);
+				request.getUserObject(), BaseTypeId.CMIS_POLICY);
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");
 		}

@@ -75,7 +75,8 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
 				request.getUserObject());
-		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonChanges = JSONConverter.convert(changes,
+				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());
 		return jsonChanges;

@@ -164,7 +164,7 @@ public class CmisNavigationService {
 
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child, filterCollection,
 						includeAllowableActions, false, true, objectInfos, renditionFilter, includeRelationships,
-						userObject.getUserDN());
+						userObject);
 				oifd.setObject(objectData);
 				folderList.add(oifd);
 				if (objectInfos != null) {
@@ -214,7 +214,7 @@ public class CmisNavigationService {
 					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data,
 							filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
-							includeRelationships, userObject.getUserDN());
+							includeRelationships, userObject);
 					oifd.setObject(objectData);
 					boolean acl = false;
 					if (data.getAcl() != null && data.getAcl().getAces().size() > 0) {
@@ -402,7 +402,7 @@ public class CmisNavigationService {
 					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child,
 							filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-							includeRelationships, userObject.getUserDN());
+							includeRelationships, userObject);
 					oifd.setObject(objectData);
 					folderList.add(oifd);
 					if (objectInfos != null) {
@@ -441,7 +441,7 @@ public class CmisNavigationService {
 				targetObject.setName(name);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, targetObject,
 						filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
-						includeRelationships, userObject.getUserDN());
+						includeRelationships, userObject);
 				oifd.setObject(objectData);
 
 				folderList.add(oifd);
@@ -474,9 +474,9 @@ public class CmisNavigationService {
 		 * Gets the parent folder object for the specified folder
 		 */
 		public static ObjectData getFolderParent(String repositoryId, String folderId, String filter,
-				ObjectInfoHandler objectInfos, String userName) throws CmisInvalidArgumentException {
+				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisInvalidArgumentException {
 			ObjectData res = getFolderParentIntern(repositoryId, folderId, filter, false, IncludeRelationships.NONE,
-					userName, objectInfos);
+					userObject, objectInfos);
 			if (res == null) {
 				LOG.error("getFolderParent cannot get parent of a root folder of: {}, repository: {}", folderId,
 						repositoryId);
@@ -492,7 +492,7 @@ public class CmisNavigationService {
 		 * Return the parent in the format of ObjectData.
 		 */
 		private static ObjectData getFolderParentIntern(String repositoryId, String folderId, String filter,
-				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String user,
+				Boolean includeAllowableActions, IncludeRelationships includeRelationships, IUserObject user,
 				ObjectInfoHandler objectInfos) {
 			IBaseObject folderParent = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
@@ -589,10 +589,10 @@ public class CmisNavigationService {
 		 */
 		public static List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-				Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos, String userName) {
+				Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos, IUserObject userObject) {
 			List<ObjectParentData> result = getObjectParentsIntern(repositoryId, objectId, filter, objectInfos,
 					includeAllowableActions, includeRelationships, renditionFilter, includeRelativePathSegment,
-					userName);
+					userObject);
 			if (result != null) {
 				LOG.debug("getObjectParents result object count: {}", result.size());
 			}
@@ -605,7 +605,7 @@ public class CmisNavigationService {
 		private static List<ObjectParentData> getObjectParentsIntern(String repositoryId, String objectId,
 				String filter, ObjectInfoHandler objectInfos, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment,
-				String user) {
+				IUserObject userObject) {
 			Set<String> filterCollection = Helpers.splitFilter(filter);
 
 			List<ObjectParentData> objectParent = new ArrayList<ObjectParentData>();
@@ -620,7 +620,7 @@ public class CmisNavigationService {
 					if (resultData.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 						ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, resultData,
 								filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-								includeRelationships, user);
+								includeRelationships, userObject);
 						ObjectParentDataImpl parent = new ObjectParentDataImpl();
 						parent.setObject(objectData);
 						parent.setRelativePathSegment(i == 1 ? data.getName()
@@ -715,7 +715,7 @@ public class CmisNavigationService {
 				Set<String> filterCollection = Helpers.splitFilter(filter);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, checkedOutDocs,
 						filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-						includeRelationships, userObject.getUserDN());
+						includeRelationships, userObject);
 				odList.add(objectData);
 				if (objectInfos != null) {
 					ObjectInfoImpl objectInfo = new ObjectInfoImpl();

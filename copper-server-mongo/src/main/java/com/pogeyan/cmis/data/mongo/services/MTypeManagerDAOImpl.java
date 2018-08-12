@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.data.mongo.services;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -40,23 +41,24 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 		super(entityClass, ds);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
-	public List<MTypeObject> getById(List<?> typeId) {
+	public List<MTypeObject> getById(List<?> typeId, String[] fieldAccess) {
+		Query<MTypeObject> query = null;
 		if (typeId == null) {
 			List<ObjectId> getid = this.findIds();
 			if (getid.size() > 0) {
-				Query<MTypeObject> query = createQuery();
-				return query.asList();
-			} else {
-				return null;
+				query = createQuery();
 			}
 		} else if (typeId.size() == 1) {
-			Query<MTypeObject> query = createQuery().field("id").equal(typeId.get(0));
-			return query.asList();
+			query = createQuery().field("id").equal(typeId.get(0));
 		} else {
-			Query<MTypeObject> query = createQuery().field("id").in(typeId);
-			return query.asList();
+			query = createQuery().field("id").in(typeId);
 		}
+		if (fieldAccess != null) {
+			query = query.retrievedFields(true, fieldAccess);
+		}
+		return query == null ? null : query.asList();
 	}
 
 	@Override
@@ -66,19 +68,34 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 	}
 
 	@SuppressWarnings("deprecation")
-	public List<MTypeObject> getChildrenIds(String parentId, int maxItems, int skipCount) {
+	public List<MTypeObject> getChildrenIds(String parentId, int maxItems, int skipCount, List<String> typeIds) {
 		Query<MTypeObject> query = createQuery().field("parent").equal(parentId);
 		if (maxItems > 0 && skipCount >= 0) {
 			query = query.offset(skipCount).limit(maxItems);
 		}
-
-		return query.asList();
+		List<MTypeObject> typeDef = query.asList();
+		if (typeIds != null) {
+			typeDef.stream().forEach((k) -> {
+				if (!typeIds.contains(k.getId())) {
+					typeDef.remove(k);
+				}
+			});
+		}
+		return typeDef;
 	}
 
 	@Override
-	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId) {
-		Query<MTypeObject> query = createQuery().field("propertyDefinition." + propId + ".id").equal(propId);
-		if (query.get() != null) {
+	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId, String[] fieldAccess) {
+		Query<MTypeObject> query = null;
+		if (fieldAccess != null) {
+			if (Arrays.asList(fieldAccess).contains(propId)) {
+				query = createQuery().field("propertyDefinition." + propId + ".id").equal(propId);
+			}
+		} else {
+			query = createQuery().field("propertyDefinition." + propId + ".id").equal(propId);
+		}
+
+		if (query != null && query.get() != null) {
 			return query.get().getPropertyDefinitions();
 		} else {
 			return null;

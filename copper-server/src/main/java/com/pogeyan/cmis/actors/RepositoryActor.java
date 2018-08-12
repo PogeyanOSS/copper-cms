@@ -149,7 +149,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 						.getRepositories(request.getRepositoryId());
 				if (respositoryList != null && !respositoryList.isEmpty()) {
 					for (IRepository repository : respositoryList) {
-						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserName());
+						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserObject());
 						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
 								request.getUserName());
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
@@ -188,7 +188,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info("Method name: {}, getting type definition  using this typeId: {}, repositoryId: {}",
 				"getTypeDefinition", typeId, request.getRepositoryId());
-		TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(request.getRepositoryId(), typeId, null);
+		TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(request.getRepositoryId(), typeId, null,
+				request.getUserObject());
 		JSONObject resultType = JSONConverter.convert(type, dateTimeFormat);
 		return resultType;
 
@@ -209,7 +210,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"Method name: {}, getting type children  using this typeId: {}, repositoryId: {}, maxItems: {}, skipCount: {}, includePropertyDefinitions: {}",
 				"getTypeChildren", typeId, request.getRepositoryId(), maxItems, skipCount, includePropertyDefinitions);
 		TypeDefinitionList typeList = CmisTypeServices.Impl.getTypeChildren(request.getRepositoryId(), typeId,
-				includePropertyDefinitions, maxItems, skipCount, null);
+				includePropertyDefinitions, maxItems, skipCount, null, request.getUserObject());
 		JSONObject jsonTypeList = JSONConverter.convert(typeList, dateTimeFormat);
 		return jsonTypeList;
 
@@ -230,7 +231,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"Method name: {}, getting type descendants using this typeId: {}, repositoryId: {}, depth: {}, includePropertyDefinitions: {}",
 				"getTypeDescendants", typeId, request.getRepositoryId(), depth, includePropertyDefinitions);
 		List<TypeDefinitionContainer> typeTree = CmisTypeServices.Impl.getTypeDescendants(request.getRepositoryId(),
-				typeId, depth, includePropertyDefinitions, null);
+				typeId, depth, includePropertyDefinitions, null, request.getUserObject());
 
 		if (typeTree == null) {
 			throw new CmisRuntimeException("Type tree is null!");
@@ -274,7 +275,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, creating the new type for this typeId: {}, repositoryId: {}", "createType",
 				typeIn.getId(), request.getRepositoryId());
 		TypeDefinition typeOut = CmisTypeServices.Impl.createType(request.getRepositoryId(), typeIn, null,
-				request.getUserName());
+				request.getUserObject());
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
 
 		return jsonType;
@@ -310,7 +311,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		TypeDefinition typeIn = JSONConverter.convertTypeDefinition((Map<String, Object>) typeJson);
 		LOG.info("Method name: {}, update type using this typeId: {}, repositoryId: {}", "updateType", typeIn.getId(),
 				request.getRepositoryId());
-		TypeDefinition typeOut = CmisTypeServices.Impl.updateType(request.getRepositoryId(), typeIn, null);
+		TypeDefinition typeOut = CmisTypeServices.Impl.updateType(request.getRepositoryId(), typeIn, null,
+				request.getUserObject());
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
 
 		return jsonType;
@@ -325,7 +327,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String typeId = request.getParameter(QueryGetRequest.CONTROL_TYPE_ID);
 		LOG.info("Method name: {}, delete the type using this typeId: {}, repositoryId: {}", "deleteType", typeId,
 				request.getRepositoryId());
-		CmisTypeServices.Impl.deleteType(request.getRepositoryId(), typeId, null);
+		CmisTypeServices.Impl.deleteType(request.getRepositoryId(), typeId, null, request.getUserObject());
 		return null;
 
 	}
