@@ -108,55 +108,21 @@ public class CmisUtils {
 				}
 
 				String mimeType = documentData.getContentStreamMimeType();
-
-				return isImage(mimeType) || isAudio(mimeType) || isVideo(mimeType) || isPDF(mimeType)
-						|| isPowerpoint(mimeType) || isExcel(mimeType) || isWord(mimeType) || isHtml(mimeType)
-						|| isPlainText(mimeType);
+				return mimeType.startsWith("image/")
+						|| mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+						|| mimeType.equals("application/msword")
+						|| mimeType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+						|| mimeType.equals("application/vnd.ms-excel")
+						|| mimeType.equals("application/vnd.openxmlformats-officedocument.presentationml.slideshow")
+						|| mimeType.equals("application/vnd.openxmlformats-officedocument.presentationml.presentation")
+						|| mimeType.equals("application/vnd.ms-powerpoint") || mimeType.equals("application/pdf")
+						|| mimeType.equals("text/html") || mimeType.startsWith("audio/")
+						|| mimeType.startsWith("video/") || mimeType.equals("text/plain");
 			} else
 
 			{
 				return false;
 			}
-		}
-
-		private static boolean isImage(String mimeType) {
-			return mimeType.startsWith("image/");
-		}
-
-		private static boolean isWord(String mimeType) {
-			return mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-					|| mimeType.equals("application/msword");
-		}
-
-		private static boolean isExcel(String mimeType) {
-			return mimeType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-					|| mimeType.equals("application/vnd.ms-excel");
-		}
-
-		private static boolean isPowerpoint(String mimeType) {
-			return mimeType.equals("application/vnd.openxmlformats-officedocument.presentationml.slideshow")
-					|| mimeType.equals("application/vnd.openxmlformats-officedocument.presentationml.presentation")
-					|| mimeType.equals("application/vnd.ms-powerpoint");
-		}
-
-		private static boolean isPDF(String mimeType) {
-			return mimeType.equals("application/pdf");
-		}
-
-		private static boolean isHtml(String mimeType) {
-			return mimeType.equals("text/html");
-		}
-
-		private static boolean isAudio(String mimeType) {
-			return mimeType.startsWith("audio/");
-		}
-
-		private static boolean isVideo(String mimeType) {
-			return mimeType.startsWith("video/");
-		}
-
-		private static boolean isPlainText(String mimeType) {
-			return mimeType.equals("text/plain");
 		}
 
 		public static boolean testRenditionFilterForImage(String[] formats) {
