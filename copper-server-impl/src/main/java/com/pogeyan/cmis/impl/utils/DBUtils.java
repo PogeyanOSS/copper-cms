@@ -373,7 +373,8 @@ public class DBUtils {
 
 	public static class TypeServiceDAO {
 		@SuppressWarnings("unchecked")
-		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId) {
+		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId,
+				String[] fieldAccess) {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -382,11 +383,11 @@ public class DBUtils {
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
 			if (typeDef == null || typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
 				if (typeId != null) {
-					typeDef = typeManagerDAO.getById(typeId);
+					typeDef = typeManagerDAO.getById(typeId, fieldAccess);
 					typeDef.stream().forEach((k) -> {
 						if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
 							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(),
-									docManagerDAO.getByTypeId(k.getId()));
+									docManagerDAO.getByTypeId(k.getId(), fieldAccess));
 						} else {
 							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, k.getId(), k);
 						}
@@ -405,22 +406,23 @@ public class DBUtils {
 
 		}
 
-		public static Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId) {
+		public static Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId,
+				String[] fieldAccess) {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			return typeManagerDAO.getAllPropertyById(propId);
+			return typeManagerDAO.getAllPropertyById(propId, fieldAccess);
 		}
 	}
 
 	public static class DocumentTypeManagerDAO {
 		@SuppressWarnings("unchecked")
-		public static DocumentTypeDefinition getByTypeId(String repositoryId, String typeId) {
+		public static DocumentTypeDefinition getByTypeId(String repositoryId, String typeId, String[] fieldAccess) {
 			MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends DocumentTypeDefinition> docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, Arrays.asList(typeId)));
 			if (docType != null && !docType.isEmpty() && docType.get(0) == null) {
-				DocumentTypeDefinition docTypeDef = docManagerDAO.getByTypeId(typeId);
+				DocumentTypeDefinition docTypeDef = docManagerDAO.getByTypeId(typeId, fieldAccess);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, docTypeDef.getId(),
 						docTypeDef);
 				return docTypeDef;

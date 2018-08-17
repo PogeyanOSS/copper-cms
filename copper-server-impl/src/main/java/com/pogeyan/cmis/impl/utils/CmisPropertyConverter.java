@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
+import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
@@ -53,7 +54,8 @@ public class CmisPropertyConverter {
 
 	public static class Impl {
 
-		public static Properties createNewProperties(Map<String, List<String>> propertiesdata, String repositoryId) {
+		public static Properties createNewProperties(Map<String, List<String>> propertiesdata, String repositoryId,
+				IUserObject userObject) {
 			List<TypeDefinition> secondaryTypes = new ArrayList<>();
 			List<TypeDefinition> objectType = new ArrayList<>();
 			Map<String, List<String>> properties = propertiesdata;
@@ -65,7 +67,7 @@ public class CmisPropertyConverter {
 			List<String> objectTypeIdsValues = properties.get(PropertyIds.OBJECT_TYPE_ID);
 			if (isNotEmpty(objectTypeIdsValues)) {
 				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-						objectTypeIdsValues.get(0), null);
+						objectTypeIdsValues.get(0), null, userObject);
 				objectType.add(typeDef);
 				if (typeDef == null) {
 					throw new CmisInvalidArgumentException("Invalid type: " + objectTypeIdsValues.get(0));
@@ -76,7 +78,8 @@ public class CmisPropertyConverter {
 			List<String> secondaryObjectTypeIdsValues = properties.get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
 			if (isNotEmpty(secondaryObjectTypeIdsValues)) {
 				for (String secTypeId : secondaryObjectTypeIdsValues) {
-					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null);
+					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
+							userObject);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
 						throw new CmisInvalidArgumentException("Invalid type: " + secTypeId);
@@ -103,7 +106,8 @@ public class CmisPropertyConverter {
 		}
 
 		public static Properties createUpdateProperties(Map<String, List<String>> propertiesdata, String typeId,
-				List<String> secondaryTypeIds, List<String> objectIds, String repositoryId, IBaseObject data) {
+				List<String> secondaryTypeIds, List<String> objectIds, String repositoryId, IBaseObject data,
+				IUserObject userObject) {
 			List<TypeDefinition> secondaryTypes = new ArrayList<>();
 			List<TypeDefinition> objectType = new ArrayList<>();
 			List<TypeDefinition> innerObjectType = new ArrayList<>();
@@ -118,7 +122,8 @@ public class CmisPropertyConverter {
 
 			// load primary type
 			if (typeId != null) {
-				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null);
+				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null,
+						userObject);
 				objectType.add(typeDef);
 				if (typeDef == null) {
 					throw new CmisInvalidArgumentException("Invalid type: " + typeId);
@@ -129,7 +134,8 @@ public class CmisPropertyConverter {
 			List<String> secondaryObjectTypeIdsValues = properties.get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
 			if (isNotEmpty(secondaryObjectTypeIdsValues)) {
 				for (String secTypeId : secondaryObjectTypeIdsValues) {
-					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null);
+					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
+							userObject);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
 						throw new CmisInvalidArgumentException("Invalid type: " + secTypeId);
@@ -139,7 +145,8 @@ public class CmisPropertyConverter {
 
 			if (secondaryTypeIds != null) {
 				for (String secTypeId : secondaryTypeIds) {
-					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null);
+					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
+							userObject);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
 						throw new CmisInvalidArgumentException("Invalid secondary type: " + secTypeId);
@@ -155,7 +162,7 @@ public class CmisPropertyConverter {
 					for (String objectId : objectIds) {
 						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-								object.getTypeId(), null);
+								object.getTypeId(), null, userObject);
 						innerObjectType.add(typeDef);
 						propDef = getPropertyDefinition(innerObjectType, property.getKey());
 						if (propDef != null) {
@@ -167,7 +174,7 @@ public class CmisPropertyConverter {
 					if (secondaryTypes.isEmpty()) {
 						for (String secTypeId : data.getSecondaryTypeIds()) {
 							TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId,
-									null);
+									null, userObject);
 							secondaryTypes.add(typeDef);
 							if (typeDef == null) {
 								throw new CmisInvalidArgumentException("Invalid secondary type: " + secTypeId);

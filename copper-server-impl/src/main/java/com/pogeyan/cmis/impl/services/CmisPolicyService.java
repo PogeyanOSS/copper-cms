@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 
 public class CmisPolicyService {
@@ -38,7 +39,7 @@ public class CmisPolicyService {
 		 * getAppliedPolicies() method get the list of applied policies.
 		 */
 		public static List<ObjectData> getAppliedPolicies(String repositoryId, String objectId, String filter,
-				String username) throws CmisObjectNotFoundException {
+				IUserObject userObject) throws CmisObjectNotFoundException {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
@@ -51,7 +52,7 @@ public class CmisPolicyService {
 				for (String polId : polIds) {
 					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
-							false, true, null, null, IncludeRelationships.NONE, username);
+							false, true, null, null, IncludeRelationships.NONE, userObject);
 
 					res.add(objectData);
 				}

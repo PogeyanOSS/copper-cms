@@ -40,6 +40,7 @@ import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
+import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 
 public class CmisAclServices {
@@ -48,7 +49,7 @@ public class CmisAclServices {
 
 	public static class Impl {
 		public static Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions,
-				ExtensionsData extension, ObjectInfoHandler objectInfos, String userName)
+				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject)
 				throws CmisObjectNotFoundException {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 			if (data == null) {
@@ -56,7 +57,7 @@ public class CmisAclServices {
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
-					false, objectInfos, null, null, userName);
+					false, objectInfos, null, null, userObject);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
 			return objectData.getAcl();

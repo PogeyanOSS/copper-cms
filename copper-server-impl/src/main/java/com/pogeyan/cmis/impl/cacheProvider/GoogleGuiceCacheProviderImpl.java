@@ -28,7 +28,12 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 				}
 				return null;
 			} else if (key.size() == 1) {
-				return (T) Arrays.asList(typeCacheMap.getIfPresent(key.get(0)));
+				if (typeCacheMap.getIfPresent(key.get(0)) instanceof List<?>) {
+					return (T) typeCacheMap.getIfPresent(key.get(0));
+				} else {
+					return (T) Arrays.asList(typeCacheMap.getIfPresent(key.get(0)));
+				}
+
 			} else {
 				return (T) key.stream().map(t -> typeCacheMap.getIfPresent(t.toString())).collect(Collectors.toList());
 			}
@@ -42,7 +47,7 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 		if (repoCacheMap != null) {
 			repoCacheMap.put(key, object);
 		} else {
-			Cache<String, Object> typeCacheMap = CacheBuilder.newBuilder()
+			Cache<String, Object> typeCacheMap = CacheBuilder.newBuilder().maximumSize(1000)
 					.expireAfterWrite(intervalTime, TimeUnit.SECONDS).build();
 			typeCacheMap.put(key, object);
 			repo.put(repositoryId, typeCacheMap);
