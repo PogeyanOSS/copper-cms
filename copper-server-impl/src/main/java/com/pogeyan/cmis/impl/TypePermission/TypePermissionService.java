@@ -53,15 +53,15 @@ public class TypePermissionService implements ITypePermissionService {
 
 	@Override
 	public Boolean checkPermissionAccess(String repositoryId, IUserGroupObject[] role, String typeId,
-			TypePermissionType access) {
+			TypePermissionType permissionAccess) {
 		if (typeId != null) {
 			List<String> typeAccess = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
 					Arrays.asList(typeId + "_permission"));
 			if (typeAccess != null) {
-				return typeAccess.contains(access.value());
+				return typeAccess.contains(permissionAccess.value());
 			} else {
 				List<String> permission = setDetails(repositoryId, role, typeId, true);
-				return permission != null ? permission.contains(access.value()) : false;
+				return permission != null ? permission.contains(permissionAccess.value()) : false;
 			}
 		}
 		return false;
