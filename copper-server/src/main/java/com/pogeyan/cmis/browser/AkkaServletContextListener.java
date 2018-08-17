@@ -48,7 +48,7 @@ import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 import com.pogeyan.cmis.api.data.IObjectFlowFactory;
-import com.pogeyan.cmis.api.data.ITypePermissionfactory;
+import com.pogeyan.cmis.api.data.ITypePermissionFactory;
 import com.pogeyan.cmis.api.repo.IRepositoryManager;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
 import com.pogeyan.cmis.api.storage.IStorageFactory;
@@ -346,7 +346,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 			LOG.info("Initialized Type Permission Flow Services Factory Class: {}", typePermissionServiceClassName);
 			Class<?> typePermissionFlowServiceClassFactory = Class.forName(typePermissionServiceClassName);
-			ITypePermissionfactory typePermissionFlowActorFactory = (ITypePermissionfactory) typePermissionFlowServiceClassFactory
+			ITypePermissionFactory typePermissionFlowActorFactory = (ITypePermissionFactory) typePermissionFlowServiceClassFactory
 					.newInstance();
 			TypeServiceFactory.setTypePermissionFactory(typePermissionFlowActorFactory);
 		} catch (Exception e) {

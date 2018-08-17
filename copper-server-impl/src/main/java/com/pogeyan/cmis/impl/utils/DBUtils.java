@@ -399,10 +399,10 @@ public class DBUtils {
 		}
 
 		public static List<? extends TypeDefinition> getChildrenIds(String repositoryId, String parentId, int maxItems,
-				int skipCount, List<String> typeIds) {
+				int skipCount) {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			return typeManagerDAO.getChildrenIds(parentId, maxItems, skipCount, typeIds);
+			return typeManagerDAO.getChildrenIds(parentId, maxItems, skipCount);
 
 		}
 

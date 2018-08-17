@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.impl.services;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,35 +25,32 @@ import org.apache.chemistry.opencmis.commons.impl.TypeCache;
 
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
-import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 
 public class CmisTypeCacheService implements TypeCache {
 	private static Map<String, TypeCache> instances = new HashMap<String, TypeCache>();
 	private final String repositoryId;
-	private IUserObject userObject;
 
-	CmisTypeCacheService(String repositoryId, IUserObject userObject) {
+	CmisTypeCacheService(String repositoryId) {
 		this.repositoryId = repositoryId;
-		this.userObject = userObject;
 		CmisTypeCacheService.instances.put(repositoryId, this);
 	}
 
 	@Override
 	public TypeDefinition getTypeDefinition(String typeId) {
-		return CmisTypeServices.Impl.getTypeDefinition(this.repositoryId, typeId, null, this.userObject);
+		return DBUtils.TypeServiceDAO.getById(this.repositoryId, Arrays.asList(typeId), null).get(0);
 	}
 
 	@Override
 	public TypeDefinition reloadTypeDefinition(String typeId) {
-		return CmisTypeServices.Impl.getTypeDefinition(this.repositoryId, typeId, null, this.userObject);
+		return DBUtils.TypeServiceDAO.getById(this.repositoryId, Arrays.asList(typeId), null).get(0);
 	}
 
 	@Override
 	public TypeDefinition getTypeDefinitionForObject(String objectId) {
 		IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
-		return CmisTypeServices.Impl.getTypeDefinition(this.repositoryId, object.getTypeId(), null, this.userObject);
+		return DBUtils.TypeServiceDAO.getById(this.repositoryId, Arrays.asList(object.getTypeId()), null).get(0);
 	}
 
 	@Override
@@ -63,10 +61,10 @@ public class CmisTypeCacheService implements TypeCache {
 		return property.get(propId);
 	}
 
-	public static TypeCache get(String repositoryId, IUserObject userObject) {
+	public static TypeCache get(String repositoryId) {
 		TypeCache instance = null;
 		if (!CmisTypeCacheService.instances.containsKey(repositoryId)) {
-			instance = new CmisTypeCacheService(repositoryId, userObject);
+			instance = new CmisTypeCacheService(repositoryId);
 		} else {
 			instance = CmisTypeCacheService.instances.get(repositoryId);
 		}

@@ -179,9 +179,8 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null, t.getUserObject(),
 					t.getBaseTypeId());
 		}
-		JSONObject result = JSONConverter.convert(object,
-				CmisTypeCacheService.get(t.getRepositoryId(), t.getUserObject()), JSONConverter.PropertyMode.OBJECT,
-				succinct, dateTimeFormat);
+		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(t.getRepositoryId()),
+				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 
 		return result;
 	}
@@ -210,8 +209,8 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				throw new CmisRuntimeException("Properties are null!");
 			}
 			JSONObject result = JSONConverter.convert(properties, objectId.toString(),
-					CmisTypeCacheService.get(t.getRepositoryId(), t.getUserObject()), JSONConverter.PropertyMode.CHANGE,
-					succinct, dateTimeFormat);
+					CmisTypeCacheService.get(t.getRepositoryId()), JSONConverter.PropertyMode.CHANGE, succinct,
+					dateTimeFormat);
 			return result;
 		}
 
@@ -282,8 +281,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("createFolder complete with id: {}", object.getId());
 		}
-		JSONObject jsonObject = JSONConverter.convert(object,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		return jsonObject;
 
@@ -328,8 +326,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		return jsonObject;
 
@@ -787,8 +784,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"moveObject", objectId, sourceFolderId, targetFolderId, request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.moveObject(request.getRepositoryId(), objectIdHolder, targetFolderId,
 				sourceFolderId, null, request.getUserObject());
-		JSONObject result = JSONConverter.convert(object,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
+		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 
 		return result;

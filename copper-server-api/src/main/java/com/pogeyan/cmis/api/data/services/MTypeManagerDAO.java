@@ -40,8 +40,7 @@ public interface MTypeManagerDAO {
 	/**
 	 * Returns list of MTypeObject children depending on TypeId
 	 */
-	public List<? extends TypeDefinition> getChildrenIds(String parentId, int maxItems, int skipCount,
-			List<String> typeIds);
+	public List<? extends TypeDefinition> getChildrenIds(String parentId, int maxItems, int skipCount);
 
 	/**
 	 * Returns propertyDef depending on propId

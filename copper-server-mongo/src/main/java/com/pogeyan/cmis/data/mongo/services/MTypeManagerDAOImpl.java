@@ -68,20 +68,12 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 	}
 
 	@SuppressWarnings("deprecation")
-	public List<MTypeObject> getChildrenIds(String parentId, int maxItems, int skipCount, List<String> typeIds) {
+	public List<MTypeObject> getChildrenIds(String parentId, int maxItems, int skipCount) {
 		Query<MTypeObject> query = createQuery().field("parent").equal(parentId);
 		if (maxItems > 0 && skipCount >= 0) {
 			query = query.offset(skipCount).limit(maxItems);
 		}
-		List<MTypeObject> typeDef = query.asList();
-		if (typeIds != null) {
-			typeDef.stream().forEach((k) -> {
-				if (!typeIds.contains(k.getId())) {
-					typeDef.remove(k);
-				}
-			});
-		}
-		return typeDef;
+		return query.asList();
 	}
 
 	@Override

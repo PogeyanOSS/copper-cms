@@ -235,10 +235,10 @@ public class CmisObjectService {
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
-			ITypePermissionService typePermissionFlow = TypeServiceFactory.createTypePermissionFlowService(repositoryId,
-					userObject == null ? null : userObject.getGroups());
-			TypeDefinition type = CmisTypeServices.Impl.checkTypePermission(typePermissionFlow, repositoryId, typeId)
-					.get(0);
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinitionWithTypePermission(typePermissionFlow,
+					repositoryId, userObject == null ? null : userObject.getGroups(), typeId).get(0);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
@@ -784,8 +784,8 @@ public class CmisObjectService {
 					}
 				}
 				if (data.getProperties() != null) {
-					ITypePermissionService typePermissionService = TypeServiceFactory.createTypePermissionFlowService(
-							repositoryId, userObject == null ? null : userObject.getGroups());
+					ITypePermissionService typePermissionService = TypeServiceFactory
+							.createTypePermissionFlowService(repositoryId);
 					readCustomProperties(repositoryId, data, result, type, filter, typePermissionService, userObject);
 				}
 				// if (filter != null) {
@@ -1205,6 +1205,7 @@ public class CmisObjectService {
 						if (data.getSecondaryTypeIds() != null) {
 							List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl
 									.checkTypePermissionList(typePermissionFlow, repositoryId,
+											userObject == null ? null : userObject.getGroups(),
 											data.getSecondaryTypeIds());
 							secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 								Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
@@ -3453,8 +3454,8 @@ public class CmisObjectService {
 		@SuppressWarnings("null")
 		private static PropertiesImpl compileWriteProperties(String repositoryId, TypeDefinition type,
 				IUserObject userObject, Properties properties, IBaseObject data) {
-			ITypePermissionService typePermissionFlow = TypeServiceFactory.createTypePermissionFlowService(repositoryId,
-					userObject == null ? null : userObject.getGroups());
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
 			PropertiesImpl result = new PropertiesImpl();
 			// Set<String> addedProps = new HashSet<String>();
 
@@ -3489,8 +3490,9 @@ public class CmisObjectService {
 				if (propTypes == null) {
 					if (secondaryObjectTypeIds != null) {
 						Map<String, PropertyDefinition<?>> secondaryPropertyDefinition = new HashMap<>();
-						List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl
-								.checkTypePermissionList(typePermissionFlow, repositoryId, secondaryObjectTypeIds);
+						List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl.checkTypePermissionList(
+								typePermissionFlow, repositoryId, userObject == null ? null : userObject.getGroups(),
+								secondaryObjectTypeIds);
 						secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 							Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
 							secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {

@@ -100,8 +100,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException("New document is null!");
 		}
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		return jsonObject;
 
@@ -150,8 +149,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException("New document is null!");
 		}
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		return jsonObject;
 	}

@@ -104,8 +104,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException("Children are null!");
 		}
 
-		JSONObject jsonChildren = JSONConverter.convert(children,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()), succinct, dateTimeFormat);
+		JSONObject jsonChildren = JSONConverter.convert(children, CmisTypeCacheService.get(request.getRepositoryId()),
+				succinct, dateTimeFormat);
 
 		return jsonChildren;
 
@@ -142,9 +142,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONArray jsonDescendants = new JSONArray();
 		for (ObjectInFolderContainer descendant : descendants) {
-			jsonDescendants.add(JSONConverter.convert(descendant,
-					CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()), succinct,
-					dateTimeFormat));
+			jsonDescendants.add(JSONConverter.convert(descendant, CmisTypeCacheService.get(request.getRepositoryId()),
+					succinct, dateTimeFormat));
 		}
 		return jsonDescendants;
 
@@ -180,9 +179,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONArray jsonDescendants = new JSONArray();
 		for (ObjectInFolderContainer descendant : folderTree) {
-			jsonDescendants.add(JSONConverter.convert(descendant,
-					CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()), succinct,
-					dateTimeFormat));
+			jsonDescendants.add(JSONConverter.convert(descendant, CmisTypeCacheService.get(request.getRepositoryId()),
+					succinct, dateTimeFormat));
 		}
 		return jsonDescendants;
 
@@ -206,8 +204,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException("Parent is null!");
 		}
 
-		JSONObject jsonObject = JSONConverter.convert(parent,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
+		JSONObject jsonObject = JSONConverter.convert(parent, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		return jsonObject;
 
@@ -241,8 +238,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		}
 		JSONArray jsonParents = new JSONArray();
 		for (ObjectParentData parent : parents) {
-			jsonParents.add(JSONConverter.convert(parent,
-					CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()), succinct,
+			jsonParents.add(JSONConverter.convert(parent, CmisTypeCacheService.get(request.getRepositoryId()), succinct,
 					dateTimeFormat));
 		}
 		return jsonParents;
@@ -278,8 +274,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (docs == null) {
 			throw new CmisRuntimeException("Children are null!");
 		}
-		JSONObject jsonDocs = JSONConverter.convert(docs,
-				CmisTypeCacheService.get(request.getRepositoryId(), request.getUserObject()),
+		JSONObject jsonDocs = JSONConverter.convert(docs, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 
 		return jsonDocs;

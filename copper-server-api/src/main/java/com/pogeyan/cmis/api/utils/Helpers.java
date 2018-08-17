@@ -406,29 +406,14 @@ public class Helpers {
 	}
 
 	public static String[] getTypeMappedColumns(List<String> fieldAccess) {
-		List<String> mappedCloumns = new ArrayList<>();
-		mappedCloumns.add("_id");
-		mappedCloumns.add("localName");
-		mappedCloumns.add("localNamespace");
-		mappedCloumns.add("displayName");
-		mappedCloumns.add("queryName");
-		mappedCloumns.add("description");
-		mappedCloumns.add("baseTypeId");
-		mappedCloumns.add("parent");
-		mappedCloumns.add("isFileable");
-		mappedCloumns.add("isQueryable");
-		mappedCloumns.add("isFulltextIndexed");
-		mappedCloumns.add("isIncludedInSupertypeQuery");
-		mappedCloumns.add("isControllablePolicy");
-		mappedCloumns.add("typeMutability");
-		mappedCloumns.add("isControllableAcl");
-		for (String id : fieldAccess) {
-			mappedCloumns.add("propertyDefinition." + id);
-		}
-		mappedCloumns.add("propertyDefinition.cmis:name");
-		mappedCloumns.add("propertyDefinition.cmis:objectTypeId");
-		String[] values = mappedCloumns.stream().toArray(String[]::new);
-		return values;
+		String[] defaultProperty = new String[] { "_id", "localName", "localNamespace", "queryName", "displayName",
+				"description", "baseTypeId", "parent", "isFileable", "isQueryable", "isFulltextIndexed",
+				"isIncludedInSupertypeQuery", "isControllablePolicy", "typeMutability", "isControllableAcl",
+				"propertyDefinition.cmis:name", "propertyDefinition.cmis:objectTypeId" };
+		String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
+		String[] fieldAccessValues = Stream.concat(Arrays.stream(defaultProperty), Arrays.stream(accessValues))
+				.toArray(String[]::new);
+		return fieldAccessValues;
 
 	}
 }
