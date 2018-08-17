@@ -56,6 +56,11 @@ public class Helpers {
 	static long UPPER_RANGE = 1000000; // assign upper range value
 
 	static Random random = new Random();
+	// Default type definition property
+	static String[] defaultProperty = new String[] { "_id", "localName", "localNamespace", "queryName", "displayName",
+			"description", "baseTypeId", "parent", "isFileable", "isQueryable", "isFulltextIndexed",
+			"isIncludedInSupertypeQuery", "isControllablePolicy", "typeMutability", "isControllableAcl",
+			"propertyDefinition.cmis:name", "propertyDefinition.cmis:objectTypeId" };
 
 	/**
 	 * Gets the utc time.
@@ -406,10 +411,6 @@ public class Helpers {
 	}
 
 	public static String[] getTypeMappedColumns(List<String> fieldAccess) {
-		String[] defaultProperty = new String[] { "_id", "localName", "localNamespace", "queryName", "displayName",
-				"description", "baseTypeId", "parent", "isFileable", "isQueryable", "isFulltextIndexed",
-				"isIncludedInSupertypeQuery", "isControllablePolicy", "typeMutability", "isControllableAcl",
-				"propertyDefinition.cmis:name", "propertyDefinition.cmis:objectTypeId" };
 		String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
 		String[] fieldAccessValues = Stream.concat(Arrays.stream(defaultProperty), Arrays.stream(accessValues))
 				.toArray(String[]::new);

@@ -150,7 +150,7 @@ public class TypePermissionService implements ITypePermissionService {
 									typePermission.put(typeId, permissionAccess);
 								}
 
-								readFleidAccess(repositoryId, targetId, typeId, relationMdPath, navigationMorphiaDAO,
+								readFieldAccess(repositoryId, targetId, typeId, relationMdPath, navigationMorphiaDAO,
 										typeManagerDAO, fieldPermission);
 								break;
 							}
@@ -168,7 +168,7 @@ public class TypePermissionService implements ITypePermissionService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void readFleidAccess(String repositoryId, String id, String typeId, String relationMdPath,
+	private void readFieldAccess(String repositoryId, String id, String typeId, String relationMdPath,
 			MNavigationDocServiceDAO navigationMorphiaDAO, MTypeManagerDAO typeManagerDAO,
 			Map<String, List<String>> fieldPermission) {
 		try {

@@ -17,6 +17,7 @@ package com.pogeyan.cmis.impl.services;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
@@ -39,18 +40,27 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public TypeDefinition getTypeDefinition(String typeId) {
-		return DBUtils.TypeServiceDAO.getById(this.repositoryId, Arrays.asList(typeId), null).get(0);
+		List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+				Arrays.asList(typeId), null);
+		return typeDef != null ? typeDef.get(0) : null;
 	}
 
 	@Override
 	public TypeDefinition reloadTypeDefinition(String typeId) {
-		return DBUtils.TypeServiceDAO.getById(this.repositoryId, Arrays.asList(typeId), null).get(0);
+		List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+				Arrays.asList(typeId), null);
+		return typeDef != null ? typeDef.get(0) : null;
 	}
 
 	@Override
 	public TypeDefinition getTypeDefinitionForObject(String objectId) {
 		IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
-		return DBUtils.TypeServiceDAO.getById(this.repositoryId, Arrays.asList(object.getTypeId()), null).get(0);
+		if (object != null) {
+			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+					Arrays.asList(object.getTypeId()), null);
+			return typeDef != null ? typeDef.get(0) : null;
+		}
+		return null;
 	}
 
 	@Override
@@ -58,7 +68,7 @@ public class CmisTypeCacheService implements TypeCache {
 		MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MTypeManagerDAO.class);
 		Map<String, PropertyDefinition<?>> property = typeMorphiaDAO.getAllPropertyById(propId, null);
-		return property.get(propId);
+		return property != null ? property.get(propId) : null;
 	}
 
 	public static TypeCache get(String repositoryId) {
