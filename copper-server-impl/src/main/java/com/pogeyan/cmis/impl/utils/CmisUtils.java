@@ -24,27 +24,33 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.apache.chemistry.opencmis.client.api.OperationContext;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.RenditionData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.RenditionDataImpl;
 
 public class CmisUtils {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CmisUtils.class.getName());
-	// private static final int BUFFER_SIZE = 65536;
-	public static final String RENDITION_MIME_TYPE_JPEG = "image/jpeg";
-	public static final String RENDITION_MIME_TYPE_PNG = "image/png";
+	public static final String RENDITION_MIME_TYPE_IMAGE = "image/";
+	public static final String RENDITION_MIME_TYPE_PDF = "application/pdf";
+	public static final String RENDITION_MIME_TYPE_POWERPOINT = "powerpoint";
+	public static final String RENDITION_MIME_TYPE_AUDIO = "audio/";
+	public static final String RENDITION_MIME_TYPE_VIDEO = "video/";
+	public static final String RENDITION_MIME_TYPE_PLAINTEXT = "text/plain";
+	public static final String RENDITION_MIME_TYPE_EXCEL = "excel";
+	public static final String RENDITION_MIME_TYPE_HTML = "text/html";
+	public static final String RENDITION_MIME_TYPE_WORD = "wordoc";
 	public static final String RENDITION_SUFFIX = "-rendition";
 	public static final int THUMBNAIL_SIZE = 100;
 	public static final int ICON_SIZE = 32;
@@ -81,6 +87,11 @@ public class CmisUtils {
 			}
 
 		}
+
+		public OperationContext createOperationContext() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 	public static class Rendition {
@@ -114,7 +125,7 @@ public class CmisUtils {
 
 		private static boolean isWord(String mimeType) {
 			return mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-					|| mimeType.equals("application/ms-word");
+					|| mimeType.equals("application/msword");
 		}
 
 		private static boolean isExcel(String mimeType) {
@@ -153,7 +164,17 @@ public class CmisUtils {
 				return false;
 			} else {
 				return arrayContainsString(formats, "*") || arrayContainsString(formats, "image/*")
-						|| arrayContainsString(formats, "image/jpeg");
+						|| arrayContainsString(formats, "image/") || arrayContainsString(formats, "application/pdf")
+						|| arrayContainsString(formats, "application/vnd.ms-powerpoint")
+						|| arrayContainsString(formats,
+								"application/vnd.openxmlformats-officedocument.presentationml.presentation")
+						|| arrayContainsString(formats,
+								"application/vnd.openxmlformats-officedocument.presentationml.slideshow")
+						|| arrayContainsString(formats, "audio/") || arrayContainsString(formats, "text/plain")
+						|| arrayContainsString(formats, "text/plain") || arrayContainsString(formats, "text/html")
+						|| arrayContainsString(formats,
+								"application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+						|| arrayContainsString(formats, "application/msword") || arrayContainsString(formats, "video/");
 			}
 		}
 
@@ -171,6 +192,7 @@ public class CmisUtils {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("getRenditions data using this id:{}", so.getId());
 			}
+
 			String tokenizer = "[\\s;]";
 			if (null == renditionFilter) {
 				return null;
@@ -180,56 +202,69 @@ public class CmisUtils {
 
 			if (isImageRendition && hasRendition(so, user, repositoryId)) {
 				String mimeType = null;
-				if (so.getBaseId() == BaseTypeId.CMIS_FOLDER) {
-					mimeType = "image/png";
-				} else {
-					try {
-						// IDocumentObject documentData =
-						// DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-						// so.getId(), null);
-						// if (documentData == null) {
-						// LOG.error("getRenditions Object is null in {} repository!", repositoryId);
-						// throw new CmisObjectNotFoundException("Object must not be null!");
-						// }
-						// Map<String, String> parameters =
-						// RepositoryManagerFactory.getFileDetails(repositoryId);
-						// IStorageService localService =
-						// StorageServiceFactory.createStorageService(parameters);
-						// if (documentData.getContentStreamFileName() != null) {
-						// ContentStream contentStream = localService.getContent(
-						// documentData.getContentStreamFileName(), so.getPath(),
-						// documentData.getContentStreamMimeType(),
-						// BigInteger.valueOf(documentData.getContentStreamLength()));
-						// if (contentStream.equals(null)) {
-						// LOG.error("ContentStream should not be :{}", contentStream);
-						// throw new CmisObjectNotFoundException("Unkonwn ObjectId");
-						// }
-						// mimeType = contentStream.getMimeType();
-						//
-						// }
-						mimeType = "image/png";
-					} catch (Exception e) {
-						LOG.error("getRenditions Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
-						throw new CmisObjectNotFoundException(e.toString());
-					}
+				if (so.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
+					IDocumentObject documentData = null;
+					documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, so.getId(), null);
+					mimeType = documentData.getContentStreamMimeType();
+					LOG.info("the rendition can be seen through this id:{}, and mimeType is set to:{}", so.getId(),
+							mimeType);
 				}
-
 				List<RenditionData> renditions = new ArrayList<RenditionData>(1);
-				org.apache.chemistry.opencmis.commons.impl.dataobjects.RenditionDataImpl rendition = new org.apache.chemistry.opencmis.commons.impl.dataobjects.RenditionDataImpl();
+				RenditionDataImpl rendition = new RenditionDataImpl();
 
+				if (mimeType == null) {
+					LOG.error("mimeType is not set");
+				}
 				if (mimeType != null) {
-					if (mimeType.equals("image/jpeg")) {
+
+					if (mimeType.startsWith("image/")) {
 						rendition.setBigHeight(BigInteger.valueOf(THUMBNAIL_SIZE));
 						rendition.setBigWidth(BigInteger.valueOf(THUMBNAIL_SIZE));
-						rendition.setMimeType(RENDITION_MIME_TYPE_JPEG);
+						rendition.setMimeType(RENDITION_MIME_TYPE_IMAGE);
+					} else if (mimeType.equals("application/vnd.ms-powerpoints")
+							|| mimeType.equals("application/vnd.openxmlformats-officedocument.presentationml.slideshow")
+							|| mimeType
+									.equals("application/vnd.openxmlformats-officedocument.presentationml.presentation")
+							|| mimeType.equals("application/vnd.ms-powerpoint")) {
+
+						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
+						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
+						rendition.setMimeType(RENDITION_MIME_TYPE_POWERPOINT);
+					} else if (mimeType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+							|| mimeType.equals("application/vnd.ms-excel")) {
+
+						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
+						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
+						rendition.setMimeType(RENDITION_MIME_TYPE_EXCEL);
+					} else if (mimeType.startsWith("audio/")) {
+						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
+						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
+						rendition.setMimeType(RENDITION_MIME_TYPE_AUDIO);
+					} else if (mimeType.startsWith("video/")) {
+						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
+						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
+						rendition.setMimeType(RENDITION_MIME_TYPE_VIDEO);
+					} else if (mimeType.equals("text/plain")) {
+						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
+						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
+						rendition.setMimeType(RENDITION_MIME_TYPE_PLAINTEXT);
+					} else if (mimeType.equals("text/html")) {
+						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
+						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
+						rendition.setMimeType(RENDITION_MIME_TYPE_HTML);
+					} else if (mimeType
+							.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+							|| mimeType.equals("application/msword")) {
+						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
+						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
+						rendition.setMimeType(RENDITION_MIME_TYPE_WORD);
 					} else {
 						rendition.setBigHeight(BigInteger.valueOf(ICON_SIZE));
 						rendition.setBigWidth(BigInteger.valueOf(ICON_SIZE));
-						rendition.setMimeType(RENDITION_MIME_TYPE_PNG);
+						rendition.setMimeType(RENDITION_MIME_TYPE_PDF);
 					}
-
 				}
-				rendition.setKind("cmis:thumbnail");
+				rendition.setKind("cmis:*");
 				rendition.setRenditionDocumentId(so.getId().toString());
 				rendition.setStreamId(so.getId() + RENDITION_SUFFIX);
 				rendition.setBigLength(BigInteger.valueOf(-1L));
