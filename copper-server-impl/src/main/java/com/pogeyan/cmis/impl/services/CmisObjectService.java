@@ -121,6 +121,8 @@ public class CmisObjectService {
 
 	public static class Impl {
 
+		private static boolean undefined;
+
 		/**
 		 * Adding RootFolder into MongoDB
 		 */
@@ -1388,30 +1390,44 @@ public class CmisObjectService {
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
-			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userName,
-					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
-					aclRemove);
-			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			try {
-				if (localService != null) {
-					LOG.debug("localService calling createFolder: {}, {}",
-							localService.getClass() != null ? localService.getClass().getName() : null, result.getId());
-				}
-				if (localService != null) {
-					localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
-					LOG.info("Folder: {} created ", result != null ? result.getName() : null);
-				}
+			PropertyData<?> virtual = properties.getProperties().get("isVirtual");
 
-			} catch (IOException e) {
-				objectMorphiaDAO.delete(folderId, true, null);
-				LOG.error("createFolderIntern folder creation exception: {}, repositoryId: {}", e, repositoryId);
-				throw new IllegalArgumentException(e);
+			boolean isVirtual = virtual != null ? (boolean) virtual.getFirstValue() : false;
+			LOG.debug("isVirtual: {}, hence creating folder in local storage", isVirtual);
+			if (isVirtual == undefined || !isVirtual) {
+				IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userName,
+						secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
+						aclRemove);
+				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+
+				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+				try {
+					if (localService != null) {
+						LOG.debug("localService calling createFolder: {}, {}",
+								localService.getClass() != null ? localService.getClass().getName() : null,
+								result.getId());
+					}
+					if (localService != null) {
+						localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
+						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
+					}
+
+				} catch (IOException e) {
+					objectMorphiaDAO.delete(folderId, true, null);
+					LOG.error("createFolderIntern folder creation exception: {}, repositoryId: {}", e, repositoryId);
+					throw new IllegalArgumentException(e);
+				}
+				invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
+				return result;
 			}
-			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
-			return result;
-		}
+				LOG.debug("isVirtual: {}, hence we are not creating folder in local storage", isVirtual);
+				IBaseObject results = createFolderObject(repositoryId, parent, objectId, folderName, userName,
+						secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
+						aclRemove);
 
+				invokeObjectFlowServiceAfterCreate(objectFlowService, results, ObjectFlowType.CREATED, null);
+				return results;
+		}
 		public static void createTypeFolder(String repositoryId, Properties properties, String userName) {
 			String typeId = getObjectTypeId(properties);
 
