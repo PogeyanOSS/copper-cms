@@ -1419,7 +1419,7 @@ public class CmisObjectService {
 				}
 				invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 				return result;
-			} else {
+			}
 				LOG.debug("isVirtual: {}, hence we are not creating folder in local storage", isVirtual);
 				IBaseObject results = createFolderObject(repositoryId, parent, objectId, folderName, userName,
 						secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
@@ -1427,7 +1427,6 @@ public class CmisObjectService {
 
 				invokeObjectFlowServiceAfterCreate(objectFlowService, results, ObjectFlowType.CREATED, null);
 				return results;
-			}
 		}
 
 		public static void createTypeFolder(String repositoryId, Properties properties, String userName) {
