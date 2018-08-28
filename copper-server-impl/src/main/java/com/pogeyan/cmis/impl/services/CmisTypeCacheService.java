@@ -15,7 +15,9 @@
  */
 package com.pogeyan.cmis.impl.services;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
@@ -38,26 +40,35 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public TypeDefinition getTypeDefinition(String typeId) {
-		return CmisTypeServices.Impl.getTypeDefinition(this.repositoryId, typeId, null);
+		List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+				Arrays.asList(typeId), null);
+		return typeDef != null ? typeDef.get(0) : null;
 	}
 
 	@Override
 	public TypeDefinition reloadTypeDefinition(String typeId) {
-		return CmisTypeServices.Impl.getTypeDefinition(this.repositoryId, typeId, null);
+		List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+				Arrays.asList(typeId), null);
+		return typeDef != null ? typeDef.get(0) : null;
 	}
 
 	@Override
 	public TypeDefinition getTypeDefinitionForObject(String objectId) {
 		IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
-		return CmisTypeServices.Impl.getTypeDefinition(this.repositoryId, object.getTypeId(), null);
+		if (object != null) {
+			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+					Arrays.asList(object.getTypeId()), null);
+			return typeDef != null ? typeDef.get(0) : null;
+		}
+		return null;
 	}
 
 	@Override
 	public PropertyDefinition<?> getPropertyDefinition(String propId) {
 		MTypeManagerDAO typeMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MTypeManagerDAO.class);
-		Map<String, PropertyDefinition<?>> property = typeMorphiaDAO.getAllPropertyById(propId);
-		return property.get(propId);
+		Map<String, PropertyDefinition<?>> property = typeMorphiaDAO.getAllPropertyById(propId, null);
+		return property != null ? property.get(propId) : null;
 	}
 
 	public static TypeCache get(String repositoryId) {

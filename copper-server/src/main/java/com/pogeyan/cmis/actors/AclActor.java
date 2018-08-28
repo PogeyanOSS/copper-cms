@@ -81,7 +81,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, get acl using this id: {}, repositoryId: {}, onlyBasicPermissions: {}", "getAcl",
 				objectId, t.getRepositoryId(), onlyBasicPermissions);
 		Acl objectAcl = CmisAclServices.Impl.getAcl(t.getRepositoryId(), objectId, onlyBasicPermissions, null, null,
-				t.getUserObject().getUserDN());
+				t.getUserObject());
 		if (objectAcl == null) {
 			throw new CmisRuntimeException("object acl is null!");
 		}

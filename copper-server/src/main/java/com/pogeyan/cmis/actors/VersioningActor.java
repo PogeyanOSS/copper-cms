@@ -91,11 +91,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, checkOut the document using this ids: {}, repositoryId: {}", "checkOut", objectId,
 				request.getRepositoryId());
 		String pwcId = CmisVersioningServices.Impl.checkOut(request.getRepositoryId(), objectsId, null, null,
-				request.getUserName());
+				request.getUserObject());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), pwcId,
-				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT);
 		if (object == null) {
 			throw new CmisRuntimeException("New document is null!");
 		}
@@ -144,7 +144,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), versionId,
-				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT);
 		if (object == null) {
 			throw new CmisRuntimeException("New document is null!");
 		}
@@ -170,7 +170,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), docId,
-				request.getUserName(), BaseTypeId.CMIS_DOCUMENT);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT);
 		if (object == null) {
 			throw new CmisRuntimeException("New document is null!");
 		}
@@ -194,12 +194,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		String versionSeriesId = request.getParameter(QueryGetRequest.PARAM_VERSION_SERIES_ID);
 		Boolean includeAllowableActions = request.getBooleanParameter(QueryGetRequest.PARAM_ALLOWABLE_ACTIONS);
-		String userName = request.getUserName();
 		LOG.info(
 				"Method name: {}, getting all version objects using this id: {}, repositoryId: {}, versionSeriesId: {}, includeAllowableActions: {}",
 				"getAllVersions", objectId, request.getRepositoryId(), versionSeriesId, includeAllowableActions);
 		List<ObjectData> versions = CmisVersioningServices.Impl.getAllVersions(request.getRepositoryId(), objectId,
-				versionSeriesId, filter, includeAllowableActions, null, null, userName);
+				versionSeriesId, filter, includeAllowableActions, null, null, request.getUserObject());
 		if (versions == null) {
 			throw new CmisRuntimeException("version are null!");
 		}
@@ -227,14 +226,13 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String renditionFilter = request.getParameter(QueryGetRequest.PARAM_RENDITION_FILTER);
 		Boolean includePolicyIds = request.getBooleanParameter(QueryGetRequest.PARAM_POLICY_IDS);
 		Boolean includeAcl = request.getBooleanParameter(QueryGetRequest.PARAM_ACL);
-		String userName = request.getUserName();
 		LOG.info(
 				"Method name: {}, get object of latest version using this id: {}, repositoryId: {}, versionSeriesId: {}, majorVersion: {}, includeAllowableActions: {}",
 				"getObjectOfLatestVersion", objectId, request.getRepositoryId(), versionSeriesId, majorVersion,
 				includeAllowableActions);
 		ObjectData object = CmisVersioningServices.Impl.getObjectOfLatestVersion(request.getRepositoryId(), objectId,
 				versionSeriesId, majorVersion, filter, includeAllowableActions, renditionFilter, includePolicyIds,
-				includeAcl, null, null, userName);
+				includeAcl, null, null, request.getUserObject());
 
 		if (object == null) {
 			throw new CmisRuntimeException("object is not present!");
@@ -257,12 +255,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String versionSeriesId = request.getParameter(QueryGetRequest.PARAM_VERSION_SERIES_ID);
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		Boolean major = request.getBooleanParameter(QueryGetRequest.PARAM_MAJOR);
-		String userName = request.getUserName();
 		LOG.info(
 				"Method name: {}, get properties of latest version using this id: {}, repositoryId: {}, versionSeriesId: {}, majorVersion: {}",
 				"getPropertiesOfLatestVersion", objectId, request.getRepositoryId(), versionSeriesId, major);
 		Properties properties = CmisVersioningServices.Impl.getPropertiesOfLatestVersion(request.getRepositoryId(),
-				objectId, versionSeriesId, major, filter, null, userName);
+				objectId, versionSeriesId, major, filter, null, request.getUserObject());
 
 		if (properties == null) {
 			throw new CmisRuntimeException("properties is not present!");

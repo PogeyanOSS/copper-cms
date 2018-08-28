@@ -189,8 +189,7 @@ public class ServletHelpers {
 
 		String message = ex.getMessage();
 		/*
-		 * if (!(ex instanceof CmisBaseException)) { message =
-		 * "An error occurred!"; }
+		 * if (!(ex instanceof CmisBaseException)) { message = "An error occurred!"; }
 		 */
 
 		response.resetBuffer();
@@ -325,7 +324,7 @@ public class ServletHelpers {
 					// getObjectForRestAPI method is used to get the object.
 					object = CmisObjectService.Impl.getObjectForRestAPI(repositoryId, inputs[0], inputs[1], inputs[2],
 							"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE,
-							"cmis:none", false, false, null, "");
+							"cmis:none", false, false, null, null);
 				} else {
 					object = ServletHelpers.getObjectDataFor(repositoryId, objectId, pathFragments);
 				}
@@ -367,11 +366,11 @@ public class ServletHelpers {
 		if (objectId != null) {
 			object = CmisObjectService.Impl.getObject(repositoryId, objectId,
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, "", BaseTypeId.CMIS_FOLDER);
+					false, false, null, null, BaseTypeId.CMIS_FOLDER);
 		} else if (pathFragments != null) {
 			object = CmisObjectService.Impl.getObjectByPath(repositoryId, getPath(pathFragments),
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, "");
+					false, false, null, null);
 		} else {
 			return null;
 		}

@@ -75,7 +75,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 
 		ObjectList relationships = CmisRelationshipService.Impl.getObjectRelationships(request.getRepositoryId(),
 				objectId, includeSubRelationshipTypes, relationshipDirection, typeId, renditionFilter,
-				includeAllowableActions, maxItems, skipCount, null, request.getUserName());
+				includeAllowableActions, maxItems, skipCount, null, request.getUserObject());
 
 		if (relationships == null) {
 			throw new CmisRuntimeException("Relationships are null!");

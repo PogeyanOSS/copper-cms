@@ -30,7 +30,7 @@ public interface MTypeManagerDAO {
 	/**
 	 * Returns MTypeObject values depending on TypeId
 	 */
-	public List<? extends TypeDefinition> getById(List<?> typeId);
+	public List<? extends TypeDefinition> getById(List<?> typeId, String[] fieldAccess);
 
 	/**
 	 * Remove MTypeObject values depending on TypeId
@@ -45,7 +45,7 @@ public interface MTypeManagerDAO {
 	/**
 	 * Returns propertyDef depending on propId
 	 */
-	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId);
+	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId, String[] fieldAccess);
 
 	public <T extends TypeDefinition> void commit(T entity);
 

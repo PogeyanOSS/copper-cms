@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 
 public class CmisRelationshipService {
@@ -46,7 +47,8 @@ public class CmisRelationshipService {
 		public static ObjectList getObjectRelationships(String repositoryId, String objectId,
 				Boolean includeSubRelationshipTypes, RelationshipDirection relationshipDirection, String typeId,
 				String filter, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
-				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException, MongoException {
+				ObjectInfoHandler objectInfos, IUserObject userObject)
+				throws CmisObjectNotFoundException, MongoException {
 			IBaseObject so = null;
 			try {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
@@ -77,17 +79,17 @@ public class CmisRelationshipService {
 				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
 						-1, null);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
-						IncludeRelationships.SOURCE, so, userName, maxItemsInt, skipCountInt, filterArray);
+						IncludeRelationships.SOURCE, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.TARGET) {
 				totalSize = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId, so.getId().toString(), -1,
 						-1, null);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
-						IncludeRelationships.TARGET, so, userName, maxItemsInt, skipCountInt, filterArray);
+						IncludeRelationships.TARGET, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.EITHER) {
 				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
 						-1, null);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
-						IncludeRelationships.BOTH, so, userName, maxItemsInt, skipCountInt, filterArray);
+						IncludeRelationships.BOTH, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			}
 
 			result.setObjects(odList);
