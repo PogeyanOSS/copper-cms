@@ -121,8 +121,6 @@ public class CmisObjectService {
 
 	public static class Impl {
 
-		private static boolean undefined;
-
 		/**
 		 * Adding RootFolder into MongoDB
 		 */
@@ -1392,12 +1390,14 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			PropertyData<?> virtual = properties.getProperties().get("isVirtual");
 
-			boolean isVirtual = virtual != null ? (boolean) virtual.getFirstValue() : false;
-			LOG.debug("isVirtual: {}, hence creating folder in local storage", isVirtual);
-			if (isVirtual == undefined || !isVirtual) {
-				IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userName,
-						secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
-						aclRemove);
+			boolean isVirtual = virtual != null  ? (boolean) virtual.getFirstValue() : false;
+			LOG.info("className: {}, methodName: {}, repository: {}, isVirtual: {}","cmisObjectService", "virtual", repositoryId, isVirtual);
+			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userName,
+					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
+					aclRemove);
+
+			if (!isVirtual) {
+			
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 
 				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
@@ -1417,16 +1417,10 @@ public class CmisObjectService {
 					LOG.error("createFolderIntern folder creation exception: {}, repositoryId: {}", e, repositoryId);
 					throw new IllegalArgumentException(e);
 				}
+			
+			}
 				invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 				return result;
-			}
-				LOG.debug("isVirtual: {}, hence we are not creating folder in local storage", isVirtual);
-				IBaseObject results = createFolderObject(repositoryId, parent, objectId, folderName, userName,
-						secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
-						aclRemove);
-
-				invokeObjectFlowServiceAfterCreate(objectFlowService, results, ObjectFlowType.CREATED, null);
-				return results;
 		}
 		public static void createTypeFolder(String repositoryId, Properties properties, String userName) {
 			String typeId = getObjectTypeId(properties);
