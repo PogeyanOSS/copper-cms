@@ -1389,17 +1389,15 @@ public class CmisObjectService {
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			PropertyData<?> virtual = properties.getProperties().get("isVirtual");
-
-			boolean isVirtual = virtual != null  ? (boolean) virtual.getFirstValue() : false;
-			LOG.info("className: {}, methodName: {}, repository: {}, isVirtual: {}","cmisObjectService", "virtual", repositoryId, isVirtual);
+			boolean isVirtual = virtual != null ? (boolean) virtual.getFirstValue() : false;
+			LOG.info("className: {}, methodName: {}, repository: {}, isVirtual: {}", "cmisObjectService", "virtual",
+					repositoryId, isVirtual);
 			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userName,
 					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
 					aclRemove);
 
 			if (!isVirtual) {
-			
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-
 				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 				try {
 					if (localService != null) {
@@ -1411,17 +1409,16 @@ public class CmisObjectService {
 						localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
 						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
 					}
-
 				} catch (IOException e) {
 					objectMorphiaDAO.delete(folderId, true, null);
 					LOG.error("createFolderIntern folder creation exception: {}, repositoryId: {}", e, repositoryId);
 					throw new IllegalArgumentException(e);
 				}
-			
 			}
-				invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
-				return result;
+			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
+			return result;
 		}
+
 		public static void createTypeFolder(String repositoryId, Properties properties, String userName) {
 			String typeId = getObjectTypeId(properties);
 
