@@ -1388,7 +1388,7 @@ public class CmisObjectService {
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
-			PropertyData<?> virtual = properties.getProperties().get("isVirtual");
+			PropertyData<?> virtual = properties.getProperties().get("cmis_ext:isVirtual");
 			boolean isVirtual = virtual != null ? (boolean) virtual.getFirstValue() : false;
 			LOG.info("className: {}, methodName: {}, repository: {}, isVirtual: {}", "cmisObjectService", "virtual",
 					repositoryId, isVirtual);
