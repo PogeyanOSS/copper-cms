@@ -1422,25 +1422,33 @@ public class CmisObjectService {
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			PropertyData<?> virtual = properties.getProperties().get("cmis_ext:isVirtual");
+			boolean isVirtual = virtual != null ? (boolean) virtual.getFirstValue() : false;
+			LOG.info("className: {}, methodName: {}, repositoryId: {}, isVirtual: {}", "cmisObjectService", "createFolderIntern",
+					repositoryId, isVirtual);
+
 			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userObject,
 					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
 					aclRemove);
-			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			try {
-				if (localService != null) {
-					LOG.debug("localService calling createFolder: {}, {}",
-							localService.getClass() != null ? localService.getClass().getName() : null, result.getId());
-				}
-				if (localService != null) {
-					localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
-					LOG.info("Folder: {} created ", result != null ? result.getName() : null);
-				}
 
-			} catch (IOException e) {
-				objectMorphiaDAO.delete(folderId, true, null);
-				LOG.error("createFolderIntern folder creation exception: {}, repositoryId: {}", e, repositoryId);
-				throw new IllegalArgumentException(e);
+			if (!isVirtual) {
+				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+				try {
+					if (localService != null) {
+						LOG.debug("localService calling createFolder: {}, {}",
+								localService.getClass() != null ? localService.getClass().getName() : null,
+								result.getId());
+					}
+					if (localService != null) {
+						localService.createFolder(result.getId().toString(), result.getName(), result.getPath());
+						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
+					}
+				} catch (IOException e) {
+					objectMorphiaDAO.delete(folderId, true, null);
+					LOG.error("className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}", "cmisObjectService", "createFolderIntern", repositoryId, e);
+					throw new IllegalArgumentException(e);
+				}
 			}
 			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
