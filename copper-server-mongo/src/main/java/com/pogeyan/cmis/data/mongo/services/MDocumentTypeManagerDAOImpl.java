@@ -30,9 +30,13 @@ public class MDocumentTypeManagerDAOImpl extends BasicDAO<MTypeDocumentObject, O
 		super(entityClass, ds);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
-	public MTypeDocumentObject getByTypeId(String typeId) {
+	public MTypeDocumentObject getByTypeId(String typeId, String[] fieldAccess) {
 		Query<MTypeDocumentObject> query = createQuery().field("id").equal(typeId);
+		if (fieldAccess != null) {
+			query = query.retrievedFields(true, fieldAccess);
+		}
 		return query.get();
 	}
 

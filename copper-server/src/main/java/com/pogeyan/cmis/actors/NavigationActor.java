@@ -198,7 +198,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, getting first level of parent using this id: {}, repositoryId: {}, query filter: {}",
 				"getFolderParent", objectId, request.getRepositoryId(), filter);
 		ObjectData parent = CmisNavigationService.Impl.getFolderParent(request.getRepositoryId(), objectId, filter,
-				null, request.getUserObject().getUserDN());
+				null, request.getUserObject());
 
 		if (parent == null) {
 			throw new CmisRuntimeException("Parent is null!");
@@ -231,7 +231,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				filter);
 		List<ObjectParentData> parents = CmisNavigationService.Impl.getObjectParents(request.getRepositoryId(),
 				objectId, filter, includeAllowableActions, includeRelationships, renditionFilter,
-				includeRelativePathSegment, null, request.getUserObject().getUserDN());
+				includeRelativePathSegment, null, request.getUserObject());
 
 		if (parents == null) {
 			throw new CmisRuntimeException("Parents are null!");

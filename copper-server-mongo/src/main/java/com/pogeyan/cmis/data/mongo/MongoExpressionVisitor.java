@@ -172,7 +172,7 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	public Object getPropertyValue(String propId, String value) {
 		if (this.typeManager != null) {
-			Map<String, PropertyDefinition<?>> prop = this.typeManager.getAllPropertyById(propId);
+			Map<String, PropertyDefinition<?>> prop = this.typeManager.getAllPropertyById(propId, null);
 			if (prop != null) {
 				try {
 					PropertyDefinition<?> propDef = prop.get(propId);

@@ -196,6 +196,7 @@ public class Tokenizer {
 		return isLiteral;
 	}
 
+	@SuppressWarnings("unused")
 	private boolean checkForBoolean(final int oldPosition, final String rem_expr) {
 		boolean isBoolean = false;
 		if ("true".equals(rem_expr) || "false".equals(rem_expr)) {
