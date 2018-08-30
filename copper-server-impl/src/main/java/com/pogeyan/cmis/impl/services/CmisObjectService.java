@@ -1390,7 +1390,7 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			PropertyData<?> virtual = properties.getProperties().get("cmis_ext:isVirtual");
 			boolean isVirtual = virtual != null ? (boolean) virtual.getFirstValue() : false;
-			LOG.info("className: {}, methodName: {}, repository: {}, isVirtual: {}", "cmisObjectService", "virtual",
+			LOG.info("className: {}, methodName: {}, repository: {}, isVirtual: {}", "cmisObjectService", "createFolderIntern",
 					repositoryId, isVirtual);
 			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userName,
 					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
@@ -1411,7 +1411,7 @@ public class CmisObjectService {
 					}
 				} catch (IOException e) {
 					objectMorphiaDAO.delete(folderId, true, null);
-					LOG.error("createFolderIntern folder creation exception: {}, repositoryId: {}", e, repositoryId);
+					LOG.error("className: {}, methodName: {},repositoryId: {} ,createFolderIntern folder creation exception: {}","cmisObjectService", "createFolderIntern", repositoryId, e);
 					throw new IllegalArgumentException(e);
 				}
 			}
