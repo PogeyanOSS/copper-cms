@@ -1423,7 +1423,7 @@ public class CmisObjectService {
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			PropertyData<?> virtual = properties.getProperties().get("cmis_ext:isVirtual");
-			boolean isVirtual = virtual != null ? (boolean) virtual.getFirstValue() : false;
+			boolean isVirtual = virtual != null ? Boolean.parseBoolean(virtual.getFirstValue().toString()) : false;
 			LOG.info("className: {}, methodName: {}, repositoryId: {}, isVirtual: {}", "cmisObjectService", "createFolderIntern",
 					repositoryId, isVirtual);
 
