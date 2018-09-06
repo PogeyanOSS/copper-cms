@@ -192,3 +192,6 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 * Adding objectFlow factory classpath in repository.properties file.
 * Example - objectFlowManagerClass=com.pogeyan.cmis.aws.content.AwsObjectFlowFactory
 
+## Tracing with Opencensus and Jaegar
+* Add tracingApi classpath in repository.properties file.
+* Example - tracingApiClass=com.pogeyan.cmis.impl.tracing.TracingSyncImpl

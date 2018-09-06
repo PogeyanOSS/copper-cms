@@ -25,8 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Timer;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
-import com.pogeyan.cmis.api.utils.*;
+import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.MetricsInputs;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
@@ -47,6 +50,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	protected static final Logger logger = LoggerFactory.getLogger(BaseActor.class);
 	private Map<String, ActorHandleContext> messageHandles = new HashMap<String, ActorHandleContext>();
 	private Map<String, Timer.Context> perfTimerContext = new HashMap<String, Timer.Context>();
+	private ISpan parentspan;
 
 	public abstract String getName();
 
@@ -78,6 +82,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	 *            the base message
 	 */
 	private void doProcess(final ActorRef sender, BaseMessage b) {
+
 		if (logger.isTraceEnabled()) {
 			logger.trace("Processing the message from sender: {}, messageId: {}", sender, b.getMessageId());
 		}
@@ -94,6 +99,10 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Message decoded for sender:{} with messageId: {}", sender, b.getMessageId());
 				}
+				
+				 parentspan = TracingApiServiceFactory.getApiService().extractCMISHeaders(
+						"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getTracingHeaders());
+				b.addBaggage("ParentSpan", parentspan);
 
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());
 				if (Helpers.isPerfMode()) {
@@ -136,6 +145,8 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 							timerContextStop.stop();
 							this.perfTimerContext.remove(b.getMessageId());
 						}
+						TracingApiServiceFactory.getApiService().endSpan(parentspan);
+						
 					}
 
 				}).exceptionally((err) -> {

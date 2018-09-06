@@ -16,6 +16,7 @@
 package com.pogeyan.cmis.actors;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
@@ -31,11 +32,13 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(DiscoveryActor.class);
@@ -47,13 +50,14 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 
 	public DiscoveryActor() {
 		this.registerMessageHandle("contentChanges", QueryGetRequest.class, (t, b) -> CompletableFuture.supplyAsync(
-				() -> CmisBaseResponse.fromWithTryCatch(() -> this.getContentChanges((QueryGetRequest) t))));
+				() -> CmisBaseResponse.fromWithTryCatch(() -> this.getContentChanges((QueryGetRequest) t,(HashMap<String,Object>)b))));
 
 		this.registerMessageHandle("query", QueryGetRequest.class, (t, b) -> CompletableFuture
 				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getQuery((QueryGetRequest) t))));
 	}
 
-	private JSONObject getContentChanges(QueryGetRequest request) throws CmisRuntimeException {
+	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String,Object> baggage) throws CmisRuntimeException {
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan((ISpan) baggage.get("ParentSpan"),"DiscoveryActor_getContentChanges");
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
@@ -78,6 +82,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());
+		TracingApiServiceFactory.getApiService().endSpan(span);
 		return jsonChanges;
 	}
 

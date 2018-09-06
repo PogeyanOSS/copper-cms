@@ -33,7 +33,8 @@ import com.pogeyan.cmis.api.BaseMessage;
 import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.MessageType;
 import com.pogeyan.cmis.api.messages.MemberUpRequest;
-import com.pogeyan.cmis.api.utils.*;
+import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.MetricsInputs;
 
 import akka.actor.ActorRef;
 import akka.actor.Terminated;
@@ -69,7 +70,6 @@ public class GatewayActor extends UntypedActor {
 		}
 	}
 
-	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof BaseMessage) {
@@ -105,7 +105,8 @@ public class GatewayActor extends UntypedActor {
 						LOG.error("Actor not found for {}", bm.getTypeName());
 						BaseResponse errorResponse = BaseResponse.error("Actor not available for: " + bm.getMessageId()
 								+ ", using this actor: " + bm.getTypeName(), 500);
-						BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse);
+						BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse,
+								new HashMap<String, String>());
 						respMessage.setMessageType(MessageType.ERROR);
 						this.getSender().tell(respMessage, null);
 						if (Helpers.isPerfMode()) {
@@ -116,7 +117,8 @@ public class GatewayActor extends UntypedActor {
 					BaseResponse errorResponse = BaseResponse
 							.error("Message id already present --> " + bm.getMessageId(), 404);
 					LOG.error("Message id already present: {}", bm.getMessageId());
-					BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse);
+					BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse,
+							new HashMap<String, String>());
 					respMessage.setMessageType(MessageType.ERROR);
 					this.getSender().tell(respMessage, null);
 					if (Helpers.isPerfMode()) {

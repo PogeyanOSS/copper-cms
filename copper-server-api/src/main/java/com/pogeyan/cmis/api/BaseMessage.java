@@ -17,6 +17,7 @@ package com.pogeyan.cmis.api;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -40,7 +41,8 @@ public class BaseMessage {
 	private String actionName;
 	@JsonDeserialize(using = MessageTypeDeserializer.class)
 	private MessageType messageType = MessageType.REQUEST;
-
+	private Map<String,String> tracingHeaders = new HashMap<String,String>();
+	
 	/**
 	 * Instantiates a new base message.
 	 */
@@ -132,6 +134,18 @@ public class BaseMessage {
 		}
 
 		return null;
+	}
+	
+	/**
+	 * Gets the request headers
+	 * @return
+	 */
+	public Map<String, String> getTracingHeaders() {
+		return tracingHeaders;
+	}
+
+	public void setTracingHeaders(Map<String, String> tracingHeaders) {
+		this.tracingHeaders = tracingHeaders;
 	}
 
 	static ObjectMapper jsonMapper = new ObjectMapper();
@@ -285,6 +299,7 @@ public class BaseMessage {
 		b0.actionName = this.actionName;
 		b0.messageType = msgType;
 		b0.baggage = this.baggage;
+		b0.tracingHeaders = this.tracingHeaders;
 		return b0;
 	}
 
@@ -320,8 +335,8 @@ public class BaseMessage {
 	 *            the message body
 	 * @return the base message
 	 */
-	public static BaseMessage create(String typeName, final String actionName, final Object messageBody) {
-		return BaseMessage.create(typeName, actionName, messageBody, new HashMap<String, Object>());
+	public static BaseMessage create(String typeName, final String actionName, final Object messageBody, Map<String,String> tracingHeaders) {
+		return BaseMessage.create(typeName, actionName, messageBody, new HashMap<String, Object>(),tracingHeaders);
 	}
 
 	/**
@@ -337,8 +352,8 @@ public class BaseMessage {
 	 * @return the base message
 	 */
 	public static BaseMessage create(String messageId, String typeName, final String actionName,
-			final Object messageBody) {
-		BaseMessage bm = BaseMessage.create(typeName, actionName, messageBody, new HashMap<String, Object>());
+			final Object messageBody, HashMap<String,String> tracingHeaders) {
+		BaseMessage bm = BaseMessage.create(typeName, actionName, messageBody, new HashMap<String, Object>(),tracingHeaders);
 		bm.setMessageId(messageId);
 		return bm;
 	}
@@ -359,7 +374,7 @@ public class BaseMessage {
 	 * @return the base message
 	 */
 	public static BaseMessage create(String typeName, final String actionName, final Object messageBody,
-			final HashMap<String, Object> baggage) {
+			final HashMap<String, Object> baggage, Map<String,String> tracingHeaders) {
 		BaseMessage bm = new BaseMessage();
 		bm.setMessageId(Long.toString(Helpers.rand()));
 		bm.setTypeName(typeName);
@@ -367,6 +382,8 @@ public class BaseMessage {
 		bm.setMessageType(MessageType.REQUEST);
 		bm.setMessageInternal(messageBody);
 		bm.baggage = baggage;
+		bm.addBaggage("tracingHeaders", tracingHeaders);
+		bm.setTracingHeaders(tracingHeaders);
 		return bm;
 	}
 
