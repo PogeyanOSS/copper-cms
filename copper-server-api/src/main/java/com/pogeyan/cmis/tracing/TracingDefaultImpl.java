@@ -10,20 +10,18 @@ import com.pogeyan.cmis.api.data.ITracingFacade;
 
 public class TracingDefaultImpl implements ITracingFacade {
 	private static final Logger LOG = LoggerFactory.getLogger(TracingDefaultImpl.class);
+	ISpan span;
 
 	@Override
-	public ISpan startSpan(ISpan span, String name) {
-		LOG.debug("StartTime: {}", System.currentTimeMillis());
-		return null;
+	public ISpan startSpan(ISpan span, String name, Map<String, String> headers) {
+		span = new TracingDefaultSpanImpl();
+		span.setSpan(name);
+		return span;
 	}
 
 	@Override
 	public void endSpan(ISpan span) {
-		LOG.debug("EndTime: {}", System.currentTimeMillis());
-	}
-
-	@Override
-	public void spanHandleErrors(ISpan span, String errorDescription, String repoId) {
+		span.close();
 	}
 
 	@Override
@@ -32,11 +30,7 @@ public class TracingDefaultImpl implements ITracingFacade {
 	}
 
 	@Override
-	public ISpan extractCMISHeaders(String spanName, Map<String, String> headers) {
-		return null;
-	}
+	public void updateSpan(ISpan span, boolean isError, String description, Map<String, Object> map) {
 
-	@Override
-	public void addSpanAnnotations(ISpan span, String description, Map<String, Object> map) {		
 	}
 }

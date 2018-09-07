@@ -61,7 +61,7 @@ public class CmisDiscoveryService {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
-			ISpan span = TracingApiServiceFactory.getApiService().startSpan(null,"CmisDiscoveryService_getContentChanges");
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(null,"CmisDiscoveryService_getContentChanges",null);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)

@@ -50,7 +50,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	protected static final Logger logger = LoggerFactory.getLogger(BaseActor.class);
 	private Map<String, ActorHandleContext> messageHandles = new HashMap<String, ActorHandleContext>();
 	private Map<String, Timer.Context> perfTimerContext = new HashMap<String, Timer.Context>();
-	private ISpan parentspan;
+	private ISpan parentSpan;
 
 	public abstract String getName();
 
@@ -99,10 +99,10 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Message decoded for sender:{} with messageId: {}", sender, b.getMessageId());
 				}
-				
-				 parentspan = TracingApiServiceFactory.getApiService().extractCMISHeaders(
+
+				parentSpan = TracingApiServiceFactory.getApiService().startSpan(null,
 						"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getTracingHeaders());
-				b.addBaggage("ParentSpan", parentspan);
+				b.addBaggage("ParentSpan", parentSpan);
 
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());
 				if (Helpers.isPerfMode()) {
@@ -145,8 +145,8 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 							timerContextStop.stop();
 							this.perfTimerContext.remove(b.getMessageId());
 						}
-						TracingApiServiceFactory.getApiService().endSpan(parentspan);
-						
+						TracingApiServiceFactory.getApiService().endSpan(parentSpan);
+
 					}
 
 				}).exceptionally((err) -> {

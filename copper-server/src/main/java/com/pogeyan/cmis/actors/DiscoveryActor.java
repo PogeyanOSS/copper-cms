@@ -57,7 +57,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 	}
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String,Object> baggage) throws CmisRuntimeException {
-		ISpan span = TracingApiServiceFactory.getApiService().startSpan((ISpan) baggage.get("ParentSpan"),"DiscoveryActor_getContentChanges");
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan((ISpan) baggage.get("ParentSpan"),"DiscoveryActor_getContentChanges",null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
