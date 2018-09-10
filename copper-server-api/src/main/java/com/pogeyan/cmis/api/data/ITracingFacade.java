@@ -9,7 +9,4 @@ public interface ITracingFacade {
 	public void endSpan(ISpan span);
 
 	public void updateSpan(ISpan span, boolean isError, String description, Map<String, Object> map);
-
-	public void registerJaegarService();
-
 }

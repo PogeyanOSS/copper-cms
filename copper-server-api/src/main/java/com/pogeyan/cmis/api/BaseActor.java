@@ -101,7 +101,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 				}
 
 				parentSpan = TracingApiServiceFactory.getApiService().startSpan(null,
-						"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getTracingHeaders());
+						"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getBaggage("RequestHeaders"));
 				b.addBaggage("ParentSpan", parentSpan);
 
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());

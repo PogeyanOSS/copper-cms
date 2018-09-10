@@ -245,7 +245,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
 						if (initializeTracingApiServiceFactory(traceApiClass)) {
-							TracingApiServiceFactory.getApiService().registerJaegarService();
 							if (externalActorClassName != null) {
 								if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
 									if (ObjectFlowServiceClass != null) {

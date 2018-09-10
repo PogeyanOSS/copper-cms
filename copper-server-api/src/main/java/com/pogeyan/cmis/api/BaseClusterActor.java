@@ -15,8 +15,6 @@
  */
 package com.pogeyan.cmis.api;
 
-import java.util.HashMap;
-
 import com.pogeyan.cmis.api.messages.MemberUpRequest;
 
 import akka.cluster.ClusterEvent.MemberUp;
@@ -59,7 +57,7 @@ public abstract class BaseClusterActor<T, R extends BaseResponse> extends BaseAc
 	void register(Member member) {
 		MemberUpRequest mUp = new MemberUpRequest();
 		mUp.setSelectors(this.getMethodSelectors());
-		BaseMessage bm = BaseMessage.create("entry", "entry", mUp, new HashMap<String, String>());
+		BaseMessage bm = BaseMessage.create("entry", "entry", mUp);
 		/*
 		 * if (!Helpers.isInDevMode() && member.hasRole("gateway")) {
 		 * getContext().actorSelection(member.address() +

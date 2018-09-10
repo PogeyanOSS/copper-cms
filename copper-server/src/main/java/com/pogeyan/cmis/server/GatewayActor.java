@@ -105,8 +105,7 @@ public class GatewayActor extends UntypedActor {
 						LOG.error("Actor not found for {}", bm.getTypeName());
 						BaseResponse errorResponse = BaseResponse.error("Actor not available for: " + bm.getMessageId()
 								+ ", using this actor: " + bm.getTypeName(), 500);
-						BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse,
-								new HashMap<String, String>());
+						BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse);
 						respMessage.setMessageType(MessageType.ERROR);
 						this.getSender().tell(respMessage, null);
 						if (Helpers.isPerfMode()) {
@@ -117,8 +116,7 @@ public class GatewayActor extends UntypedActor {
 					BaseResponse errorResponse = BaseResponse
 							.error("Message id already present --> " + bm.getMessageId(), 404);
 					LOG.error("Message id already present: {}", bm.getMessageId());
-					BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse,
-							new HashMap<String, String>());
+					BaseMessage respMessage = BaseMessage.create("ERROR", "ERROR", errorResponse);
 					respMessage.setMessageType(MessageType.ERROR);
 					this.getSender().tell(respMessage, null);
 					if (Helpers.isPerfMode()) {

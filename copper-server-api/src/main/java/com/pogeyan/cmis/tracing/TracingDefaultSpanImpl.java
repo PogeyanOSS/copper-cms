@@ -17,7 +17,7 @@ public class TracingDefaultSpanImpl implements ISpan {
 	public void setSpan(String name) {
 		this.name = name;
 		this.startTime = System.currentTimeMillis();
-		LOG.info("Name: {}, StartTime: {} ms", name, startTime);
+		LOG.debug("Method Name: {}, StartTime: {} ms", name, startTime);
 	}
 
 	@Override
@@ -28,8 +28,7 @@ public class TracingDefaultSpanImpl implements ISpan {
 	@Override
 	public void close() {
 		Long totalTime = System.currentTimeMillis() - startTime;
-		LOG.info("Name: {}, TotalTime: {} ms", name, totalTime);
-
+		LOG.debug("Method Name: {}, TotalTime: {} ms", name, totalTime);
 	}
 
 	@Override
