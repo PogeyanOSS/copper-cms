@@ -8,7 +8,5 @@ public interface ISpan {
 
 	void updateSpan(boolean isError, String description, Map<String, Object> map);
 
-//	ISpan setSpanWithParent(String name);
-
 	void close();
 }

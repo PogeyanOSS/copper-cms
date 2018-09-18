@@ -105,7 +105,6 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 							"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getBaggage("RequestHeaders"));
 					traceContext.put(b.getMessageId(), parentSpan);
 					b.addBaggage("BaseMessageId", b.getMessageId());
-//					b.addBaggage("ParentSpan", parentSpan);
 				}
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());
 				if (Helpers.isPerfMode()) {
