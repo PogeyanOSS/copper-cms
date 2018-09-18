@@ -4,11 +4,11 @@ import java.util.Map;
 
 public interface ISpan {
 
-	void setSpan(String name);
+	void setSpan(String baseMessageId, String name, Map<String, String> headers);
 
 	void updateSpan(boolean isError, String description, Map<String, Object> map);
 
-	ISpan setSpanWithParent(String name);
+//	ISpan setSpanWithParent(String name);
 
 	void close();
 }

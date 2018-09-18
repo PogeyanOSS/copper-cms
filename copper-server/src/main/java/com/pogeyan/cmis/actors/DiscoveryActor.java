@@ -57,7 +57,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 	}
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String,Object> baggage) throws CmisRuntimeException {
-		ISpan span = TracingApiServiceFactory.getApiService().startSpan((ISpan) baggage.get("ParentSpan"),"DiscoveryActor_getContentChanges",null);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan((String) baggage.get("BaseMessageId"),"DiscoveryActor_getContentChanges",null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
@@ -76,7 +76,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		LOG.info(
 				"Method name: {}, get latest content changes using this id: {}, repositoryId: {}, includeAcl: {}, includePolicyIds: {}",
 				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
-		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
+		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges((String) baggage.get("BaseMessageId"),request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
 				request.getUserObject());
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),

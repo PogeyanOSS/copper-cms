@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Timer;
 import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.data.ITracingFacade;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
@@ -50,7 +51,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	protected static final Logger logger = LoggerFactory.getLogger(BaseActor.class);
 	private Map<String, ActorHandleContext> messageHandles = new HashMap<String, ActorHandleContext>();
 	private Map<String, Timer.Context> perfTimerContext = new HashMap<String, Timer.Context>();
-	private ISpan parentSpan;
+	private Map<String, ISpan> traceContext = new HashMap<String, ISpan>();
 
 	public abstract String getName();
 
@@ -99,11 +100,13 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Message decoded for sender:{} with messageId: {}", sender, b.getMessageId());
 				}
-
-				parentSpan = TracingApiServiceFactory.getApiService().startSpan(null,
-						"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getBaggage("RequestHeaders"));
-				b.addBaggage("ParentSpan", parentSpan);
-
+				if (Helpers.isPerfMode()) {
+					ISpan parentSpan = TracingApiServiceFactory.getApiService().startSpan(b.getMessageId(),
+							"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getBaggage("RequestHeaders"));
+					traceContext.put(b.getMessageId(), parentSpan);
+					b.addBaggage("BaseMessageId", b.getMessageId());
+//					b.addBaggage("ParentSpan", parentSpan);
+				}
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());
 				if (Helpers.isPerfMode()) {
 					Timer.Context timerContext = MetricsInputs.get()
@@ -145,8 +148,9 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 							timerContextStop.stop();
 							this.perfTimerContext.remove(b.getMessageId());
 						}
-						TracingApiServiceFactory.getApiService().endSpan(parentSpan);
-
+						TracingApiServiceFactory.getApiService().endSpan(traceContext.get(b.getMessageId()));
+						this.traceContext.remove(b.getMessageId());
+						ITracingFacade.traceContextMap.remove(b.getMessageId());
 					}
 
 				}).exceptionally((err) -> {

@@ -14,15 +14,10 @@ public class TracingDefaultSpanImpl implements ISpan {
 	String name;
 
 	@Override
-	public void setSpan(String name) {
+	public void setSpan(String baseMessageId, String name, Map<String, String> headers) {
 		this.name = name;
 		this.startTime = System.currentTimeMillis();
 		LOG.debug("Method Name: {}, StartTime: {} ms", name, startTime);
-	}
-
-	@Override
-	public ISpan setSpanWithParent(String name) {
-		return null;
 	}
 
 	@Override
