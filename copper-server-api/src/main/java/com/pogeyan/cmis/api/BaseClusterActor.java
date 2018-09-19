@@ -16,7 +16,6 @@
 package com.pogeyan.cmis.api;
 
 import com.pogeyan.cmis.api.messages.MemberUpRequest;
-
 import akka.cluster.ClusterEvent.MemberUp;
 import akka.cluster.Member;
 

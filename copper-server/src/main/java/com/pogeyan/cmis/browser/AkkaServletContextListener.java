@@ -89,7 +89,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String DEFAULT_CACHE_PROVIDER_CLASS = "com.pogeyan.cmis.impl.cacheProvider.GoogleGuiceCacheProviderImpl";
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 	private static final String DEFAULT_TRACING_API_CLASS = "com.pogeyan.cmis.tracing.TracingDefaultImpl";
-	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiClass";
+	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 

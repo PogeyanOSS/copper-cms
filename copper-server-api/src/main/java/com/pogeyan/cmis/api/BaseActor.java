@@ -52,6 +52,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	private Map<String, ActorHandleContext> messageHandles = new HashMap<String, ActorHandleContext>();
 	private Map<String, Timer.Context> perfTimerContext = new HashMap<String, Timer.Context>();
 	private Map<String, ISpan> traceContext = new HashMap<String, ISpan>();
+	private static final String TRACINGID = "TracingId";
 
 	public abstract String getName();
 
@@ -104,7 +105,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 					ISpan parentSpan = TracingApiServiceFactory.getApiService().startSpan(b.getMessageId(),
 							"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getBaggage("RequestHeaders"));
 					traceContext.put(b.getMessageId(), parentSpan);
-					b.addBaggage("BaseMessageId", b.getMessageId());
+					b.addBaggage(TRACINGID, b.getMessageId());
 				}
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());
 				if (Helpers.isPerfMode()) {
