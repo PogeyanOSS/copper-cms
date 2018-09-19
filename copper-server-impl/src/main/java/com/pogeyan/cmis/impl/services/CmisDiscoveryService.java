@@ -45,23 +45,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
-import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.api.data.ISpan;
 
 public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
 
 	public static class Impl {
-		public static ObjectList getContentChanges(String baseMessageId,String repositoryId, Holder<String> changeLogToken,
+		public static ObjectList getContentChanges(String baseMessageId, String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
-			ISpan span = TracingApiServiceFactory.getApiService().startSpan(baseMessageId,"CmisDiscoveryService_getContentChanges",null);
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(baseMessageId, "CmisDiscoveryService_getContentChanges", null);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
