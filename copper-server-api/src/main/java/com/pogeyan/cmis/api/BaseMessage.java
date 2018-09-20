@@ -31,6 +31,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
  * BaseMessage container for messages passed from/to between actors.
  */
 public class BaseMessage {
+	private static final String REQUEST_HEADERS = "RequestHeaders";
 	private String messageId;
 	private HashMap<String, Object> baggage = new HashMap<String, Object>();
 
@@ -359,7 +360,7 @@ public class BaseMessage {
 	public static BaseMessage create(String typeName, final String actionName,
 			final Object messageBody, Map<String,String> tracingHeaders) {
 		BaseMessage bm = BaseMessage.create(typeName, actionName, messageBody, new HashMap<String, Object>());
-		bm.addBaggage("RequestHeaders", tracingHeaders);
+		bm.addBaggage(REQUEST_HEADERS, tracingHeaders);
 		return bm;
 	}
 	/**

@@ -58,10 +58,12 @@ public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
 
 	public static class Impl {
-		public static ObjectList getContentChanges(String baseMessageId, String repositoryId, Holder<String> changeLogToken,
-				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
-				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject) {
-			ISpan span = TracingApiServiceFactory.getApiService().startSpan(baseMessageId, "CmisDiscoveryService_getContentChanges", null);
+		public static ObjectList getContentChanges(String baseMessageId, String repositoryId,
+				Holder<String> changeLogToken, Boolean includeProperties, String filter, String orderBy,
+				Boolean includePolicyIds, Boolean includeAcl, BigInteger maxItems, ObjectInfoHandler objectInfos,
+				IUserObject userObject) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(baseMessageId,
+					"CmisDiscoveryService_getContentChanges", null);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -113,11 +115,15 @@ public class CmisDiscoveryService {
 						// boolean objectOnly = true;
 						// for (AccessControlListImplExt acl : mAcl) {
 						// if (acl != null) {
-						// if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
+						// if
+						// (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE"))
+						// {
 						// List<Ace> listAce = getListAce(acl, principalIds);
 						// if (listAce.size() >= 1) {
-						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
-						// filterCollection, includeProperties, includePolicyIds, includeAcl);
+						// ObjectDataImpl odImpl =
+						// getObjectDataImpl(repositoryId, object,
+						// filterCollection, includeProperties,
+						// includePolicyIds, includeAcl);
 						// lod.add(odImpl);
 						// objectOnly = false;
 						// break;
@@ -127,9 +133,11 @@ public class CmisDiscoveryService {
 						// }
 						//
 						// if (objectOnly) {
-						// List<Ace> listAce = getListAce(object.getAcl(), principalIds);
+						// List<Ace> listAce = getListAce(object.getAcl(),
+						// principalIds);
 						// if (listAce.size() >= 1) {
-						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
+						// ObjectDataImpl odImpl =
+						// getObjectDataImpl(repositoryId, object,
 						// filterCollection,
 						// includeProperties, includePolicyIds, includeAcl);
 						// lod.add(odImpl);
@@ -141,12 +149,11 @@ public class CmisDiscoveryService {
 				}
 
 			}
-
 			objList.setObjects(lod);
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
 			LOG.debug("getContentChanges result data count: {}", objList != null ? objList.getNumItems() : objList);
-			TracingApiServiceFactory.getApiService().endSpan(span);
+			TracingApiServiceFactory.getApiService().endSpan(baseMessageId, span);
 			return objList;
 		}
 
@@ -201,8 +208,8 @@ public class CmisDiscoveryService {
 
 		/**
 		 * Splits a filter statement into a collection of properties. If
-		 * <code>filter</code> is <code>null</code>, empty or one of the properties is
-		 * '*' , an empty collection will be returned.
+		 * <code>filter</code> is <code>null</code>, empty or one of the
+		 * properties is '*' , an empty collection will be returned.
 		 */
 		private static Set<String> splitFilter(String filter) {
 			if (filter == null) {

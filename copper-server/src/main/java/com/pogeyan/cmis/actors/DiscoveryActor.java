@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
-import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
@@ -60,7 +59,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws CmisRuntimeException {
-		ISpan span = TracingApiServiceFactory.getApiService().startSpan((String) baggage.get(TRACINGID),
+		TracingApiServiceFactory.getApiService().startSpan((String) baggage.get(TRACINGID),
 				"DiscoveryActor_getContentChanges", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
@@ -86,7 +85,6 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());
-		TracingApiServiceFactory.getApiService().endSpan(span);
 		return jsonChanges;
 	}
 
