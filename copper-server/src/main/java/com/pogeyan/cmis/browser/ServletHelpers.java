@@ -189,7 +189,8 @@ public class ServletHelpers {
 
 		String message = ex.getMessage();
 		/*
-		 * if (!(ex instanceof CmisBaseException)) { message = "An error occurred!"; }
+		 * if (!(ex instanceof CmisBaseException)) { message =
+		 * "An error occurred!"; }
 		 */
 
 		response.resetBuffer();
@@ -282,7 +283,7 @@ public class ServletHelpers {
 			postRequest.setUserName(userObject.getUserDN());
 			postRequest.setUserObject(userObject);
 		}
-		BaseMessage bm = BaseMessage.create("", cmisAction, postRequest);
+		BaseMessage bm = BaseMessage.create("", cmisAction, postRequest, ServletHelpers.getHeadersInfo(request));
 		return bm;
 	}
 
@@ -356,7 +357,7 @@ public class ServletHelpers {
 		}
 
 		selector = selector == null ? "GetRepositories".toLowerCase() : selector;
-		BaseMessage bm = BaseMessage.create("", selector, queryRequest);
+		BaseMessage bm = BaseMessage.create("", selector, queryRequest, ServletHelpers.getHeadersInfo(request));
 		return bm;
 	}
 

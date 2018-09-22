@@ -213,7 +213,7 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 		if (pathFragments.length > 0) {
 			loginRequest.setRepositoryId(pathFragments[0]);
 		}
-		BaseMessage loginMessage = BaseMessage.create("login", "authenticate", loginRequest);
+		BaseMessage loginMessage = BaseMessage.create("login", "authenticate", loginRequest, ServletHelpers.getHeadersInfo(request));
 		genericActorRef.tell(loginMessage, ActorRef.noSender());
 
 		/*

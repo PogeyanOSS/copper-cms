@@ -17,6 +17,7 @@ package com.pogeyan.cmis.api;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -30,6 +31,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
  * BaseMessage container for messages passed from/to between actors.
  */
 public class BaseMessage {
+	private static final String REQUEST_HEADERS = "RequestHeaders";
 	private String messageId;
 	private HashMap<String, Object> baggage = new HashMap<String, Object>();
 
@@ -342,7 +344,25 @@ public class BaseMessage {
 		bm.setMessageId(messageId);
 		return bm;
 	}
-
+	
+	/**
+	 * Creates the {@link BaseMessage} for the given type, action and message
+	 * body.
+	 *
+	 * @param typeName
+	 *            the type name
+	 * @param actionName
+	 *            the action name
+	 * @param messageBody
+	 *            the message body
+	 * @return the base message
+	 */
+	public static BaseMessage create(String typeName, final String actionName,
+			final Object messageBody, Map<String,String> tracingHeaders) {
+		BaseMessage bm = BaseMessage.create(typeName, actionName, messageBody, new HashMap<String, Object>());
+		bm.addBaggage(REQUEST_HEADERS, tracingHeaders);
+		return bm;
+	}
 	/**
 	 * Creates the {@link BaseMessage} for the given type, action, message body
 	 * and baggage.

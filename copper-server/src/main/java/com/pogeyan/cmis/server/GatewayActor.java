@@ -33,7 +33,8 @@ import com.pogeyan.cmis.api.BaseMessage;
 import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.MessageType;
 import com.pogeyan.cmis.api.messages.MemberUpRequest;
-import com.pogeyan.cmis.api.utils.*;
+import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.MetricsInputs;
 
 import akka.actor.ActorRef;
 import akka.actor.Terminated;
@@ -69,7 +70,6 @@ public class GatewayActor extends UntypedActor {
 		}
 	}
 
-	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof BaseMessage) {
