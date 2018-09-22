@@ -3,24 +3,24 @@ package com.pogeyan.cmis.tracing;
 import java.util.Map;
 
 import com.pogeyan.cmis.api.data.ISpan;
-import com.pogeyan.cmis.api.data.ITracingFacade;
+import com.pogeyan.cmis.api.data.ITracingService;
 
-public class TracingDefaultImpl implements ITracingFacade {
+public class TracingDefaultImpl implements ITracingService {
 	ISpan span;
 
 	@Override
-	public ISpan startSpan(String baseMessageId, String name, Map<String, String> headers) {
+	public ISpan startSpan(String tracingId, String name, Map<String, String> headers) {
 		span = new TracingDefaultSpanImpl();
-		span.setChildSpan(baseMessageId, name, headers);
+		span.setChildSpan(name, headers);
 		return span;
 	}
 
 	@Override
-	public void endSpan(String requestMessageId, ISpan spanC) {
+	public void endSpan(String tracingId, ISpan spanC) {
 		span.close(true);
 	}
 
 	@Override
-	public void updateSpan(ISpan span, boolean isError, String description, Map<String, Object> map) {
+	public void updateSpan(ISpan span, boolean isError, String description, Map<String, Object> attrMap) {
 	}
 }

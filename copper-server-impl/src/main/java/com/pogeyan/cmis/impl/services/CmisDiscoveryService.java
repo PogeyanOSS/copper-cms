@@ -45,24 +45,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.auth.IUserObject;
-import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
 
 public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
 
 	public static class Impl {
-		public static ObjectList getContentChanges(String baseMessageId, String repositoryId,
-				Holder<String> changeLogToken, Boolean includeProperties, String filter, String orderBy,
-				Boolean includePolicyIds, Boolean includeAcl, BigInteger maxItems, ObjectInfoHandler objectInfos,
-				IUserObject userObject) {
-			ISpan span = TracingApiServiceFactory.getApiService().startSpan(baseMessageId,
+		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
+				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
+				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId,
 					"CmisDiscoveryService_getContentChanges", null);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
@@ -115,15 +114,11 @@ public class CmisDiscoveryService {
 						// boolean objectOnly = true;
 						// for (AccessControlListImplExt acl : mAcl) {
 						// if (acl != null) {
-						// if
-						// (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE"))
-						// {
+						// if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
 						// List<Ace> listAce = getListAce(acl, principalIds);
 						// if (listAce.size() >= 1) {
-						// ObjectDataImpl odImpl =
-						// getObjectDataImpl(repositoryId, object,
-						// filterCollection, includeProperties,
-						// includePolicyIds, includeAcl);
+						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
+						// filterCollection, includeProperties, includePolicyIds, includeAcl);
 						// lod.add(odImpl);
 						// objectOnly = false;
 						// break;
@@ -133,11 +128,9 @@ public class CmisDiscoveryService {
 						// }
 						//
 						// if (objectOnly) {
-						// List<Ace> listAce = getListAce(object.getAcl(),
-						// principalIds);
+						// List<Ace> listAce = getListAce(object.getAcl(), principalIds);
 						// if (listAce.size() >= 1) {
-						// ObjectDataImpl odImpl =
-						// getObjectDataImpl(repositoryId, object,
+						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
 						// filterCollection,
 						// includeProperties, includePolicyIds, includeAcl);
 						// lod.add(odImpl);
@@ -149,11 +142,12 @@ public class CmisDiscoveryService {
 				}
 
 			}
+
 			objList.setObjects(lod);
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
 			LOG.debug("getContentChanges result data count: {}", objList != null ? objList.getNumItems() : objList);
-			TracingApiServiceFactory.getApiService().endSpan(baseMessageId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return objList;
 		}
 
@@ -208,8 +202,8 @@ public class CmisDiscoveryService {
 
 		/**
 		 * Splits a filter statement into a collection of properties. If
-		 * <code>filter</code> is <code>null</code>, empty or one of the
-		 * properties is '*' , an empty collection will be returned.
+		 * <code>filter</code> is <code>null</code>, empty or one of the properties is
+		 * '*' , an empty collection will be returned.
 		 */
 		private static Set<String> splitFilter(String filter) {
 			if (filter == null) {

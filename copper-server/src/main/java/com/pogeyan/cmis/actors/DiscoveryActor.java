@@ -35,13 +35,13 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(DiscoveryActor.class);
-	private static final String TRACINGID = "TracingId";
 
 	@Override
 	public String getName() {
@@ -59,8 +59,9 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws CmisRuntimeException {
-		TracingApiServiceFactory.getApiService().startSpan((String) baggage.get(TRACINGID),
-				"DiscoveryActor_getContentChanges", null);
+		String tracingId = baggage.get(BrowserConstants.TRACINGID) != null
+				? (String) baggage.get(BrowserConstants.TRACINGID) : null;
+		TracingApiServiceFactory.getApiService().startSpan(tracingId, "DiscoveryActor_getContentChanges", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
@@ -79,9 +80,9 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		LOG.info(
 				"Method name: {}, get latest content changes using this id: {}, repositoryId: {}, includeAcl: {}, includePolicyIds: {}",
 				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
-		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges((String) baggage.get(TRACINGID),
-				request.getRepositoryId(), changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds,
-				includeAcl, maxItems, null, request.getUserObject());
+		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
+				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
+				request.getUserObject(), tracingId);
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());

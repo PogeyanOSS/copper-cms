@@ -48,7 +48,7 @@ import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 import com.pogeyan.cmis.api.data.IObjectFlowFactory;
-import com.pogeyan.cmis.api.data.ITracingFacade;
+import com.pogeyan.cmis.api.data.ITracingService;
 import com.pogeyan.cmis.api.data.ITypePermissionFactory;
 import com.pogeyan.cmis.api.repo.IRepositoryManager;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
@@ -125,7 +125,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 				throw new IllegalArgumentException("Repository manager class not initilaized");
 			}
 		} catch (Exception e) {
-			LOG.error("Service factory couldn't be created: {}", e.toString(), e);
+			LOG.error("Service factory couldn't be created: {}", e);
 		}
 		if (externalActorClassMap != null && !externalActorClassMap.isEmpty()) {
 			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
@@ -163,16 +163,18 @@ public class AkkaServletContextListener implements ServletContextListener {
 		} catch (FileNotFoundException e) {
 			LOG.warn("REPOSITORY_PROPERTY_FILE_LOCATION is not found due to: {}", e.getMessage());
 			LOG.info("Loading default extensions");
+			if (Helpers.isPerfMode()) {
+				initializeTracingApiServiceFactory(DEFAULT_TRACING_API_CLASS);
+			}
 			return initializeExtensions(DEFAULT_CLASS, DEFAULT_REPO_STORE_CLASS, DEFAULT_AUTH_STORE_CLASS,
-					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, null, null, 30 * 60,
-					DEFAULT_TRACING_API_CLASS);
+					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, null, 30 * 60);
 		}
 
 		Properties props = new Properties();
 		try {
 			props.load(stream);
 		} catch (IOException e) {
-			LOG.error("Cannot load configuration: {}", e.toString(), e);
+			LOG.error("Cannot load configuration: {}", e);
 			return false;
 		} finally {
 			IOUtils.closeQuietly(stream);
@@ -222,9 +224,13 @@ public class AkkaServletContextListener implements ServletContextListener {
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
 		String typePermissionServiceClass = props.getProperty(PROPERTY_TYPE_PERMISSION_CLASS);
 
+		if (Helpers.isPerfMode()) {
+			initializeTracingApiServiceFactory(traceApiClass);
+		}
+
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, ObjectFlowServiceClass,
-				typePermissionServiceClass, intevalTime, traceApiClass);
+				intevalTime);
 		if (mainCLassInitialize) {
 			if (typePermissionServiceClass != null) {
 				if (typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass)) {
@@ -238,30 +244,28 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	private static boolean initializeExtensions(String className, String repoClassName, String authStoreClassName,
 			String fileStorageClassName, String cacheProviderClassName, String externalActorClassName,
-			String ObjectFlowServiceClass, String typePermissionServiceClass, long intervaltime, String traceApiClass) {
+			String ObjectFlowServiceClass, long intervaltime) {
 		LOG.info("Initialized External Services Factory Classes");
 		if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
 			if (authFactoryClassinitializeExtensions(authStoreClassName)) {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
-						if (initializeTracingApiServiceFactory(traceApiClass)) {
-							if (externalActorClassName != null) {
-								if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
-									if (ObjectFlowServiceClass != null) {
-										if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
-											return true;
-										}
-									} else {
+						if (externalActorClassName != null) {
+							if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
+								if (ObjectFlowServiceClass != null) {
+									if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
 										return true;
 									}
-								}
-							} else if (ObjectFlowServiceClass != null) {
-								if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+								} else {
 									return true;
 								}
-							} else {
+							}
+						} else if (ObjectFlowServiceClass != null) {
+							if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
 								return true;
 							}
+						} else {
+							return true;
 						}
 					}
 				}
@@ -385,16 +389,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 		return true;
 	}
 
-	private static boolean initializeTracingApiServiceFactory(String traceApiClass) {
+	private static void initializeTracingApiServiceFactory(String traceApiClass) {
 		try {
 			Class<?> traceApiServiceClass = Class.forName(traceApiClass);
-			ITracingFacade apiService = (ITracingFacade) traceApiServiceClass.newInstance();
+			ITracingService apiService = (ITracingService) traceApiServiceClass.newInstance();
 			TracingApiServiceFactory.add(apiService);
 			LOG.info("Initialized Tracing Api Services Class: {}", traceApiClass);
 		} catch (Exception e) {
 			LOG.error("Could not create a Tracing Api services factory instance: {}", e);
-			return false;
 		}
-		return true;
 	}
 }

@@ -1,16 +1,16 @@
 package com.pogeyan.cmis.tracing;
 
-import com.pogeyan.cmis.api.data.ITracingFacade;
+import com.pogeyan.cmis.api.data.ITracingService;
 
 public class TracingApiServiceFactory {
 
-	static ITracingFacade apiServiceClass;
+	static ITracingService apiServiceClass;
 
-	public static void add(ITracingFacade apiService) {
+	public static void add(ITracingService apiService) {
 		apiServiceClass = apiService;
 	}
 
-	public static ITracingFacade getApiService() {
+	public static ITracingService getApiService() {
 		return apiServiceClass;
 	}
 }

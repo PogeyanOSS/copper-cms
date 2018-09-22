@@ -15,6 +15,8 @@ public class TracingDefaultSpanImpl implements ISpan {
 
 	public TracingDefaultSpanImpl() {
 		super();
+		this.name = "Default";
+		this.startTime = 0;
 	}
 
 	@Override
@@ -28,14 +30,14 @@ public class TracingDefaultSpanImpl implements ISpan {
 	}
 
 	@Override
-	public void setChildSpan(String baseMessageId, String name, Map<String, String> headers) {
+	public void setChildSpan(String name, Map<String, String> headers) {
 		this.name = name;
 		this.startTime = System.currentTimeMillis();
 		LOG.debug("Method Name: {}, StartTime: {} ms", name, startTime);
 	}
 
 	@Override
-	public ISpan setSpanwithParent(ISpan parentSpan, String baseMessageId, String name) {
+	public ISpan setSpanwithParent(ISpan parentSpan, String name) {
 		return null;
 	}
 

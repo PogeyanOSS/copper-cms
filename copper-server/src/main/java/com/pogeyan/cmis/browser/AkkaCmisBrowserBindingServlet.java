@@ -147,6 +147,7 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 						MetricsInputs.markBindingServletErrorMeter();
 						ServletHelpers.printError(e1, (HttpServletRequest) ctx.getRequest(), asyncResponse);
 					}
+
 					ctx.complete();
 				});
 			}
@@ -212,9 +213,7 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 		if (pathFragments.length > 0) {
 			loginRequest.setRepositoryId(pathFragments[0]);
 		}
-		BaseMessage loginMessage = null;
-		loginMessage = BaseMessage.create("login", "authenticate", loginRequest,
-				ServletHelpers.getHeadersInfo(request));
+		BaseMessage loginMessage = BaseMessage.create("login", "authenticate", loginRequest, ServletHelpers.getHeadersInfo(request));
 		genericActorRef.tell(loginMessage, ActorRef.noSender());
 
 		/*
@@ -276,7 +275,6 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 				} else {
 					HttpServletRequest request = (HttpServletRequest) this.asyncContext.getRequest();
 					HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
-
 					if (bm.getMessageType() == MessageType.RESPONSE) {
 						// check for post respose message
 						if (bm.getMessageBodyType() == PostFileResponse.class) {
@@ -394,9 +392,9 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 							long start = Long.parseLong(rangeStart);
 							in.skip(start);
 						}
-						// else {
-						// response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
-						// }
+//						else {
+//							response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+//						}
 					} else {
 						response.setStatus(HttpServletResponse.SC_OK);
 					}
