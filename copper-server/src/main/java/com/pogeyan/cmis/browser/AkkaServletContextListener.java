@@ -163,9 +163,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		} catch (FileNotFoundException e) {
 			LOG.warn("REPOSITORY_PROPERTY_FILE_LOCATION is not found due to: {}", e.getMessage());
 			LOG.info("Loading default extensions");
-			if (Helpers.isPerfMode()) {
-				initializeTracingApiServiceFactory(DEFAULT_TRACING_API_CLASS);
-			}
+			initializeTracingApiServiceFactory(DEFAULT_TRACING_API_CLASS);
 			return initializeExtensions(DEFAULT_CLASS, DEFAULT_REPO_STORE_CLASS, DEFAULT_AUTH_STORE_CLASS,
 					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, null, 30 * 60);
 		}
@@ -224,9 +222,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
 		String typePermissionServiceClass = props.getProperty(PROPERTY_TYPE_PERMISSION_CLASS);
 
-		if (Helpers.isPerfMode()) {
-			initializeTracingApiServiceFactory(traceApiClass);
-		}
+		initializeTracingApiServiceFactory(traceApiClass);
 
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, ObjectFlowServiceClass,

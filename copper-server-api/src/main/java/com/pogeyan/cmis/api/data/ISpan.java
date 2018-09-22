@@ -16,9 +16,9 @@ public interface ISpan {
 	/**
 	 * 
 	 * @param parentSpan
-	 *            To the parent of a child span
-	 * @param namename
-	 *            of the child span
+	 *            The parent of a child span
+	 * @param name
+	 *            name of the child span
 	 * @return ISpan which has parent and child span
 	 */
 	ISpan setSpanwithParent(ISpan parentSpan, String name);
