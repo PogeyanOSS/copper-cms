@@ -174,7 +174,7 @@ public class Helpers {
 	 */
 
 	public static boolean isPerfMode() {
-		final String value = System.getenv("PERF");
+		final String value = System.getenv("CMIS_PERF");
 		if (value != null) {
 			return value.equalsIgnoreCase("1");
 		}

@@ -42,9 +42,4 @@ public interface ISpan {
 	 */
 	void close(boolean isRootSpan);
 
-	/**
-	 * 
-	 * @return ISpan which gets the parent span
-	 */
-	ISpan getParentSpan();
 }

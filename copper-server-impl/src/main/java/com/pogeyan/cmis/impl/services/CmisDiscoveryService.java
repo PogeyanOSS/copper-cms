@@ -60,9 +60,9 @@ public class CmisDiscoveryService {
 	public static class Impl {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
-				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId) {
-			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId,
-					"CmisDiscoveryService_getContentChanges", null);
+				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisDiscoveryService::getContentChanges", null);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)

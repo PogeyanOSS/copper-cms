@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
@@ -61,7 +62,8 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 			throws CmisRuntimeException {
 		String tracingId = baggage.get(BrowserConstants.TRACINGID) != null
 				? (String) baggage.get(BrowserConstants.TRACINGID) : null;
-		TracingApiServiceFactory.getApiService().startSpan(tracingId, "DiscoveryActor_getContentChanges", null);
+		ISpan parentSpan = TracingApiServiceFactory.getApiService().startSpan(tracingId, null,
+				"DiscoveryActor::getContentChanges", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
@@ -82,7 +84,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
 		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
-				request.getUserObject(), tracingId);
+				request.getUserObject(), tracingId, parentSpan);
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());
