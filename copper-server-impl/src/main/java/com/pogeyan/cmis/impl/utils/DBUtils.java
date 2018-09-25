@@ -57,6 +57,7 @@ public class DBUtils {
 		public static final String POLICIES = "policies";
 		public static final String SECONDARYTYPEIDS = "secondaryTypeIds";
 		public static final String MODIFIEDAT = "modifiedAt";
+		public static final String REPOID = "repositoryId";
 	}
 
 	public static class BaseDAO {
@@ -67,6 +68,7 @@ public class DBUtils {
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.OBJECTID, objectId);
+					put(Variables.REPOID, repositoryId);
 				}
 			};
 			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0,
