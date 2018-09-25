@@ -100,8 +100,8 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 					logger.debug("Message decoded for sender:{} with messageId: {}", sender, b.getMessageId());
 				}
 				if (Helpers.isPerfMode()) {
-					TracingApiServiceFactory.getApiService().startSpan(b.getMessageId(),
-							"BaseActor_" + b.getTypeName() + "_" + b.getActionName(), b.getBaggage(REQUEST_HEADERS));
+					TracingApiServiceFactory.getApiService().startSpan(b.getMessageId(), null,
+							"BaseActor::" + b.getTypeName() + "::" + b.getActionName(), b.getBaggage(REQUEST_HEADERS));
 					b.addBaggage(TRACINGID, b.getMessageId());
 				}
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());

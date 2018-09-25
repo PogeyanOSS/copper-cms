@@ -9,7 +9,7 @@ public class TracingDefaultImpl implements ITracingService {
 	ISpan span;
 
 	@Override
-	public ISpan startSpan(String tracingId, String name, Map<String, String> headers) {
+	public ISpan startSpan(String tracingId, ISpan parentSpan, String name, Map<String, String> headers) {
 		span = new TracingDefaultSpanImpl();
 		span.setChildSpan(name, headers);
 		return span;

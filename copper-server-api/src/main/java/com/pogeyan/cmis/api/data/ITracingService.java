@@ -19,7 +19,7 @@ public interface ITracingService {
 	 *            tracing headers
 	 * @return ISpan which has instance of a span
 	 */
-	public ISpan startSpan(String tracingId, String name, Map<String, String> headers);
+	public ISpan startSpan(String tracingId, ISpan parentSpan, String name, Map<String, String> headers);
 
 	/**
 	 * 
