@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.impl.factory.AclServiceFactory;
 
 public class CmisUtils {
 
@@ -61,6 +62,11 @@ public class CmisUtils {
 			AccessControlEntryImpl ace = new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(principalId),
 					permissions);
 			aceList.add(ace);
+			if (AclServiceFactory.getTypeAclService() != null) {
+				List<Ace> parentacllist = AclServiceFactory.getTypeAclService().beforeCreateAcl(principalId);
+				aceList.addAll(parentacllist);
+			}
+			LOG.info("className: {}, methodName: {}, for new aceList{}", "CmisUtils", "getAclFor", aceList);
 			AccessControlListImplExt aclImp = new AccessControlListImplExt(aceList);
 			return aclImp;
 		}

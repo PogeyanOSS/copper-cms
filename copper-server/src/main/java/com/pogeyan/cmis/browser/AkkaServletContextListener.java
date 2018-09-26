@@ -46,6 +46,7 @@ import com.pogeyan.cmis.actors.TypeCacheActor;
 import com.pogeyan.cmis.actors.VersioningActor;
 import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
+import com.pogeyan.cmis.api.data.IAclService;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 import com.pogeyan.cmis.api.data.IObjectFlowFactory;
 import com.pogeyan.cmis.api.data.ITracingService;
@@ -57,6 +58,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
+import com.pogeyan.cmis.impl.factory.AclServiceFactory;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
@@ -90,7 +92,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 	private static final String DEFAULT_TRACING_API_CLASS = "com.pogeyan.cmis.tracing.TracingDefaultImpl";
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
-
+	private static final String PROPERTY_ACL_PLUGIN = "aclPluginFactory";
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 
 	@Override
@@ -165,7 +167,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Loading default extensions");
 			initializeTracingApiServiceFactory(DEFAULT_TRACING_API_CLASS);
 			return initializeExtensions(DEFAULT_CLASS, DEFAULT_REPO_STORE_CLASS, DEFAULT_AUTH_STORE_CLASS,
-					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, null, 30 * 60);
+					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, null, 30 * 60, null);
 		}
 
 		Properties props = new Properties();
@@ -221,12 +223,12 @@ public class AkkaServletContextListener implements ServletContextListener {
 		String externalActorClassName = props.getProperty(PROPERTY_ACTOR_CLASS);
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
 		String typePermissionServiceClass = props.getProperty(PROPERTY_TYPE_PERMISSION_CLASS);
-
+		String aclPlugin = props.getProperty(PROPERTY_ACL_PLUGIN);
 		initializeTracingApiServiceFactory(traceApiClass);
 
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, ObjectFlowServiceClass,
-				intevalTime);
+				intevalTime, aclPlugin);
 		if (mainCLassInitialize) {
 			if (typePermissionServiceClass != null) {
 				if (typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass)) {
@@ -240,28 +242,30 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	private static boolean initializeExtensions(String className, String repoClassName, String authStoreClassName,
 			String fileStorageClassName, String cacheProviderClassName, String externalActorClassName,
-			String ObjectFlowServiceClass, long intervaltime) {
+			String ObjectFlowServiceClass, long intervaltime, String aclPluginClass) {
 		LOG.info("Initialized External Services Factory Classes");
 		if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
 			if (authFactoryClassinitializeExtensions(authStoreClassName)) {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
-						if (externalActorClassName != null) {
-							if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
-								if (ObjectFlowServiceClass != null) {
-									if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+						if (AclPluginFactoryExtension(aclPluginClass)) {
+							if (externalActorClassName != null) {
+								if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
+									if (ObjectFlowServiceClass != null) {
+										if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+											return true;
+										}
+									} else {
 										return true;
 									}
-								} else {
+								}
+							} else if (ObjectFlowServiceClass != null) {
+								if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
 									return true;
 								}
-							}
-						} else if (ObjectFlowServiceClass != null) {
-							if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+							} else {
 								return true;
 							}
-						} else {
-							return true;
 						}
 					}
 				}
@@ -319,6 +323,23 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 		return true;
 
+	}
+
+	private static boolean AclPluginFactoryExtension(String aclPlugin) {
+		if (aclPlugin != null) {
+			try {
+
+				LOG.info("Initialized AclPluginFactoryExtention: {}", aclPlugin);
+				Class<?> AclPluginFactory = Class.forName(aclPlugin);
+				IAclService AclPluginActorFactory = (IAclService) AclPluginFactory.newInstance();
+				AclServiceFactory.addTypeAclService(AclPluginActorFactory);
+			} catch (Exception e) {
+				LOG.error("Could not create a ACL Plugin factory instance: {}", e);
+				return false;
+			}
+			return true;
+		}
+		return true;
 	}
 
 	private static boolean externalActorFactoryClassinitializeExtensions(String externalActorClassName) {
