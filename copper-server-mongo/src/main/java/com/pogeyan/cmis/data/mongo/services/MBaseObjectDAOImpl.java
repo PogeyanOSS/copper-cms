@@ -43,7 +43,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void delete(String objectId, boolean forceDelete, TokenImpl token) {
+	public void delete(String objectId, boolean forceDelete, TokenImpl token, String[] options) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		query.or(getAclCriteria(query));

@@ -158,15 +158,15 @@ public class CmisObjectService {
 		}
 
 		public static ObjectData getSimpleObject(String repositoryId, String objectId, IUserObject userObject,
-				BaseTypeId baseTypeId) {
+				BaseTypeId baseTypeId, String[] options) {
 			return getObject(repositoryId, objectId, null, false, IncludeRelationships.NONE, "cmis:none", false, true,
-					null, userObject, baseTypeId);
+					null, userObject, baseTypeId, options);
 		}
 
 		public static ObjectData getObject(String repositoryId, String objectId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 				Boolean includePolicyIds, Boolean includeAcl, ObjectInfoHandler objectInfos, IUserObject userObject,
-				BaseTypeId baseTypeId)
+				BaseTypeId baseTypeId, String[] options)
 				throws CmisInvalidArgumentException, IllegalArgumentException, CmisObjectNotFoundException {
 			if (objectId == null && filter == null) {
 				LOG.error("getObject objectId and filter is null in repository: {}", repositoryId);
@@ -181,6 +181,9 @@ public class CmisObjectService {
 			Set<String> filterCollection = splitFilter(filter);
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, baseTypeId != BaseTypeId.CMIS_DOCUMENT);
+			}
+			if (options != null) {
+				filterArray = options;
 			}
 
 			IBaseObject data = null;
@@ -1424,8 +1427,8 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			PropertyData<?> virtual = properties.getProperties().get("cmis_ext:isVirtual");
 			boolean isVirtual = virtual != null ? Boolean.parseBoolean(virtual.getFirstValue().toString()) : false;
-			LOG.info("className: {}, methodName: {}, repositoryId: {}, isVirtual: {}", "cmisObjectService", "createFolderIntern",
-					repositoryId, isVirtual);
+			LOG.info("className: {}, methodName: {}, repositoryId: {}, isVirtual: {}", "cmisObjectService",
+					"createFolderIntern", repositoryId, isVirtual);
 
 			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userObject,
 					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
@@ -1445,8 +1448,10 @@ public class CmisObjectService {
 						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
 					}
 				} catch (IOException e) {
-					objectMorphiaDAO.delete(folderId, true, null);
-					LOG.error("className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}", "cmisObjectService", "createFolderIntern", repositoryId, e);
+					objectMorphiaDAO.delete(folderId, true, null, null);
+					LOG.error(
+							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}",
+							"cmisObjectService", "createFolderIntern", repositoryId, e);
 					throw new IllegalArgumentException(e);
 				}
 			}
@@ -2998,7 +3003,8 @@ public class CmisObjectService {
 		 * delete the object.
 		 */
 		public static void deleteObject(String repositoryId, String objectId, Boolean allVersions,
-				IUserObject userObject) throws CmisObjectNotFoundException, CmisNotSupportedException {
+				IUserObject userObject, String[] options)
+				throws CmisObjectNotFoundException, CmisNotSupportedException {
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, objectId, null, null, null, null,
 					userObject == null ? null : userObject.getUserDN(), allVersions, ObjectFlowType.DELETED);
@@ -3013,7 +3019,7 @@ public class CmisObjectService {
 						MDocumentObjectDAO.class);
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, options);
 			} catch (MongoException e) {
 				LOG.error("deleteObject object not found in repositoryId: {}", repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
@@ -3026,7 +3032,7 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
 			deleteObjectChildrens(repositoryId, data, baseMorphiaDAO, docMorphiaDAO, navigationMorphiaDAO, localService,
-					userObject, allVersions);
+					userObject, allVersions, options);
 		}
 
 		/**
@@ -3034,7 +3040,7 @@ public class CmisObjectService {
 		 */
 		public static void deleteObjectChildrens(String repositoryId, IBaseObject data, MBaseObjectDAO baseMorphiaDAO,
 				MDocumentObjectDAO docMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO,
-				IStorageService localService, IUserObject userObject, Boolean allVersions) {
+				IStorageService localService, IUserObject userObject, Boolean allVersions, String[] options) {
 			if (data == null) {
 				LOG.error("deleteObjectChildrens object not found! in repositoryId: {}", repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
@@ -3067,10 +3073,10 @@ public class CmisObjectService {
 
 						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
-					baseMorphiaDAO.delete(child.getId(), false, token);
+					baseMorphiaDAO.delete(child.getId(), false, token, options);
 				}
 				localService.deleteFolder(data.getPath());
-				baseMorphiaDAO.delete(data.getId(), false, token);
+				baseMorphiaDAO.delete(data.getId(), false, token, options);
 
 				LOG.info("ObjectId: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 
@@ -3094,7 +3100,7 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(data.getId(), false, token);
+					baseMorphiaDAO.delete(data.getId(), false, token, options);
 					LOG.info("Object: {}, with baseType:{} is deleted", data.getId(), data.getBaseId());
 				}
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
@@ -3114,13 +3120,13 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(document.getId(), false, token);
+					baseMorphiaDAO.delete(document.getId(), false, token, options);
 					LOG.info("Object: {}, with baseType: {}, document: {} deleted", data.getId(), data.getBaseId(),
 							document.getId());
 
 				}
 			} else {
-				baseMorphiaDAO.delete(data.getId(), false, token);
+				baseMorphiaDAO.delete(data.getId(), false, token, options);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
 		}
@@ -3193,7 +3199,7 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			// TODO: optimize here
 			for (IBaseObject child : children) {
-				baseMorphiaDAO.delete(child.getId(), false, token);
+				baseMorphiaDAO.delete(child.getId(), false, token, null);
 				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, child.getId(), null);
 				if (childCheck != null) {
 					failedToDeleteIds.add(child.getId().toString());
@@ -3204,7 +3210,7 @@ public class CmisObjectService {
 			// IStorageService localService =
 			// MongoStorageDocument.createStorageService(parameters);
 			// localService.deleteFolder(data.getPath());
-			baseMorphiaDAO.delete(folderId, false, token);
+			baseMorphiaDAO.delete(folderId, false, token, null);
 			IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null);
 			if (parentCheck != null) {
 				failedToDeleteIds.add(folderId.toString());
@@ -3384,7 +3390,7 @@ public class CmisObjectService {
 			}
 			LOG.info("getting object for this object id: {}", data.getId());
 			ObjectData objectData = getObject(repositoryId, data.getId(), null, false, IncludeRelationships.NONE, null,
-					false, false, objectInfos, userObject, data.getBaseId());
+					false, false, objectInfos, userObject, data.getBaseId(), null);
 
 			return objectData;
 
