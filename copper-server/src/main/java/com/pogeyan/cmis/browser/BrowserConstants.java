@@ -33,6 +33,5 @@ public class BrowserConstants {
 	public static final String SELECTOR_CHILDREN = "children";
 	public static final String SELECTOR_OBJECT = "object";
 	public static final String TRACINGID = "TracingId";
-
-
+	public static final String PARENT_SPAN = "ParentSpan";
 }
