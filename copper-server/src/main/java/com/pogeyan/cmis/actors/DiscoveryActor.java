@@ -60,9 +60,9 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws CmisRuntimeException {
-		String tracingId = baggage.get(BrowserConstants.TRACINGID) != null
-				? (String) baggage.get(BrowserConstants.TRACINGID) : null;
-		ISpan parentSpan = TracingApiServiceFactory.getApiService().startSpan(tracingId, null,
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 				"DiscoveryActor::getContentChanges", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
@@ -84,10 +84,12 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
 		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
-				request.getUserObject(), tracingId, parentSpan);
+				request.getUserObject(), tracingId, span);
+
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonChanges;
 	}
 

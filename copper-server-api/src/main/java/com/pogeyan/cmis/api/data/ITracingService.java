@@ -1,13 +1,8 @@
 package com.pogeyan.cmis.api.data;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public interface ITracingService {
-	/**
-	 * A dictionary which keeps track of the tracing context for a request
-	 */
-	public static Map<String, ISpan> traceContextMap = new HashMap<>();
 
 	/**
 	 * 

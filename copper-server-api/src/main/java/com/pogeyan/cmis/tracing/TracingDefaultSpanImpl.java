@@ -20,7 +20,7 @@ public class TracingDefaultSpanImpl implements ISpan {
 	}
 
 	@Override
-	public void close(boolean forRootSpan) {
+	public void close() {
 		Long totalTime = System.currentTimeMillis() - startTime;
 		LOG.debug("Method Name: {}, TotalTime: {} ms", name, totalTime);
 	}

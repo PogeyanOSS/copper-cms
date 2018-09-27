@@ -35,11 +35,13 @@ public interface ISpan {
 	void updateSpan(boolean isError, String description, Map<String, Object> attrMap);
 
 	/**
-	 * 
-	 * @param isRootSpan
-	 *            If true, then parentSpan will also end , else ends only the
-	 *            child span
+	 * ends the span
 	 */
-	void close(boolean isRootSpan);
+	void close();
 
+	/**
+	 * 
+	 * @return returns the parentSpan
+	 */
+	ISpan getParentSpan();
 }
