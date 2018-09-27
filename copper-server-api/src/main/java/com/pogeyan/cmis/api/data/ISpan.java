@@ -44,5 +44,4 @@ public interface ISpan {
 	 * @return returns the parentSpan
 	 */
 	ISpan getParentSpan();
-
 }
