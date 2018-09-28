@@ -35,13 +35,13 @@ import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
-import com.pogeyan.cmis.api.auth.IUserObject;
-import com.pogeyan.cmis.api.data.IBaseObject;
 
 public class CmisAclServices {
 
@@ -74,22 +74,27 @@ public class CmisAclServices {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			Long modifiedTime = System.currentTimeMillis();
-			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
-			switch (aclPropagation) {
-			case REPOSITORYDETERMINED: {
-				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
-				break;
-			}
-			case OBJECTONLY:
-				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
-				break;
-			case PROPAGATE:
-				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
-				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime);
-				break;
+			if (addAces != null || removeAces != null) {
+				Long modifiedTime = System.currentTimeMillis();
+				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
+				switch (aclPropagation) {
+				case REPOSITORYDETERMINED: {
+					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
+							aclPropagation.name());
+					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
+					break;
+				}
+				case OBJECTONLY:
+					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
+							aclPropagation.name());
+					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
+					break;
+				case PROPAGATE:
+					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id,
+							aclPropagation.name());
+					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime);
+					break;
+				}
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
 
@@ -134,15 +139,10 @@ public class CmisAclServices {
 						}
 						aces = getAce(object.getAcl().getAces(), aces, id);
 					}
-					for (Ace ace : removeAces.getAces()) {
-						int i = 0;
-						for (String userId : id) {
-							if (userId.equalsIgnoreCase(ace.getPrincipalId())) {
-								aces.remove(i);
-							}
-							i++;
-						}
-					}
+					aces = aces.stream()
+							.filter(ace -> removeAces.getAces().stream()
+									.filter(remAce -> remAce.getPrincipalId().equals(ace.getPrincipalId())).count() < 1)
+							.collect(Collectors.toList());
 				}
 			}
 
