@@ -40,4 +40,9 @@ public class TracingDefaultSpanImpl implements ISpan {
 	public ISpan setSpanwithParent(ISpan parentSpan, String name) {
 		return null;
 	}
+
+	@Override
+	public ISpan getParentSpan() {
+		return null;
+	}
 }
