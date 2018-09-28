@@ -151,7 +151,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = t.getObjectId();
 		String[] options = { t.getParameter("typeId") };
 		boolean acessPermission = false;
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, options);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null, options);
 		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
 		if (data != null && !data.getName().equals(ROOT) && acessPermission == false) {
 			throw new CmisInvalidArgumentException(
@@ -536,7 +536,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
 		String objectId = request.getObjectId();
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId, null);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId, null, null);
 		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), objectId);
 		String changeToken = request.getParameter(QueryGetRequest.CONTROL_CHANGE_TOKEN);
 		String token = request.getParameter(QueryGetRequest.PARAM_TOKEN);

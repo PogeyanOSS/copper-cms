@@ -51,7 +51,7 @@ public class CmisAclServices {
 		public static Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions,
 				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject)
 				throws CmisObjectNotFoundException {
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
@@ -69,7 +69,7 @@ public class CmisAclServices {
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
@@ -91,7 +91,7 @@ public class CmisAclServices {
 				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime);
 				break;
 			}
-			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
 			return newData.getAcl();

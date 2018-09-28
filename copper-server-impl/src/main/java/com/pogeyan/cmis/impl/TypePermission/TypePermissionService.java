@@ -135,7 +135,7 @@ public class TypePermissionService implements ITypePermissionService {
 				for (IDocumentObject obj : typeAccess_set_Children) {
 					if (obj != null) {
 						String targetId = obj.getProperties().get("cmis:targetId").toString();
-						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null);
+						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, null);
 						if (data != null) {
 							String objectTypeId = data.getProperties().get("fv:typeId").toString();
 							if (typeId.equalsIgnoreCase(objectTypeId)) {
@@ -180,7 +180,7 @@ public class TypePermissionService implements ITypePermissionService {
 				for (IDocumentObject obj : field_set_Children) {
 					if (obj != null) {
 						String targetId = obj.getProperties().get("cmis:targetId").toString();
-						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null);
+						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, null);
 						if (data != null) {
 							List<String> fieldAccess = (List<String>) data.getProperties().get("fv:property");
 							if (fieldPermission.get(typeId) != null) {

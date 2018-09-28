@@ -39,7 +39,7 @@ public interface MBaseObjectDAO {
 	public void update(String objectId, Map<String, Object> updateProps);
 
 	public List<? extends IBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
-			int skipCount, String[] mappedColumns);
+			int skipCount, String[] mappedColumns, String[] options);
 
 	public void commit(IBaseObject entity);
 

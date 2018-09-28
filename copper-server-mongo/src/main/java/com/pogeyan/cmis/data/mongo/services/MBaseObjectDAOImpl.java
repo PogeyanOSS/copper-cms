@@ -88,7 +88,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 
 	@Override
 	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
-			int skipCount, String[] mappedColumns) {
+			int skipCount, String[] mappedColumns, String[] options) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {

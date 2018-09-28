@@ -160,7 +160,7 @@ public class CmisPropertyConverter {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null && objectIds != null) {
 					for (String objectId : objectIds) {
-						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
 								object.getTypeId(), null, userObject);
 						innerObjectType.add(typeDef);
@@ -308,7 +308,7 @@ public class CmisPropertyConverter {
 			}
 			IBaseObject data = null;
 			try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 			} catch (Exception e) {
 				throw new MongoException(e.toString());
 			}
