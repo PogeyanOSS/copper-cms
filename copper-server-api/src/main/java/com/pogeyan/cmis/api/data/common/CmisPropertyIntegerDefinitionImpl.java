@@ -45,12 +45,14 @@ public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefi
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<?> choice;
+	private BigInteger minValue;
+	private BigInteger maxValue;
 
 	public CmisPropertyIntegerDefinitionImpl() {
 		super();
 	}
 
-	public CmisPropertyIntegerDefinitionImpl(PropertyDefinitionImpl<?> type) {
+	public CmisPropertyIntegerDefinitionImpl(PropertyDefinitionImpl<?> type, BigInteger minValue, BigInteger maxValue) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
@@ -67,6 +69,8 @@ public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefi
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
+		this.minValue = type.getMinValue();
+		this.maxValue = type.getMaxValue();
 	}
 
 	@Override
@@ -174,11 +178,11 @@ public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefi
 
 	@Override
 	public BigInteger getMinValue() {
-		return null;
+		return this.minValue;
 	}
 
 	@Override
 	public BigInteger getMaxValue() {
-		return null;
+		return this.maxValue;
 	}
 }

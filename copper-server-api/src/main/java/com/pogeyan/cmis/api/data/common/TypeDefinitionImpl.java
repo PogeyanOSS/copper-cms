@@ -1,10 +1,11 @@
 package com.pogeyan.cmis.api.data.common;
 
+import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
@@ -156,7 +157,9 @@ public class TypeDefinitionImpl implements TypeDefinition {
 				PropertyDefinitionImpl<?> valueName = (PropertyDefinitionImpl<?>) propertiesValues.getValue();
 				String propertyType = valueName.getPropertyType().toString();
 				if (propertyType.equalsIgnoreCase("string")) {
-					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName);
+					BigInteger maxLength = valueName.getMaxLength();
+					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName,
+							maxLength);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("boolean")) {
@@ -185,7 +188,10 @@ public class TypeDefinitionImpl implements TypeDefinition {
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("integer")) {
-					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName);
+					BigInteger minValue = valueName.getMinValue();
+					BigInteger maxValue = valueName.getMaxValue();
+					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName,
+							minValue, maxValue);
 					map.put(id, propertyValue);
 
 				}

@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.data.mongo;
 
+import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -194,7 +195,9 @@ public class MTypeObject implements TypeDefinition {
 				PropertyDefinitionImpl<?> valueName = propertiesValues.getValue();
 				String propertyType = valueName.getPropertyType().toString();
 				if (propertyType.equalsIgnoreCase("string")) {
-					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName);
+					BigInteger maxLength = valueName.getMaxLength();
+					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName,
+							maxLength);
 					map.put(id, propertyValue);
 				} else if (propertyType.equalsIgnoreCase("boolean")) {
 					CmisPropertyBooleanDefinitionImpl propertyValue = new CmisPropertyBooleanDefinitionImpl(valueName);
@@ -216,7 +219,10 @@ public class MTypeObject implements TypeDefinition {
 					CmisPropertyUriDefinitionImpl propertyValue = new CmisPropertyUriDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 				} else if (propertyType.equalsIgnoreCase("integer")) {
-					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName);
+					BigInteger minValue = valueName.getMinValue();
+					BigInteger maxValue = valueName.getMaxValue();
+					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName,
+							minValue, maxValue);
 					map.put(id, propertyValue);
 				}
 			}
@@ -334,6 +340,9 @@ public class MTypeObject implements TypeDefinition {
 				mongo.setIsOrderable(valueName.isOrderable());
 				mongo.setIsOpenChoice(valueName.isOpenChoice());
 				mongo.setChoice(valueName.getChoices());
+				mongo.setMinValue(valueName.getMinValue());
+				mongo.setMaxValue(valueName.getMaxValue());
+				mongo.setMaxLength(valueName.getMaxLength());
 				mongoProperty.put(id, mongo);
 			}
 			return mongoProperty;

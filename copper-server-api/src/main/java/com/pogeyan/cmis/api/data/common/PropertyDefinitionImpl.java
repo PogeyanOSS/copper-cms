@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.api.data.common;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,9 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<Choice<?>> choice;
+	private Integer minValue;
+	private Integer maxValue;
+	private Integer maxLength;
 
 	public PropertyDefinitionImpl() {
 
@@ -51,7 +55,7 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	public PropertyDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, PropertyType propertyType, Cardinality cardinality,
 			Updatability updatability, Boolean isInherited, Boolean isRequired, Boolean isQueryable,
-			Boolean isOrderable, Boolean isOpenChoice) {
+			Boolean isOrderable, Boolean isOpenChoice, Integer minValue, Integer maxValue, Integer maxLength) {
 		super();
 		this.id = id;
 		this.localName = localName;
@@ -67,6 +71,9 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		this.isQueryable = isQueryable;
 		this.isOrderable = isOrderable;
 		this.isOpenChoice = isOpenChoice;
+		this.minValue = minValue;
+		this.maxValue = maxValue;
+		this.maxLength = maxLength;
 
 	}
 
@@ -232,5 +239,50 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	@SuppressWarnings({ "unchecked" })
 	public void setChoice(List<?> list) {
 		this.choice = (List<Choice<?>>) list;
+	}
+
+	public BigInteger getMinValue() {
+		return this.minValue != null ? BigInteger.valueOf(this.minValue) : null;
+	}
+
+	public void setMinValue(BigInteger minValue) {
+		if (minValue != null) {
+			byte[] byteArray = new byte[] { minValue.byteValue() };
+			int[] intArray = new int[byteArray.length];
+			for (int i = 0; i < byteArray.length; intArray[i] = byteArray[i++])
+				;
+			Integer intObj = new Integer(intArray[0]);
+			this.minValue = intObj;
+		}
+	}
+
+	public BigInteger getMaxValue() {
+		return this.maxValue != null ? BigInteger.valueOf(this.maxValue) : null;
+	}
+
+	public void setMaxValue(BigInteger maxValue) {
+		if (maxValue != null) {
+			byte[] byteArray = new byte[] { maxValue.byteValue() };
+			int[] intArray = new int[byteArray.length];
+			for (int i = 0; i < byteArray.length; intArray[i] = byteArray[i++])
+				;
+			Integer intObj = new Integer(intArray[0]);
+			this.maxValue = intObj;
+		}
+	}
+
+	public BigInteger getMaxLength() {
+		return this.maxLength != null ? BigInteger.valueOf(this.maxLength) : null;
+	}
+
+	public void setMaxLength(BigInteger maxLength) {
+		if (maxLength != null) {
+			byte[] byteArray = new byte[] { maxLength.byteValue() };
+			int[] intArray = new int[byteArray.length];
+			for (int i = 0; i < byteArray.length; intArray[i] = byteArray[i++])
+				;
+			Integer intObj = new Integer(intArray[0]);
+			this.maxLength = intObj;
+		}
 	}
 }
