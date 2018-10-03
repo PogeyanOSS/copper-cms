@@ -106,7 +106,6 @@ import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
-import com.pogeyan.cmis.impl.factory.AclServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
@@ -4046,13 +4045,10 @@ public class CmisObjectService {
 					List<List<Ace>> parentAce = mAcl.stream().filter(t -> t.getAces() != null && t.getAces().size() > 0)
 							.map(t -> t.getAces()).collect(Collectors.toList());
 					parentAce.add(data.getAcl().getAces());
-					if (AclServiceFactory.getTypeAclService() != null) {
-						List<Ace> parentacllist = AclServiceFactory.getTypeAclService()
-								.beforeCreateAcl(userObject.getUserDN());
-						parentAce.add(parentacllist);
-					}
-					LOG.info("className: {}, methodName: {}, repository: {}, for new parentAce{}", "CmisObjectService",
-							"getAclAccess", repositoryId, parentAce);
+					
+					// LOG.info("className: {}, methodName: {}, repository: {}, for new
+					// parentAce{}", "CmisObjectService",
+					// "getAclAccess", repositoryId, parentAce);
 					// for (MAclImpl acl : mAcl) {
 					// List<Ace> listAce = acl.getAces().stream().filter(t ->
 					// Arrays.stream(getPrincipalIds).parallel()
@@ -4235,27 +4231,15 @@ public class CmisObjectService {
 		private static void invokeObjectFlowServiceAfterCreate(IObjectFlowService objectFlowService, IBaseObject doc,
 				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
-				try {
-					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
-							? doc.getId()
-							: null, invokeMethod);
-					boolean resultFlow = false;
-					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterCreation(doc);
-					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterUpdate(doc, updatedValues);
-					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterDeletion(doc);
-					}
-					if (!resultFlow) {
-						LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
-						throw new IllegalArgumentException(
-								"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
-					}
-				} catch (Exception ex) {
-					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
-							invokeMethod, ex.getMessage());
-					throw new IllegalArgumentException(ex.getMessage());
+				LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
+						? doc.getId()
+						: null, invokeMethod);
+				if (ObjectFlowType.CREATED.equals(invokeMethod)) {
+					objectFlowService.afterCreation(doc);
+				} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
+					objectFlowService.afterUpdate(doc, updatedValues);
+				} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
+					objectFlowService.afterDeletion(doc);
 				}
 			}
 		}
@@ -4269,34 +4253,34 @@ public class CmisObjectService {
 		}
 
 		private static void invokeObjectFlowServiceBeforeCreate(IObjectFlowService objectFlowService,
-				String repositoryId, String objectId, Properties properties, List<String> policies, Acl addAces,
-				Acl removeAces, String userName, Boolean allVers, ObjectFlowType invokeMethod) {
-			if (objectFlowService != null) {
-				try {
-					LOG.info("invokeObjectFlowServiceBeforeCreate for objectId: {}, InvokeMethod: {}" + objectId,
-							invokeMethod);
-					boolean resultFlow = false;
-					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.beforeCreation(repositoryId, objectId, properties, policies,
-								addAces, removeAces, userName);
-					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.beforeUpdate(repositoryId, objectId, properties, addAces,
-								userName);
-					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.beforeDeletion(repositoryId, objectId, allVers, userName);
-					}
-					if (!resultFlow) {
-						LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
-						throw new IllegalArgumentException(
-								"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
-					}
-				} catch (Exception ex) {
-					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
-							invokeMethod, ex.getMessage());
-					throw new IllegalArgumentException(ex.getMessage());
-				}
-			}
-		}
+                String repositoryId, String objectId, Properties properties, List<String> policies, Acl addAces,
+                Acl removeAces, String userName, Boolean allVers, ObjectFlowType invokeMethod) {
+            if (objectFlowService != null) {
+                try {
+                    LOG.info("invokeObjectFlowServiceBeforeCreate for objectId: {}, InvokeMethod: {}" + objectId,
+                            invokeMethod);
+                    boolean resultFlow = false;
+                    if (ObjectFlowType.CREATED.equals(invokeMethod)) {
+                        resultFlow = objectFlowService.beforeCreation(repositoryId, objectId, properties, policies,
+                                addAces, removeAces, userName);
+                    } else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
+                        resultFlow = objectFlowService.beforeUpdate(repositoryId, objectId, properties, addAces,
+                                userName);
+                    } else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
+                        resultFlow = objectFlowService.beforeDeletion(repositoryId, objectId, allVers, userName);
+                    }
+                    if (!resultFlow) {
+                        LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
+                        throw new IllegalArgumentException(
+                                "Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
+                    }
+                } catch (Exception ex) {
+                    LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
+                            invokeMethod, ex.getMessage());
+                    throw new IllegalArgumentException(ex.getMessage());
+                }
+            }
+        }
 
 		private static void addRootFolder(String repositoryId) {
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
