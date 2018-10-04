@@ -11,7 +11,7 @@ public interface MNavigationDocServiceDAO {
 	 */
 	public List<? extends IDocumentObject> getChildren(String path, String[] principalIds, boolean aclPropagation,
 			int maxItems, int skipCount, String orderBy, String[] mappedColumns, String filterExpression,
-			MTypeManagerDAO typeManager);
+			MTypeManagerDAO typeManager, String options);
 
 	/**
 	 * Get children size.

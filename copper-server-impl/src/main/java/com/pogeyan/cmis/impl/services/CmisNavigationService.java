@@ -70,12 +70,13 @@ public class CmisNavigationService {
 		public static ObjectInFolderList getChildren(String repositoryId, String folderId, String filter,
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
-				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisObjectNotFoundException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String options)
+				throws CmisObjectNotFoundException {
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
 			ObjectInFolderList res = getChildrenIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
 					includeRelationships, renditionFilter, includePathSegment, maxItemsInt, skipCountInt, false, false,
-					objectInfos, userObject);
+					objectInfos, userObject, options);
 			if (res != null) {
 				LOG.debug("getChildren result for folderId: {}, numItems: {}", folderId, res.getNumItems());
 			}
@@ -88,7 +89,7 @@ public class CmisNavigationService {
 		private static ObjectInFolderList getChildrenIntern(String repositoryId, String folderId, String filter,
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int maxItems, int skipCount, boolean folderOnly,
-				boolean includePwc, ObjectInfoHandler objectInfos, IUserObject userObject)
+				boolean includePwc, ObjectInfoHandler objectInfos, IUserObject userObject, String options)
 				throws CmisObjectNotFoundException {
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
@@ -119,7 +120,7 @@ public class CmisNavigationService {
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";
 				children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
-						filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO);
+						filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, options);
 				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true);
 			} else {
 				path = data.getInternalPath() + folderId + ",";
@@ -137,7 +138,7 @@ public class CmisNavigationService {
 								if (listAce.size() >= 1) {
 									children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems,
 											skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter),
-											typeManagerDAO);
+											typeManagerDAO, options);
 									childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false);
 									objectOnly = false;
 									break;
@@ -151,7 +152,7 @@ public class CmisNavigationService {
 				// Acl Propagation ObjectOnly
 				if (objectOnly) {
 					children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
-							filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO);
+							filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, options);
 					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true);
 				}
 			}
