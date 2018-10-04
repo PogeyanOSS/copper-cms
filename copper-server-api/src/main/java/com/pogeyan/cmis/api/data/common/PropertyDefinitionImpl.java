@@ -247,12 +247,7 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	public void setMinValue(BigInteger minValue) {
 		if (minValue != null) {
-			byte[] byteArray = new byte[] { minValue.byteValue() };
-			int[] intArray = new int[byteArray.length];
-			for (int i = 0; i < byteArray.length; intArray[i] = byteArray[i++])
-				;
-			Integer intObj = new Integer(intArray[0]);
-			this.minValue = intObj;
+			this.minValue = minValue.intValue();
 		}
 	}
 
@@ -262,12 +257,7 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	public void setMaxValue(BigInteger maxValue) {
 		if (maxValue != null) {
-			byte[] byteArray = new byte[] { maxValue.byteValue() };
-			int[] intArray = new int[byteArray.length];
-			for (int i = 0; i < byteArray.length; intArray[i] = byteArray[i++])
-				;
-			Integer intObj = new Integer(intArray[0]);
-			this.maxValue = intObj;
+			this.maxValue = maxValue.intValue();
 		}
 	}
 
@@ -277,12 +267,7 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	public void setMaxLength(BigInteger maxLength) {
 		if (maxLength != null) {
-			byte[] byteArray = new byte[] { maxLength.byteValue() };
-			int[] intArray = new int[byteArray.length];
-			for (int i = 0; i < byteArray.length; intArray[i] = byteArray[i++])
-				;
-			Integer intObj = new Integer(intArray[0]);
-			this.maxLength = intObj;
+			this.maxLength = maxLength.intValue();
 		}
 	}
 }
