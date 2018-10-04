@@ -165,7 +165,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Loading default extensions");
 			initializeTracingApiServiceFactory(DEFAULT_TRACING_API_CLASS);
 			return initializeExtensions(DEFAULT_CLASS, DEFAULT_REPO_STORE_CLASS, DEFAULT_AUTH_STORE_CLASS,
-					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, null, 30 * 60);
+					DEFAULT_FILE_STORE_CLASS, DEFAULT_CACHE_PROVIDER_CLASS, null, 30 * 60);
 		}
 
 		Properties props = new Properties();
@@ -225,22 +225,31 @@ public class AkkaServletContextListener implements ServletContextListener {
 		initializeTracingApiServiceFactory(traceApiClass);
 
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
-				fileStorageClassName, cacheProviderClassName, externalActorClassName, ObjectFlowServiceClass,
+				fileStorageClassName, cacheProviderClassName, externalActorClassName,
 				intevalTime);
 		if (mainCLassInitialize) {
 			if (typePermissionServiceClass != null) {
 				if (typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass)) {
+					if (ObjectFlowServiceClass != null) {
+						if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
+							return true;
+						}
+					}
+				}
+			}else if (ObjectFlowServiceClass != null) {
+				if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
 					return true;
 				}
+			} else {
+				return true;
 			}
-			return true;
 		}
 		return false;
 	}
 
 	private static boolean initializeExtensions(String className, String repoClassName, String authStoreClassName,
 			String fileStorageClassName, String cacheProviderClassName, String externalActorClassName,
-			String ObjectFlowServiceClass, long intervaltime) {
+			 long intervaltime) {
 		LOG.info("Initialized External Services Factory Classes");
 		if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
 			if (authFactoryClassinitializeExtensions(authStoreClassName)) {
@@ -248,29 +257,24 @@ public class AkkaServletContextListener implements ServletContextListener {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
 						if (externalActorClassName != null) {
 							if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
-								if (ObjectFlowServiceClass != null) {
-									if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
-										return true;
-									}
-								} else {
-									return true;
-								}
-							}
-						} else if (ObjectFlowServiceClass != null) {
-							if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
 								return true;
 							}
-						} else {
+								
+							}
+						else {
+							return true;
+						}
+						} 
+						else {
 							return true;
 						}
 					}
 				}
 			}
+		return false;
 		}
 
-		return false;
-
-	}
+		
 
 	private static boolean authFactoryClassinitializeExtensions(String authFactoryClassName) {
 		try {
@@ -318,7 +322,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 			return false;
 		}
 		return true;
-
 	}
 
 	private static boolean externalActorFactoryClassinitializeExtensions(String externalActorClassName) {
