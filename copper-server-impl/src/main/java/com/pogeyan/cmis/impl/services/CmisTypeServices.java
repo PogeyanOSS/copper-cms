@@ -210,50 +210,49 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> list = new HashMap<>();
 			PropertyDefinitionImpl<?> name = new PropertyDefinitionImpl("cmis:name", "localName", "localNameSpace",
 					"cmis:name", "cmis:name", "description", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READWRITE, false, false, false, false, null, null, null, null);
+					Updatability.READWRITE, false, false, false, false, null);
 			list.put("cmis:name", name);
 			PropertyDefinitionImpl<?> objectId = new PropertyDefinitionImpl("cmis:objectId", "localName",
 					"localNameSpace", "cmis:objectId", "cmis:objectId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, false, false, null);
 			list.put("cmis:objectId", objectId);
 			PropertyDefinitionImpl<?> objectTypeId = new PropertyDefinitionImpl("cmis:objectTypeId", "objectTypeId",
 					"objectTypeId", "cmis:objectTypeId", "cmis:objectTypeId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, true, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.ONCREATE, false, true, false, false, null);
 			list.put("cmis:objectTypeId", objectTypeId);
 			PropertyDefinitionImpl<?> baseTypeId = new PropertyDefinitionImpl("cmis:baseTypeId", "baseTypeId",
 					"baseTypeId", "cmis:baseTypeId", "cmis:baseTypeId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:baseTypeId", baseTypeId);
 			PropertyDefinitionImpl<?> createdBy = new PropertyDefinitionImpl("cmis:createdBy", "localName",
 					"localNameSpace", "cmis:createdBy", "cmis:createdBy", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null);
 			list.put("cmis:createdBy", createdBy);
 			PropertyDefinitionImpl<?> creationDate = new PropertyDefinitionImpl("cmis:creationDate", "localName",
 					"localNameSpace", "cmis:creationDate", "cmis:creationDate", "description", PropertyType.DATETIME,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null);
 			list.put("cmis:creationDate", creationDate);
 			PropertyDefinitionImpl<?> lastModifiedBy = new PropertyDefinitionImpl("cmis:lastModifiedBy",
 					"lastModifiedBy", "lastModifiedBy", "cmis:lastModifiedBy", "cmis:lastModifiedBy", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null,
-					null, null, null);
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, true, true, null);
 			list.put("cmis:lastModifiedBy", lastModifiedBy);
 			PropertyDefinitionImpl<?> lastModificationDate = new PropertyDefinitionImpl("cmis:lastModificationDate",
 					"localName", "localNameSpace", "cmis:lastModificationDate", "cmis:lastModificationDate",
 					"description", PropertyType.DATETIME, Cardinality.SINGLE, Updatability.READONLY, false, false, true,
-					true, null, null, null, null);
+					true, null);
 			list.put("cmis:lastModificationDate", lastModificationDate);
 			PropertyDefinitionImpl<?> changeToken = new PropertyDefinitionImpl("cmis:changeToken", "changeToken",
 					"changeToken", "cmis:changeToken", "cmis:changeToken", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:changeToken", changeToken);
 			PropertyDefinitionImpl<?> secondaryObjectTypeIds = new PropertyDefinitionImpl("cmis:secondaryObjectTypeIds",
 					"secondaryObjectTypeIds", "secondaryObjectTypeIds", "cmis:secondaryObjectTypeIds",
 					"cmis:secondaryObjectTypeIds", "description", PropertyType.ID, Cardinality.MULTI,
-					Updatability.READWRITE, false, false, false, false, null, null, null, null);
+					Updatability.READWRITE, false, false, false, false, null);
 			list.put("cmis:secondaryObjectTypeIds", secondaryObjectTypeIds);
 			PropertyDefinitionImpl<?> description = new PropertyDefinitionImpl("cmis:description", "description",
 					"description", "cmis:description", "cmis:description", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READWRITE, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, false, false, null);
 			list.put("cmis:description", description);
 
 			return list;
@@ -268,16 +267,16 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> folderList = getBaseProperty();
 			PropertyDefinitionImpl<?> parentId = new PropertyDefinitionImpl("cmis:parentId", "localName",
 					"localNameSpace", "cmis:parentId", "cmis:parentId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:parentId", parentId);
 			PropertyDefinitionImpl<?> allowedChildObjectTypeIds = new PropertyDefinitionImpl(
 					"cmis:allowedChildObjectTypeIds", "localName", "localNameSpace", "cmis:allowedChildObjectTypeIds",
 					"cmis:allowedChildObjectTypeIds", "description", PropertyType.ID, Cardinality.MULTI,
-					Updatability.READONLY, false, false, true, false, null, null, null, null);
+					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:allowedChildObjectTypeIds", allowedChildObjectTypeIds);
 			PropertyDefinitionImpl<?> path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
 					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, true, false, null, null, null, null);
+					Updatability.READONLY, false, false, true, false, null);
 			folderList.put("cmis:path", path);
 			return folderList;
 		}
@@ -290,85 +289,79 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> documentList = getBaseProperty();
 			PropertyDefinitionImpl<?> isImmutable = new PropertyDefinitionImpl("cmis:isImmutable", "localName",
 					"localNameSpace", "cmis:isImmutable", "cmis:isImmutable", "description", PropertyType.BOOLEAN,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isImmutable", isImmutable);
 			PropertyDefinitionImpl<?> isLatestVersion = new PropertyDefinitionImpl("cmis:isLatestVersion", "localName",
 					"localNameSpace", "cmis:isLatestVersion", "cmis:isLatestVersion", "description",
-					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null,
-					null, null, null);
+					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isLatestVersion", isLatestVersion);
 			PropertyDefinitionImpl<?> isMajorVersion = new PropertyDefinitionImpl("cmis:isMajorVersion",
 					"Is Major Version", "Is Major Version", "cmis:isMajorVersion", "cmis:isMajorVersion", "description",
-					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null,
-					null, null, null);
+					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isMajorVersion", isMajorVersion);
 			PropertyDefinitionImpl<?> isLatestMajorVersion = new PropertyDefinitionImpl("cmis:isLatestMajorVersion",
 					"Is Latest Major Version", "Is Latest Major Version", "cmis:isLatestMajorVersion",
 					"cmis:isLatestMajorVersion", "description", PropertyType.BOOLEAN, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isLatestMajorVersion", isLatestMajorVersion);
 			PropertyDefinitionImpl<?> isPrivateWorkingCopy = new PropertyDefinitionImpl("cmis:isPrivateWorkingCopy",
 					"isPrivateWorkingCopy", "isPrivateWorkingCopy", "cmis:isPrivateWorkingCopy",
 					"cmis:isLatestMajorVersion", "description", PropertyType.BOOLEAN, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isPrivateWorkingCopy", isPrivateWorkingCopy);
 			PropertyDefinitionImpl<?> versionLabel = new PropertyDefinitionImpl("cmis:versionLabel", "localName",
 					"localNameSpace", "cmis:versionLabel", "cmis:versionLabel", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:versionLabel", versionLabel);
 			PropertyDefinitionImpl<?> versionSeriesId = new PropertyDefinitionImpl("cmis:versionSeriesId", "localName",
 					"localNameSpace", "cmis:versionSeriesId", "cmis:versionSeriesId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:versionSeriesId", versionSeriesId);
 			PropertyDefinitionImpl<?> isVersionSeriesCheckedOut = new PropertyDefinitionImpl(
 					"cmis:isVersionSeriesCheckedOut", "Is Verison Series Checked Out", "Is Verison Series Checked Out",
 					"cmis:isVersionSeriesCheckedOut", "cmis:isVersionSeriesCheckedOut", "description",
-					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null,
-					null, null, null);
+					PropertyType.BOOLEAN, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:isVersionSeriesCheckedOut", isVersionSeriesCheckedOut);
 			PropertyDefinitionImpl<?> versionSeriesCheckedOutBy = new PropertyDefinitionImpl(
 					"cmis:versionSeriesCheckedOutBy", "localName", "localNameSpace", "cmis:versionSeriesCheckedOutBy",
 					"cmis:versionSeriesCheckedOutBy", "description", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:versionSeriesCheckedOutBy", versionSeriesCheckedOutBy);
 			PropertyDefinitionImpl<?> versionSeriesCheckedOutId = new PropertyDefinitionImpl(
 					"cmis:versionSeriesCheckedOutId", "Version Series Checked Out Id", "Version Series Checked Out Id",
 					"cmis:versionSeriesCheckedOutId", "cmis:versionSeriesCheckedOutId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:versionSeriesCheckedOutId", versionSeriesCheckedOutId);
 			PropertyDefinitionImpl<?> checkinComment = new PropertyDefinitionImpl("cmis:checkinComment",
 					"Checkin Comment", "Checkin Comment", "cmis:checkinComment", "cmis:checkinComment", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null,
-					null, null, null);
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:checkinComment", checkinComment);
 			PropertyDefinitionImpl<?> contentStreamLength = new PropertyDefinitionImpl("cmis:contentStreamLength",
 					"Content Stream Length", "Content Stream Length", "cmis:contentStreamLength",
 					"cmis:contentStreamLength", "description", PropertyType.INTEGER, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:contentStreamLength", contentStreamLength);
 			PropertyDefinitionImpl<?> contentStreamMimeType = new PropertyDefinitionImpl("cmis:contentStreamMimeType",
 					"MIME Type", "MIME Type", "cmis:contentStreamMimeType", "cmis:contentStreamMimeType", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null,
-					null, null, null);
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:contentStreamMimeType", contentStreamMimeType);
 			PropertyDefinitionImpl<?> contentStreamFileName = new PropertyDefinitionImpl("cmis:contentStreamFileName",
 					"Filename", "Filename", "cmis:contentStreamFileName", "cmis:contentStreamFileName", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null,
-					null, null, null);
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:contentStreamFileName", contentStreamFileName);
 			PropertyDefinitionImpl<?> contentStreamId = new PropertyDefinitionImpl("cmis:contentStreamId",
 					"Content Stream Id", "Content Stream Id", "cmis:contentStreamId", "cmis:contentStreamId",
 					"description", PropertyType.ID, Cardinality.SINGLE, Updatability.READONLY, false, false, false,
-					false, null, null, null, null);
+					false, null);
 			documentList.put("cmis:contentStreamId", contentStreamId);
 			PropertyDefinitionImpl<?> previousVersionObjectId = new PropertyDefinitionImpl(
 					"cmis:previousVersionObjectId", "previous Version ObjectId", "previous Version ObjectId",
 					"cmis:previousVersionObjectId", "cmis:previousVersionObjectId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			documentList.put("cmis:previousVersionObjectId", previousVersionObjectId);
 			PropertyDefinitionImpl<?> path = new PropertyDefinitionImpl("cmis:path", "localName", "localNameSpace",
 					"cmis:path", "cmis:path", "description", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READONLY, false, false, true, false, null, null, null, null);
+					Updatability.READONLY, false, false, true, false, null);
 			documentList.put("cmis:path", path);
 			return documentList;
 		}
@@ -381,7 +374,7 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> policy = getBaseProperty();
 			PropertyDefinitionImpl<?> policyText = new PropertyDefinitionImpl("cmis:policyText", "policyText",
 					"policyText", "cmis:policyText", "cmis:policyText", "policyText", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READWRITE, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, false, false, null);
 			policy.put("cmis:policyText", policyText);
 
 			return policy;
@@ -395,11 +388,11 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> relationship = getBaseProperty();
 			PropertyDefinitionImpl<?> sourceId = new PropertyDefinitionImpl("cmis:sourceId", "sourceId", "sourceId",
 					"cmis:sourceId", "cmis:sourceId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READWRITE, false, true, false, false, null, null, null, null);
+					Updatability.READWRITE, false, true, false, false, null);
 			relationship.put("cmis:sourceId", sourceId);
 			PropertyDefinitionImpl<?> targetId = new PropertyDefinitionImpl("cmis:targetId", "targetId", "targetId",
 					"cmis:targetId", "cmis:targetId", "description", PropertyType.ID, Cardinality.SINGLE,
-					Updatability.READWRITE, false, true, false, false, null, null, null, null);
+					Updatability.READWRITE, false, true, false, false, null);
 			relationship.put("cmis:targetId", targetId);
 
 			return relationship;
@@ -410,7 +403,7 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> relationship = getBaserelationShipProperty();
 			PropertyDefinitionImpl<?> relation_name = new PropertyDefinitionImpl("relation_name", "relation_name",
 					"relation_name", "relation_name", "relation_name", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READWRITE, false, true, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, true, false, false, null);
 			relationship.put("relation_name", relation_name);
 			return relationship;
 		}
@@ -420,50 +413,49 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> list = new HashMap<>();
 			PropertyDefinitionImpl<?> name = new PropertyDefinitionImpl("cmis:name", "localName", "localNameSpace",
 					"cmis:name", "cmis:name", "description", PropertyType.STRING, Cardinality.SINGLE,
-					Updatability.READWRITE, false, false, true, false, null, null, null, null);
+					Updatability.READWRITE, false, false, true, false, null);
 			list.put("cmis:name", name);
 			PropertyDefinitionImpl<?> objectId = new PropertyDefinitionImpl("cmis:objectId", "localName",
 					"localNameSpace", "cmis:objectId", "cmis:objectId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("cmis:objectId", objectId);
 			PropertyDefinitionImpl<?> objectTypeId = new PropertyDefinitionImpl("cmis:objectTypeId", "objectTypeId",
 					"objectTypeId", "cmis:objectTypeId", "cmis:objectTypeId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, false, false, null);
 			list.put("cmis:objectTypeId", objectTypeId);
 			PropertyDefinitionImpl<?> baseTypeId = new PropertyDefinitionImpl("cmis:baseTypeId", "baseTypeId",
 					"baseTypeId", "cmis:baseTypeId", "cmis:baseTypeId", "description", PropertyType.ID,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:baseTypeId", baseTypeId);
 			PropertyDefinitionImpl<?> createdBy = new PropertyDefinitionImpl("cmis:createdBy", "localName",
 					"localNameSpace", "cmis:createdBy", "cmis:createdBy", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			list.put("cmis:createdBy", createdBy);
 			PropertyDefinitionImpl<?> creationDate = new PropertyDefinitionImpl("cmis:creationDate", "localName",
 					"localNameSpace", "cmis:creationDate", "cmis:creationDate", "description", PropertyType.DATETIME,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			list.put("cmis:creationDate", creationDate);
 			PropertyDefinitionImpl<?> lastModifiedBy = new PropertyDefinitionImpl("cmis:lastModifiedBy",
 					"lastModifiedBy", "lastModifiedBy", "cmis:lastModifiedBy", "cmis:lastModifiedBy", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null,
-					null, null, null);
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.READONLY, false, false, true, false, null);
 			list.put("cmis:lastModifiedBy", lastModifiedBy);
 			PropertyDefinitionImpl<?> lastModificationDate = new PropertyDefinitionImpl("cmis:lastModificationDate",
 					"localName", "localNameSpace", "cmis:lastModificationDate", "cmis:lastModificationDate",
 					"description", PropertyType.DATETIME, Cardinality.SINGLE, Updatability.READWRITE, false, false,
-					true, false, null, null, null, null);
+					true, false, null);
 			list.put("cmis:lastModificationDate", lastModificationDate);
 			PropertyDefinitionImpl<?> changeToken = new PropertyDefinitionImpl("cmis:changeToken", "changeToken",
 					"changeToken", "cmis:changeToken", "cmis:changeToken", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:changeToken", changeToken);
 			PropertyDefinitionImpl<?> secondaryObjectTypeIds = new PropertyDefinitionImpl("cmis:secondaryObjectTypeIds",
 					"secondaryObjectTypeIds", "secondaryObjectTypeIds", "cmis:secondaryObjectTypeIds",
 					"cmis:secondaryObjectTypeIds", "description", PropertyType.STRING, Cardinality.MULTI,
-					Updatability.READWRITE, false, false, false, false, null, null, null, null);
+					Updatability.READWRITE, false, false, false, false, null);
 			list.put("cmis:secondaryObjectTypeIds", secondaryObjectTypeIds);
 			PropertyDefinitionImpl<?> description = new PropertyDefinitionImpl("cmis:description", "description",
 					"description", "cmis:description", "cmis:description", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READONLY, false, false, false, false, null);
 			list.put("cmis:description", description);
 			return list;
 		}
@@ -473,24 +465,23 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> list = getBaseProperty();
 			PropertyDefinitionImpl<?> source_table = new PropertyDefinitionImpl("source_table", "localName",
 					"localNameSpace", "source_table", "source_table", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
 			list.put("source_table", source_table);
 			PropertyDefinitionImpl<?> target_table = new PropertyDefinitionImpl("target_table", "localName",
 					"localNameSpace", "target_table", "target_table", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("target_table", target_table);
 			PropertyDefinitionImpl<?> source_column = new PropertyDefinitionImpl("source_column", "localName",
 					"localNameSpace", "source_column", "source_column", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
 			list.put("source_column", source_column);
 			PropertyDefinitionImpl<?> target_column = new PropertyDefinitionImpl("target_column", "localName",
 					"localNameSpace", "target_column", "target_column", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("target_column", target_column);
 			PropertyDefinitionImpl<?> copper_relationType = new PropertyDefinitionImpl("copper_relationType",
 					"localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null,
-					null, null, null);
+					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("copper_relationType", copper_relationType);
 			return list;
 		}
@@ -500,7 +491,7 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> list = getBaseProperty();
 			PropertyDefinitionImpl<?> configDetails = new PropertyDefinitionImpl("configDetails", "localName",
 					"localNameSpace", "configDetails", "configDetails", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null, null, null, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
 			list.put("configDetails", configDetails);
 			return list;
 		}
@@ -1653,29 +1644,17 @@ public class CmisTypeServices {
 		public static PropertyDefinitionImpl<?> getPropertyDefinition(PropertyDefinition<?> pro, Boolean inherited) {
 			// LOG.info("getPropertyDefinition from {}", pro);
 			PropertyDefinitionImpl<?> propertyDefinition = null;
+			propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(), pro.getLocalNamespace(),
+					pro.getDisplayName(), pro.getQueryName(), pro.getDescription(), pro.getPropertyType(),
+					pro.getCardinality(), pro.getUpdatability(), inherited == null ? pro.isInherited() : inherited,
+					pro.isRequired(), pro.isQueryable(), pro.isOrderable(), pro.isOpenChoice());
 			if (pro.getPropertyType().value().equals("string")) {
 				PropertyStringDefinition ps = (PropertyStringDefinition) pro;
-				propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(),
-						pro.getLocalNamespace(), pro.getDisplayName(), pro.getQueryName(), pro.getDescription(),
-						pro.getPropertyType(), pro.getCardinality(), pro.getUpdatability(),
-						inherited == null ? pro.isInherited() : inherited, pro.isRequired(), pro.isQueryable(),
-						pro.isOrderable(), pro.isOpenChoice(), null, null,
-						ps.getMaxLength() == null ? null : ps.getMaxLength().intValue());
+				propertyDefinition.setMaxLength(ps.getMaxLength() == null ? null : ps.getMaxLength());
 			} else if (pro.getPropertyType().value().equals("integer")) {
 				PropertyIntegerDefinition pi = (PropertyIntegerDefinition) pro;
-				propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(),
-						pro.getLocalNamespace(), pro.getDisplayName(), pro.getQueryName(), pro.getDescription(),
-						pro.getPropertyType(), pro.getCardinality(), pro.getUpdatability(),
-						inherited == null ? pro.isInherited() : inherited, pro.isRequired(), pro.isQueryable(),
-						pro.isOrderable(), pro.isOpenChoice(),
-						pi.getMinValue() == null ? null : pi.getMinValue().intValue(),
-						pi.getMaxValue() == null ? null : pi.getMaxValue().intValue(), null);
-			} else {
-				propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(),
-						pro.getLocalNamespace(), pro.getDisplayName(), pro.getQueryName(), pro.getDescription(),
-						pro.getPropertyType(), pro.getCardinality(), pro.getUpdatability(),
-						inherited == null ? pro.isInherited() : inherited, pro.isRequired(), pro.isQueryable(),
-						pro.isOrderable(), pro.isOpenChoice(), null, null, null);
+				propertyDefinition.setMinValue(pi.getMinValue() == null ? null : pi.getMinValue());
+				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue());
 			}
 			return propertyDefinition;
 		}
@@ -1721,8 +1700,9 @@ public class CmisTypeServices {
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
 					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty,
-					type.isVersionable() == null ? false : type.isVersionable(), type.getContentStreamAllowed() == null
-							? ContentStreamAllowed.NOTALLOWED : type.getContentStreamAllowed());
+					type.isVersionable() == null ? false : type.isVersionable(),
+					type.getContentStreamAllowed() == null ? ContentStreamAllowed.NOTALLOWED
+							: type.getContentStreamAllowed());
 			return newType;
 		}
 

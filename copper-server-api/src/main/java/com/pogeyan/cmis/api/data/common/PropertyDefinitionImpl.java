@@ -52,10 +52,18 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	}
 
+	// public PropertyDefinitionImpl(String id, String localName, String
+	// localNamespace, String displayName,
+	// String queryName, String description, PropertyType propertyType, Cardinality
+	// cardinality,
+	// Updatability updatability, Boolean isInherited, Boolean isRequired, Boolean
+	// isQueryable,
+	// Boolean isOrderable, Boolean isOpenChoice, Integer minValue, Integer
+	// maxValue, Integer maxLength) {
 	public PropertyDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, PropertyType propertyType, Cardinality cardinality,
 			Updatability updatability, Boolean isInherited, Boolean isRequired, Boolean isQueryable,
-			Boolean isOrderable, Boolean isOpenChoice, Integer minValue, Integer maxValue, Integer maxLength) {
+			Boolean isOrderable, Boolean isOpenChoice) {
 		super();
 		this.id = id;
 		this.localName = localName;
@@ -71,10 +79,6 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		this.isQueryable = isQueryable;
 		this.isOrderable = isOrderable;
 		this.isOpenChoice = isOpenChoice;
-		this.minValue = minValue;
-		this.maxValue = maxValue;
-		this.maxLength = maxLength;
-
 	}
 
 	@Override
