@@ -52,14 +52,6 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	}
 
-	// public PropertyDefinitionImpl(String id, String localName, String
-	// localNamespace, String displayName,
-	// String queryName, String description, PropertyType propertyType, Cardinality
-	// cardinality,
-	// Updatability updatability, Boolean isInherited, Boolean isRequired, Boolean
-	// isQueryable,
-	// Boolean isOrderable, Boolean isOpenChoice, Integer minValue, Integer
-	// maxValue, Integer maxLength) {
 	public PropertyDefinitionImpl(String id, String localName, String localNamespace, String displayName,
 			String queryName, String description, PropertyType propertyType, Cardinality cardinality,
 			Updatability updatability, Boolean isInherited, Boolean isRequired, Boolean isQueryable,
