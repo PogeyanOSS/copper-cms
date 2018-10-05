@@ -225,56 +225,40 @@ public class AkkaServletContextListener implements ServletContextListener {
 		initializeTracingApiServiceFactory(traceApiClass);
 
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
-				fileStorageClassName, cacheProviderClassName, externalActorClassName,
-				intevalTime);
+				fileStorageClassName, cacheProviderClassName, externalActorClassName, intevalTime);
 		if (mainCLassInitialize) {
-			if (typePermissionServiceClass != null) {
-				if (typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass)) {
-					if (ObjectFlowServiceClass != null) {
-						if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
-							return true;
-						}
-					}
-				}
-			}else if (ObjectFlowServiceClass != null) {
-				if (ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)) {
-					return true;
-				}
-			} else {
+			boolean checkTypePermission = typePermissionServiceClass != null
+					? typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass)
+					: true;
+			boolean checkObjectServicePermission = ObjectFlowServiceClass != null
+					? ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)
+					: true;
+			if (checkTypePermission && checkObjectServicePermission) {
 				return true;
 			}
+
 		}
 		return false;
 	}
 
 	private static boolean initializeExtensions(String className, String repoClassName, String authStoreClassName,
 			String fileStorageClassName, String cacheProviderClassName, String externalActorClassName,
-			 long intervaltime) {
+			long intervaltime) {
 		LOG.info("Initialized External Services Factory Classes");
+		boolean checkExternalActor = false;
 		if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
 			if (authFactoryClassinitializeExtensions(authStoreClassName)) {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
-						if (externalActorClassName != null) {
-							if (externalActorFactoryClassinitializeExtensions(externalActorClassName)) {
-								return true;
-							}
-								
-							}
-						else {
-							return true;
-						}
-						} 
-						else {
-							return true;
-						}
+						checkExternalActor = externalActorClassName != null
+								? externalActorFactoryClassinitializeExtensions(externalActorClassName)
+								: true;
 					}
 				}
 			}
-		return false;
 		}
-
-		
+		return checkExternalActor;
+	}
 
 	private static boolean authFactoryClassinitializeExtensions(String authFactoryClassName) {
 		try {
