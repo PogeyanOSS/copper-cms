@@ -52,7 +52,7 @@ public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefi
 		super();
 	}
 
-	public CmisPropertyIntegerDefinitionImpl(PropertyDefinitionImpl<?> type, BigInteger minValue, BigInteger maxValue) {
+	public CmisPropertyIntegerDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();

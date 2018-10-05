@@ -15,7 +15,6 @@
  */
 package com.pogeyan.cmis.data.mongo;
 
-import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -195,9 +194,7 @@ public class MTypeObject implements TypeDefinition {
 				PropertyDefinitionImpl<?> valueName = propertiesValues.getValue();
 				String propertyType = valueName.getPropertyType().toString();
 				if (propertyType.equalsIgnoreCase("string")) {
-					BigInteger maxLength = valueName.getMaxLength();
-					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName,
-							maxLength);
+					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 				} else if (propertyType.equalsIgnoreCase("boolean")) {
 					CmisPropertyBooleanDefinitionImpl propertyValue = new CmisPropertyBooleanDefinitionImpl(valueName);
@@ -219,10 +216,7 @@ public class MTypeObject implements TypeDefinition {
 					CmisPropertyUriDefinitionImpl propertyValue = new CmisPropertyUriDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 				} else if (propertyType.equalsIgnoreCase("integer")) {
-					BigInteger minValue = valueName.getMinValue();
-					BigInteger maxValue = valueName.getMaxValue();
-					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName,
-							minValue, maxValue);
+					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 				}
 			}
@@ -340,9 +334,9 @@ public class MTypeObject implements TypeDefinition {
 				mongo.setIsOrderable(valueName.isOrderable());
 				mongo.setIsOpenChoice(valueName.isOpenChoice());
 				mongo.setChoice(valueName.getChoices());
-				mongo.setMinValue(valueName.getMinValue());
-				mongo.setMaxValue(valueName.getMaxValue());
-				mongo.setMaxLength(valueName.getMaxLength());
+				mongo.setMinValue(valueName.getMinValue() != null ? valueName.getMinValue().intValue() : null);
+				mongo.setMaxValue(valueName.getMaxValue() != null ? valueName.getMaxValue().intValue() : null);
+				mongo.setMaxLength(valueName.getMaxLength() != null ? valueName.getMaxLength().intValue() : null);
 				mongoProperty.put(id, mongo);
 			}
 			return mongoProperty;

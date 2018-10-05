@@ -241,9 +241,9 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		return this.minValue != null ? BigInteger.valueOf(this.minValue) : null;
 	}
 
-	public void setMinValue(BigInteger minValue) {
+	public void setMinValue(Integer minValue) {
 		if (minValue != null) {
-			this.minValue = minValue.intValue();
+			this.minValue = minValue;
 		}
 	}
 
@@ -251,9 +251,9 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		return this.maxValue != null ? BigInteger.valueOf(this.maxValue) : null;
 	}
 
-	public void setMaxValue(BigInteger maxValue) {
+	public void setMaxValue(Integer maxValue) {
 		if (maxValue != null) {
-			this.maxValue = maxValue.intValue();
+			this.maxValue = maxValue;
 		}
 	}
 
@@ -261,9 +261,9 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		return this.maxLength != null ? BigInteger.valueOf(this.maxLength) : null;
 	}
 
-	public void setMaxLength(BigInteger maxLength) {
+	public void setMaxLength(Integer maxLength) {
 		if (maxLength != null) {
-			this.maxLength = maxLength.intValue();
+			this.maxLength = maxLength;
 		}
 	}
 }

@@ -1650,11 +1650,11 @@ public class CmisTypeServices {
 					pro.isRequired(), pro.isQueryable(), pro.isOrderable(), pro.isOpenChoice());
 			if (pro.getPropertyType().value().equals("string")) {
 				PropertyStringDefinition ps = (PropertyStringDefinition) pro;
-				propertyDefinition.setMaxLength(ps.getMaxLength() == null ? null : ps.getMaxLength());
+				propertyDefinition.setMaxLength(ps.getMaxLength() == null ? null : ps.getMaxLength().intValue());
 			} else if (pro.getPropertyType().value().equals("integer")) {
 				PropertyIntegerDefinition pi = (PropertyIntegerDefinition) pro;
-				propertyDefinition.setMinValue(pi.getMinValue() == null ? null : pi.getMinValue());
-				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue());
+				propertyDefinition.setMinValue(pi.getMinValue() == null ? null : pi.getMinValue().intValue());
+				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue().intValue());
 			}
 			return propertyDefinition;
 		}

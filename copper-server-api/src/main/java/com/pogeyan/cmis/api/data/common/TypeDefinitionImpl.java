@@ -1,6 +1,5 @@
 package com.pogeyan.cmis.api.data.common;
 
-import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,9 +156,7 @@ public class TypeDefinitionImpl implements TypeDefinition {
 				PropertyDefinitionImpl<?> valueName = (PropertyDefinitionImpl<?>) propertiesValues.getValue();
 				String propertyType = valueName.getPropertyType().toString();
 				if (propertyType.equalsIgnoreCase("string")) {
-					BigInteger maxLength = valueName.getMaxLength();
-					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName,
-							maxLength);
+					CmisPropertyStringDefinitionImpl propertyValue = new CmisPropertyStringDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("boolean")) {
@@ -188,10 +185,7 @@ public class TypeDefinitionImpl implements TypeDefinition {
 					map.put(id, propertyValue);
 
 				} else if (propertyType.equalsIgnoreCase("integer")) {
-					BigInteger minValue = valueName.getMinValue();
-					BigInteger maxValue = valueName.getMaxValue();
-					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName,
-							minValue, maxValue);
+					CmisPropertyIntegerDefinitionImpl propertyValue = new CmisPropertyIntegerDefinitionImpl(valueName);
 					map.put(id, propertyValue);
 
 				}

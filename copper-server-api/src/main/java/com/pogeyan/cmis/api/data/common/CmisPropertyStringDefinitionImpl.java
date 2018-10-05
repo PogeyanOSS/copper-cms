@@ -51,7 +51,7 @@ public class CmisPropertyStringDefinitionImpl<T> implements PropertyStringDefini
 		super();
 	}
 
-	public CmisPropertyStringDefinitionImpl(PropertyDefinitionImpl<?> type, BigInteger maxLength) {
+	public CmisPropertyStringDefinitionImpl(PropertyDefinitionImpl<?> type) {
 		super();
 		this.id = type.getId();
 		this.localName = type.getLocalName();
