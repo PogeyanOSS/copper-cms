@@ -4180,7 +4180,7 @@ public class CmisObjectService {
 							.collect(Collectors.toList());
 					if (listAce.size() >= 1) {
 						children = navigationMorphiaDAO.getChildren(path, principalIds, false, -1, -1, null, null, null,
-								null, null);
+								null, null, null);
 						objectOnly = false;
 						break;
 					}
@@ -4190,7 +4190,7 @@ public class CmisObjectService {
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
 				children = navigationMorphiaDAO.getChildren(path, principalIds, true, -1, -1, null, null, null, null,
-						null);
+						null, null);
 
 			}
 

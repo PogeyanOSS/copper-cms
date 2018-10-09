@@ -85,13 +85,13 @@ public class TypePermissionService implements ITypePermissionService {
 			for (IUserGroupObject userRole : role) {
 				List<? extends IDocumentObject> children = new ArrayList<>();
 				children = navigationMorphiaDAO.getChildren(path, new String[] { "system" }, true, 0, 0, null, null,
-						"roles eq " + userRole.getGroupDN(), typeManagerDAO, null);
+						"roles eq " + userRole.getGroupDN(), typeManagerDAO, null, null);
 				if (children.size() > 0) {
 					String sourceId = children.get(0).getId();
 					relationMdPath = relationFolder.getInternalPath() + relationFolder.getId() + ",";
 					List<? extends IDocumentObject> permission_set_Children = navigationMorphiaDAO.getChildren(
 							relationMdPath, new String[] { "system" }, true, 0, 0, null, null,
-							"cmis:sourceId eq " + sourceId, typeManagerDAO, null);
+							"cmis:sourceId eq " + sourceId, typeManagerDAO, null, null);
 					if (permission_set_Children.size() > 0) {
 						Map<String, List<String>> typePermission = new HashMap<>();
 						Map<String, List<String>> fieldPermission = new HashMap<>();
@@ -130,7 +130,8 @@ public class TypePermissionService implements ITypePermissionService {
 			LOG.info("className: {},  methodName: {}, repositoryId: {}, typeId: {}", "TypePermissionService",
 					"readPermissionSet", repositoryId, typeId);
 			List<? extends IDocumentObject> typeAccess_set_Children = navigationMorphiaDAO.getChildren(relationMdPath,
-					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO, null);
+					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO, null,
+					null);
 			if (typeAccess_set_Children.size() > 0) {
 				for (IDocumentObject obj : typeAccess_set_Children) {
 					if (obj != null) {
@@ -175,7 +176,8 @@ public class TypePermissionService implements ITypePermissionService {
 			LOG.info("className: {},  methodName: {}, repositoryId: {}, typeId: {}", "TypePermissionService",
 					"readFleidAccess", repositoryId, typeId);
 			List<? extends IDocumentObject> field_set_Children = navigationMorphiaDAO.getChildren(relationMdPath,
-					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO, null);
+					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO, null,
+					null);
 			if (field_set_Children.size() > 0) {
 				for (IDocumentObject obj : field_set_Children) {
 					if (obj != null) {
