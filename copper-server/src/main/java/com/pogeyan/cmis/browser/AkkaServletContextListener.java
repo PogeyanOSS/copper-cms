@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.pogeyan.cbm.mongo.adapter.services.CbmMongoAdapterFactory;
 import com.pogeyan.cmis.actors.AclActor;
 import com.pogeyan.cmis.actors.DiscoveryActor;
 import com.pogeyan.cmis.actors.NavigationActor;
@@ -90,6 +91,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 	private static final String DEFAULT_TRACING_API_CLASS = "com.pogeyan.cmis.tracing.TracingDefaultImpl";
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
+	private static final String PROPERTY_CBM_APDAPTOR_CLASS = "cbmAdaptorClass";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 
@@ -103,7 +105,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			configFilename = CONFIG_FILENAME;
 		}
 
-		DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
+		// DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
 
 		LOG.info("Registering actors to main actor system");
 		system.actorOf(Props.create(GatewayActor.class), "gateway");
@@ -200,6 +202,13 @@ public class AkkaServletContextListener implements ServletContextListener {
 			fileStorageClassName = DEFAULT_FILE_STORE_CLASS;
 		}
 
+		// checking cbm adapter class is enable or not
+		String cbmApadterClassName = props.getProperty(PROPERTY_CBM_APDAPTOR_CLASS);
+		if (cbmApadterClassName == null) {
+			DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
+		} else {
+			DatabaseServiceFactory.add(CbmMongoAdapterFactory.createDatabaseService());
+		}
 		String cacheProviderClassName = props.getProperty(PROPERTY_CACHE_PROVIDER_CLASS);
 		if (cacheProviderClassName == null) {
 			cacheProviderClassName = DEFAULT_CACHE_PROVIDER_CLASS;

@@ -80,6 +80,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
+		String options = request.getParameter("typeId");
 		String folderId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		String orderBy = request.getParameter(QueryGetRequest.PARAM_ORDER_BY);
@@ -98,7 +99,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"getChildren", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		ObjectInFolderList children = CmisNavigationService.Impl.getChildren(request.getRepositoryId(), folderId,
 				filter, orderBy, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment,
-				maxItems, skipCount, null, request.getUserObject());
+				maxItems, skipCount, null, request.getUserObject(), options);
 
 		if (children == null) {
 			throw new CmisRuntimeException("Children are null!");

@@ -195,3 +195,7 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 ## Tracing with Opencensus and Jaegar
 * Add tracingApi classpath in repository.properties file.
 * Example - tracingApiClass=com.pogeyan.cmis.impl.tracing.TracingSyncImpl
+
+## Enable CBM Adapter
+* Add cbmAdaptorClass classpath in repository.properties file.
+* Example - cbmAdaptorClass=com.pogeyan.cbm.mongo.adapter.services

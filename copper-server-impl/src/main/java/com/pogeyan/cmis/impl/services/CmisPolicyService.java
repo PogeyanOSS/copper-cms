@@ -40,7 +40,7 @@ public class CmisPolicyService {
 		 */
 		public static List<ObjectData> getAppliedPolicies(String repositoryId, String objectId, String filter,
 				IUserObject userObject) throws CmisObjectNotFoundException {
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAppliedPolicies", objectId,
@@ -50,7 +50,7 @@ public class CmisPolicyService {
 			List<String> polIds = data.getPolicies();
 			if (null != polIds && polIds.size() > 0) {
 				for (String polId : polIds) {
-					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null);
+					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null, null);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
 							false, true, null, null, IncludeRelationships.NONE, userObject);
 
@@ -69,7 +69,7 @@ public class CmisPolicyService {
 		public static void removePolicy(String repositoryId, String policyId, String objectId, String userName)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException {
 			List<String> polIds = null;
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "removePolicy", objectId,
 						repositoryId);
@@ -97,13 +97,13 @@ public class CmisPolicyService {
 		public static void applyPolicy(String repositoryId, String policyId, String objectId)
 				throws CmisObjectNotFoundException, CmisInvalidArgumentException {
 			List<String> polIds = null;
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyPolicy", objectId,
 						repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null);
+			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null, null);
 			if (policy == null) {
 				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}", "applyPolicy", policyId,
 						repositoryId);

@@ -57,20 +57,23 @@ public class DBUtils {
 		public static final String POLICIES = "policies";
 		public static final String SECONDARYTYPEIDS = "secondaryTypeIds";
 		public static final String MODIFIEDAT = "modifiedAt";
+		public static final String REPOID = "repositoryId";
 	}
 
 	public static class BaseDAO {
 		@SuppressWarnings("serial")
-		public static IBaseObject getByObjectId(String repositoryId, String objectId, String[] mappedColumns) {
+		public static IBaseObject getByObjectId(String repositoryId, String objectId, String[] mappedColumns,
+				String[] options) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.OBJECTID, objectId);
+					put(Variables.REPOID, repositoryId);
 				}
 			};
 			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0,
-					mappedColumns);
+					mappedColumns, options);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -91,7 +94,7 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -110,7 +113,7 @@ public class DBUtils {
 				}
 			};
 
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -129,7 +132,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
 		}
 
 		@SuppressWarnings("serial")
@@ -141,7 +144,7 @@ public class DBUtils {
 					put(Variables.PATH, path);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -159,7 +162,7 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -325,7 +328,7 @@ public class DBUtils {
 					put(Variables.BASEID, "CMIS:FOLDER");
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
 		}
 
 		@SuppressWarnings("serial")
@@ -340,7 +343,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
 		}
 
 		@SuppressWarnings("serial")
@@ -354,7 +357,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns, null);
 		}
 
 		@SuppressWarnings("serial")
@@ -367,7 +370,7 @@ public class DBUtils {
 					put("properties.cmis:targetId", targetId);
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns, null);
 		}
 	}
 

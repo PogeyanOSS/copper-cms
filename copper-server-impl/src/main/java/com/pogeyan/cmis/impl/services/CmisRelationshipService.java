@@ -51,7 +51,7 @@ public class CmisRelationshipService {
 				throws CmisObjectNotFoundException, MongoException {
 			IBaseObject so = null;
 			try {
-				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}",
 						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId);
