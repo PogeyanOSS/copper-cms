@@ -30,5 +30,7 @@
   <artifactId>external</artifactId>
   <name>External</name>
   <packaging>pom</packaging>
-  <modules></modules>
+  <modules>
+  	<module>cmis-server-ext</module>
+  </modules>
 </project>
