@@ -123,7 +123,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
 		// call DB and get the repositoryInfo
-		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName());
+		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName(), t.getTypeId());
 		IRepository repository = RepositoryManagerFactory.getInstance().getRepositoryStore()
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
@@ -151,7 +151,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					for (IRepository repository : respositoryList) {
 						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserObject());
 						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
-								request.getUserName());
+								request.getUserName(), request.getTypeId());
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
 								CmisVersion.CMIS_1_1, rootId,
 								repository.getDescription() == null ? "" : repository.getDescription()));

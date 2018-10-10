@@ -268,11 +268,11 @@ public class ServletHelpers {
 			postRequest.setRepositoryId(pathFragments[0]);
 			if (objectId != null) {
 				if (request.getParameter("typeId") != null) {
-					String options = request.getParameter("typeId");
+					String typeId = request.getParameter("typeId");
 					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
-							options);
-					String typeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
-					postRequest.setTypeId(typeId);
+							typeId);
+					String objectTypeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
+					postRequest.setTypeId(objectTypeId);
 					BaseTypeId baseTypeId = BaseTypeId
 							.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
 					postRequest.setBaseTypeId(baseTypeId);
@@ -373,17 +373,17 @@ public class ServletHelpers {
 		return bm;
 	}
 
-	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments, String options) {
+	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments, String typeId) {
 		ObjectData object = null;
 		// objectId will be null if path needs to be considered
 		if (objectId != null) {
 			object = CmisObjectService.Impl.getObject(repositoryId, objectId,
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, null, BaseTypeId.CMIS_FOLDER, options);
+					false, false, null, null, BaseTypeId.CMIS_FOLDER, typeId);
 		} else if (pathFragments != null) {
 			object = CmisObjectService.Impl.getObjectByPath(repositoryId, getPath(pathFragments),
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, null);
+					false, false, null, null, typeId);
 		} else {
 			return null;
 		}

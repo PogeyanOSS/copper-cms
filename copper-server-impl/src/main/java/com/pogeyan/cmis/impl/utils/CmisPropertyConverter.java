@@ -302,13 +302,13 @@ public class CmisPropertyConverter {
 			return null;
 		}
 
-		public static String getTypeIdForObject(String repositoryId, String objectId) {
+		public static String getTypeIdForObject(String repositoryId, String objectId, String typeId) {
 			if (objectId == null) {
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 			IBaseObject data = null;
 			try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			} catch (Exception e) {
 				throw new MongoException(e.toString());
 			}

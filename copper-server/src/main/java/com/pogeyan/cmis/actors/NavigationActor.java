@@ -80,7 +80,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
-		String options = request.getParameter("typeId");
+		String typeId = request.getParameter("typeId");
 		String folderId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
 		String orderBy = request.getParameter(QueryGetRequest.PARAM_ORDER_BY);
@@ -99,7 +99,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"getChildren", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		ObjectInFolderList children = CmisNavigationService.Impl.getChildren(request.getRepositoryId(), folderId,
 				filter, orderBy, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment,
-				maxItems, skipCount, null, request.getUserObject(), options);
+				maxItems, skipCount, null, request.getUserObject(), typeId);
 
 		if (children == null) {
 			throw new CmisRuntimeException("Children are null!");
@@ -135,7 +135,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				filter);
 		List<ObjectInFolderContainer> descendants = CmisNavigationService.Impl.getDescendants(request.getRepositoryId(),
 				folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter,
-				includePathSegment, null, request.getUserObject());
+				includePathSegment, null, request.getUserObject(), request.getTypeId());
 
 		if (descendants == null) {
 			throw new CmisRuntimeException("Descendants are null!");
@@ -172,7 +172,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"getFolderTree", folderId, request.getRepositoryId(), includeRelationships, includePathSegment, filter);
 		List<ObjectInFolderContainer> folderTree = CmisNavigationService.Impl.getFolderTree(request.getRepositoryId(),
 				folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter,
-				includePathSegment, null, request.getUserObject());
+				includePathSegment, null, request.getUserObject(), request.getTypeId());
 
 		if (folderTree == null) {
 			throw new CmisRuntimeException("Folder Tree are null!");
@@ -199,7 +199,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, getting first level of parent using this id: {}, repositoryId: {}, query filter: {}",
 				"getFolderParent", objectId, request.getRepositoryId(), filter);
 		ObjectData parent = CmisNavigationService.Impl.getFolderParent(request.getRepositoryId(), objectId, filter,
-				null, request.getUserObject());
+				null, request.getUserObject(), request.getTypeId());
 
 		if (parent == null) {
 			throw new CmisRuntimeException("Parent is null!");
@@ -232,7 +232,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				filter);
 		List<ObjectParentData> parents = CmisNavigationService.Impl.getObjectParents(request.getRepositoryId(),
 				objectId, filter, includeAllowableActions, includeRelationships, renditionFilter,
-				includeRelativePathSegment, null, request.getUserObject());
+				includeRelativePathSegment, null, request.getUserObject(), request.getTypeId());
 
 		if (parents == null) {
 			throw new CmisRuntimeException("Parents are null!");
@@ -270,7 +270,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				filter);
 		ObjectList docs = CmisNavigationService.Impl.getCheckedOutDocs(request.getRepositoryId(), folderId, filter,
 				orderBy, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, null,
-				null, request.getUserObject());
+				null, request.getUserObject(), request.getTypeId());
 
 		if (docs == null) {
 			throw new CmisRuntimeException("Children are null!");

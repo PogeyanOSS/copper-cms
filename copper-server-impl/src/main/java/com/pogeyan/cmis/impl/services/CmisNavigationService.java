@@ -70,13 +70,13 @@ public class CmisNavigationService {
 		public static ObjectInFolderList getChildren(String repositoryId, String folderId, String filter,
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String options)
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
 				throws CmisObjectNotFoundException {
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
 			ObjectInFolderList res = getChildrenIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
 					includeRelationships, renditionFilter, includePathSegment, maxItemsInt, skipCountInt, false, false,
-					objectInfos, userObject, options);
+					objectInfos, userObject, typeId);
 			if (res != null) {
 				LOG.debug("getChildren result for folderId: {}, numItems: {}", folderId, res.getNumItems());
 			}
@@ -89,7 +89,7 @@ public class CmisNavigationService {
 		private static ObjectInFolderList getChildrenIntern(String repositoryId, String folderId, String filter,
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int maxItems, int skipCount, boolean folderOnly,
-				boolean includePwc, ObjectInfoHandler objectInfos, IUserObject userObject, String options)
+				boolean includePwc, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
 				throws CmisObjectNotFoundException {
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
@@ -97,7 +97,7 @@ public class CmisNavigationService {
 					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, options);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			if (data == null) {
 				LOG.error("getChildrenIntern unknown object id: {}, repository: {}", folderId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
@@ -120,11 +120,12 @@ public class CmisNavigationService {
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";
 				children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
-						filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, options);
-				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true, repositoryId, options);
+						filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, typeId);
+				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true, repositoryId, typeId);
 			} else {
 				path = data.getInternalPath() + folderId + ",";
-				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl(),
+						typeId);
 				boolean objectOnly = true;
 				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
@@ -138,9 +139,9 @@ public class CmisNavigationService {
 								if (listAce.size() >= 1) {
 									children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems,
 											skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter),
-											typeManagerDAO, repositoryId, options);
+											typeManagerDAO, repositoryId, typeId);
 									childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false,
-											repositoryId, options);
+											repositoryId, typeId);
 									objectOnly = false;
 									break;
 								}
@@ -153,9 +154,9 @@ public class CmisNavigationService {
 				// Acl Propagation ObjectOnly
 				if (objectOnly) {
 					children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
-							filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, options);
+							filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, typeId);
 					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true, repositoryId,
-							options);
+							typeId);
 				}
 			}
 
@@ -190,7 +191,8 @@ public class CmisNavigationService {
 		public static List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment,
-				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisInvalidArgumentException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
+				throws CmisInvalidArgumentException {
 			int levels = 0;
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
@@ -203,13 +205,13 @@ public class CmisNavigationService {
 			}
 			List<ObjectInFolderContainer> result = null;
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			if (data != null) {
 				if (data.getBaseId().equals(BaseTypeId.CMIS_FOLDER)) {
 					int level = 0;
 					result = getDescendantsIntern(repositoryId, folderId, filter, includeAllowableActions,
 							includeRelationships, renditionFilter, includePathSegment, level, levels, false,
-							objectInfos, userObject);
+							objectInfos, userObject, typeId);
 				} else {
 					int level = 0;
 					ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
@@ -239,7 +241,7 @@ public class CmisNavigationService {
 					if (acl) {
 						result = getDescendantsRelationObjects(repositoryId, folderId, filter, includeAllowableActions,
 								includeRelationships, renditionFilter, includePathSegment, level, levels, false,
-								objectInfos, userObject);
+								objectInfos, userObject, typeId);
 						oifc.setObject(oifd);
 						oifc.setChildren(result);
 						List<ObjectInFolderContainer> parentData = new ArrayList<ObjectInFolderContainer>();
@@ -263,12 +265,12 @@ public class CmisNavigationService {
 		private static List<ObjectInFolderContainer> getDescendantsIntern(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
-				ObjectInfoHandler objectInfos, IUserObject userObject) {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId) {
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			String[] filterArray = new String[] {};
 			// split filter
 			Set<String> filterCollection = Helpers.splitFilter(filter);
@@ -276,7 +278,8 @@ public class CmisNavigationService {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
 			String path = "," + folderId + ",";
-			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl(),
+					typeId);
 
 			List<? extends IBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
@@ -427,17 +430,17 @@ public class CmisNavigationService {
 		public static List<ObjectInFolderContainer> getDescendantsRelationObjects(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, int level, int levels, boolean b,
-				ObjectInfoHandler objectInfos, IUserObject userObject) {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId) {
 			LOG.debug("getDescendantsRelationObjects for folder data: {}", folderId);
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
-					folderId.toString(), 0, 0, null);
+					folderId.toString(), 0, 0, null, typeId);
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			source.forEach(relId -> {
 				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 				IBaseObject targetObject = DBUtils.BaseDAO.getByObjectId(repositoryId,
-						relId.getProperties().get("cmis:targetId").toString(), null, null);
+						relId.getProperties().get("cmis:targetId").toString(), null, relId.getTypeId());
 				Set<String> filterCollection = Helpers.splitFilter(filter);
 				String name = targetObject.getName();
 				name = name + "," + relId.getProperties().get("relation_name").toString();
@@ -462,7 +465,7 @@ public class CmisNavigationService {
 					String childId = child.getObject().getId();
 					List<ObjectInFolderContainer> subChildren = getDescendantsRelationObjects(repositoryId, childId,
 							filter, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment,
-							level, level, b, objectInfos, userObject);
+							level, level, b, objectInfos, userObject, typeId);
 					oifc.setObject(child);
 					if (0 != subChildren.size()) {
 						oifc.setChildren(subChildren);
@@ -477,9 +480,10 @@ public class CmisNavigationService {
 		 * Gets the parent folder object for the specified folder
 		 */
 		public static ObjectData getFolderParent(String repositoryId, String folderId, String filter,
-				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisInvalidArgumentException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
+				throws CmisInvalidArgumentException {
 			ObjectData res = getFolderParentIntern(repositoryId, folderId, filter, false, IncludeRelationships.NONE,
-					userObject, objectInfos);
+					userObject, objectInfos, typeId);
 			if (res == null) {
 				LOG.error("getFolderParent cannot get parent of a root folder of: {}, repository: {}", folderId,
 						repositoryId);
@@ -496,10 +500,10 @@ public class CmisNavigationService {
 		 */
 		private static ObjectData getFolderParentIntern(String repositoryId, String folderId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, IUserObject user,
-				ObjectInfoHandler objectInfos) {
+				ObjectInfoHandler objectInfos, String typeId) {
 			IBaseObject folderParent = null;
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, null);
-			folderParent = DBUtils.BaseDAO.getByObjectId(repositoryId, data.getParentId(), null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+			folderParent = DBUtils.BaseDAO.getByObjectId(repositoryId, data.getParentId(), null, data.getTypeId());
 			Set<String> filterCollection = Helpers.splitFilter(filter);
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, folderParent,
 					filterCollection, includeAllowableActions, false, true, objectInfos, null, includeRelationships,
@@ -513,7 +517,8 @@ public class CmisNavigationService {
 		public static List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment,
-				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisInvalidArgumentException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
+				throws CmisInvalidArgumentException {
 			int levels;
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
@@ -527,7 +532,7 @@ public class CmisNavigationService {
 			int level = 0;
 			List<ObjectInFolderContainer> result = getFolderTreeIntern(repositoryId, folderId, filter,
 					includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, level, levels,
-					true, objectInfos, userObject);
+					true, objectInfos, userObject, typeId);
 			if (result != null) {
 				LOG.debug("descendant folder objects count: {}", result.size());
 			}
@@ -540,14 +545,15 @@ public class CmisNavigationService {
 		private static List<ObjectInFolderContainer> getFolderTreeIntern(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
-				ObjectInfoHandler objectInfos, IUserObject userObject) {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId) {
 			List<ObjectInFolderContainer> folderTree = null;
 			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			String path = "," + folderId + ",";
 
-			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl(),
+					typeId);
 			List<? extends IBaseObject> children = new ArrayList<>();
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
@@ -592,10 +598,11 @@ public class CmisNavigationService {
 		 */
 		public static List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-				Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos, IUserObject userObject) {
+				Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos, IUserObject userObject,
+				String typeId) {
 			List<ObjectParentData> result = getObjectParentsIntern(repositoryId, objectId, filter, objectInfos,
 					includeAllowableActions, includeRelationships, renditionFilter, includeRelativePathSegment,
-					userObject);
+					userObject, typeId);
 			if (result != null) {
 				LOG.debug("getObjectParents result object count: {}", result.size());
 			}
@@ -608,18 +615,18 @@ public class CmisNavigationService {
 		private static List<ObjectParentData> getObjectParentsIntern(String repositoryId, String objectId,
 				String filter, ObjectInfoHandler objectInfos, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment,
-				IUserObject userObject) {
+				IUserObject userObject, String typeId) {
 			Set<String> filterCollection = Helpers.splitFilter(filter);
 
 			List<ObjectParentData> objectParent = new ArrayList<ObjectParentData>();
 			IBaseObject resultData = null;
 			DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId, MBaseObjectDAO.class);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			String[] queryResult = data.getInternalPath().split(",");
 			int i = queryResult.length - 1;
 			for (String result : queryResult) {
 				if (!result.isEmpty()) {
-					resultData = DBUtils.BaseDAO.getByObjectId(repositoryId, result, null, null);
+					resultData = DBUtils.BaseDAO.getByObjectId(repositoryId, result, null, data.getTypeId());
 					if (resultData.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 						ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, resultData,
 								filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
@@ -627,8 +634,8 @@ public class CmisNavigationService {
 						ObjectParentDataImpl parent = new ObjectParentDataImpl();
 						parent.setObject(objectData);
 						parent.setRelativePathSegment(i == 1 ? data.getName()
-								: DBUtils.BaseDAO.getByObjectId(repositoryId, queryResult[i], null, null).getName()
-										+ "/" + data.getName());
+								: DBUtils.BaseDAO.getByObjectId(repositoryId, queryResult[i], null, data.getTypeId())
+										.getName() + "/" + data.getName());
 						i--;
 						objectParent.add(parent);
 					}
@@ -641,12 +648,12 @@ public class CmisNavigationService {
 		public static ObjectList getCheckedOutDocs(String repositoryId, String folderId, String filter, String orderBy,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 				BigInteger maxItems, BigInteger skipCount, ExtensionsData extension, ObjectInfoHandler objectInfos,
-				IUserObject userObject) {
+				IUserObject userObject, String typeId) {
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
 			ObjectList res = getCheckedOutIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
 					includeRelationships, renditionFilter, maxItemsInt, skipCountInt, extension, objectInfos,
-					userObject);
+					userObject, typeId);
 			if (res != null) {
 				LOG.debug("checkedout objects: {}", res.getObjects());
 			}
@@ -656,7 +663,8 @@ public class CmisNavigationService {
 		private static ObjectList getCheckedOutIntern(String repositoryId, String folderId, String filter,
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, int maxItems, int skipCount, ExtensionsData extension,
-				ObjectInfoHandler objectInfos, IUserObject userObject) throws CmisObjectNotFoundException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
+				throws CmisObjectNotFoundException {
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			List<? extends IDocumentObject> document = new ArrayList<>();
@@ -672,12 +680,13 @@ public class CmisNavigationService {
 						orderBy);
 				documentCount = documentMorphiaDAO.getCheckOutDocsSize(folderId, principalIds, true);
 			} else {
-				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, null);
+				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 				if (data == null) {
 					LOG.error("getCheckedOutIntern unknown object id: {}, repository: {}", folderId, repositoryId);
 					throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
 				}
-				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl());
+				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl(),
+						typeId);
 				boolean objectOnly = true;
 				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
@@ -733,13 +742,13 @@ public class CmisNavigationService {
 		}
 
 		public static List<AccessControlListImplExt> getParentAcl(String repositoryId, String dataPath,
-				AccessControlListImplExt dataAcl) {
+				AccessControlListImplExt dataAcl, String typeId) {
 			LOG.debug("getParentAcl for data path : {}", dataPath);
 			List<AccessControlListImplExt> acl = null;
 			String[] queryResult = dataPath.split(",");
 			if (queryResult.length > 0) {
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
-						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null, null))
+						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null, typeId))
 						.collect(Collectors.<IBaseObject>toList());
 				if (folderChildren.size() == 1) {
 					acl = new ArrayList<>();

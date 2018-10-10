@@ -78,8 +78,8 @@ public class TypePermissionService implements ITypePermissionService {
 		MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MTypeManagerDAO.class);
 		try {
-			rootData = DBUtils.BaseDAO.getByPath(repositoryId, "/");
-			relationFolder = DBUtils.BaseDAO.getByPath(repositoryId, "/cmis_ext:relationship");
+			rootData = DBUtils.BaseDAO.getByPath(repositoryId, "/", typeId);
+			relationFolder = DBUtils.BaseDAO.getByPath(repositoryId, "/cmis_ext:relationship", typeId);
 			String path = "," + rootData.getId() + ",";
 			String relationMdPath = null;
 			for (IUserGroupObject userRole : role) {

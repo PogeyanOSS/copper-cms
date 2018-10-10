@@ -11,13 +11,13 @@ public interface MNavigationDocServiceDAO {
 	 */
 	public List<? extends IDocumentObject> getChildren(String path, String[] principalIds, boolean aclPropagation,
 			int maxItems, int skipCount, String orderBy, String[] mappedColumns, String filterExpression,
-			MTypeManagerDAO typeManager, String repositoryId, String options);
+			MTypeManagerDAO typeManager, String repositoryId, String typeId);
 
 	/**
 	 * Get children size.
 	 */
 	public long getChildrenSize(String path, String[] principalIds, boolean aclPropagation, String repositoryId,
-			String options);
+			String typeId);
 
 	/**
 	 * Returns List of MBaseObject childrens values depending on ObjectId

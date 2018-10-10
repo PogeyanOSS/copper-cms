@@ -49,9 +49,9 @@ public class CmisAclServices {
 
 	public static class Impl {
 		public static Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions,
-				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject)
+				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
 				throws CmisObjectNotFoundException {
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
@@ -65,11 +65,11 @@ public class CmisAclServices {
 
 		public static Acl applyAcl(String repositoryId, String objectId, Acl aclAdd, Acl aclRemove,
 				AclPropagation aclPropagation, ExtensionsData extension, ObjectInfoHandler objectInfos,
-				CapabilityAcl capability, String userName) throws CmisObjectNotFoundException {
+				CapabilityAcl capability, String userName, String typeId) throws CmisObjectNotFoundException {
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);

@@ -43,7 +43,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void delete(String objectId, boolean forceDelete, TokenImpl token, String options) {
+	public void delete(String objectId, boolean forceDelete, TokenImpl token, String typeId) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		query.or(getAclCriteria(query));
@@ -88,7 +88,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 
 	@Override
 	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
-			int skipCount, String[] mappedColumns, String options) {
+			int skipCount, String[] mappedColumns, String typeId) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {

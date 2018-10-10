@@ -71,7 +71,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, get appiled policies using this id: {}, repositoryId: {}, filter: {}",
 				"getAppliedPolicies", objectId, request.getRepositoryId(), filter);
 		List<ObjectData> policies = CmisPolicyService.Impl.getAppliedPolicies(request.getRepositoryId(), objectId,
-				filter, null);
+				filter, null, request.getTypeId());
 		JSONArray jsonPolicies = new JSONArray();
 		if (policies != null) {
 			for (ObjectData policy : policies) {
@@ -94,7 +94,8 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info("Method name: {}, apply policy using this id: {}, repositoryId: {}, policyId: {}", "applyPolicy",
 				objectId, request.getRepositoryId(), request.getPolicyId());
-		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getPolicyId(), objectId);
+		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getPolicyId(), objectId,
+				request.getTypeId());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
@@ -121,7 +122,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, remove policy using this id: {}, repositoryId: {}, policyId: {}", "removePolicy",
 				objectId, request.getRepositoryId(), request.getPolicyId());
 		CmisPolicyService.Impl.removePolicy(request.getRepositoryId(), request.getPolicyId(), objectId,
-				request.getUserObject().getUserDN());
+				request.getUserObject().getUserDN(), request.getTypeId());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
