@@ -33,6 +33,8 @@ import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyIntegerDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyStringDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
@@ -1641,12 +1643,19 @@ public class CmisTypeServices {
 		@SuppressWarnings({ "rawtypes" })
 		public static PropertyDefinitionImpl<?> getPropertyDefinition(PropertyDefinition<?> pro, Boolean inherited) {
 			// LOG.info("getPropertyDefinition from {}", pro);
-			PropertyDefinitionImpl<?> propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(),
-					pro.getLocalNamespace(), pro.getDisplayName(), pro.getQueryName(), pro.getDescription(),
-					pro.getPropertyType(), pro.getCardinality(), pro.getUpdatability(),
-					inherited == null ? pro.isInherited() : inherited, pro.isRequired(), pro.isQueryable(),
-					pro.isOrderable(), pro.isOpenChoice());
-			propertyDefinition.setChoice(pro.getChoices());
+			PropertyDefinitionImpl<?> propertyDefinition = null;
+			propertyDefinition = new PropertyDefinitionImpl(pro.getId(), pro.getLocalName(), pro.getLocalNamespace(),
+					pro.getDisplayName(), pro.getQueryName(), pro.getDescription(), pro.getPropertyType(),
+					pro.getCardinality(), pro.getUpdatability(), inherited == null ? pro.isInherited() : inherited,
+					pro.isRequired(), pro.isQueryable(), pro.isOrderable(), pro.isOpenChoice());
+			if (pro.getPropertyType().value().equals("string")) {
+				PropertyStringDefinition ps = (PropertyStringDefinition) pro;
+				propertyDefinition.setMaxLength(ps.getMaxLength() == null ? null : ps.getMaxLength().intValue());
+			} else if (pro.getPropertyType().value().equals("integer")) {
+				PropertyIntegerDefinition pi = (PropertyIntegerDefinition) pro;
+				propertyDefinition.setMinValue(pi.getMinValue() == null ? null : pi.getMinValue().intValue());
+				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue().intValue());
+			}
 			return propertyDefinition;
 		}
 

@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.api.data.common;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,9 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<Choice<?>> choice;
+	private Integer minValue;
+	private Integer maxValue;
+	private Integer maxLength;
 
 	public PropertyDefinitionImpl() {
 
@@ -67,7 +71,6 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 		this.isQueryable = isQueryable;
 		this.isOrderable = isOrderable;
 		this.isOpenChoice = isOpenChoice;
-
 	}
 
 	@Override
@@ -232,5 +235,35 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	@SuppressWarnings({ "unchecked" })
 	public void setChoice(List<?> list) {
 		this.choice = (List<Choice<?>>) list;
+	}
+
+	public BigInteger getMinValue() {
+		return this.minValue != null ? BigInteger.valueOf(this.minValue) : null;
+	}
+
+	public void setMinValue(Integer minValue) {
+		if (minValue != null) {
+			this.minValue = minValue;
+		}
+	}
+
+	public BigInteger getMaxValue() {
+		return this.maxValue != null ? BigInteger.valueOf(this.maxValue) : null;
+	}
+
+	public void setMaxValue(Integer maxValue) {
+		if (maxValue != null) {
+			this.maxValue = maxValue;
+		}
+	}
+
+	public BigInteger getMaxLength() {
+		return this.maxLength != null ? BigInteger.valueOf(this.maxLength) : null;
+	}
+
+	public void setMaxLength(Integer maxLength) {
+		if (maxLength != null) {
+			this.maxLength = maxLength;
+		}
 	}
 }

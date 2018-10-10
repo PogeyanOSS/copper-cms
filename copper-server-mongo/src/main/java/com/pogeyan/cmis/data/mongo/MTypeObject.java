@@ -334,6 +334,9 @@ public class MTypeObject implements TypeDefinition {
 				mongo.setIsOrderable(valueName.isOrderable());
 				mongo.setIsOpenChoice(valueName.isOpenChoice());
 				mongo.setChoice(valueName.getChoices());
+				mongo.setMinValue(valueName.getMinValue() != null ? valueName.getMinValue().intValue() : null);
+				mongo.setMaxValue(valueName.getMaxValue() != null ? valueName.getMaxValue().intValue() : null);
+				mongo.setMaxLength(valueName.getMaxLength() != null ? valueName.getMaxLength().intValue() : null);
 				mongoProperty.put(id, mongo);
 			}
 			return mongoProperty;

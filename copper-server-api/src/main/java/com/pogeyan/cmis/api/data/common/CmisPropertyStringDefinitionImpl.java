@@ -45,6 +45,7 @@ public class CmisPropertyStringDefinitionImpl<T> implements PropertyStringDefini
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<?> choice;
+	private BigInteger maxLength;
 
 	public CmisPropertyStringDefinitionImpl() {
 		super();
@@ -67,11 +68,12 @@ public class CmisPropertyStringDefinitionImpl<T> implements PropertyStringDefini
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
+		this.maxLength = type.getMaxLength();
 	}
 
 	@Override
 	public BigInteger getMaxLength() {
-		return null;
+		return this.maxLength;
 	}
 
 	@Override
