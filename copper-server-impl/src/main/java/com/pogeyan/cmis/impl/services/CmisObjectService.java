@@ -1424,8 +1424,8 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			PropertyData<?> virtual = properties.getProperties().get("cmis_ext:isVirtual");
 			boolean isVirtual = virtual != null ? Boolean.parseBoolean(virtual.getFirstValue().toString()) : false;
-			LOG.info("className: {}, methodName: {}, repositoryId: {}, isVirtual: {}", "cmisObjectService", "createFolderIntern",
-					repositoryId, isVirtual);
+			LOG.info("className: {}, methodName: {}, repositoryId: {}, isVirtual: {}", "cmisObjectService",
+					"createFolderIntern", repositoryId, isVirtual);
 
 			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userObject,
 					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
@@ -1446,7 +1446,9 @@ public class CmisObjectService {
 					}
 				} catch (IOException e) {
 					objectMorphiaDAO.delete(folderId, true, null);
-					LOG.error("className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}", "cmisObjectService", "createFolderIntern", repositoryId, e);
+					LOG.error(
+							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}",
+							"cmisObjectService", "createFolderIntern", repositoryId, e);
 					throw new IllegalArgumentException(e);
 				}
 			}
@@ -4225,27 +4227,16 @@ public class CmisObjectService {
 		private static void invokeObjectFlowServiceAfterCreate(IObjectFlowService objectFlowService, IBaseObject doc,
 				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
-				try {
-					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
-							? doc.getId()
-							: null, invokeMethod);
-					boolean resultFlow = false;
-					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterCreation(doc);
-					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterUpdate(doc, updatedValues);
-					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterDeletion(doc);
-					}
-					if (!resultFlow) {
-						LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
-						throw new IllegalArgumentException(
-								"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
-					}
-				} catch (Exception ex) {
-					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
-							invokeMethod, ex.getMessage());
-					throw new IllegalArgumentException(ex.getMessage());
+
+				LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
+						? doc.getId()
+						: null, invokeMethod);
+				if (ObjectFlowType.CREATED.equals(invokeMethod)) {
+					objectFlowService.afterCreation(doc);
+				} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
+					objectFlowService.afterUpdate(doc, updatedValues);
+				} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
+					objectFlowService.afterDeletion(doc);
 				}
 			}
 		}
