@@ -97,7 +97,7 @@ public class CmisNavigationService {
 					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, null);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, options);
 			if (data == null) {
 				LOG.error("getChildrenIntern unknown object id: {}, repository: {}", folderId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + folderId);

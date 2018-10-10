@@ -268,7 +268,7 @@ public class ServletHelpers {
 			postRequest.setRepositoryId(pathFragments[0]);
 			if (objectId != null) {
 				if (request.getParameter("typeId") != null) {
-					String[] options = { request.getParameter("typeId") };
+					String options = request.getParameter("typeId");
 					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
 							options);
 					String typeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
@@ -373,7 +373,7 @@ public class ServletHelpers {
 		return bm;
 	}
 
-	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments, String[] options) {
+	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments, String options) {
 		ObjectData object = null;
 		// objectId will be null if path needs to be considered
 		if (objectId != null) {

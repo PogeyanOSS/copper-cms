@@ -96,7 +96,7 @@ public class CmisAclServices {
 					break;
 				}
 			}
-			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, null);
+			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, data.getTypeId());
 
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
 			return newData.getAcl();

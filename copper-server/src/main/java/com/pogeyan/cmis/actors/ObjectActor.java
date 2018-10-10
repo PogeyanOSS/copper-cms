@@ -149,7 +149,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
 		}
 		String objectId = t.getObjectId();
-		String[] options = { t.getParameter("typeId") };
+		String options = t.getParameter("typeId");
 		boolean acessPermission = false;
 		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null, options);
 		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
@@ -205,7 +205,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		} else {
 			ObjectData object = CmisObjectService.Impl.getObject(t.getRepositoryId(), objectId, filter, true,
 					IncludeRelationships.NONE, "cmis:none", false, false, null, t.getUserObject(), t.getBaseTypeId(),
-					null);
+					t.getTypeId());
 			Properties properties = object.getProperties();
 			if (properties == null) {
 				throw new CmisRuntimeException("Properties are null!");
@@ -275,7 +275,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_FOLDER, null);
+				request.getUserObject(), BaseTypeId.CMIS_FOLDER, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("New folder is null!");
 		}
@@ -321,7 +321,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name:{}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, null);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			MetricsInputs.markUploadErrorMeter();
 			throw new CmisRuntimeException("New document is null!");
@@ -353,7 +353,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", sourceId,
 				request.getRepositoryId());
 		ObjectData sourceDoc = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), sourceId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, null);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		PropertyData<?> sourceTypeId = sourceDoc.getProperties().getProperties().get(PropertyIds.OBJECT_TYPE_ID);
 		if (sourceTypeId == null || sourceTypeId.getFirstValue() == null) {
 			throw new CmisRuntimeException("Source object has no type!?!");
@@ -368,7 +368,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, null);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("New document is null!");
 		}
@@ -384,7 +384,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			IllegalArgumentException, CmisRuntimeException {
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
-		String[] options = { request.getParameter("typeId") };
+		String options = request.getParameter("typeId");
 		IUserGroupObject[] groups = request.getUserObject().getGroups();
 		if (!Helpers.getGroupPermission(permission, groups)) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
@@ -435,7 +435,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_POLICY, null);
+				request.getUserObject(), BaseTypeId.CMIS_POLICY, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("New folder is null!");
 		}
@@ -467,7 +467,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_RELATIONSHIP, null);
+				request.getUserObject(), BaseTypeId.CMIS_RELATIONSHIP, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("New folder is null!");
 		}
@@ -536,7 +536,8 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}
 		String objectId = request.getObjectId();
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId, null, null);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId, null,
+				request.getTypeId());
 		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), objectId);
 		String changeToken = request.getParameter(QueryGetRequest.CONTROL_CHANGE_TOKEN);
 		String token = request.getParameter(QueryGetRequest.PARAM_TOKEN);
@@ -557,7 +558,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), request.getBaseTypeId(), null);
+				request.getUserObject(), request.getBaseTypeId(), request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");
 		}
@@ -650,7 +651,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, null);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			MetricsInputs.markUploadErrorMeter();
 			throw new CmisRuntimeException("Object is null!");
@@ -687,7 +688,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, null);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");
 		}
@@ -719,7 +720,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, null);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("Object is null!");
 		}
@@ -733,7 +734,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static JSONObject delete(PostRequest request)
 			throws CmisObjectNotFoundException, CmisNotSupportedException, CmisRuntimeException {
 		String permission = request.getUserObject().getPermission();
-		String[] options = { request.getParameter("typeId") };
+		String options = request.getParameter("typeId");
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
 		}

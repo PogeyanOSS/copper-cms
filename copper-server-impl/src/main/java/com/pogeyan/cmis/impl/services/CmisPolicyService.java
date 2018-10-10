@@ -50,7 +50,7 @@ public class CmisPolicyService {
 			List<String> polIds = data.getPolicies();
 			if (null != polIds && polIds.size() > 0) {
 				for (String polId : polIds) {
-					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null, null);
+					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null, data.getTypeId());
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
 							false, true, null, null, IncludeRelationships.NONE, userObject);
 
@@ -103,7 +103,7 @@ public class CmisPolicyService {
 						repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null, null);
+			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null, data.getTypeId());
 			if (policy == null) {
 				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}", "applyPolicy", policyId,
 						repositoryId);

@@ -63,7 +63,7 @@ public class DBUtils {
 	public static class BaseDAO {
 		@SuppressWarnings("serial")
 		public static IBaseObject getByObjectId(String repositoryId, String objectId, String[] mappedColumns,
-				String[] options) {
+				String options) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -132,7 +132,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, typeId);
 		}
 
 		@SuppressWarnings("serial")
@@ -328,7 +328,7 @@ public class DBUtils {
 					put(Variables.BASEID, "CMIS:FOLDER");
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, typeId);
 		}
 
 		@SuppressWarnings("serial")
@@ -343,7 +343,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, targetId);
 		}
 
 		@SuppressWarnings("serial")

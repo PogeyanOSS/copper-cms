@@ -85,13 +85,13 @@ public class TypePermissionService implements ITypePermissionService {
 			for (IUserGroupObject userRole : role) {
 				List<? extends IDocumentObject> children = new ArrayList<>();
 				children = navigationMorphiaDAO.getChildren(path, new String[] { "system" }, true, 0, 0, null, null,
-						"roles eq " + userRole.getGroupDN(), typeManagerDAO, null, null);
+						"roles eq " + userRole.getGroupDN(), typeManagerDAO, repositoryId, typeId);
 				if (children.size() > 0) {
 					String sourceId = children.get(0).getId();
 					relationMdPath = relationFolder.getInternalPath() + relationFolder.getId() + ",";
 					List<? extends IDocumentObject> permission_set_Children = navigationMorphiaDAO.getChildren(
 							relationMdPath, new String[] { "system" }, true, 0, 0, null, null,
-							"cmis:sourceId eq " + sourceId, typeManagerDAO, null, null);
+							"cmis:sourceId eq " + sourceId, typeManagerDAO, repositoryId, typeId);
 					if (permission_set_Children.size() > 0) {
 						Map<String, List<String>> typePermission = new HashMap<>();
 						Map<String, List<String>> fieldPermission = new HashMap<>();
@@ -130,12 +130,13 @@ public class TypePermissionService implements ITypePermissionService {
 			LOG.info("className: {},  methodName: {}, repositoryId: {}, typeId: {}", "TypePermissionService",
 					"readPermissionSet", repositoryId, typeId);
 			List<? extends IDocumentObject> typeAccess_set_Children = navigationMorphiaDAO.getChildren(relationMdPath,
-					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO, null, null);
+					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO,
+					repositoryId, typeId);
 			if (typeAccess_set_Children.size() > 0) {
 				for (IDocumentObject obj : typeAccess_set_Children) {
 					if (obj != null) {
 						String targetId = obj.getProperties().get("cmis:targetId").toString();
-						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, null);
+						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, typeId);
 						if (data != null) {
 							String objectTypeId = data.getProperties().get("fv:typeId").toString();
 							if (typeId.equalsIgnoreCase(objectTypeId)) {
@@ -175,12 +176,13 @@ public class TypePermissionService implements ITypePermissionService {
 			LOG.info("className: {},  methodName: {}, repositoryId: {}, typeId: {}", "TypePermissionService",
 					"readFleidAccess", repositoryId, typeId);
 			List<? extends IDocumentObject> field_set_Children = navigationMorphiaDAO.getChildren(relationMdPath,
-					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO, null, null);
+					new String[] { "system" }, true, 0, 0, null, null, "cmis:sourceId eq " + id, typeManagerDAO,
+					repositoryId, typeId);
 			if (field_set_Children.size() > 0) {
 				for (IDocumentObject obj : field_set_Children) {
 					if (obj != null) {
 						String targetId = obj.getProperties().get("cmis:targetId").toString();
-						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, null);
+						IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, typeId);
 						if (data != null) {
 							List<String> fieldAccess = (List<String>) data.getProperties().get("fv:property");
 							if (fieldPermission.get(typeId) != null) {
