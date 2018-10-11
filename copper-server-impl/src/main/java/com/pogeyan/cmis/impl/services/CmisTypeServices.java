@@ -718,7 +718,7 @@ public class CmisTypeServices {
 				// localService.deleteFolder(parameters, repositoryId, type);
 				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type, type);
 				if (folderObject != null) {
-					baseMorphiaDAO.delete(folderObject.getId(), true, null, type);
+					baseMorphiaDAO.delete(repositoryId, folderObject.getId(), true, null, type);
 				}
 				typeManagerDAO.delete(type);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);

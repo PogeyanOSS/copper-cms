@@ -31,12 +31,12 @@ public interface MBaseObjectDAO {
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(String objectId, boolean forceDelete, TokenImpl token, String typeId);
+	public void delete(String repositoryId, String objectId, boolean forceDelete, TokenImpl token, String typeId);
 
 	/**
 	 * Update Folder type objectIds for an object.
 	 */
-	public void update(String objectId, Map<String, Object> updateProps);
+	public void update(String repositoryId, String objectId, Map<String, Object> updateProps);
 
 	public List<? extends IBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
 			int skipCount, String[] mappedColumns, String typeId);

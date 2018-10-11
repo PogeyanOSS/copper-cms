@@ -1447,7 +1447,7 @@ public class CmisObjectService {
 						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
 					}
 				} catch (IOException e) {
-					objectMorphiaDAO.delete(folderId, true, null, typeId);
+					objectMorphiaDAO.delete(repositoryId, folderId, true, null, typeId);
 					LOG.error(
 							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}",
 							"cmisObjectService", "createFolderIntern", repositoryId, e);
@@ -2731,7 +2731,7 @@ public class CmisObjectService {
 					}
 				}
 			}
-			baseMorphiaDAO.update(id, updatecontentProps);
+			baseMorphiaDAO.update(repositoryId, id, updatecontentProps);
 			invokeObjectFlowServiceAfterCreate(objectFlowService, data, ObjectFlowType.UPDATED,
 					objectFlowUpdateContentProps);
 			if (updatecontentProps != null) {
@@ -2776,7 +2776,7 @@ public class CmisObjectService {
 				for (IBaseObject child : children) {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
-					baseMorphiaDAO.update(child.getId(), updatePath);
+					baseMorphiaDAO.update(repositoryId, child.getId(), updatePath);
 					invokeObjectFlowServiceAfterCreate(objectFlowService, child, ObjectFlowType.UPDATED, null);
 				}
 			}
@@ -3074,10 +3074,10 @@ public class CmisObjectService {
 
 						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
-					baseMorphiaDAO.delete(child.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, child.getId(), false, token, typeId);
 				}
 				localService.deleteFolder(data.getPath());
-				baseMorphiaDAO.delete(data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
 
 				LOG.info("ObjectId: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 
@@ -3101,7 +3101,7 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(data.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
 					LOG.info("Object: {}, with baseType:{} is deleted", data.getId(), data.getBaseId());
 				}
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
@@ -3121,13 +3121,13 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(document.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, document.getId(), false, token, typeId);
 					LOG.info("Object: {}, with baseType: {}, document: {} deleted", data.getId(), data.getBaseId(),
 							document.getId());
 
 				}
 			} else {
-				baseMorphiaDAO.delete(data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
 		}
@@ -3201,7 +3201,7 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			// TODO: optimize here
 			for (IBaseObject child : children) {
-				baseMorphiaDAO.delete(child.getId(), false, token, child.getTypeId());
+				baseMorphiaDAO.delete(repositoryId, child.getId(), false, token, child.getTypeId());
 				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, child.getId(), null,
 						child.getTypeId());
 				if (childCheck != null) {
@@ -3213,7 +3213,7 @@ public class CmisObjectService {
 			// IStorageService localService =
 			// MongoStorageDocument.createStorageService(parameters);
 			// localService.deleteFolder(data.getPath());
-			baseMorphiaDAO.delete(folderId, false, token, data.getTypeId());
+			baseMorphiaDAO.delete(repositoryId, folderId, false, token, data.getTypeId());
 			IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, data.getTypeId());
 			if (parentCheck != null) {
 				failedToDeleteIds.add(folderId.toString());
@@ -3329,7 +3329,7 @@ public class CmisObjectService {
 				updateProps.put("modifiedAt", modifiedTime);
 				updateProps.put("modifiedBy", userObject == null ? null : userObject.getUserDN());
 				updateProps.put("token", token);
-				baseMorphiaDAO.update(data.getId(), updateProps);
+				baseMorphiaDAO.update(repositoryId, data.getId(), updateProps);
 				if (data != null) {
 					LOG.debug("update object id: {}, baseTypeId: {}, props: {}", data.getId(), data.getBaseId(),
 							updateProps);
@@ -3359,7 +3359,7 @@ public class CmisObjectService {
 							if (child.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 								documentMorphiaDAO.update(child.getId(), updatePropsDoc);
 							} else {
-								baseMorphiaDAO.update(child.getId(), updatePropsDoc);
+								baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc);
 							}
 							if (updatePropsDoc != null) {
 								LOG.debug("update objects id: {}, baseType: {}, props: {}", child.getId(),
@@ -3385,7 +3385,7 @@ public class CmisObjectService {
 				if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 					documentMorphiaDAO.update(data.getId(), updateProps);
 				} else {
-					baseMorphiaDAO.update(data.getId(), updateProps);
+					baseMorphiaDAO.update(repositoryId, data.getId(), updateProps);
 				}
 				if (updateProps != null) {
 					LOG.debug("updateObjects: {}, baseType: {}, props: {}", data.getId(), data.getBaseId(),
@@ -3429,7 +3429,7 @@ public class CmisObjectService {
 			updateProps.put("modifiedAt", modifiedTime);
 			updateProps.put("modifiedBy", userObject == null ? null : userObject.getUserDN());
 			updateProps.put("token", token);
-			baseMorphiaDAO.update(childId, updateProps);
+			baseMorphiaDAO.update(repositoryId, childId, updateProps);
 			List<? extends IDocumentObject> children = getChildrens(repositoryId, path, dataPath, dataAcl,
 					navigationMorphiaDAO, userObject, typeId);
 			if (children != null && children.size() > 0) {
@@ -3454,7 +3454,7 @@ public class CmisObjectService {
 						if (child.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 							documentMorphiaDAO.update(child.getId(), updatePropsDoc);
 						} else {
-							baseMorphiaDAO.update(child.getId(), updatePropsDoc);
+							baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc);
 						}
 					}
 					if (updateProps != null) {

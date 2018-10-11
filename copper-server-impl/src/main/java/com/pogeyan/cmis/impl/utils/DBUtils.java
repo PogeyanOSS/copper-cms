@@ -183,7 +183,7 @@ public class DBUtils {
 					put(Variables.TOKEN, token);
 				}
 			};
-			objectMorphiaDAO.update(objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
 		}
 
 		@SuppressWarnings("serial")
@@ -198,7 +198,7 @@ public class DBUtils {
 					put(Variables.MODIFIEDAT, modifiedTime);
 				}
 			};
-			objectMorphiaDAO.update(objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
 		}
 
 		@SuppressWarnings("serial")
@@ -213,7 +213,7 @@ public class DBUtils {
 
 				}
 			};
-			objectMorphiaDAO.update(objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
 		}
 	}
 
