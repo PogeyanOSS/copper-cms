@@ -24,18 +24,18 @@ public class ACLPluginTest extends AbstractSessionTest {
 		OperationContext op = new OperationContextImpl();
 		op.setIncludeAcls(true);
 		final String CONTENT = "ACL Plugin test content.";
-		String user = System.getenv("USER1");
-		String password = System.getenv("PASSWORD1");
-		Session session_user1 = createsession(user, password);
+		String user1 = System.getenv("USER1");
+		String password1 = System.getenv("PASSWORD1");
+		Session session_user1 = createsession(user1, password1);
 		Folder testFolder = createTestFolder(session_user1);
 		Document newDocument = createDocument(session_user1, testFolder, "doc", CONTENT);
 		if (newDocument != null) {
 			addResult(createResult(INFO, "Document created successfully by "
 					+ session_user1.getSessionParameters().get(SessionParameter.USER)));
 		}
-		String parentUser = System.getenv("USER2");
-		String parentPassword = System.getenv("PASSWORD2");
-		Session session_user2 = createsession(parentUser, parentPassword);
+		String user2 = System.getenv("USER2");
+		String password2 = System.getenv("PASSWORD2");
+		Session session_user2 = createsession(user2, password2);
 		CmisObject object_user2 = session_user2.getObject(newDocument, op);
 		if (object_user2 != null) {
 			addResult(createResult(INFO,
