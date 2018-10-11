@@ -18,9 +18,9 @@ public interface IObjectFlowService {
 
 	public boolean beforeDeletion(String repositoryId, String objectId, boolean allVers, String userName);
 
-	public boolean afterCreation(IBaseObject resultData);
+	public void afterCreation(IBaseObject resultData);
 
-	public boolean afterUpdate(IBaseObject resultData, Map<String, Object> updateValues);
+	public void afterUpdate(IBaseObject resultData, Map<String, Object> updateValues);
 
-	public boolean afterDeletion(IBaseObject resultData);
+	public void afterDeletion(IBaseObject resultData);
 }

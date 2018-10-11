@@ -4237,27 +4237,16 @@ public class CmisObjectService {
 		private static void invokeObjectFlowServiceAfterCreate(IObjectFlowService objectFlowService, IBaseObject doc,
 				ObjectFlowType invokeMethod, Map<String, Object> updatedValues) {
 			if (objectFlowService != null) {
-				try {
-					LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
-							? doc.getId()
-							: null, invokeMethod);
-					boolean resultFlow = false;
-					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterCreation(doc);
-					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterUpdate(doc, updatedValues);
-					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.afterDeletion(doc);
-					}
-					if (!resultFlow) {
-						LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
-						throw new IllegalArgumentException(
-								"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
-					}
-				} catch (Exception ex) {
-					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
-							invokeMethod, ex.getMessage());
-					throw new IllegalArgumentException(ex.getMessage());
+
+				LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
+						? doc.getId()
+						: null, invokeMethod);
+				if (ObjectFlowType.CREATED.equals(invokeMethod)) {
+					objectFlowService.afterCreation(doc);
+				} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
+					objectFlowService.afterUpdate(doc, updatedValues);
+				} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
+					objectFlowService.afterDeletion(doc);
 				}
 			}
 		}
