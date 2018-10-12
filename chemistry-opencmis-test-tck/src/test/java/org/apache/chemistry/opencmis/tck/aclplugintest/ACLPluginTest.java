@@ -16,14 +16,14 @@ import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.tck.impl.AbstractSessionTest;
-import org.apache.chemistry.opencmis.tck.runner.AbstractRunner;;
+import org.apache.chemistry.opencmis.tck.runner.AbstractRunner;
 
 public class ACLPluginTest extends AbstractSessionTest {
 	@Override
 	public void run(Session session) throws Exception {
 		OperationContext op = new OperationContextImpl();
 		op.setIncludeAcls(true);
-		final String CONTENT = "ACL Plugin test content.";
+		final String CONTENT = "ACL Plugin test content";
 		String user1 = System.getenv("USER1");
 		String password1 = System.getenv("PASSWORD1");
 		Session session_user1 = createsession(user1, password1);
