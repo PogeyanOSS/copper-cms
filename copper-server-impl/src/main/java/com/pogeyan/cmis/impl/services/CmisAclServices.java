@@ -81,18 +81,18 @@ public class CmisAclServices {
 				case REPOSITORYDETERMINED: {
 					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
 							aclPropagation.name());
-					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
+					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				}
 				case OBJECTONLY:
 					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
 							aclPropagation.name());
-					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime);
+					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				case PROPAGATE:
 					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id,
 							aclPropagation.name());
-					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime);
+					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
 					break;
 				}
 			}

@@ -143,7 +143,7 @@ public class CmisObjectService {
 							BaseTypeId.CMIS_FOLDER, "cmis:folder", repositoryId, null,
 							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, aclImp, "/",
 							null);
-					objectDAO.commit(folderObject);
+					objectDAO.commit(folderObject, typeId);
 					LOG.info("Root folder created in Database: {} , repository: {} ",
 							folderObject != null ? folderObject.getId() : null, repositoryId);
 					addRootFolder(repositoryId);
@@ -1516,7 +1516,7 @@ public class CmisObjectService {
 				}
 			}
 
-			objectMorphiaDAO.commit(result);
+			objectMorphiaDAO.commit(result, typeId);
 			if (result != null) {
 				LOG.debug("createFolderObject successful using objectMorphiaDAO: {}, {}", result.getId(),
 						result.getName());
@@ -2123,7 +2123,7 @@ public class CmisObjectService {
 				}
 			}
 
-			baseMorphiaDAO.commit(result);
+			baseMorphiaDAO.commit(result, typeId);
 			if (result != null) {
 				LOG.debug("Item: {} created successfully", result.getName());
 			}
@@ -2324,7 +2324,7 @@ public class CmisObjectService {
 				throw new IllegalArgumentException(typeId + " is already present");
 			}
 
-			baseMorphiaDAO.commit(result);
+			baseMorphiaDAO.commit(result, typeId);
 
 			if (result != null) {
 				LOG.debug("Created relationship: {}", result.getName());
@@ -2535,7 +2535,7 @@ public class CmisObjectService {
 					settableBaseObject.setId(objectId);
 				}
 			}
-			baseMorphiaDAO.commit(result);
+			baseMorphiaDAO.commit(result, typeId);
 			if (result != null) {
 				LOG.debug("Policy: {} created successfully", result.getName());
 			}
@@ -2550,13 +2550,14 @@ public class CmisObjectService {
 		public static List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(String repositoryId,
 				List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties,
 				List<String> addSecondaryTypeIds, List<String> removeSecondaryTypeIds, ObjectInfoHandler objectInfos,
-				IUserObject userObject) {
+				IUserObject userObject, String typeId) {
 			List<BulkUpdateObjectIdAndChangeToken> result = new ArrayList<BulkUpdateObjectIdAndChangeToken>();
 			for (BulkUpdateObjectIdAndChangeToken obj : objectIdAndChangeToken) {
 				Holder<String> objId = new Holder<String>(obj.getId());
 				Holder<String> changeToken = new Holder<String>(obj.getChangeToken());
 				try {
-					updateProperties(repositoryId, objId, changeToken, properties, null, objectInfos, userObject);
+					updateProperties(repositoryId, objId, changeToken, properties, null, objectInfos, userObject,
+							typeId);
 					result.add(new BulkUpdateObjectIdAndChangeTokenImpl(obj.getId(), changeToken.getValue()));
 				} catch (Exception e) {
 					LOG.error("updating properties in bulk upadate failed for object: {}, {}, repositoryId: {}",
@@ -2574,7 +2575,7 @@ public class CmisObjectService {
 		 */
 		@SuppressWarnings("unchecked")
 		public static void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-				Properties properties, Acl acl, ObjectInfoHandler objectInfos, IUserObject userObject)
+				Properties properties, Acl acl, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
 				throws CmisRuntimeException, CmisObjectNotFoundException, CmisUpdateConflictException {
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			Map<String, Object> objectFlowUpdateContentProps = new HashMap<String, Object>();
@@ -2591,7 +2592,6 @@ public class CmisObjectService {
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MNavigationServiceDAO navigationMorphiaDAO = null;
-			String typeId = getObjectTypeId(properties);
 
 			try {
 				baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
@@ -2731,7 +2731,7 @@ public class CmisObjectService {
 					}
 				}
 			}
-			baseMorphiaDAO.update(repositoryId, id, updatecontentProps);
+			baseMorphiaDAO.update(repositoryId, id, updatecontentProps, typeId);
 			invokeObjectFlowServiceAfterCreate(objectFlowService, data, ObjectFlowType.UPDATED,
 					objectFlowUpdateContentProps);
 			if (updatecontentProps != null) {
@@ -2749,11 +2749,12 @@ public class CmisObjectService {
 					secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 				}
 				if (secondaryObjectTypeIds.isEmpty()) {
-					DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryObjectTypeIds, data.getId());
+					DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryObjectTypeIds, data.getId(),
+							typeId);
 				} else {
 					secondaryTypes.addAll(secondaryObjectTypeIds);
 					secondaryTypes = secondaryTypes.stream().distinct().collect(Collectors.toList());
-					DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryTypes, data.getId());
+					DBUtils.BaseDAO.updateBaseSecondaryTypeObject(repositoryId, secondaryTypes, data.getId(), typeId);
 				}
 				if (secondaryTypes != null) {
 					LOG.debug("updateSecondaryProperties for: {}, object: {}", id, secondaryTypes);
@@ -2776,7 +2777,7 @@ public class CmisObjectService {
 				for (IBaseObject child : children) {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
-					baseMorphiaDAO.update(repositoryId, child.getId(), updatePath);
+					baseMorphiaDAO.update(repositoryId, child.getId(), updatePath, typeId);
 					invokeObjectFlowServiceAfterCreate(objectFlowService, child, ObjectFlowType.UPDATED, null);
 				}
 			}
@@ -3329,7 +3330,7 @@ public class CmisObjectService {
 				updateProps.put("modifiedAt", modifiedTime);
 				updateProps.put("modifiedBy", userObject == null ? null : userObject.getUserDN());
 				updateProps.put("token", token);
-				baseMorphiaDAO.update(repositoryId, data.getId(), updateProps);
+				baseMorphiaDAO.update(repositoryId, data.getId(), updateProps, typeId);
 				if (data != null) {
 					LOG.debug("update object id: {}, baseTypeId: {}, props: {}", data.getId(), data.getBaseId(),
 							updateProps);
@@ -3359,7 +3360,7 @@ public class CmisObjectService {
 							if (child.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 								documentMorphiaDAO.update(child.getId(), updatePropsDoc);
 							} else {
-								baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc);
+								baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc, typeId);
 							}
 							if (updatePropsDoc != null) {
 								LOG.debug("update objects id: {}, baseType: {}, props: {}", child.getId(),
@@ -3385,7 +3386,7 @@ public class CmisObjectService {
 				if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 					documentMorphiaDAO.update(data.getId(), updateProps);
 				} else {
-					baseMorphiaDAO.update(repositoryId, data.getId(), updateProps);
+					baseMorphiaDAO.update(repositoryId, data.getId(), updateProps, typeId);
 				}
 				if (updateProps != null) {
 					LOG.debug("updateObjects: {}, baseType: {}, props: {}", data.getId(), data.getBaseId(),
@@ -3429,7 +3430,7 @@ public class CmisObjectService {
 			updateProps.put("modifiedAt", modifiedTime);
 			updateProps.put("modifiedBy", userObject == null ? null : userObject.getUserDN());
 			updateProps.put("token", token);
-			baseMorphiaDAO.update(repositoryId, childId, updateProps);
+			baseMorphiaDAO.update(repositoryId, childId, updateProps, typeId);
 			List<? extends IDocumentObject> children = getChildrens(repositoryId, path, dataPath, dataAcl,
 					navigationMorphiaDAO, userObject, typeId);
 			if (children != null && children.size() > 0) {
@@ -3454,7 +3455,7 @@ public class CmisObjectService {
 						if (child.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
 							documentMorphiaDAO.update(child.getId(), updatePropsDoc);
 						} else {
-							baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc);
+							baseMorphiaDAO.update(repositoryId, child.getId(), updatePropsDoc, typeId);
 						}
 					}
 					if (updateProps != null) {
@@ -4105,7 +4106,8 @@ public class CmisObjectService {
 				}
 				Long modifiedTime = System.currentTimeMillis();
 				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
-				DBUtils.BaseDAO.updateAcl(repositoryId, data.getAcl(), token, objectId, modifiedTime);
+				DBUtils.BaseDAO.updateAcl(repositoryId, data.getAcl(), token, objectId, modifiedTime,
+						object.getTypeId());
 				if (data != null) {
 					LOG.debug("updatedAcl: {}, for object: {}", data.getAcl(), objectId);
 				}

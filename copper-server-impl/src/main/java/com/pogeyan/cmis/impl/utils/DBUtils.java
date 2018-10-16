@@ -174,7 +174,8 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static void updatePolicy(String repositoryId, List<String> polIds, String objectId, TokenImpl token) {
+		public static void updatePolicy(String repositoryId, List<String> polIds, String objectId, TokenImpl token,
+				String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
@@ -183,12 +184,12 @@ public class DBUtils {
 					put(Variables.TOKEN, token);
 				}
 			};
-			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps, typeId);
 		}
 
 		@SuppressWarnings("serial")
-		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, String objectId,
-				long modifiedTime) {
+		public static void updateAcl(String repositoryId, Acl acl, TokenImpl token, String objectId, long modifiedTime,
+				String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
@@ -198,12 +199,12 @@ public class DBUtils {
 					put(Variables.MODIFIEDAT, modifiedTime);
 				}
 			};
-			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps, typeId);
 		}
 
 		@SuppressWarnings("serial")
 		public static void updateBaseSecondaryTypeObject(String repositoryId, List<String> secondaryObjectTypes,
-				String objectId) {
+				String objectId, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> updateProps = new HashMap<String, Object>() {
@@ -213,7 +214,7 @@ public class DBUtils {
 
 				}
 			};
-			objectMorphiaDAO.update(repositoryId, objectId, updateProps);
+			objectMorphiaDAO.update(repositoryId, objectId, updateProps, typeId);
 		}
 	}
 

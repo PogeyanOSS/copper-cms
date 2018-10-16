@@ -36,12 +36,12 @@ public interface MBaseObjectDAO {
 	/**
 	 * Update Folder type objectIds for an object.
 	 */
-	public void update(String repositoryId, String objectId, Map<String, Object> updateProps);
+	public void update(String repositoryId, String objectId, Map<String, Object> updateProps, String typeId);
 
 	public List<? extends IBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
 			int skipCount, String[] mappedColumns, String typeId);
 
-	public void commit(IBaseObject entity);
+	public void commit(IBaseObject entity, String typeId);
 
 	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,

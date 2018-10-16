@@ -513,7 +513,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"bulkUpdateProperties", objectIdAndChangeToken, request.getRepositoryId());
 		List<BulkUpdateObjectIdAndChangeToken> result = CmisObjectService.Impl.bulkUpdateProperties(
 				request.getRepositoryId(), objectIdAndChangeToken, properties, addSecondaryTypes, removeSecondaryTypes,
-				null, request.getUserObject());
+				null, request.getUserObject(), request.getTypeId());
 
 		// return result
 		JSONArray jsonList = new JSONArray();
@@ -554,7 +554,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, update the object properties using this id: {}, repositoryId: {}",
 				"updateProperties", objectIdHolder, request.getRepositoryId());
 		CmisObjectService.Impl.updateProperties(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-				properties, null, null, request.getUserObject());
+				properties, null, null, request.getUserObject(), request.getTypeId());
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());

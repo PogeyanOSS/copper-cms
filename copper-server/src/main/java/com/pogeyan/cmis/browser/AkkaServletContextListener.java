@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.pogeyan.cbm.mongo.adapter.services.CbmMongoAdapterFactory;
 import com.pogeyan.cmis.actors.AclActor;
 import com.pogeyan.cmis.actors.DiscoveryActor;
 import com.pogeyan.cmis.actors.NavigationActor;
@@ -48,6 +47,7 @@ import com.pogeyan.cmis.actors.VersioningActor;
 import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.data.ICacheProvider;
+import com.pogeyan.cmis.api.data.IDBClientFactory;
 import com.pogeyan.cmis.api.data.IObjectFlowFactory;
 import com.pogeyan.cmis.api.data.ITracingService;
 import com.pogeyan.cmis.api.data.ITypePermissionFactory;
@@ -57,7 +57,6 @@ import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
-import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
@@ -91,7 +90,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 	private static final String DEFAULT_TRACING_API_CLASS = "com.pogeyan.cmis.tracing.TracingDefaultImpl";
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
-	private static final String PROPERTY_CBM_APDAPTOR_CLASS = "cbmAdaptorClass";
+	private static final String PROPERTY_DB_CLIENT_FACTORY = "cbmClientFactory";
+	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 
@@ -203,12 +203,13 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 
 		// checking cbm adapter class is enable or not
-		String cbmApadterClassName = props.getProperty(PROPERTY_CBM_APDAPTOR_CLASS);
-		if (cbmApadterClassName == null) {
-			DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
-		} else {
-			DatabaseServiceFactory.add(CbmMongoAdapterFactory.createDatabaseService());
+		String DBClientFactory = props.getProperty(PROPERTY_DB_CLIENT_FACTORY);
+		if (DBClientFactory == null) {
+			DBClientFactory = DEFAULT_DB_CLIENT_FACTORY;
 		}
+
+		initializeDBClientServiceFactory(DBClientFactory);
+
 		String cacheProviderClassName = props.getProperty(PROPERTY_CACHE_PROVIDER_CLASS);
 		if (cacheProviderClassName == null) {
 			cacheProviderClassName = DEFAULT_CACHE_PROVIDER_CLASS;
@@ -389,6 +390,17 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Initialized Tracing Api Services Class: {}", traceApiClass);
 		} catch (Exception e) {
 			LOG.error("Could not create a Tracing Api services factory instance: {}", e);
+		}
+	}
+
+	private static void initializeDBClientServiceFactory(String DBClientFactory) {
+		try {
+			Class<?> DBClientServiceFactory = Class.forName(DBClientFactory);
+			IDBClientFactory apiService = (IDBClientFactory) DBClientServiceFactory.newInstance();
+			DatabaseServiceFactory.add(apiService);
+			LOG.info("Initialized CbmAdapter Services Class: {}", DBClientFactory);
+		} catch (Exception e) {
+			LOG.error("Could not create a CbmAdapter services factory instance: {}", e);
 		}
 	}
 }

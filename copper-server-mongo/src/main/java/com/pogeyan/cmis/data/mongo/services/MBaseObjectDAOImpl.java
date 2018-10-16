@@ -60,7 +60,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void update(String repositoryId, String objectId, Map<String, Object> updateProps) {
+	public void update(String repositoryId, String objectId, Map<String, Object> updateProps, String typeId) {
 		UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
@@ -107,7 +107,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void commit(IBaseObject entity) {
+	public void commit(IBaseObject entity, String typeId) {
 		this.save((MBaseObject) entity);
 	}
 

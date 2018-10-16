@@ -85,7 +85,7 @@ public class CmisPolicyService {
 						"Policy id " + policyId + "cannot be removed because it is not applied to object " + objectId);
 			}
 			polIds.remove(policyId);
-			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token);
+			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token, typeId);
 			if (polIds != null) {
 				LOG.debug("PolicyObject after removing policyids are: {}", polIds);
 			}
@@ -122,7 +122,7 @@ public class CmisPolicyService {
 				polIds = new ArrayList<String>();
 			}
 			polIds.add(policyId);
-			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token);
+			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token, typeId);
 			if (polIds != null) {
 				LOG.debug("PolicyObject after adding policyids are: {}", polIds);
 			}
