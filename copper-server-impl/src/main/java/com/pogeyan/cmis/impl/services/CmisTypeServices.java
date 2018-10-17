@@ -1656,6 +1656,7 @@ public class CmisTypeServices {
 				propertyDefinition.setMinValue(pi.getMinValue() == null ? null : pi.getMinValue().intValue());
 				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue().intValue());
 			}
+			propertyDefinition.setChoice(pro.getChoices());
 			return propertyDefinition;
 		}
 
