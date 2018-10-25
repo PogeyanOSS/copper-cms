@@ -95,7 +95,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), pwcId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("New document is null!");
 		}
@@ -144,7 +144,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), versionId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("New document is null!");
 		}
@@ -170,7 +170,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), docId,
-				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT);
+				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			throw new CmisRuntimeException("New document is null!");
 		}

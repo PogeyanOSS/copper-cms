@@ -62,7 +62,8 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, apply acl for object using this id: {}, repositoryId: {}, addAcl: {}, removeAcl: {}",
 				"applyACL", objectId, t.getRepositoryId(), t.getAddAcl(), t.getRemoveAcl());
 		Acl objectAcl = CmisAclServices.Impl.applyAcl(t.getRepositoryId(), objectId, t.getAddAcl(), t.getRemoveAcl(),
-				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject().getUserDN());
+				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject().getUserDN(),
+				t.getTypeId());
 		if (objectAcl == null) {
 			throw new CmisRuntimeException("object acl is null!");
 		}
@@ -81,7 +82,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, get acl using this id: {}, repositoryId: {}, onlyBasicPermissions: {}", "getAcl",
 				objectId, t.getRepositoryId(), onlyBasicPermissions);
 		Acl objectAcl = CmisAclServices.Impl.getAcl(t.getRepositoryId(), objectId, onlyBasicPermissions, null, null,
-				t.getUserObject());
+				t.getUserObject(), t.getTypeId());
 		if (objectAcl == null) {
 			throw new CmisRuntimeException("object acl is null!");
 		}

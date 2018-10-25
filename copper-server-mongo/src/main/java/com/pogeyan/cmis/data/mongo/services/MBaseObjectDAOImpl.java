@@ -43,7 +43,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void delete(String objectId, boolean forceDelete, TokenImpl token) {
+	public void delete(String repositoryId, String objectId, boolean forceDelete, TokenImpl token, String typeId) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		query.or(getAclCriteria(query));
@@ -60,7 +60,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void update(String objectId, Map<String, Object> updateProps) {
+	public void update(String repositoryId, String objectId, Map<String, Object> updateProps, String typeId) {
 		UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
@@ -88,7 +88,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 
 	@Override
 	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
-			int skipCount, String[] mappedColumns) {
+			int skipCount, String[] mappedColumns, String typeId) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
@@ -107,7 +107,7 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void commit(IBaseObject entity) {
+	public void commit(IBaseObject entity, String typeId) {
 		this.save((MBaseObject) entity);
 	}
 

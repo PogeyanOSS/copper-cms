@@ -101,7 +101,7 @@ public class CmisTypeServices {
 							typeManagerDAO.commit(tm);
 							if (tm.getId().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())) {
 								CmisObjectService.Impl.addRootFolder(repositoryId,
-										userObject == null ? null : userObject.getUserDN());
+										userObject == null ? null : userObject.getUserDN(), tm.getId());
 							}
 							if (tm.getId().equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONMD.value())
 									|| tm.getId().equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONSHIP.value())
@@ -716,9 +716,9 @@ public class CmisTypeServices {
 				// MongoStorageDocument.createStorageService(parameters,
 				// repositoryId, type);
 				// localService.deleteFolder(parameters, repositoryId, type);
-				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type);
+				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type, type);
 				if (folderObject != null) {
-					baseMorphiaDAO.delete(folderObject.getId(), true, null);
+					baseMorphiaDAO.delete(repositoryId, folderObject.getId(), true, null, type);
 				}
 				typeManagerDAO.delete(type);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);

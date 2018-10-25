@@ -189,8 +189,7 @@ public class ServletHelpers {
 
 		String message = ex.getMessage();
 		/*
-		 * if (!(ex instanceof CmisBaseException)) { message =
-		 * "An error occurred!"; }
+		 * if (!(ex instanceof CmisBaseException)) { message = "An error occurred!"; }
 		 */
 
 		response.resetBuffer();
@@ -268,11 +267,24 @@ public class ServletHelpers {
 		if (pathFragments.length > 0) {
 			postRequest.setRepositoryId(pathFragments[0]);
 			if (objectId != null) {
-				ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments);
-				String typeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
-				postRequest.setTypeId(typeId);
-				BaseTypeId baseTypeId = BaseTypeId.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
-				postRequest.setBaseTypeId(baseTypeId);
+				if (request.getParameter("typeId") != null) {
+					String typeId = request.getParameter("typeId");
+					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
+							typeId);
+					String objectTypeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
+					postRequest.setTypeId(objectTypeId);
+					BaseTypeId baseTypeId = BaseTypeId
+							.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
+					postRequest.setBaseTypeId(baseTypeId);
+				} else {
+					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
+							null);
+					String typeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
+					postRequest.setTypeId(typeId);
+					BaseTypeId baseTypeId = BaseTypeId
+							.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
+					postRequest.setBaseTypeId(baseTypeId);
+				}
 			}
 		}
 		String token = HttpUtils.getStringParameter(request, BrowserConstants.CONTROL_TOKEN);
@@ -327,7 +339,7 @@ public class ServletHelpers {
 							"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE,
 							"cmis:none", false, false, null, null);
 				} else {
-					object = ServletHelpers.getObjectDataFor(repositoryId, objectId, pathFragments);
+					object = ServletHelpers.getObjectDataFor(repositoryId, objectId, pathFragments, null);
 				}
 
 				// reset object id again here
@@ -361,17 +373,17 @@ public class ServletHelpers {
 		return bm;
 	}
 
-	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments) {
+	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments, String typeId) {
 		ObjectData object = null;
 		// objectId will be null if path needs to be considered
 		if (objectId != null) {
 			object = CmisObjectService.Impl.getObject(repositoryId, objectId,
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, null, BaseTypeId.CMIS_FOLDER);
+					false, false, null, null, BaseTypeId.CMIS_FOLDER, typeId);
 		} else if (pathFragments != null) {
 			object = CmisObjectService.Impl.getObjectByPath(repositoryId, getPath(pathFragments),
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, null);
+					false, false, null, null, typeId);
 		} else {
 			return null;
 		}

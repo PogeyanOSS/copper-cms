@@ -51,7 +51,7 @@ public class CmisRelationshipService {
 				throws CmisObjectNotFoundException, MongoException {
 			IBaseObject so = null;
 			try {
-				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null);
+				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}",
 						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId);
@@ -77,17 +77,17 @@ public class CmisRelationshipService {
 			List<? extends IBaseObject> totalSize = null;
 			if (relationshipDirection == RelationshipDirection.SOURCE) {
 				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
-						-1, null);
+						-1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.SOURCE, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.TARGET) {
 				totalSize = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId, so.getId().toString(), -1,
-						-1, null);
+						-1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.TARGET, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.EITHER) {
 				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
-						-1, null);
+						-1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.BOTH, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			}
