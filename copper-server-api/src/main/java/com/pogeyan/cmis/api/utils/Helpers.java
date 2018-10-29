@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.pogeyan.cmis.api.auth.IUserGroupObject;
@@ -61,6 +62,9 @@ public class Helpers {
 			"description", "baseTypeId", "parent", "isFileable", "isQueryable", "isFulltextIndexed",
 			"isIncludedInSupertypeQuery", "isControllablePolicy", "typeMutability", "isControllableAcl",
 			"propertyDefinition.cmis:name", "propertyDefinition.cmis:objectTypeId" };
+
+	public static String[] basicTypes = { "cmis:folder", "cmis:document", "cmis:item", "cmis:policy",
+			"cmis:relationship", "cmis:secondary", "cmis_ext:relationmd", "cmis_ext:relationship", "cmis_ext:config" };
 
 	/**
 	 * Gets the utc time.
@@ -410,11 +414,25 @@ public class Helpers {
 		return result;
 	}
 
-	public static String[] getTypeMappedColumns(List<String> fieldAccess) {
-		String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
-		String[] fieldAccessValues = Stream.concat(Arrays.stream(defaultProperty), Arrays.stream(accessValues))
-				.toArray(String[]::new);
-		return fieldAccessValues;
+	public static String[] getTypeMappedColumns(List<String> fieldAccess, IUserObject role, String typeId) {
+		if (role == null) {
+			return null;
+		}
+		if (!ArrayUtils.contains(basicTypes, typeId) && !isSystemUser(role)) {
+			String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
+			String[] fieldAccessValues = Stream.concat(Arrays.stream(defaultProperty), Arrays.stream(accessValues))
+					.toArray(String[]::new);
+			return fieldAccessValues;
+		}
+		return null;
+	}
 
+	public static Boolean isSystemUser(IUserObject role) {
+		for (IUserGroupObject userobject : role.getGroups()) {
+			if (userobject.getGroupDN().equals("system")) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

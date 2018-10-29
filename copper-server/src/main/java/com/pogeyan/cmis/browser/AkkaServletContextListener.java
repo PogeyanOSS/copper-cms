@@ -81,6 +81,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_CACHE_PROVIDER_CLASS = "cacheProviderManagerClass";
 	private static final String PROPERTY_OBJECT_FLOW_CLASS = "objectFlowManagerClass";
 	private static final String PROPERTY_TYPE_PERMISSION_CLASS = "typePermissionManagerClass";
+	private static final String DEFAULT_TYPE_PERMISSION_CLASS = "com.pogeyan.cmis.impl.TypePermission.DefaultTypePermissionServiceFlowFactory";
 	private static final String PROPERTY_INTERVAL_TIME = "intervalTime";
 	private static final String DEFAULT_CLASS = "com.pogeyan.cmis.api.repo.RepositoryManagerFactory";
 	private static final String DEFAULT_REPO_STORE_CLASS = "com.pogeyan.cmis.repo.MongoDBRepositoryStore";
@@ -231,19 +232,19 @@ public class AkkaServletContextListener implements ServletContextListener {
 		String externalActorClassName = props.getProperty(PROPERTY_ACTOR_CLASS);
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
 		String typePermissionServiceClass = props.getProperty(PROPERTY_TYPE_PERMISSION_CLASS);
-
+		if (typePermissionServiceClass == null) {
+			typePermissionServiceClass = DEFAULT_TYPE_PERMISSION_CLASS;
+		}
+		typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass);
 		initializeTracingApiServiceFactory(traceApiClass);
 
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, intevalTime);
 		if (mainCLassInitialize) {
-			boolean checkTypePermission = typePermissionServiceClass != null
-					? typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass)
-					: true;
 			boolean checkObjectServicePermission = ObjectFlowServiceClass != null
 					? ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)
 					: true;
-			if (checkTypePermission && checkObjectServicePermission) {
+			if (checkObjectServicePermission) {
 				return true;
 			}
 
@@ -350,7 +351,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	}
 
-	private static boolean typePermissionFlowFactoryClassinitializeExtensions(String typePermissionServiceClassName) {
+	private static void typePermissionFlowFactoryClassinitializeExtensions(String typePermissionServiceClassName) {
 		try {
 
 			LOG.info("Initialized Type Permission Flow Services Factory Class: {}", typePermissionServiceClassName);
@@ -360,9 +361,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 			TypeServiceFactory.setTypePermissionFactory(typePermissionFlowActorFactory);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
-			return false;
+
 		}
-		return true;
 
 	}
 
@@ -403,4 +403,5 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.error("Could not create a CbmAdapter services factory instance: {}", e);
 		}
 	}
+
 }
