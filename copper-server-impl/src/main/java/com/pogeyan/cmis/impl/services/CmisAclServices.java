@@ -53,9 +53,8 @@ public class CmisAclServices {
 
 	public static class Impl {
 		public static Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions,
-				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
-				ISpan parentSpan)
-				throws CmisObjectNotFoundException {
+				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId,
+				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::getAcl", null);
 			Map<String, Object> attrMap = new HashMap<String, Object>();
@@ -78,7 +77,8 @@ public class CmisAclServices {
 
 		public static Acl applyAcl(String repositoryId, String objectId, Acl aclAdd, Acl aclRemove,
 				AclPropagation aclPropagation, ExtensionsData extension, ObjectInfoHandler objectInfos,
-				CapabilityAcl capability, String userName, String typeId, String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+				CapabilityAcl capability, String userName, String typeId, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::applyAcl", null);
 			Map<String, Object> attrMap = new HashMap<String, Object>();
@@ -86,10 +86,10 @@ public class CmisAclServices {
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
-			
+
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
-				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				throw new CmisObjectNotFoundException(
@@ -100,19 +100,19 @@ public class CmisAclServices {
 				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
 				switch (aclPropagation) {
 				case REPOSITORYDETERMINED: {
-					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name(), tracingId, span);
+					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+							tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				}
 				case OBJECTONLY:
-					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name(), tracingId, span);
+					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+							tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				case PROPAGATE:
-					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name(), tracingId, span);
+					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+							tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
 					break;
 				}

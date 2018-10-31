@@ -66,13 +66,13 @@ public class CmisRelationshipService {
 			}
 
 			if (so == null) {
-				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}",
-						"getObjectRelationships", "Unknown object id", objectId, repositoryId);
-				attrMap.put("error", "Unknown object id:" + objectId + ",TraceId:" + span.getTraceId());
+				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}, traceId: {}",
+						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id: " + objectId + ",TraceId:" + span.getTraceId());
+						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();

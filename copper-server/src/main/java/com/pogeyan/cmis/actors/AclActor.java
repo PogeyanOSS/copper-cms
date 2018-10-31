@@ -50,14 +50,17 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	}
 
 	public AclActor() {
-		this.registerMessageHandle("acl", QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getAcl((QueryGetRequest) t, (HashMap<String, Object>) b))));
+		this.registerMessageHandle("acl", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.getAcl((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("applyACL", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.applyACL((PostRequest) t, (HashMap<String, Object>) b))));
+		this.registerMessageHandle("applyACL", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.applyACL((PostRequest) t, (HashMap<String, Object>) b))));
 	}
 
-	private JSONObject applyACL(PostRequest t, HashMap<String, Object> baggage) throws CmisObjectNotFoundException, CmisRuntimeException {
+	private JSONObject applyACL(PostRequest t, HashMap<String, Object> baggage)
+			throws CmisObjectNotFoundException, CmisRuntimeException {
 		String permission = t.getUserObject().getPermission();
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
@@ -69,7 +72,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
+			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl."+ " TraceId:", span.getTraceId());
 		}
 		String aclPro = t.getAclPropagation();
 		String objectId = t.getObjectId();
@@ -89,7 +92,8 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 
 	}
 
-	private JSONObject getAcl(QueryGetRequest t, HashMap<String, Object> baggage) throws CmisObjectNotFoundException, CmisRuntimeException {
+	private JSONObject getAcl(QueryGetRequest t, HashMap<String, Object> baggage)
+			throws CmisObjectNotFoundException, CmisRuntimeException {
 		String permission = t.getUserObject().getPermission();
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
@@ -99,16 +103,18 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			attrMap.put("error", t.getUserName() + "is not authorized to getAcl, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
-					t.getUserName() + " is not authorized to applyAcl", attrMap);
+					t.getUserName() + " is not authorized to getAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
+			throw new CmisRuntimeException(
+					t.getUserName() + " is not authorized to getAcl." + " TraceId:" + span.getTraceId());
 		}
 		String objectId = t.getObjectId();
 		Boolean onlyBasicPermissions = t.getBooleanParameter(QueryGetRequest.PARAM_ONLY_BASIC_PERMISSIONS);
 		LOG.info("Method name: {}, get acl using this id: {}, repositoryId: {}, onlyBasicPermissions: {}", "getAcl",
 				objectId, t.getRepositoryId(), onlyBasicPermissions);
-		Acl objectAcl = CmisAclServices.Impl.getAcl(t.getRepositoryId(), objectId, onlyBasicPermissions, null, null,
-				t.getUserObject(), t.getTypeId(), tracingId, span);
+		 Acl objectAcl = CmisAclServices.Impl.getAcl(t.getRepositoryId(), objectId,
+		 onlyBasicPermissions, null, null,
+		 t.getUserObject(), t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
 			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
@@ -116,6 +122,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			throw new CmisRuntimeException("object acl is null!, TraceId:" + span.getTraceId());
 		}
 		JSONObject jsonObject = JSONConverter.convert(objectAcl);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonObject;
 
 	}

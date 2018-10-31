@@ -70,7 +70,8 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized.");
+			throw new CmisRuntimeException(
+					request.getUserName() + " is not authorized." + " ,TraceId:" + span.getTraceId());
 		}
 		String objectId = request.getObjectId();
 		Boolean includeSubRelationshipTypes = request.getBooleanParameter(QueryGetRequest.PARAM_SUB_RELATIONSHIP_TYPES);
@@ -96,7 +97,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " Relationships are null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException("Relationships are null!");
+			throw new CmisRuntimeException("Relationships are null!" + " ,TraceId:" + span.getTraceId());
 		}
 
 		JSONObject jsonChildren = JSONConverter.convert(relationships, null, JSONConverter.PropertyMode.OBJECT,

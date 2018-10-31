@@ -80,7 +80,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized.");
+			throw new CmisRuntimeException(request.getUserName() + " is not authorized."+ " TraceId:" + span.getTraceId());
 		}
 		String objectId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -115,7 +115,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyPolicy", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyPolicy.");
+			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyPolicy." + " TraceId:" + span.getTraceId());
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -132,7 +132,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException("Object is null! TraceId:", span.getTraceId());
+			throw new CmisRuntimeException("Object is null!, TraceId:", span.getTraceId());
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,

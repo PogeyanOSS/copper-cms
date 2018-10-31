@@ -11,7 +11,7 @@ public class TracingDefaultImpl implements ITracingService {
 	@Override
 	public ISpan startSpan(String tracingId, ISpan parentSpan, String name, Map<String, String> headers) {
 		span = new TracingDefaultSpanImpl();
-		span.setChildSpan(name, headers);
+		span.setChildSpan(tracingId, name, headers);
 		return span;
 	}
 

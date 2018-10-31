@@ -51,8 +51,8 @@ public class CmisPolicyService {
 					"CmisPolicyService::getAppliedPolicies", null);
 			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAppliedPolicies", objectId,
-						repositoryId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAppliedPolicies", objectId,
+						repositoryId, span.getTraceId());
 				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
@@ -88,8 +88,8 @@ public class CmisPolicyService {
 			List<String> polIds = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "removePolicy", objectId,
-						repositoryId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "removePolicy", objectId,
+						repositoryId, span.getTraceId());
 				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
@@ -100,8 +100,8 @@ public class CmisPolicyService {
 			polIds = data.getPolicies();
 			if (null == polIds || !(polIds.contains(policyId))) {
 				LOG.error(
-						"Method name: {}, policyId: {}, cannot be removed because it is not applied to object: {}, repository: {}",
-						"removePolicy", policyId, objectId, repositoryId);
+						"Method name: {}, policyId: {}, cannot be removed because it is not applied to object: {}, repository: {}, TraceId: {}",
+						"removePolicy", policyId, objectId, repositoryId, span.getTraceId());
 				attrMap.put("error", "cannot be removed because it is not applied to object" + objectId + "TraceId:"
 						+ span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
@@ -130,8 +130,8 @@ public class CmisPolicyService {
 			List<String> polIds = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyPolicy", objectId,
-						repositoryId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyPolicy", objectId,
+						repositoryId, span.getTraceId());
 				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
@@ -140,8 +140,8 @@ public class CmisPolicyService {
 			}
 			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null, data.getTypeId());
 			if (policy == null) {
-				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}", "applyPolicy", policyId,
-						repositoryId);
+				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy", policyId,
+						repositoryId, span.getTraceId());
 				attrMap.put("error", "Unknown policy id:" + policyId + "TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown policy id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
@@ -152,8 +152,8 @@ public class CmisPolicyService {
 			polIds = data.getPolicies();
 			if (null != polIds && polIds.contains(policyId)) {
 				LOG.error(
-						"Method name: {}, policyId: {}, cannot be added because it is already applied to object: {}, repository: {}",
-						"applyPolicy", policyId, objectId, repositoryId);
+						"Method name: {}, policyId: {}, cannot be added because it is already applied to object: {}, repository: {}, TraceId:{}",
+						"applyPolicy", policyId, objectId, repositoryId, span.getTraceId());
 				attrMap.put("error", "cannot be added because it is already applied to object" + objectId + "TraceId:"
 						+ span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
