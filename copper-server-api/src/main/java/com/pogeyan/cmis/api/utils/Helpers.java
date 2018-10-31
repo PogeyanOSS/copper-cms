@@ -34,9 +34,11 @@ import java.util.stream.Collectors;
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.pogeyan.cmis.api.CustomTypeId;
 import com.pogeyan.cmis.api.auth.IUserGroupObject;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
@@ -63,8 +65,10 @@ public class Helpers {
 			"isIncludedInSupertypeQuery", "isControllablePolicy", "typeMutability", "isControllableAcl",
 			"propertyDefinition.cmis:name", "propertyDefinition.cmis:objectTypeId" };
 
-	public static String[] basicTypes = { "cmis:folder", "cmis:document", "cmis:item", "cmis:policy",
-			"cmis:relationship", "cmis:secondary", "cmis_ext:relationmd", "cmis_ext:relationship", "cmis_ext:config" };
+	public static String[] basicTypes = { BaseTypeId.CMIS_FOLDER.value(), BaseTypeId.CMIS_DOCUMENT.value(),
+			BaseTypeId.CMIS_ITEM.value(), BaseTypeId.CMIS_POLICY.value(), BaseTypeId.CMIS_RELATIONSHIP.value(),
+			BaseTypeId.CMIS_SECONDARY.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
+			CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_CONFIG.value() };
 
 	/**
 	 * Gets the utc time.

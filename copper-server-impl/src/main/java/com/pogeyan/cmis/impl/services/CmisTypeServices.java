@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
@@ -1794,7 +1795,7 @@ public class CmisTypeServices {
 
 		private static Boolean checkCrudPermission(ITypePermissionService typePermissionFlow, String repositoryId,
 				IUserObject role, String typeId, TypePermissionType permission) {
-			if (typePermissionFlow != null && role.getPermission().equals("cmis:all")) {
+			if (typePermissionFlow != null && role.getPermission().equals(BasicPermissions.ALL)) {
 				return true;
 			}
 			return false;
