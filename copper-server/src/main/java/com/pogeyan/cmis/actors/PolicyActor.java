@@ -15,7 +15,9 @@
  */
 package com.pogeyan.cmis.actors;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -33,12 +35,15 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisObjectService;
 import com.pogeyan.cmis.impl.services.CmisPolicyService;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(PolicyActor.class);
@@ -49,20 +54,33 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	}
 
 	public PolicyActor() {
-		this.registerMessageHandle("policies", QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.policies((QueryGetRequest) t))));
+		this.registerMessageHandle("policies", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.policies((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("applyPolicy", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.applyPolicy((PostRequest) t))));
+		this.registerMessageHandle("applyPolicy", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.applyPolicy((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("removePolicy", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.removePolicy((PostRequest) t))));
+		this.registerMessageHandle("removePolicy", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.removePolicy((PostRequest) t, (HashMap<String, Object>) b))));
 	}
 
-	private JSONArray policies(QueryGetRequest request) throws CmisObjectNotFoundException, CmisRuntimeException {
+	private JSONArray policies(QueryGetRequest request, HashMap<String, Object> baggage)
+			throws CmisObjectNotFoundException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "PolicyActor::policies",
+				null);
 		String permission = request.getUserObject().getPermission();
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", request.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(request.getUserName() + " is not authorized.");
 		}
 		String objectId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -71,7 +89,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, get appiled policies using this id: {}, repositoryId: {}, filter: {}",
 				"getAppliedPolicies", objectId, request.getRepositoryId(), filter);
 		List<ObjectData> policies = CmisPolicyService.Impl.getAppliedPolicies(request.getRepositoryId(), objectId,
-				filter, null, request.getTypeId());
+				filter, null, request.getTypeId(), tracingId, span);
 		JSONArray jsonPolicies = new JSONArray();
 		if (policies != null) {
 			for (ObjectData policy : policies) {
@@ -79,15 +97,25 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 						dateTimeFormat));
 			}
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonPolicies;
-
 	}
 
-	private JSONObject applyPolicy(PostRequest request)
+	private JSONObject applyPolicy(PostRequest request, HashMap<String, Object> baggage)
 			throws CmisObjectNotFoundException, CmisInvalidArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"PolicyActor::applyPolicy", null);
 		String permission = request.getUserObject().getPermission();
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error",
+					request.getUserName() + "is not authorized to applyPolicy, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized to applyPolicy", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyPolicy.");
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -95,26 +123,40 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, apply policy using this id: {}, repositoryId: {}, policyId: {}", "applyPolicy",
 				objectId, request.getRepositoryId(), request.getPolicyId());
 		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getPolicyId(), objectId,
-				request.getTypeId());
+				request.getTypeId(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject(), BaseTypeId.CMIS_POLICY, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("Object is null!");
+			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException("Object is null! TraceId:", span.getTraceId());
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonObject;
 
 	}
 
-	private JSONObject removePolicy(PostRequest request)
+	private JSONObject removePolicy(PostRequest request, HashMap<String, Object> baggage)
 			throws CmisInvalidArgumentException, CmisObjectNotFoundException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"PolicyActor::removePolicy", null);
 		String permission = request.getUserObject().getPermission();
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error",
+					request.getUserName() + "is not authorized to removePolicy, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized to removePolicy", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(request.getUserName() + " is not authorized to removePolicy.");
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -122,17 +164,21 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, remove policy using this id: {}, repositoryId: {}, policyId: {}", "removePolicy",
 				objectId, request.getRepositoryId(), request.getPolicyId());
 		CmisPolicyService.Impl.removePolicy(request.getRepositoryId(), request.getPolicyId(), objectId,
-				request.getUserObject().getUserDN(), request.getTypeId());
+				request.getUserObject().getUserDN(), request.getTypeId(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,
 				request.getUserObject(), BaseTypeId.CMIS_POLICY, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("Object is null!");
+			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException("Object is null!, TraceId:", span.getTraceId());
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonObject;
 
 	}

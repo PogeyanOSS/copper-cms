@@ -17,7 +17,9 @@ package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -37,11 +39,13 @@ import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class CmisAclServices {
 
@@ -49,30 +53,47 @@ public class CmisAclServices {
 
 	public static class Impl {
 		public static Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions,
-				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
+				ExtensionsData extension, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan)
 				throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisAclService::getAcl", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAcl", objectId, repositoryId);
-				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
+				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Unknown object id: " + objectId + " TraceId:" + span.getTraceId());
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
 					false, objectInfos, null, null, userObject);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return objectData.getAcl();
 		}
 
 		public static Acl applyAcl(String repositoryId, String objectId, Acl aclAdd, Acl aclRemove,
 				AclPropagation aclPropagation, ExtensionsData extension, ObjectInfoHandler objectInfos,
-				CapabilityAcl capability, String userName, String typeId) throws CmisObjectNotFoundException {
+				CapabilityAcl capability, String userName, String typeId, String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisAclService::applyAcl", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+			
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
-				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
+				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Unknown object id: " + objectId + " TraceId:" + span.getTraceId());
 			}
 			if (addAces != null || removeAces != null) {
 				Long modifiedTime = System.currentTimeMillis();
@@ -80,30 +101,32 @@ public class CmisAclServices {
 				switch (aclPropagation) {
 				case REPOSITORYDETERMINED: {
 					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name());
+							aclPropagation.name(), tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				}
 				case OBJECTONLY:
 					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name());
+							aclPropagation.name(), tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				case PROPAGATE:
 					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name());
+							aclPropagation.name(), tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
 					break;
 				}
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, data.getTypeId());
-
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return newData.getAcl();
 		}
 
 		private static AccessControlListImplExt validateAcl(Acl addAces, Acl removeAces, IBaseObject object,
-				List<String> id, String aclPropagation) {
+				List<String> id, String aclPropagation, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisAclService::validateAcl", null);
 			List<Ace> aces = new ArrayList<Ace>();
 			if (addAces != null) {
 				if (object.getAcl() != null) {
@@ -151,6 +174,7 @@ public class CmisAclServices {
 			aces = new ArrayList<Ace>(removeDuplicate);
 			AccessControlListImplExt aclimpl = new AccessControlListImplExt(aces, aclPropagation, false);
 			LOG.debug("After validatedAces: {}", aclimpl != null ? aclimpl.getAces() : null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return aclimpl;
 		}
 

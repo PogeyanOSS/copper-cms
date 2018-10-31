@@ -45,4 +45,10 @@ public class TracingDefaultSpanImpl implements ISpan {
 	public ISpan getParentSpan() {
 		return null;
 	}
+
+	@Override
+	public String getTraceId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
