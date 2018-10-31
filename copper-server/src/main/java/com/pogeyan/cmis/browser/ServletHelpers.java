@@ -270,15 +270,15 @@ public class ServletHelpers {
 				if (request.getParameter("typeId") != null) {
 					String typeId = request.getParameter("typeId");
 					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
-							typeId);
+							typeId, userObject);
 					String objectTypeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
 					postRequest.setTypeId(objectTypeId);
 					BaseTypeId baseTypeId = BaseTypeId
 							.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
 					postRequest.setBaseTypeId(baseTypeId);
 				} else {
-					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
-							null);
+					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments, null,
+							userObject);
 					String typeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
 					postRequest.setTypeId(typeId);
 					BaseTypeId baseTypeId = BaseTypeId
@@ -339,7 +339,7 @@ public class ServletHelpers {
 							"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE,
 							"cmis:none", false, false, null, null);
 				} else {
-					object = ServletHelpers.getObjectDataFor(repositoryId, objectId, pathFragments, null);
+					object = ServletHelpers.getObjectDataFor(repositoryId, objectId, pathFragments, null, userObject);
 				}
 
 				// reset object id again here
@@ -373,17 +373,18 @@ public class ServletHelpers {
 		return bm;
 	}
 
-	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments, String typeId) {
+	static ObjectData getObjectDataFor(String repositoryId, String objectId, String[] pathFragments, String typeId,
+			IUserObject userObject) {
 		ObjectData object = null;
 		// objectId will be null if path needs to be considered
 		if (objectId != null) {
 			object = CmisObjectService.Impl.getObject(repositoryId, objectId,
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, null, BaseTypeId.CMIS_FOLDER, typeId);
+					false, false, null, userObject, BaseTypeId.CMIS_FOLDER, typeId);
 		} else if (pathFragments != null) {
 			object = CmisObjectService.Impl.getObjectByPath(repositoryId, getPath(pathFragments),
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, null, typeId);
+					false, false, null, userObject, typeId);
 		} else {
 			return null;
 		}

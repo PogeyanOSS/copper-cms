@@ -231,10 +231,12 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		String externalActorClassName = props.getProperty(PROPERTY_ACTOR_CLASS);
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
+
 		String typePermissionServiceClass = props.getProperty(PROPERTY_TYPE_PERMISSION_CLASS);
 		if (typePermissionServiceClass == null) {
 			typePermissionServiceClass = DEFAULT_TYPE_PERMISSION_CLASS;
 		}
+
 		typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass);
 		initializeTracingApiServiceFactory(traceApiClass);
 

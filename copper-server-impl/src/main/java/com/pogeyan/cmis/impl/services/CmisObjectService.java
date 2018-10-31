@@ -237,8 +237,8 @@ public class CmisObjectService {
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject, typeId).get(0);
+			TypeDefinition type = CmisTypeServices.Impl
+					.getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId, userObject, typeId).get(0);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
@@ -1206,8 +1206,8 @@ public class CmisObjectService {
 					if (typeId.getPropertyDefinitions().get(map.getKey()) == null) {
 						if (data.getSecondaryTypeIds() != null) {
 							List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl
-									.checkTypePermissionList(typePermissionFlow, repositoryId,
-											userObject == null ? null : userObject, data.getSecondaryTypeIds());
+									.checkTypePermissionList(typePermissionFlow, repositoryId, userObject,
+											data.getSecondaryTypeIds());
 							secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 								Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
 								secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {
@@ -3509,8 +3509,7 @@ public class CmisObjectService {
 					if (secondaryObjectTypeIds != null) {
 						Map<String, PropertyDefinition<?>> secondaryPropertyDefinition = new HashMap<>();
 						List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl.checkTypePermissionList(
-								typePermissionFlow, repositoryId, userObject == null ? null : userObject,
-								secondaryObjectTypeIds);
+								typePermissionFlow, repositoryId, userObject, secondaryObjectTypeIds);
 						secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 							Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
 							secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {
