@@ -3025,6 +3025,10 @@ public class CmisObjectService {
 				LOG.error("deleteObject object not found in repositoryId: {}", repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
+			if (data == null) {
+				LOG.error("deleteObject Object id: {}, null in : {} repository!", objectId, repositoryId);
+				throw new CmisObjectNotFoundException("Object must not be null!");
+			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				LOG.error("deleteObject failed: {}, repositoryId: {}", "can't delete a root folder.", repositoryId);
 				throw new CmisNotSupportedException("can't delete a root folder");

@@ -266,25 +266,29 @@ public class ServletHelpers {
 		postRequest.setObjectId(objectId);
 		if (pathFragments.length > 0) {
 			postRequest.setRepositoryId(pathFragments[0]);
-			if (objectId != null) {
-				if (request.getParameter("typeId") != null) {
-					String typeId = request.getParameter("typeId");
-					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
-							typeId, userObject);
-					String objectTypeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
-					postRequest.setTypeId(objectTypeId);
-					BaseTypeId baseTypeId = BaseTypeId
-							.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
-					postRequest.setBaseTypeId(baseTypeId);
-				} else {
-					ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments, null,
-							userObject);
-					String typeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
-					postRequest.setTypeId(typeId);
-					BaseTypeId baseTypeId = BaseTypeId
-							.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
-					postRequest.setBaseTypeId(baseTypeId);
+			try {
+				if (objectId != null) {
+					if (request.getParameter("typeId") != null) {
+						String typeId = request.getParameter("typeId");
+						ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
+								typeId, userObject);
+						String objectTypeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
+						postRequest.setTypeId(objectTypeId);
+						BaseTypeId baseTypeId = BaseTypeId
+								.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
+						postRequest.setBaseTypeId(baseTypeId);
+					} else {
+						ObjectData object = ServletHelpers.getObjectDataFor(pathFragments[0], objectId, pathFragments,
+								null, userObject);
+						String typeId = getStringPropertyValue(object, PropertyIds.OBJECT_TYPE_ID);
+						postRequest.setTypeId(typeId);
+						BaseTypeId baseTypeId = BaseTypeId
+								.fromValue(getStringPropertyValue(object, PropertyIds.BASE_TYPE_ID));
+						postRequest.setBaseTypeId(baseTypeId);
+					}
 				}
+			} catch (Exception ex) {
+
 			}
 		}
 		String token = HttpUtils.getStringParameter(request, BrowserConstants.CONTROL_TOKEN);
