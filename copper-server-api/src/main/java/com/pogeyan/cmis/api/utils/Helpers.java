@@ -419,22 +419,22 @@ public class Helpers {
 	}
 
 	public static String[] getTypeMappedColumns(List<String> fieldAccess, IUserObject role, String typeId) {
-		if (role == null) {
+		if (role == null || ArrayUtils.contains(basicTypes, typeId) || isSystemUser(role)) {
 			return null;
-		}
-		if (!ArrayUtils.contains(basicTypes, typeId) && !isSystemUser(role)) {
+		} else {
 			String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
 			String[] fieldAccessValues = Stream.concat(Arrays.stream(defaultProperty), Arrays.stream(accessValues))
 					.toArray(String[]::new);
 			return fieldAccessValues;
 		}
-		return null;
 	}
 
 	public static Boolean isSystemUser(IUserObject role) {
-		for (IUserGroupObject userobject : role.getGroups()) {
-			if (userobject.getGroupDN().equals("system")) {
-				return true;
+		if (role != null) {
+			for (IUserGroupObject userobject : role.getGroups()) {
+				if (userobject.getGroupDN().equals("system")) {
+					return true;
+				}
 			}
 		}
 		return false;
