@@ -1359,12 +1359,12 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject == null ? null : userObject.getUserDN(),
-					null, ObjectFlowType.CREATED);
-			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(
-					userObject == null ? null : userObject == null ? null : userObject.getUserDN(), addAces);
-			Acl aclRemove = TypeValidators.impl.expandAclMakros(
-					userObject == null ? null : userObject == null ? null : userObject.getUserDN(), removeAces);
+					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
+					ObjectFlowType.CREATED);
+			AccessControlListImplExt aclAdd = TypeValidators.impl
+					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
+			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
+					removeAces);
 			IBaseObject parent = null;
 			List<String> secondaryObjectTypeIds = null;
 
