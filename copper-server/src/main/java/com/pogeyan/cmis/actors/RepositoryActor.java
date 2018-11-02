@@ -18,6 +18,7 @@ package com.pogeyan.cmis.actors;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,6 +67,7 @@ import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
@@ -73,10 +75,12 @@ import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.services.CmisObjectService;
 import com.pogeyan.cmis.impl.services.CmisTypeServices;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(RepositoryActor.class);
@@ -87,29 +91,37 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	private static final String CMIS_ALL = "cmis:all";
 
 	public RepositoryActor() {
-		this.registerMessageHandle("GetRepositories".toLowerCase(), QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getRepositories((QueryGetRequest) t))));
+		this.registerMessageHandle("GetRepositories".toLowerCase(), QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.getRepositories((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("repositoryInfo", QueryGetRequest.class, (t, b) -> CompletableFuture.supplyAsync(
-				() -> CmisBaseResponse.fromWithTryCatch(() -> this.getRepositoryInfo((QueryGetRequest) t))));
+		this.registerMessageHandle("repositoryInfo", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.getRepositoryInfo((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("typeDefinition", QueryGetRequest.class, (t, b) -> CompletableFuture.supplyAsync(
-				() -> CmisBaseResponse.fromWithTryCatch(() -> this.getTypeDefinition((QueryGetRequest) t))));
+		this.registerMessageHandle("typeDefinition", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.getTypeDefinition((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("typeChildren", QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getTypeChildren((QueryGetRequest) t))));
+		this.registerMessageHandle("typeChildren", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.getTypeChildren((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("typeDescendants", QueryGetRequest.class, (t, b) -> CompletableFuture.supplyAsync(
-				() -> CmisBaseResponse.fromWithTryCatch(() -> this.getTypeDescendants((QueryGetRequest) t))));
+		this.registerMessageHandle("typeDescendants", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.getTypeDescendants((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("createType", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.createType((PostRequest) t))));
+		this.registerMessageHandle("createType", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.createType((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("deleteType", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.deleteType((PostRequest) t))));
+		this.registerMessageHandle("deleteType", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.deleteType((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("updateType", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.updateType((PostRequest) t))));
+		this.registerMessageHandle("updateType", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.updateType((PostRequest) t, (HashMap<String, Object>) b))));
 
 	}
 
@@ -117,13 +129,24 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		return "repository";
 	}
 
-	private JSONObject getRepositoryInfo(QueryGetRequest t) throws CmisRuntimeException {
+	private JSONObject getRepositoryInfo(QueryGetRequest t, HashMap<String, Object> baggage)
+			throws CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::getRepositoryInfo", null);
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", t.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true, t.getUserName() + " is not authorized",
+					attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(t.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		// call DB and get the repositoryInfo
-		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName(), t.getTypeId());
+		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName(), t.getTypeId(),
+				tracingId, span);
 		IRepository repository = RepositoryManagerFactory.getInstance().getRepositoryStore()
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
@@ -136,12 +159,17 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONObject result = new JSONObject();
 		result.put(repo.getId(), JSONConverter.convert(repo, repositoryUrl, rootUrl, true));
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return result;
 
 	}
 
-	private JSONObject getRepositories(QueryGetRequest request) throws MongoException, CmisRuntimeException {
-
+	private JSONObject getRepositories(QueryGetRequest request, HashMap<String, Object> baggage)
+			throws MongoException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::getRepositories", null);
 		List<RepositoryInfo> infoDataList = new ArrayList<RepositoryInfo>() {
 			private static final long serialVersionUID = 1L;
 			{
@@ -149,9 +177,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 						.getRepositories(request.getRepositoryId());
 				if (respositoryList != null && !respositoryList.isEmpty()) {
 					for (IRepository repository : respositoryList) {
-						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserObject());
+						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserObject(),
+								tracingId, span);
 						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
-								request.getUserName(), request.getTypeId());
+								request.getUserName(), request.getTypeId(), tracingId, span);
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
 								CmisVersion.CMIS_1_1, rootId,
 								repository.getDescription() == null ? "" : repository.getDescription()));
@@ -173,32 +202,53 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
-
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return result;
-
 	}
 
-	private JSONObject getTypeDefinition(QueryGetRequest request)
+	private JSONObject getTypeDefinition(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws CmisRuntimeException, IllegalArgumentException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::getTypeDefinition", null);
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", request.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(
+					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info("Method name: {}, getting type definition  using this typeId: {}, repositoryId: {}",
 				"getTypeDefinition", typeId, request.getRepositoryId());
 		TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(request.getRepositoryId(), typeId, null,
-				request.getUserObject());
+				request.getUserObject(), tracingId, span);
 		JSONObject resultType = JSONConverter.convert(type, dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return resultType;
 
 	}
 
-	private JSONObject getTypeChildren(QueryGetRequest request) throws IllegalArgumentException, CmisRuntimeException {
+	private JSONObject getTypeChildren(QueryGetRequest request, HashMap<String, Object> baggage)
+			throws IllegalArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::getTypeChildren", null);
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", request.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(
+					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -210,17 +260,28 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"Method name: {}, getting type children  using this typeId: {}, repositoryId: {}, maxItems: {}, skipCount: {}, includePropertyDefinitions: {}",
 				"getTypeChildren", typeId, request.getRepositoryId(), maxItems, skipCount, includePropertyDefinitions);
 		TypeDefinitionList typeList = CmisTypeServices.Impl.getTypeChildren(request.getRepositoryId(), typeId,
-				includePropertyDefinitions, maxItems, skipCount, null, request.getUserObject());
+				includePropertyDefinitions, maxItems, skipCount, null, request.getUserObject(), tracingId, span);
 		JSONObject jsonTypeList = JSONConverter.convert(typeList, dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonTypeList;
 
 	}
 
-	private JSONArray getTypeDescendants(QueryGetRequest request)
+	private JSONArray getTypeDescendants(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::getTypeDescendants", null);
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", request.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(
+					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -231,31 +292,50 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"Method name: {}, getting type descendants using this typeId: {}, repositoryId: {}, depth: {}, includePropertyDefinitions: {}",
 				"getTypeDescendants", typeId, request.getRepositoryId(), depth, includePropertyDefinitions);
 		List<TypeDefinitionContainer> typeTree = CmisTypeServices.Impl.getTypeDescendants(request.getRepositoryId(),
-				typeId, depth, includePropertyDefinitions, null, request.getUserObject());
+				typeId, depth, includePropertyDefinitions, null, request.getUserObject(), tracingId, span);
 
 		if (typeTree == null) {
-			throw new CmisRuntimeException("Type tree is null!");
+			attrMap.put("error", request.getUserName() + "Type tree is null!, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " Type tree is null!", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException("Type tree is null!, TraceId:" + span.getTraceId());
 		}
 
 		JSONArray jsonTypeTree = new JSONArray();
 		for (TypeDefinitionContainer container : typeTree) {
 			jsonTypeTree.add(JSONConverter.convert(container, dateTimeFormat));
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonTypeTree;
 
 	}
 
-	private JSONObject createType(PostRequest request)
+	private JSONObject createType(PostRequest request, HashMap<String, Object> baggage)
 			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::createType", null);
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", request.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(
+					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		String typeStr = request.getParameter(QueryGetRequest.CONTROL_TYPE);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 
 		if (typeStr == null) {
-			throw new CmisInvalidArgumentException("Type definition missing!");
+			attrMap.put("error", request.getUserName() + "Type definition missing!, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " Type definition missing!", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisInvalidArgumentException("Type definition missing!, TraceId:" + span.getTraceId());
 		}
 
 		// convert type definition
@@ -264,10 +344,18 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON Parser error: {}", ExceptionUtils.getStackTrace(e));
+			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId:" + span.getTraceId());
+			attrMap.put("error", request.getUserName() + "JSON Parser error , TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " JSON Parser error ", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 		if (!(typeJson instanceof Map)) {
-			throw new CmisInvalidArgumentException("Invalid type definition!");
+			attrMap.put("error", request.getUserName() + "Invalid type definition! , TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " Invalid type definition! ", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisInvalidArgumentException("Invalid type definition!, TraceId:" + span.getTraceId());
 		}
 
 		@SuppressWarnings("unchecked")
@@ -275,24 +363,38 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, creating the new type for this typeId: {}, repositoryId: {}", "createType",
 				typeIn.getId(), request.getRepositoryId());
 		TypeDefinition typeOut = CmisTypeServices.Impl.createType(request.getRepositoryId(), typeIn, null,
-				request.getUserObject());
+				request.getUserObject(), tracingId, span);
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
-
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonType;
 
 	}
 
-	private JSONObject updateType(PostRequest request)
+	private JSONObject updateType(PostRequest request, HashMap<String, Object> baggage)
 			throws CmisInvalidArgumentException, IllegalArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::updateType", null);
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", request.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(
+					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		String typeStr = request.getParameter(QueryGetRequest.CONTROL_TYPE);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 
 		if (typeStr == null) {
-			throw new CmisInvalidArgumentException("Type definition missing!");
+			attrMap.put("error", request.getUserName() + "Type definition missing!, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " Type definition missing!", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisInvalidArgumentException("Type definition missing!, TraceId:" + span.getTraceId());
 		}
 
 		// convert type definition
@@ -301,10 +403,18 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON parse exception: {}", ExceptionUtils.getStackTrace(e));
+			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId:" + span.getTraceId());
+			attrMap.put("error", request.getUserName() + "JSON parse exception, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " JSON parse exception", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 		if (!(typeJson instanceof Map)) {
-			throw new CmisInvalidArgumentException("Invalid type definition!");
+			attrMap.put("error", request.getUserName() + ":Invalid type definition!, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " Invalid type definition! ", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisInvalidArgumentException("Invalid type definition!, TraceId:" + span.getTraceId());
 		}
 
 		@SuppressWarnings("unchecked")
@@ -312,22 +422,34 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, update type using this typeId: {}, repositoryId: {}", "updateType", typeIn.getId(),
 				request.getRepositoryId());
 		TypeDefinition typeOut = CmisTypeServices.Impl.updateType(request.getRepositoryId(), typeIn, null,
-				request.getUserObject());
+				request.getUserObject(), tracingId, span);
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
-
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonType;
 
 	}
 
-	private JSONObject deleteType(PostRequest request) throws IllegalArgumentException, CmisRuntimeException {
+	private JSONObject deleteType(PostRequest request, HashMap<String, Object> baggage)
+			throws IllegalArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::deleteType", null);
+		Map<String, Object> attrMap = new HashMap<String, Object>();
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			attrMap.put("error", request.getUserName() + "is not authorized, TraceId:" + span.getTraceId());
+			TracingApiServiceFactory.getApiService().updateSpan(span, true,
+					request.getUserName() + " is not authorized", attrMap);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(
+					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		String typeId = request.getParameter(QueryGetRequest.CONTROL_TYPE_ID);
 		LOG.info("Method name: {}, delete the type using this typeId: {}, repositoryId: {}", "deleteType", typeId,
 				request.getRepositoryId());
-		CmisTypeServices.Impl.deleteType(request.getRepositoryId(), typeId, null, request.getUserObject());
+		CmisTypeServices.Impl.deleteType(request.getRepositoryId(), typeId, null, request.getUserObject(), tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return null;
 
 	}

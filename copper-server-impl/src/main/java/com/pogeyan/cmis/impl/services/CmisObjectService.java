@@ -92,6 +92,7 @@ import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.IObjectFlowService;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.ObjectFlowType;
@@ -115,6 +116,7 @@ import com.pogeyan.cmis.impl.utils.CmisUtils;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.NameValidator;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 import scala.Tuple2;
 
@@ -126,7 +128,11 @@ public class CmisObjectService {
 		/**
 		 * Adding RootFolder into MongoDB
 		 */
-		public static String addRootFolder(String repositoryId, String userName, String typeId) {
+		public static String addRootFolder(String repositoryId, String userName, String typeId, String tracingId,
+				ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::addRootFolder", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			try {
 				MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MBaseObjectDAO.class);
@@ -150,10 +156,14 @@ public class CmisObjectService {
 					return folderObject.getId();
 				}
 			} catch (MongoException e) {
-				LOG.error("addRootFolder exception: {}, repositoryId: {}", ExceptionUtils.getStackTrace(e),
-						repositoryId);
+				LOG.error("addRootFolder exception: {}, repositoryId: {},  TraceId: {}", ExceptionUtils.getStackTrace(e),
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"addRootFolder exception:" + ExceptionUtils.getStackTrace(e) + " TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "addRootFolder exception", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			}
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return null;
 		}
 
@@ -544,7 +554,7 @@ public class CmisObjectService {
 			// let's do it
 			try {
 				PropertiesImpl result = new PropertiesImpl();
-				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 				// id
 				String id = data.getId().toString();
 				addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_ID, id, userObject);
@@ -1392,7 +1402,7 @@ public class CmisObjectService {
 			String typeId = getObjectTypeId(properties);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 			// if (typeDef.getBaseTypeId().equals(other))
 			if (typeDef == null) {
 				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createFolder", typeDef,
@@ -1464,7 +1474,7 @@ public class CmisObjectService {
 			LOG.debug("createTypeFolder for custom type: {}", typeId);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null);
 			IBaseObject parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
@@ -1529,7 +1539,7 @@ public class CmisObjectService {
 		private static Map<String, Object> readCustomPropetiesData(Map<String, PropertyData<?>> properties,
 				String repositoryId, String typeId, IUserObject userObject) {
 			Map<String, Object> custom = new HashMap<String, Object>();
-			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 			Set<Map.Entry<String, PropertyData<?>>> customData = properties.entrySet();
 			for (Map.Entry<String, PropertyData<?>> customValues : customData) {
 				PropertyData<?> valueName = customValues.getValue();
@@ -1678,7 +1688,7 @@ public class CmisObjectService {
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 
 			if (typeDef == null) {
 				LOG.error("Method name : {}, unknown typeId: {}, repositoryId: {}", "createDocument", typeDef,
@@ -1917,7 +1927,7 @@ public class CmisObjectService {
 			}
 			String typeId = getObjectTypeId(properties);
 
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 
 			if (typeDef == null) {
 				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createDocumentFromSource", typeDef,
@@ -2048,7 +2058,7 @@ public class CmisObjectService {
 			}
 
 			String typeId = getObjectTypeId(properties);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 			if (typeDef == null) {
 				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createItem", typeDef, repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
@@ -2221,7 +2231,7 @@ public class CmisObjectService {
 				throw new CmisInvalidArgumentException(
 						"TypeId must use cmis base type{" + CustomTypeId.CMIS_EXT_RELATIONSHIP.value() + "}");
 			}
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 
 			// check if the given type is a relationship type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_RELATIONSHIP)) {
@@ -2451,7 +2461,7 @@ public class CmisObjectService {
 			}
 
 			String typeId = getObjectTypeId(properties);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
 			if (typeDef == null) {
 				LOG.error("createPolicyIntern unknown typeId: {}, repositoryId: {}", typeDef, repositoryId);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
@@ -2612,7 +2622,7 @@ public class CmisObjectService {
 
 			// only for updating name
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null,
-					userObject);
+					userObject, null, null);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
@@ -3860,7 +3870,7 @@ public class CmisObjectService {
 					if (secondaryObjectTypeIds != null) {
 						for (String typeId : secondaryObjectTypeIds) {
 							TypeDefinition types = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null,
-									userObject);
+									userObject, null, null);
 							Map<String, PropertyDefinition<?>> secondaryProperty = types.getPropertyDefinitions();
 							for (PropertyDefinition pros : secondaryProperty.values()) {
 								if (pros.getId().equals(id)) {
@@ -3913,7 +3923,7 @@ public class CmisObjectService {
 			// boolean cmis11 = callContext.getCmisVersion() !=
 			// CmisVersion.CMIS_1_0;
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, so.getTypeId(), null,
-					userobject);
+					userobject, null, null);
 
 			// Fill all setters:
 			objInfo.setId(so.getId().toString());
