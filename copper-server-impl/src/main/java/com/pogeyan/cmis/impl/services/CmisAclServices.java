@@ -74,27 +74,22 @@ public class CmisAclServices {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
-			if (addAces != null || removeAces != null) {
-				Long modifiedTime = System.currentTimeMillis();
-				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
-				switch (aclPropagation) {
-				case REPOSITORYDETERMINED: {
-					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name());
-					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
-					break;
-				}
-				case OBJECTONLY:
-					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name());
-					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
-					break;
-				case PROPAGATE:
-					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id,
-							aclPropagation.name());
-					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
-					break;
-				}
+			Long modifiedTime = System.currentTimeMillis();
+			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
+			switch (aclPropagation) {
+			case REPOSITORYDETERMINED: {
+				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
+				break;
+			}
+			case OBJECTONLY:
+				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
+				break;
+			case PROPAGATE:
+				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name());
+				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
+				break;
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, data.getTypeId());
 
@@ -144,6 +139,10 @@ public class CmisAclServices {
 									.filter(remAce -> remAce.getPrincipalId().equals(ace.getPrincipalId())).count() < 1)
 							.collect(Collectors.toList());
 				}
+			}
+
+			if (addAces == null && removeAces == null) {
+				aces.addAll(object.getAcl().getAces());
 			}
 
 			Set<Ace> removeDuplicate = aces.stream()
