@@ -1718,7 +1718,7 @@ public class CmisTypeServices {
 
 		public static List<? extends TypeDefinition> getTypeDefinitionWithTypePermission(
 				ITypePermissionService typePermissionFlow, String repositoryId, IUserObject role, String typeId) {
-			LOG.info(
+			LOG.debug(
 					"className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, typeId: {}, user role: {}",
 					"CmisTypeServices", "getTypeDefinitionWithTypePermission", repositoryId, typePermissionFlow, typeId,
 					role);
