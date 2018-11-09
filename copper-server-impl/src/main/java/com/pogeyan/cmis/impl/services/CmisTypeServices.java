@@ -1741,7 +1741,7 @@ public class CmisTypeServices {
 
 		public static DocumentTypeDefinition getDocumentDefinitionWithTypePermission(
 				ITypePermissionService typePermissionFlow, String repositoryId, IUserObject role, String typeId) {
-			LOG.info("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
+			LOG.debug("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
 					"CmisTypeServices", "getDocumentDefinitionWithTypePermission", repositoryId, typePermissionFlow,
 					role);
 			DocumentTypeDefinition docType = null;
@@ -1763,7 +1763,7 @@ public class CmisTypeServices {
 
 		public static List<? extends TypeDefinition> checkTypePermissionList(ITypePermissionService typePermissionFlow,
 				String repositoryId, IUserObject role, List<?> typeId) {
-			LOG.info("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
+			LOG.debug("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
 					"CmisTypeServices", "checkTypePermissionList", repositoryId, typePermissionFlow, role);
 			List<? extends TypeDefinition> typeDef = null;
 			List<TypeDefinition> typeSecDef = new ArrayList<>();
