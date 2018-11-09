@@ -31,6 +31,7 @@ import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.DateTimeHelper;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanImpl;
@@ -312,7 +313,10 @@ public class CmisPropertyConverter {
 			} catch (Exception e) {
 				throw new MongoException(e.toString());
 			}
-
+			if (data == null) {
+				LOG.error("getTypeIdForObject Object id: {}, null in : {} repository!", objectId, repositoryId);
+				throw new CmisObjectNotFoundException("Object must not be null!");
+			}
 			return data.getTypeId();
 		}
 	}

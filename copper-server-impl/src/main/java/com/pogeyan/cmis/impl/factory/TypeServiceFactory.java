@@ -12,8 +12,6 @@ public class TypeServiceFactory {
 	public static ITypePermissionFactory typeFlowFactory = null;
 
 	public static ITypePermissionService createTypePermissionFlowService(String repositoryId) {
-		LOG.info("className: {}, methodName: {}, repositoryId: {}", "TypeServiceFactory",
-				"createTypePermissionFlowService", repositoryId);
 		if (typeFlowFactory != null) {
 			try {
 				return typeFlowFactory.getTypePermissionFlowService(repositoryId);

@@ -237,8 +237,8 @@ public class CmisObjectService {
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), typeId).get(0);
+			TypeDefinition type = CmisTypeServices.Impl
+					.getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId, userObject, typeId).get(0);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
@@ -1206,8 +1206,7 @@ public class CmisObjectService {
 					if (typeId.getPropertyDefinitions().get(map.getKey()) == null) {
 						if (data.getSecondaryTypeIds() != null) {
 							List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl
-									.checkTypePermissionList(typePermissionFlow, repositoryId,
-											userObject == null ? null : userObject.getGroups(),
+									.checkTypePermissionList(typePermissionFlow, repositoryId, userObject,
 											data.getSecondaryTypeIds());
 							secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 								Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
@@ -1360,12 +1359,12 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject == null ? null : userObject.getUserDN(),
-					null, ObjectFlowType.CREATED);
-			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(
-					userObject == null ? null : userObject == null ? null : userObject.getUserDN(), addAces);
-			Acl aclRemove = TypeValidators.impl.expandAclMakros(
-					userObject == null ? null : userObject == null ? null : userObject.getUserDN(), removeAces);
+					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
+					ObjectFlowType.CREATED);
+			AccessControlListImplExt aclAdd = TypeValidators.impl
+					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
+			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
+					removeAces);
 			IBaseObject parent = null;
 			List<String> secondaryObjectTypeIds = null;
 
@@ -3026,6 +3025,10 @@ public class CmisObjectService {
 				LOG.error("deleteObject object not found in repositoryId: {}", repositoryId);
 				throw new CmisObjectNotFoundException("Object not found!");
 			}
+			if (data == null) {
+				LOG.error("deleteObject Object id: {}, null in : {} repository!", objectId, repositoryId);
+				throw new CmisObjectNotFoundException("Object must not be null!");
+			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				LOG.error("deleteObject failed: {}, repositoryId: {}", "can't delete a root folder.", repositoryId);
 				throw new CmisNotSupportedException("can't delete a root folder");
@@ -3510,8 +3513,7 @@ public class CmisObjectService {
 					if (secondaryObjectTypeIds != null) {
 						Map<String, PropertyDefinition<?>> secondaryPropertyDefinition = new HashMap<>();
 						List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl.checkTypePermissionList(
-								typePermissionFlow, repositoryId, userObject == null ? null : userObject.getGroups(),
-								secondaryObjectTypeIds);
+								typePermissionFlow, repositoryId, userObject, secondaryObjectTypeIds);
 						secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 							Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
 							secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {
