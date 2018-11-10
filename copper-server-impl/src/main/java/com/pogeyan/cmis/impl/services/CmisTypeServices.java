@@ -1723,7 +1723,6 @@ public class CmisTypeServices {
 					"CmisTypeServices", "getTypeDefinitionWithTypePermission", repositoryId, typePermissionFlow, typeId,
 					role);
 			List<? extends TypeDefinition> typeDef = null;
-
 			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
 				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
 					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
@@ -1743,7 +1742,6 @@ public class CmisTypeServices {
 					"CmisTypeServices", "getDocumentDefinitionWithTypePermission", repositoryId, typePermissionFlow,
 					role);
 			DocumentTypeDefinition docType = null;
-
 			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
 				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
 					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
@@ -1763,7 +1761,6 @@ public class CmisTypeServices {
 					"CmisTypeServices", "checkTypePermissionList", repositoryId, typePermissionFlow, role);
 			List<? extends TypeDefinition> typeDef = null;
 			List<TypeDefinition> typeSecDef = new ArrayList<>();
-
 			for (Object id : typeId) {
 				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(),
 						TypePermissionType.READ)) {
