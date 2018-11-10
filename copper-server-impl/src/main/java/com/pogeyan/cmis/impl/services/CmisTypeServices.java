@@ -1723,19 +1723,16 @@ public class CmisTypeServices {
 					"CmisTypeServices", "getTypeDefinitionWithTypePermission", repositoryId, typePermissionFlow, typeId,
 					role);
 			List<? extends TypeDefinition> typeDef = null;
-			if (typePermissionFlow != null) {
-				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
-					if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
-						List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
-						if (fieldsAcess != null) {
-							typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(typeId),
-									Helpers.getTypeMappedColumns(fieldsAcess, role, typeId));
-						}
+			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
+				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
+					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
+					if (fieldsAcess != null) {
+						typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(typeId),
+								Helpers.getTypeMappedColumns(fieldsAcess, role, typeId));
 					}
 				}
-			} else {
-				typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(typeId), null);
 			}
+
 			return typeDef;
 		}
 
@@ -1745,19 +1742,16 @@ public class CmisTypeServices {
 					"CmisTypeServices", "getDocumentDefinitionWithTypePermission", repositoryId, typePermissionFlow,
 					role);
 			DocumentTypeDefinition docType = null;
-			if (typePermissionFlow != null) {
-				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
-					if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
-						List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
-						if (fieldsAcess != null) {
-							docType = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId,
-									Helpers.getTypeMappedColumns(fieldsAcess, role, typeId));
-						}
+			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
+				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
+					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
+					if (fieldsAcess != null) {
+						docType = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId,
+								Helpers.getTypeMappedColumns(fieldsAcess, role, typeId));
 					}
 				}
-			} else {
-				docType = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId, null);
 			}
+
 			return docType;
 		}
 
@@ -1767,29 +1761,24 @@ public class CmisTypeServices {
 					"CmisTypeServices", "checkTypePermissionList", repositoryId, typePermissionFlow, role);
 			List<? extends TypeDefinition> typeDef = null;
 			List<TypeDefinition> typeSecDef = new ArrayList<>();
-			if (typePermissionFlow != null) {
-				for (Object id : typeId) {
-					if (typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(),
-							TypePermissionType.READ)) {
-						if (typePermissionFlow.checkTypeAccess(repositoryId, role, id.toString())) {
-							List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role,
-									id.toString());
-							if (fieldsAcess != null) {
-								TypeDefinition typeProp = DBUtils.TypeServiceDAO
-										.getById(repositoryId, Arrays.asList(id.toString()),
-												Helpers.getTypeMappedColumns(fieldsAcess, role, id.toString()))
-										.get(0);
-								typeSecDef.add(typeProp);
-							}
-
+			for (Object id : typeId) {
+				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(),
+						TypePermissionType.READ)) {
+					if (typePermissionFlow.checkTypeAccess(repositoryId, role, id.toString())) {
+						List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, id.toString());
+						if (fieldsAcess != null) {
+							TypeDefinition typeProp = DBUtils.TypeServiceDAO
+									.getById(repositoryId, Arrays.asList(id.toString()),
+											Helpers.getTypeMappedColumns(fieldsAcess, role, id.toString()))
+									.get(0);
+							typeSecDef.add(typeProp);
 						}
+
 					}
 				}
-				typeDef = typeSecDef;
-
-			} else {
-				typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, typeId, null);
 			}
+			typeDef = typeSecDef;
+
 			return typeDef;
 		}
 

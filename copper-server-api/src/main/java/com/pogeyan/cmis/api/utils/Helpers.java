@@ -419,7 +419,7 @@ public class Helpers {
 	}
 
 	public static String[] getTypeMappedColumns(List<String> fieldAccess, IUserObject role, String typeId) {
-		if (role == null || ArrayUtils.contains(basicTypes, typeId) || isSystemUser(role) || fieldAccess.isEmpty()) {
+		if (role == null || ArrayUtils.contains(basicTypes, typeId) || fieldAccess.isEmpty()) {
 			return null;
 		} else {
 			String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
