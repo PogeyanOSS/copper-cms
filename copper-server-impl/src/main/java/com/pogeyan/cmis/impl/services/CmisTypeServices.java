@@ -588,7 +588,8 @@ public class CmisTypeServices {
 						LOG.error("Type  folder creation exception:  {}, repository: {}", e, repositoryId);
 						throw new IllegalArgumentException(e.getMessage());
 					}
-					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, null, userObject);
+					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, typePermissionFlow,
+							userObject);
 					return getType;
 				}
 			} else {
