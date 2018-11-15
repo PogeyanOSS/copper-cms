@@ -156,8 +156,8 @@ public class CmisObjectService {
 					return folderObject.getId();
 				}
 			} catch (MongoException e) {
-				LOG.error("addRootFolder exception: {}, repositoryId: {},  TraceId: {}", ExceptionUtils.getStackTrace(e),
-						repositoryId, span.getTraceId());
+				LOG.error("addRootFolder exception: {}, repositoryId: {},  TraceId: {}",
+						ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
 				attrMap.put("error",
 						"addRootFolder exception:" + ExceptionUtils.getStackTrace(e) + " TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "addRootFolder exception", attrMap);
@@ -170,20 +170,35 @@ public class CmisObjectService {
 		public static ObjectData getSimpleObject(String repositoryId, String objectId, IUserObject userObject,
 				BaseTypeId baseTypeId, String typeId) {
 			return getObject(repositoryId, objectId, null, false, IncludeRelationships.NONE, "cmis:none", false, true,
-					null, userObject, baseTypeId, typeId);
+					null, userObject, baseTypeId, typeId, null, null);
 		}
 
 		public static ObjectData getObject(String repositoryId, String objectId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 				Boolean includePolicyIds, Boolean includeAcl, ObjectInfoHandler objectInfos, IUserObject userObject,
-				BaseTypeId baseTypeId, String typeId)
+				BaseTypeId baseTypeId, String typeId, String tracingId, ISpan parentSpan)
 				throws CmisInvalidArgumentException, IllegalArgumentException, CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::getObject", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (objectId == null && filter == null) {
-				LOG.error("getObject objectId and filter is null in repository: {}", repositoryId);
-				throw new CmisInvalidArgumentException("Object Id should not be null");
+				LOG.error("getObject objectId and filter is null in repository: {}, TraceId: {}", repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "getObject objectId and filter is null in repository: {}" + repositoryId
+						+ " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"getObject objectId and filter is null in repository", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Object Id should not be null" + " ,TraceId:" + span.getTraceId());
 			} else if (objectId == null) {
-				LOG.error("getObject objectId is null in repository: {}", repositoryId);
-				throw new CmisInvalidArgumentException("Object Id should not be null.");
+				LOG.error("getObject objectId is null in repository: {}, TraceId: {}", repositoryId, span.getTraceId());
+				attrMap.put("error", "Object Id should not be null" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object Id should not be null",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Object Id should not be null" + " ,TraceId:" + span.getTraceId());
 			}
 
 			String[] filterArray = null;
@@ -201,12 +216,19 @@ public class CmisObjectService {
 					data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 				}
 			} catch (Exception e) {
-				LOG.error("getObject Exception: {}, repository: {}", ExceptionUtils.getStackTrace(e), repositoryId);
-				throw new MongoException(e.toString());
+				LOG.error("getObject Exception: {}, repository: {}, TraceId: {}", ExceptionUtils.getStackTrace(e),
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"getObject Exception: {}" + ExceptionUtils.getStackTrace(e) + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getObject Exception:", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new MongoException(e.toString() + " ,TraceId:" + span.getTraceId());
 			}
 			if (data == null) {
-				LOG.error("getObject Object id: {}, null in : {} repository!", objectId, repositoryId);
-				throw new CmisObjectNotFoundException("Object must not be null!");
+				attrMap.put("error", "Object must not be null" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object must not be null!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object must not be null!, TraceId:" + span.getTraceId());
 			}
 
 			// set defaults if values not set
@@ -215,10 +237,11 @@ public class CmisObjectService {
 
 			// gather properties
 			ObjectData od = compileObjectData(repositoryId, data, filterCollection, iaa, iacl, true, objectInfos,
-					renditionFilter, includeRelationships, userObject);
+					renditionFilter, includeRelationships, userObject, tracingId, span);
 			if (od != null) {
 				LOG.debug("getobject result data: {}", od.getProperties());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return od;
 		}
 
@@ -271,7 +294,7 @@ public class CmisObjectService {
 
 			// gather properties
 			ObjectData od = compileObjectData(repositoryId, data, filterCollection, iaa, iacl, true, objectInfos,
-					renditionFilter, includeRelationships, userObject);
+					renditionFilter, includeRelationships, userObject, null, null);
 			if (od != null) {
 				LOG.debug("getObjectForRestAPI result data: {}", od.getProperties());
 			}
@@ -315,7 +338,7 @@ public class CmisObjectService {
 			// gather properties
 
 			ObjectData od = compileObjectData(repositoryId, data, filterCollection, iaa, iacl, true, objectInfos,
-					renditionFilter, includeRelationships, userObject);
+					renditionFilter, includeRelationships, userObject, null, null);
 
 			// ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 			// fillInformationForAtomLinks(repositoryId, od, data, objectInfo);
@@ -327,14 +350,16 @@ public class CmisObjectService {
 		public static ObjectData compileObjectData(String repositoryId, IBaseObject data, Set<String> filter,
 				boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly,
 				ObjectInfoHandler objectInfos, String renditionFilter, IncludeRelationships includeRelationships,
-				IUserObject userObject) throws IllegalArgumentException {
+				IUserObject userObject, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::compileObjectData", null);
 			ObjectDataImpl result = new ObjectDataImpl();
 			ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 			result.setProperties(compileProperties(repositoryId, data, filter, objectInfo, userObject));
 
 			if (includeAllowableActions) {
 				AllowableActions action = getAllowableActions(repositoryId, data, null,
-						userObject == null ? null : userObject.getUserDN(), data.getTypeId());
+						userObject == null ? null : userObject.getUserDN(), data.getTypeId(), tracingId, span);
 				result.setAllowableActions(action);
 			}
 
@@ -344,7 +369,7 @@ public class CmisObjectService {
 			}
 			List<RenditionData> renditions = getRenditions(repositoryId, data, null, renditionFilter,
 					BigInteger.valueOf(1), BigInteger.valueOf(0), userObject == null ? null : userObject.getUserDN(),
-					data.getTypeId());
+					data.getTypeId(), null, null);
 			result.setRenditions(renditions);
 
 			if (null != includeRelationships && includeRelationships != IncludeRelationships.NONE) {
@@ -379,7 +404,7 @@ public class CmisObjectService {
 						data != null ? data.getId() : null, repositoryId, result.getPolicyIds(), result.getAcl(),
 						result.getChangeEventInfo());
 			}
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -554,7 +579,8 @@ public class CmisObjectService {
 			// let's do it
 			try {
 				PropertiesImpl result = new PropertiesImpl();
-				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+						null, null);
 				// id
 				String id = data.getId().toString();
 				addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_ID, id, userObject);
@@ -821,26 +847,44 @@ public class CmisObjectService {
 		}
 
 		public static AllowableActions getAllowableActions(String repositoryId, IBaseObject data, String objectId,
-				String userName, String typeId) {
+				String userName, String typeId, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::getAllowableActions", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (data == null && objectId != null) {
 				try {
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 				} catch (Exception e) {
-					LOG.error("getAllowableActions Exception: {}, repository: {}", ExceptionUtils.getStackTrace(e),
-							repositoryId);
-					throw new MongoException(e.toString());
+					LOG.error("getAllowableActions Exception: {}, repository: {}, TraceId: {}",
+							ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
+					attrMap.put("error", "getAllowableActions Exception" + ExceptionUtils.getStackTrace(e) + " ,TraceId:" + span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span, true, "getAllowableActions Exception",
+							attrMap);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new MongoException(e.toString() + ",TraceId:" + span.getTraceId());
 				}
 			}
 
 			if (data == null && objectId == null) {
-				LOG.error("getAllowableActions unknown objectId: {}, repository: {}", objectId, repositoryId);
-				throw new CmisInvalidArgumentException("Object Id must be set.");
+				LOG.error("getAllowableActions unknown objectId: {}, repository: {}, TraceId: {}", objectId,
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"getAllowableActions unknown objectId:" + objectId + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getAllowableActions Exception:",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Object Id must be set." + ",TraceId:" + span.getTraceId());
 			}
 
 			if (data == null) {
-				LOG.error("getAllowableActions for this objectId: {}, is null in: {} repository!", objectId,
-						repositoryId);
-				throw new CmisObjectNotFoundException("Object must not be null!");
+				LOG.error("getAllowableActions for this objectId: {}, is null in: {} repository!, TraceId: {}",
+						objectId, repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"getAllowableActions for this objectId:" + objectId + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getAllowableActions for this objectId",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object must not be null!" + ",TraceId:" + span.getTraceId());
 			}
 
 			AllowableActions allowableActions = fillAllowableActions(repositoryId, data, userName);
@@ -848,6 +892,7 @@ public class CmisObjectService {
 				LOG.debug("Allowable actions on objectId: {}, are : {}", objectId,
 						allowableActions.getAllowableActions());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return allowableActions;
 		}
 
@@ -1005,29 +1050,48 @@ public class CmisObjectService {
 		}
 
 		public static List<RenditionData> getRenditions(String repositoryId, IBaseObject data, String objectId,
-				String renditionFilter, BigInteger maxItems, BigInteger skipCount, String userName, String typeId)
-				throws CmisInvalidArgumentException {
+				String renditionFilter, BigInteger maxItems, BigInteger skipCount, String userName, String typeId,
+				String tracingId, ISpan parentSpan) throws CmisInvalidArgumentException {
 			// LOG.info("Method name: {}, checking renditions using this
 			// objectId: {}",
 			// "getRenditions", objectId);
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::getRenditions", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (data == null && objectId != null) {
 				try {
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+					data = null;
+//					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 				} catch (Exception e) {
-					LOG.error("getRenditions Exception: {}, repositoryId: {}", ExceptionUtils.getStackTrace(e),
-							repositoryId);
-					throw new MongoException(e.toString());
+					LOG.error("getRenditions Exception: {}, repositoryId: {}, TraceId: {}",
+							ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
+					attrMap.put("error", "getRenditions Exception: {}" + ExceptionUtils.getStackTrace(e) + " ,TraceId:"
+							+ span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span, true, "getRenditions Exception", attrMap);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new MongoException(e.toString() + "TraceId:" + span.getTraceId());
 				}
 			}
 
 			if (data == null && objectId == null) {
-				LOG.error("getRenditions unknown objectId: {}, repositoryId: {}", objectId, repositoryId);
-				throw new CmisInvalidArgumentException("Object Id must be set.");
+				LOG.error("getRenditions unknown objectId: {}, repositoryId: {}, TraceId: {}", objectId, repositoryId,
+						span.getTraceId());
+				attrMap.put("error",
+						"getRenditions unknown objectId: {}" + objectId + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getRenditions unknown objectId",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Object Id must be set." + " ,TraceId:" + span.getTraceId());
 			}
 
 			if (data == null) {
-				LOG.error("getRenditions for this objectId: {}, is null in: {} repository!", objectId, repositoryId);
-				throw new CmisObjectNotFoundException("Object must not be null!");
+				LOG.error("getRenditions for this objectId: {}, is null in: {} repository!, TraceId: {}", objectId,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "getRenditions for this objectId: "  + objectId + ", is null in repository!" + repositoryId
+						+ " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object must not be null!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object must not be null!" + " ,TraceId:" + span.getTraceId());
 			}
 
 			List<RenditionData> renditions = null;
@@ -1039,6 +1103,7 @@ public class CmisObjectService {
 			if (renditions != null) {
 				LOG.debug("Renditions for this objectId: {}, are: {}", objectId, renditions);
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return renditions;
 		}
 
@@ -1100,7 +1165,7 @@ public class CmisObjectService {
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			for (IBaseObject so : relationships) {
 				ObjectData od = compileObjectData(repositoryId, so, null, includeAllowableActions, false, false, null,
-						null, null, userObject);
+						null, null, userObject, null, null);
 				res.add(od);
 			}
 			if (res != null) {
@@ -1351,10 +1416,14 @@ public class CmisObjectService {
 		 * create a folder for particular folderId
 		 */
 		public static String createFolder(String repositoryId, String folderId, Properties properties,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject)
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan)
 				throws CmisObjectNotFoundException, IllegalArgumentException, CmisInvalidArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createFolder", null);
 			IBaseObject folder = createFolderIntern(repositoryId, folderId, properties, policies, addAces, removeAces,
-					userObject);
+					userObject, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return folder.getId();
 		}
 
@@ -1363,8 +1432,12 @@ public class CmisObjectService {
 		 */
 		@SuppressWarnings("unchecked")
 		private static IBaseObject createFolderIntern(String repositoryId, String folderId, Properties properties,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject)
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan)
 				throws CmisObjectNotFoundException, IllegalArgumentException, CmisInvalidArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createFolderIntern", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (addAces != null && removeAces != null) {
 				LOG.debug("Adding aces: {}, removing aces: {}", addAces.getAces(), removeAces.getAces());
 			}
@@ -1383,15 +1456,26 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String folderName = (String) pd.getFirstValue();
 			if (folderName == null || folderName.length() == 0) {
-				LOG.error("createFolderIntern unknown folder name: {}, repositoryId: {}", folderName, repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a folder without a name.");
+				LOG.error("createFolderIntern unknown folder name: {}, repositoryId: {}, TraceId: {}", folderName,
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"createFolderIntern unknown folder name:" + folderName + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"createFolderIntern unknown folder name!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a folder without a name." + ",TraceId:" + span.getTraceId());
 			}
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(folderName)) {
-				LOG.error("createFolderIntern error: {}, : {}, repositoryId: {} ", NameValidator.ERROR_ILLEGAL_NAME,
-						folderName, repositoryId);
-				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + folderName);
+				LOG.error("createFolderIntern error: {}, : {}, repositoryId: {}, TraceId: {}",
+						NameValidator.ERROR_ILLEGAL_NAME, folderName, repositoryId, span.getTraceId());
+				attrMap.put("error", "createFolderIntern error" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createFolderIntern error!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + folderName + ",TraceId:" + span.getTraceId());
 			}
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
@@ -1402,22 +1486,34 @@ public class CmisObjectService {
 			String typeId = getObjectTypeId(properties);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					null, null);
 			// if (typeDef.getBaseTypeId().equals(other))
 			if (typeDef == null) {
-				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createFolder", typeDef,
-						repositoryId);
-				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}", "createFolder", typeDef,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "typeId is unknown!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "typeId is unknown!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Type '" + typeId + "' is unknown!" + ",TraceId:" + span.getTraceId());
 			}
 
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
-				LOG.error("createFolderIntern cannot create a folder with a non-folder type: {}, repositoryId: {}",
-						typeDef.getId(), repositoryId);
-				throw new CmisInvalidArgumentException(
-						"Cannot create a folder, with a non-folder type: " + typeDef.getId());
+				LOG.error(
+						"createFolderIntern cannot create a folder with a non-folder type: {}, repositoryId: {}, TraceId: {}",
+						typeDef.getId(), repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Cannot create a folder, with a non-folder type!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a folder, with a non-folder type!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Cannot create a folder, with a non-folder type: "
+						+ typeDef.getId() + ",TraceId:" + span.getTraceId());
 			}
 
-			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null);
+			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
+					tracingId, span);
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			} else {
@@ -1425,8 +1521,13 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("createFolderIntern parent is unknown: {}, repositoryId: {}", parent, repositoryId);
-				throw new CmisObjectNotFoundException("Parent is unknown !");
+				LOG.error("createFolderIntern parent is unknown: {}, repositoryId: {}, TraceId: {}", parent,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "createFolderIntern parent is unknown!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createFolderIntern parent is unknown!",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Parent is unknown !" + ",TraceId:" + span.getTraceId());
 			}
 
 			LOG.debug("parentFolderData id: {}, path: {}, getInternalPath: {}", parent.getId(), parent.getPath(),
@@ -1441,7 +1542,7 @@ public class CmisObjectService {
 
 			IBaseObject result = createFolderObject(repositoryId, parent, objectId, folderName, userObject,
 					secondaryObjectTypeIds, typeId, props.getProperties(), objectMorphiaDAO, policies, aclAdd,
-					aclRemove);
+					aclRemove, tracingId, span);
 
 			if (!isVirtual) {
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -1459,23 +1560,30 @@ public class CmisObjectService {
 				} catch (IOException e) {
 					objectMorphiaDAO.delete(repositoryId, folderId, true, null, typeId);
 					LOG.error(
-							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}",
-							"cmisObjectService", "createFolderIntern", repositoryId, e);
-					throw new IllegalArgumentException(e);
+							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}, TraceId: {}",
+							"cmisObjectService", "createFolderIntern", repositoryId, e, span.getTraceId());
+					attrMap.put("error", e + " ,TraceId:" + span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Exception", attrMap);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new IllegalArgumentException(e + ",TraceId:" + span.getTraceId());
 				}
 			}
 			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
 			return result;
 		}
 
-		public static void createTypeFolder(String repositoryId, Properties properties, IUserObject userObject) {
+		public static void createTypeFolder(String repositoryId, Properties properties, IUserObject userObject,
+				String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createTypeFolder", null);
 			String typeId = getObjectTypeId(properties);
-
 			LOG.debug("createTypeFolder for custom type: {}", typeId);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
-			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					null, null);
+			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
+					tracingId, span);
 			IBaseObject parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String folderName = (String) pd.getFirstValue();
@@ -1484,8 +1592,9 @@ public class CmisObjectService {
 			aclImp.setAclPropagation(AclPropagation.REPOSITORYDETERMINED.toString());
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
-					props.getProperties(), objectMorphiaDAO, null, aclImp, null);
+					props.getProperties(), objectMorphiaDAO, null, aclImp, null, tracingId, span);
 		}
 
 		/**
@@ -1494,18 +1603,25 @@ public class CmisObjectService {
 		private static IBaseObject createFolderObject(String repositoryId, IBaseObject parentData, String objectId,
 				String folderName, IUserObject userObject, List<String> secondaryObjectTypeId, String typeId,
 				Map<String, PropertyData<?>> properties, MBaseObjectDAO objectMorphiaDAO, List<String> policies,
-				AccessControlListImplExt addAces, Acl removeAces)
+				AccessControlListImplExt addAces, Acl removeAces, String tracingId, ISpan parentSpan)
 				throws CmisObjectNotFoundException, IllegalArgumentException {
-
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createFolderObject", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			Tuple2<String, String> p = resolvePathForObject(parentData, folderName);
 
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
 			IBaseObject folderObject = DBUtils.BaseDAO.getByName(repositoryId, folderName,
 					parentData.getId().toString(), typeId);
 			if (folderObject != null) {
-				LOG.error("createFolderObject already present FolderObject:{}, repositoryId: {}", folderObject.getId(),
-						repositoryId);
-				throw new IllegalArgumentException(folderName + " is already present");
+				LOG.error("createFolderObject already present FolderObject:{}, repositoryId: {}, TraceId: {}",
+						folderObject.getId(), repositoryId, span.getTraceId());
+				attrMap.put("error", "createFolderObject already present " + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createFolderObject already present ",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(
+						folderName + " is already present" + ",TraceId:" + span.getTraceId());
 			}
 
 			MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
@@ -1533,13 +1649,15 @@ public class CmisObjectService {
 			}
 			if (removeAces != null)
 				validateAcl(repositoryId, removeAces, result.getId(), result);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
 		private static Map<String, Object> readCustomPropetiesData(Map<String, PropertyData<?>> properties,
 				String repositoryId, String typeId, IUserObject userObject) {
 			Map<String, Object> custom = new HashMap<String, Object>();
-			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null,
+					null);
 			Set<Map.Entry<String, PropertyData<?>>> customData = properties.entrySet();
 			for (Map.Entry<String, PropertyData<?>> customValues : customData) {
 				PropertyData<?> valueName = customValues.getValue();
@@ -1622,12 +1740,15 @@ public class CmisObjectService {
 		 */
 		public static String createDocument(String repositoryId, Properties properties, String folderId,
 				ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addAces,
-				Acl removeAces, IUserObject userObject)
+				Acl removeAces, IUserObject userObject, String tracingId, ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisConstraintException, IllegalArgumentException {
 			// Attach the CallContext to a thread local context that can be
 			// accessed from everywhere
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createDocument", null);
 			IDocumentObject so = createDocumentIntern(repositoryId, properties, folderId, contentStream,
-					versioningState, policies, addAces, removeAces, userObject);
+					versioningState, policies, addAces, removeAces, userObject, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return so.getId();
 		}
 
@@ -1637,8 +1758,11 @@ public class CmisObjectService {
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties, String folderId,
 				ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addACEs,
-				Acl removeACEs, IUserObject userObject)
+				Acl removeACEs, IUserObject userObject, String tracingId, ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisConstraintException, IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createDocumentIntern", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (addACEs != null && removeACEs != null) {
 				LOG.debug("Adding aces: {}, removing aces: {}", addACEs.getAces(), removeACEs.getAces());
 			}
@@ -1652,8 +1776,14 @@ public class CmisObjectService {
 					removeACEs);
 			List<String> secondaryObjectTypeIds = null;
 			if (properties == null || properties.getProperties() == null) {
-				LOG.error("createDocumentIntern unknown properties: {}, repositoryId: {}", properties, repositoryId);
-				throw new CmisInvalidArgumentException("Properties must be set!");
+				LOG.error("createDocumentIntern unknown properties: {}, repositoryId: {}, TraceId: {}", properties,
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"createDocumentIntern unknown properties: {}" + properties + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"createDocumentIntern unknown properties", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Properties must be set!" + ",TraceId:" + span.getTraceId());
 			}
 
 			// check versioning state
@@ -1668,8 +1798,15 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String documentName = (String) pd.getFirstValue();
 			if (documentName == null || documentName.length() == 0) {
-				LOG.error("createDocumentIntern unknown document name, repositoryId: {}", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a document without a name.");
+				LOG.error("createDocumentIntern unknown document name, repositoryId: {}, TraceId: {}", repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "createDocumentIntern unknown document name, repositoryId: {}" + repositoryId
+						+ " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"createDocumentIntern unknown document name", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a document without a name." + ",TraceId:" + span.getTraceId());
 			}
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
@@ -1679,30 +1816,47 @@ public class CmisObjectService {
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
-				LOG.error("createDocumentIntern error: {}, : {}, repositoryId: {}", NameValidator.ERROR_ILLEGAL_NAME,
-						documentName, repositoryId);
-				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName);
+				LOG.error("createDocumentIntern error: {}, : {}, repositoryId: {}, TraceId: {}",
+						NameValidator.ERROR_ILLEGAL_NAME, documentName, repositoryId, span.getTraceId());
+				attrMap.put("error", "createDocumentIntern error, repositoryId: {}" + repositoryId + " ,TraceId:"
+						+ span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocumentIntern error", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName
+						+ "TraceId:" + span.getTraceId());
 			}
 
 			String typeId = getObjectTypeId(properties);
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					null, null);
 
 			if (typeDef == null) {
-				LOG.error("Method name : {}, unknown typeId: {}, repositoryId: {}", "createDocument", typeDef,
-						repositoryId);
-				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
+				LOG.error("Method name : {}, unknown typeId: {}, repositoryId: {}, TraceId: {}", "createDocument",
+						typeDef, repositoryId, span.getTraceId());
+				attrMap.put("error", "createDocument unknown typeId: {}" + typeDef + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocument unknown typeId",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Type '" + typeId + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
 			if (typeDef.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT) {
-				LOG.error("createDocumentIntern Type: {} is not a document type!, repositoryId: {}",
-						typeDef.getBaseTypeId(), repositoryId);
-				throw new CmisInvalidArgumentException("Type must be a document type!");
+				LOG.error("createDocumentIntern Type: {} is not a document type!, repositoryId: {}, TraceId: {}",
+						typeDef.getBaseTypeId(), repositoryId, span.getTraceId());
+				attrMap.put("error", "Type must be a document type!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must be a document type!",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Type must be a document type!" + "TraceId:" + span.getTraceId());
 			}
 
 			// compile the properties
-			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null);
+			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
+					tracingId, span);
 			// String name = getStringProperty(properties, PropertyIds.NAME);
 			IBaseObject parent = null;
 			if (folderId != null) {
@@ -1717,8 +1871,14 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("createDocumentIntern unknown parent: {}, repositoryId: {}", parent, repositoryId);
-				throw new CmisObjectNotFoundException("Parent is unknown !");
+				LOG.error("createDocumentIntern unknown parent: {}, repositoryId: {}, TraceId: {}", parent,
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"createDocumentIntern unknown parent: {}" + parent + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocumentIntern unknown parent!",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Parent is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
 
 			LOG.debug("parentFolderData id: {}, path: {}, getInternalPath: {}", parent.getId(), parent.getPath(),
@@ -1728,7 +1888,7 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IDocumentObject result = createDocumentObject(repositoryId, parent, objectId, documentName, userObject,
 					secondaryObjectTypeIds, contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies,
-					aclAdd, aclRemove, versioningState);
+					aclAdd, aclRemove, versioningState, tracingId, span);
 
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			LOG.info("FileDetails for repositoryId: {}, is {} ", repositoryId, parameters);
@@ -1745,7 +1905,12 @@ public class CmisObjectService {
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
 					LOG.error("createDocumentIntern file creation exception: {}, repositoryId: {}", ex, repositoryId);
-					throw new IllegalArgumentException(ex);
+					attrMap.put("error",
+							"createDocumentIntern file creation exception: {}" + ex + " ,TraceId:" + span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span, true,
+							"createDocumentIntern file creation exception", attrMap);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 				}
 			}
 
@@ -1758,6 +1923,7 @@ public class CmisObjectService {
 					userObject);
 			// write properties
 			// writePropertiesFile(newFile, props);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -1768,7 +1934,10 @@ public class CmisObjectService {
 				String docName, IUserObject userObject, List<String> secondaryObjectTypeIds,
 				ContentStream contentStream, String typeId, MDocumentObjectDAO documentMorphiaDAO,
 				Map<String, PropertyData<?>> properties, List<String> policies, AccessControlListImplExt addACEs,
-				Acl removeACEs, VersioningState versioningState) throws IllegalArgumentException {
+				Acl removeACEs, VersioningState versioningState, String tracingId, ISpan parentSpan)
+				throws IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createDocumentObject", null);
 			IDocumentObject documentObject = null;
 			MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 					MBaseObjectDAO.class);
@@ -1845,6 +2014,7 @@ public class CmisObjectService {
 					updateProps.put("contentStreamMimeType", contentStream.getMimeType());
 					documentMorphiaDAO.update(document.getId(), updateProps);
 				}
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				return document;
 			}
 		}
@@ -1876,9 +2046,11 @@ public class CmisObjectService {
 		@SuppressWarnings("unchecked")
 		public static String createDocumentFromSource(String repositoryId, String sourceId, Properties properties,
 				String folderId, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces,
-				IUserObject userObject)
+				IUserObject userObject, String tracingId, ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisConstraintException, CmisObjectNotFoundException {
-
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createDocumentFromSource", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (addAces != null && removeAces != null) {
 				LOG.debug("Adding aces: {}, removing aces: {}", addAces.getAces(), removeAces.getAces());
 			}
@@ -1915,29 +2087,51 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String documentName = (String) pd.getFirstValue();
 			if (null == documentName || documentName.length() == 0) {
-				LOG.error("createDocumentFromSource unknown document name: {}, repositoryId: {}", documentName,
-						repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a document without a name.");
+				LOG.error("createDocumentFromSource unknown document name: {}, repositoryId: {}, TraceId: {}",
+						documentName, repositoryId, span.getTraceId());
+				attrMap.put("error", "createDocumentFromSource unknown document name:" + documentName + " ,TraceId:"
+						+ span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"createDocumentFromSource unknown document name", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a document without a name." + " ,TraceId:" + span.getTraceId());
 			}
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
-				LOG.error("createDocumentFromSource error: {}, : {} ", NameValidator.ERROR_ILLEGAL_NAME, documentName);
-				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName);
+				LOG.error("createDocumentFromSource error: {}, : {} , TraceId: {}", NameValidator.ERROR_ILLEGAL_NAME,
+						documentName, span.getTraceId());
+				attrMap.put("error", "createDocumentFromSource error" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocumentFromSource error",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName
+						+ " ,TraceId:" + span.getTraceId());
 			}
 			String typeId = getObjectTypeId(properties);
 
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					null, null);
 
 			if (typeDef == null) {
-				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createDocumentFromSource", typeDef,
-						repositoryId);
-				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}",
+						"createDocumentFromSource", typeDef, repositoryId, span.getTraceId());
+				attrMap.put("error", "typeId is unknown!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "typeId is unknown!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Type '" + typeId + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
 			if (typeDef.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT) {
-				LOG.error("createDocumentFromSource Type: {} must be a document type!, repositoryId: {}",
-						typeDef.getBaseTypeId(), repositoryId);
-				throw new CmisInvalidArgumentException("Type must be a document type!");
+				LOG.error("createDocumentFromSource Type: {} must be a document type!, repositoryId: {}, TraceId: {}",
+						typeDef.getBaseTypeId(), repositoryId, span.getTraceId());
+				attrMap.put("error", "Type must be a document type!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must be a document type!",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Type must be a document type!" + " ,TraceId:" + span.getTraceId());
 			}
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
@@ -1945,7 +2139,8 @@ public class CmisObjectService {
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
 			// compile the properties
-			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null);
+			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
+					tracingId, span);
 
 			// String name = getStringProperty(properties, PropertyIds.NAME);
 			IBaseObject parent = null;
@@ -1961,8 +2156,12 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("createDocumentFromSource unknown parent: {}, repositoryId: {}", parent, repositoryId);
-				throw new CmisObjectNotFoundException("Parent is unknown !");
+				LOG.error("createDocumentFromSource unknown parent: {}, repositoryId: {}, TraceId: {}", parent,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Parent is unknown !" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Parent is unknown !", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Parent is unknown !" + " ,TraceId:" + span.getTraceId());
 			}
 
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -1979,7 +2178,7 @@ public class CmisObjectService {
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IDocumentObject result = createDocumentObject(repositoryId, parent, objectId, documentName, userObject,
 					secondaryObjectTypeIds, contentStream, typeId, documentMorphiaDAO, props.getProperties(), policies,
-					aclAdd, aclRemove, versioningState);
+					aclAdd, aclRemove, versioningState, tracingId, span);
 			if (contentStream != null) {
 				try {
 					localService.writeContent(result.getId().toString(), sourceResult.getContentStreamFileName(),
@@ -1990,9 +2189,14 @@ public class CmisObjectService {
 
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
-					LOG.error("createDocumentFromSource file creation exception: {}, repositoryId: {}", ex,
-							repositoryId);
-					throw new IllegalArgumentException(ex);
+					LOG.error("createDocumentFromSource file creation exception: {}, repositoryId: {}, TraceId: {}", ex,
+							repositoryId, span.getTraceId());
+					attrMap.put("error",
+							"createDocumentFromSource file creation exception!" + " ,TraceId:" + span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span, true,
+							"createDocumentFromSource file creation exception !", attrMap);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 				}
 			}
 			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
@@ -2001,6 +2205,7 @@ public class CmisObjectService {
 			// set creation date
 			addPropertyDateTime(repositoryId, props, typeDef, null, PropertyIds.CREATION_DATE, creationDateCalender,
 					userObject);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result.getId();
 		}
 
@@ -2008,9 +2213,13 @@ public class CmisObjectService {
 		 * create a item based on folderID
 		 */
 		public static String createItem(String repositoryId, Properties properties, String folderId,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject) {
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createItem", null);
 			IBaseObject so = createItemIntern(repositoryId, properties, folderId, policies, addAces, removeAces,
-					userObject);
+					userObject, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return so.getId();
 		}
 
@@ -2019,9 +2228,12 @@ public class CmisObjectService {
 		 */
 		@SuppressWarnings("unchecked")
 		private static IBaseObject createItemIntern(String repositoryId, Properties properties, String folderId,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject)
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
-
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createItemIntern", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (addAces != null && removeAces != null) {
 				LOG.debug("Adding aces: {}, removing aces: {}", addAces.getAces(), removeAces.getAces());
 			}
@@ -2041,15 +2253,26 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String itemName = (String) pd.getFirstValue();
 			if (null == itemName || itemName.length() == 0) {
-				LOG.error("createItemIntern unknown item name: {}, repositoryId: {}", itemName, repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a folder without a name.");
+				LOG.error("createItemIntern unknown item name: {}, repositoryId: {}, TraceId: {}", itemName,
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"createItemIntern unknown item name: {}" + itemName + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createItemIntern unknown item name !",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a folder without a name." + " ,TraceId:" + span.getTraceId());
 			}
 
 			// check name syntax
 			if (!NameValidator.impl.isValidName(itemName)) {
-				LOG.error("createItemIntern error: {}, : {}, repositoryId: {}", NameValidator.ERROR_ILLEGAL_NAME,
-						itemName, repositoryId);
-				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME, " Name is: " + itemName);
+				LOG.error("createItemIntern error: {}, : {}, repositoryId: {}, TraceId: {} ",
+						NameValidator.ERROR_ILLEGAL_NAME, itemName, repositoryId, span.getTraceId());
+				attrMap.put("error", "createItemIntern error" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createItemIntern error!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME,
+						" Name is: " + itemName + " ,TraceId:" + span.getTraceId());
 			}
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
@@ -2058,20 +2281,33 @@ public class CmisObjectService {
 			}
 
 			String typeId = getObjectTypeId(properties);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					null, null);
 			if (typeDef == null) {
-				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "createItem", typeDef, repositoryId);
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}", "createItem", typeDef,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "typeId is unknown!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "typeId is unknown!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
 			}
 			// check if the given type is a folder type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_ITEM)) {
-				LOG.error("createItemIntern cannot create a folder with a non-folder type: {}, repositoryId: {}"
-						+ typeDef.getId(), repositoryId);
-				throw new CmisInvalidArgumentException(
-						"Cannot create a folder, with a non-folder type: " + typeDef.getId());
+				LOG.error(
+						"createItemIntern cannot create a folder with a non-folder type: {}, repositoryId: {}, TraceId: {}"
+								+ typeDef.getId(),
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Cannot create a folder, with a non-folder type:" + typeDef.getId() + " ,TraceId:"
+						+ span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a folder, with a non-folder type", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Cannot create a folder, with a non-folder type: "
+						+ typeDef.getId() + " ,TraceId:" + span.getTraceId());
 			}
 
-			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null);
+			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
+					tracingId, span);
 			IBaseObject parent = null;
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
@@ -2091,8 +2327,10 @@ public class CmisObjectService {
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IBaseObject result = createItemObject(repositoryId, parent, objectId, itemName, userObject,
-					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove);
+					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove, tracingId,
+					span);
 			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -2102,8 +2340,12 @@ public class CmisObjectService {
 		private static IBaseObject createItemObject(String repositoryId, IBaseObject parentData, String objectId,
 				String itemName, IUserObject userObject, List<String> secondaryObjectTypeIds, String typeId,
 				Map<String, PropertyData<?>> properties, List<String> policies, AccessControlListImplExt aclAdd,
-				Acl aclRemove) throws CmisObjectNotFoundException, IllegalArgumentException {
+				Acl aclRemove, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException, IllegalArgumentException {
 			// 0) folder id
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createItemObject", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			Tuple2<String, String> p = resolvePathForObject(parentData, itemName);
 
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
@@ -2112,9 +2354,13 @@ public class CmisObjectService {
 			IBaseObject itemObject = DBUtils.BaseDAO.getByName(repositoryId, itemName, parentData.getId().toString(),
 					typeId);
 			if (itemObject != null) {
-				LOG.error("createItemObject object id already present: {}, repositoryId: {}", itemObject.getId(),
-						repositoryId);
-				throw new IllegalArgumentException(itemName + " is already present");
+				LOG.error("createItemObject object id already present: {}, repositoryId: {}, TraceId: {}",
+						itemObject.getId(), repositoryId, span.getTraceId());
+				attrMap.put("error", "createItemObject object id already present:" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"createItemObject object id already present:", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(itemName + " is already present" + " ,TraceId:" + span.getTraceId());
 			}
 
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -2139,6 +2385,7 @@ public class CmisObjectService {
 			}
 			if (aclRemove != null)
 				validateAcl(repositoryId, aclRemove, result.getId(), result);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -2146,11 +2393,15 @@ public class CmisObjectService {
 		 * create a relationship based on two Documents
 		 */
 		public static String createRelationship(String repositoryId, String folderId, Properties properties,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject)
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createRelationship", null);
 			IBaseObject so = createRelationshipIntern(repositoryId, folderId, properties, policies, addAces, removeAces,
-					userObject);
+					userObject, tracingId, span);
 			// LOG.debug("stop createRelationship()");
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return so == null ? null : so.getId();
 		}
 
@@ -2159,8 +2410,12 @@ public class CmisObjectService {
 		 */
 		@SuppressWarnings({ "unchecked", "unused" })
 		private static IBaseObject createRelationshipIntern(String repositoryId, String folderId, Properties properties,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject)
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createRelationshipIntern", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
@@ -2184,61 +2439,108 @@ public class CmisObjectService {
 			}
 			PropertyData<?> relationTypeProperty = properties.getProperties().get("relation_name");
 			if (relationTypeProperty == null) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"cannot create a relationship without a relation_name.", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a relationship without a relation_name.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"cannot create a relationship without a relation_name.", repositoryId, span.getTraceId());
+				attrMap.put("error", "Create relationship exception:" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Create relationship exception",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a relationship without a relation_name." + ",TraceId:" + span.getTraceId());
 			}
 			String relationName = (String) relationTypeProperty.getFirstValue();
 			if (relationName == null || relationName.isEmpty()) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"cannot create a relationship without a relation_name.", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a relationship without a relation_name.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"cannot create a relationship without a relation_name.", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Cannot create a relationship without a relation_name" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a relationship without a relation_name", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a relationship without a relation_name." + " ,TraceId:" + span.getTraceId());
 			}
 			// get required properties
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.SOURCE_ID);
 			if (pd == null) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"cannot create a relationship without a sourceId.", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a relationship without a sourceId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"cannot create a relationship without a sourceId.", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Cannot create a relationship without a sourceId" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a relationship without a sourceId", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a relationship without a sourceId." + " ,TraceId:" + span.getTraceId());
 			}
 
 			String sourceId = (String) pd.getFirstValue();
 			if (null == sourceId || sourceId.length() == 0) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"cannot create a relationship without a sourceId.", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a relationship without a sourceId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {},  TraceId: {}",
+						"cannot create a relationship without a sourceId.", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Cannot create a relationship without a sourceId" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a relationship without a sourceId", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a relationship without a sourceId." + " ,TraceId:" + span.getTraceId());
 			}
 
 			pd = properties.getProperties().get(PropertyIds.TARGET_ID);
 			if (pd == null) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"cannot create a relationship without a targetId.", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a relationship without a targetId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"cannot create a relationship without a targetId.", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Cannot create a relationship without a targetId" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a relationship without a targetId", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a relationship without a targetId." + " ,TraceId:" + span.getTraceId());
 			}
 			String targetId = (String) pd.getFirstValue();
 			if (null == targetId || targetId.length() == 0) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"cannot create a relationship without a targetId.", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a relationship without a targetId.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"cannot create a relationship without a targetId.", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Cannot create a relationship without a targetId" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a relationship without a targetId", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a relationship without a targetId." + " ,TraceId:" + span.getTraceId());
 			}
 			// TODO:after implement Version
 			// boolean cmis11 = context.getCmisVersion() !=
 			// CmisVersion.CMIS_1_0;
 			String typeId = (String) properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID).getFirstValue();
 			if (!typeId.equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONSHIP.value())) {
-				LOG.error("Create relationship typeId must use cmis base type: {}, repositoryId: {}",
-						CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), repositoryId);
-				throw new CmisInvalidArgumentException(
-						"TypeId must use cmis base type{" + CustomTypeId.CMIS_EXT_RELATIONSHIP.value() + "}");
+				LOG.error("Create relationship typeId must use cmis base type: {}, repositoryId: {}, TraceId: {}",
+						CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Create relationship typeId must use cmis base type" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Create relationship typeId must use cmis base type", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("TypeId must use cmis base type{"
+						+ CustomTypeId.CMIS_EXT_RELATIONSHIP.value() + "}" + " ,TraceId:" + span.getTraceId());
 			}
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					null, null);
 
 			// check if the given type is a relationship type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_RELATIONSHIP)) {
-				LOG.error("Create relationship exception: {}, {}, repositoryId: {}",
-						"cannot create a relationship with a non-relationship type: ", typeDef.getId(), repositoryId);
-				throw new CmisInvalidArgumentException(
-						"Cannot create a relationship, with a non-relationship type: " + typeDef.getId());
+				LOG.error("Create relationship exception: {}, {}, repositoryId: {}, TraceId: {}",
+						"cannot create a relationship with a non-relationship type: ", typeDef.getId(), repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "Cannot create a relationship, with a non-relationship type" + " ,TraceId:"
+						+ span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a relationship, with a non-relationship type", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Cannot create a relationship, with a non-relationship type: "
+						+ typeDef.getId() + " ,TraceId:" + span.getTraceId());
 			}
 
 			// set default properties
@@ -2260,23 +2562,40 @@ public class CmisObjectService {
 					? DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, typeId).getTypeId()
 					: null;
 			if (sourceTypeId == null) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"wrong sourceId,SourceObject should not be null", repositoryId);
-				throw new CmisInvalidArgumentException("Wrong sourceId,SourceObject should not be null");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"wrong sourceId,SourceObject should not be null", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Wrong sourceId,SourceObject should not be null" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Wrong sourceId,SourceObject should not be null", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Wrong sourceId,SourceObject should not be null" + " ,TraceId:" + span.getTraceId());
 			}
 			if (targetTypeId == null) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"wrong targetId,TargetObject should not be null", repositoryId);
-				throw new CmisInvalidArgumentException("Wrong sourceId,TargetObject should not be null");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"wrong targetId,TargetObject should not be null", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Wrong sourceId,TargetObject should not be null" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Wrong sourceId,TargetObject should not be null", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Wrong sourceId,TargetObject should not be null" + " ,TraceId:" + span.getTraceId());
 			}
 			validateRelationshipDocuments(repositoryId, relationName, sourceTypeId, targetTypeId, false,
-					objectMorphiaDAO, typeId);
+					objectMorphiaDAO, typeId, tracingId, span);
 			// get name from properties
 			pd = propMap.get(PropertyIds.NAME);
 			if (pd == null) {
-				LOG.error("Create relationship exception: {}, repositoryId: {}",
-						"cannot create a relationship without a Name.", repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a relationship without a Name.");
+				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
+						"cannot create a relationship without a Name.", repositoryId, span.getTraceId());
+				attrMap.put("error", "Cannot create a relationship without a Name." + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a relationship without a Name.", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a relationship without a Name." + " ,TraceId:" + span.getTraceId());
 			}
 			String name = (String) pd.getFirstValue();
 			IBaseObject parent = null;
@@ -2295,8 +2614,9 @@ public class CmisObjectService {
 			}
 
 			IBaseObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
-					propMapNew, userObject, typeDef.getId(), policies, aclAdd);
+					propMapNew, userObject, typeDef.getId(), policies, aclAdd, tracingId, span);
 			invokeObjectFlowServiceAfterCreate(objectFlowService, storedObject, ObjectFlowType.CREATED, null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return storedObject;
 		}
 
@@ -2305,9 +2625,11 @@ public class CmisObjectService {
 		 */
 		private static IBaseObject createRelationshipObject(String repositoryId, IBaseObject parentData, String name,
 				List<String> secondaryObjectTypeId, Map<String, PropertyData<?>> properties, IUserObject userObject,
-				String typeId, List<String> policies, AccessControlListImplExt aclAdd)
-				throws CmisObjectNotFoundException, IllegalArgumentException {
-
+				String typeId, List<String> policies, AccessControlListImplExt aclAdd, String tracingId,
+				ISpan parentSpan) throws CmisObjectNotFoundException, IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::createRelationshipObject", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
@@ -2322,16 +2644,26 @@ public class CmisObjectService {
 					userObject == null ? null : userObject.getUserDN(), token, p._1(), custom, policies, aclAdd, p._2(),
 					parentData.getId().toString());
 			if (result.equals(null)) {
-				LOG.error("createRelationshipObject unknown relation object: {}, repositoryId: {}", result,
-						repositoryId);
-				throw new CmisObjectNotFoundException("Impossible to create folder properties");
+				LOG.error("createRelationshipObject unknown relation object: {}, repositoryId: {}, TraceId: {}", result,
+						repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"createRelationshipObject unknown relation object" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"createRelationshipObject unknown relation object", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Impossible to create folder properties" + ",TraceId:" + span.getTraceId());
 			}
 
 			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, result.getId(), null, typeId);
 			if (itemObject != null) {
-				LOG.error("Relationship object already present: {}, repositoryId: {}", itemObject.getId(),
-						repositoryId);
-				throw new IllegalArgumentException(typeId + " is already present");
+				LOG.error("Relationship object already present: {}, repositoryId: {}, TraceId: {}", itemObject.getId(),
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Relationship object already present" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Relationship object already present",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(typeId + " is already present" + ",TraceId:" + span.getTraceId());
 			}
 
 			baseMorphiaDAO.commit(result, typeId);
@@ -2339,6 +2671,7 @@ public class CmisObjectService {
 			if (result != null) {
 				LOG.debug("Created relationship: {}", result.getName());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -2346,33 +2679,60 @@ public class CmisObjectService {
 		 * Validating the CMIS Relation Objects
 		 */
 		private static void validateRelationshipDocuments(String repositoryId, String relationName, String sourceTypeId,
-				String targetTypeId, Boolean cmis11, MBaseObjectDAO baseMorphiaDAO, String typeId) {
-
+				String targetTypeId, Boolean cmis11, MBaseObjectDAO baseMorphiaDAO, String typeId, String tracingId,
+				ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::validateRelationshipDocuments", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			LOG.debug("ValidateRelationships documents for source: {}, target: {}", sourceTypeId, targetTypeId);
 
 			Map<String, Object> relationProps = DBUtils.BaseDAO.getByName(repositoryId, relationName, null, typeId)
 					.getProperties();
 			String sourceTable = relationProps.get("source_table").toString();
 			if (sourceTable == null) {
-				LOG.error("SourceTable  not present in relationship object: {}, repositoryId: {}", sourceTable,
-						repositoryId);
-				throw new IllegalArgumentException("SourceTable  not present in relationShipObject");
+				LOG.error("SourceTable  not present in relationship object: {}, repositoryId: {}, TraceId: {}",
+						sourceTable, repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"SourceTable  not present in relationship object:" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"SourceTable  not present in relationship object", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(
+						"SourceTable  not present in relationShipObject" + ",TraceId:" + span.getTraceId());
 			}
 			String targetTable = relationProps.get("target_table").toString();
 			if (targetTable == null) {
-				LOG.error("target table  not present in relationship object: {}, repositoryId: {}", sourceTable,
-						repositoryId);
-				throw new IllegalArgumentException("targetTable  not present in relationShipObject");
+				LOG.error("target table  not present in relationship object: {}, repositoryId: {}, TraceId: {}",
+						sourceTable, repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"targetTable  not present in relationship object:" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"targetTable  not present in relationship object", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(
+						"targetTable  not present in relationShipObject" + ",TraceId:" + span.getTraceId());
 			}
 			if (!sourceTable.equalsIgnoreCase(sourceTypeId)) {
-				LOG.error("Wrong source relationship document object: {}, repositoryId: {}", sourceTypeId,
-						repositoryId);
-				throw new IllegalArgumentException("Wrong relationShipDocumentObject");
+				LOG.error("Wrong source relationship document object: {}, repositoryId: {}, TraceId: {}", sourceTypeId,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Wrong relationShipDocumentObject" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Wrong relationShipDocumentObject",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(
+						"Wrong relationShipDocumentObject" + ",TraceId:" + span.getTraceId());
 			}
 			if (!targetTable.equalsIgnoreCase(targetTypeId)) {
-				LOG.error("Wrong target relationship document object: {}, repositoryId: {}", targetTable, repositoryId);
-				throw new IllegalArgumentException("Wrong relationShipDocumentObject");
+				LOG.error("Wrong target relationship document object: {}, repositoryId: {}, TraceId: {}", targetTable,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Wrong relationShipDocumentObject" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Wrong relationShipDocumentObject",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(
+						"Wrong relationShipDocumentObject" + ",TraceId:" + span.getTraceId());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		/**
@@ -2410,10 +2770,14 @@ public class CmisObjectService {
 		 * create a policy for particular folderId
 		 */
 		public static String createPolicy(String repositoryId, Properties properties, String folderId,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject)
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createPolicy", null);
 			IBaseObject policy = createPolicyIntern(repositoryId, properties, folderId, policies, addAces, removeAces,
-					userObject);
+					userObject, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return policy.getId();
 		}
 
@@ -2422,8 +2786,12 @@ public class CmisObjectService {
 		 */
 		@SuppressWarnings("unchecked")
 		private static IBaseObject createPolicyIntern(String repositoryId, Properties properties, String folderId,
-				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject)
+				List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject, String tracingId,
+				ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createPolicyIntern", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (addAces != null && removeAces != null) {
 				LOG.debug("Adding aces: {}, removing aces: {}", addAces.getAces(), removeAces.getAces());
 			}
@@ -2446,13 +2814,23 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String policyName = (String) pd.getFirstValue();
 			if (null == policyName || policyName.length() == 0) {
-				LOG.error("createPolicyIntern unknown policy name: {}, repositoryId: {}", policyName, repositoryId);
-				throw new CmisInvalidArgumentException("Cannot create a policy without a name.");
+				LOG.error("createPolicyIntern unknown policy name: {}, repositoryId: {}, TraceId: {}", policyName,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Cannot create a policy without a name" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Cannot create a policy without a name",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						"Cannot create a policy without a name." + ",TraceId:" + span.getTraceId());
 			}
 			if (!NameValidator.impl.isValidName(policyName)) {
-				LOG.error("createPolicyIntern error: {}, : {}, repositoryId: {}", NameValidator.ERROR_ILLEGAL_NAME,
-						policyName, repositoryId);
-				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME, " Name is: " + policyName);
+				LOG.error("createPolicyIntern error: {}, : {}, repositoryId: {}, TraceId: {}",
+						NameValidator.ERROR_ILLEGAL_NAME, policyName, repositoryId, span.getTraceId());
+				attrMap.put("error", "createPolicyIntern error" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createPolicyIntern error", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME,
+						" Name is: " + policyName + ",TraceId:" + span.getTraceId());
 			}
 
 			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
@@ -2461,19 +2839,33 @@ public class CmisObjectService {
 			}
 
 			String typeId = getObjectTypeId(properties);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null, null);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					null, null);
 			if (typeDef == null) {
-				LOG.error("createPolicyIntern unknown typeId: {}, repositoryId: {}", typeDef, repositoryId);
-				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
+				LOG.error("createPolicyIntern unknown typeId: {}, repositoryId: {}, TraceId: {}", typeDef, repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "createPolicyIntern unknown typeId" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createPolicyIntern unknown typeId",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Type '" + typeId + "' is unknown!" + ",TraceId:" + span.getTraceId());
 			}
 			// check if the given type is a folder type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_POLICY)) {
-				LOG.error("createPolicyIntern cannot create a policy with a non-folder type: {}, repositoryId: {}",
-						typeDef.getId(), repositoryId);
-				throw new CmisInvalidArgumentException(
-						"Cannot create a policy with a non-folder type: " + typeDef.getId());
+				LOG.error(
+						"createPolicyIntern cannot create a policy with a non-folder type: {}, repositoryId: {}, TraceId: {}",
+						typeDef.getId(), repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Cannot create a policy with a non-folder type" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Cannot create a policy with a non-folder type", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Cannot create a policy with a non-folder type: "
+						+ typeDef.getId() + " ,TraceId:" + span.getTraceId());
 			}
-			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null);
+			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
+					tracingId, span);
 
 			IBaseObject parent = null;
 			if (folderId != null) {
@@ -2493,8 +2885,13 @@ public class CmisObjectService {
 			}
 
 			if (parent == null) {
-				LOG.error("createPolicyIntern parent is unknown:{}, repositoryId: {}", parent, repositoryId);
-				throw new CmisObjectNotFoundException("Parent is unknown !");
+				LOG.error("createPolicyIntern parent is unknown:{}, repositoryId: {}, TraceId: {}", parent,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "createPolicyIntern parent is unknown" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createPolicyIntern parent is unknown",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Parent is unknown !" + ",TraceId:" + span.getTraceId());
 			}
 
 			LOG.debug("parentFolderData id: {}, path: {}, getInternalPath: {}", parent.getId(), parent.getPath(),
@@ -2503,8 +2900,10 @@ public class CmisObjectService {
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IBaseObject result = createPolicyObject(repositoryId, parent, objectId, policyName, userObject,
-					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove);
+					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove, tracingId,
+					span);
 			invokeObjectFlowServiceAfterCreate(objectFlowService, result, ObjectFlowType.CREATED, null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -2514,9 +2913,12 @@ public class CmisObjectService {
 		private static IBaseObject createPolicyObject(String repositoryId, IBaseObject parentData, String objectId,
 				String policyName, IUserObject userObject, List<String> secondaryObjectTypeIds, String typeId,
 				Map<String, PropertyData<?>> properties, List<String> polices, AccessControlListImplExt aclAdd,
-				Acl aclRemove) throws IllegalArgumentException {
+				Acl aclRemove, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
 
 			// 0) folder id
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::createPolicyObject", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			Tuple2<String, String> p = resolvePathForObject(parentData, policyName);
 
 			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
@@ -2525,9 +2927,15 @@ public class CmisObjectService {
 			IBaseObject policyObject = DBUtils.BaseDAO.getByName(repositoryId, policyName,
 					parentData.getId().toString(), typeId);
 			if (policyObject != null) {
-				LOG.error("createPolicyObject policy Object already present: {}, repositoryId: {}",
-						policyObject.getName(), repositoryId);
-				throw new IllegalArgumentException(policyName + " is already present");
+				LOG.error("createPolicyObject policy Object already present: {}, repositoryId: {}, TraceId: {}",
+						policyObject.getName(), repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"createPolicyObject policy Object already present" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"createPolicyObject policy Object already present", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException(
+						policyName + " is already present" + ",TraceId:" + span.getTraceId());
 			}
 
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -2551,6 +2959,7 @@ public class CmisObjectService {
 			}
 			if (aclRemove != null)
 				validateAcl(repositoryId, aclRemove, result.getId(), result);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -2560,23 +2969,33 @@ public class CmisObjectService {
 		public static List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(String repositoryId,
 				List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties,
 				List<String> addSecondaryTypeIds, List<String> removeSecondaryTypeIds, ObjectInfoHandler objectInfos,
-				IUserObject userObject, String typeId) {
+				IUserObject userObject, String typeId, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::bulkUpdateProperties", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			List<BulkUpdateObjectIdAndChangeToken> result = new ArrayList<BulkUpdateObjectIdAndChangeToken>();
 			for (BulkUpdateObjectIdAndChangeToken obj : objectIdAndChangeToken) {
 				Holder<String> objId = new Holder<String>(obj.getId());
 				Holder<String> changeToken = new Holder<String>(obj.getChangeToken());
 				try {
 					updateProperties(repositoryId, objId, changeToken, properties, null, objectInfos, userObject,
-							typeId);
+							typeId, tracingId, span);
 					result.add(new BulkUpdateObjectIdAndChangeTokenImpl(obj.getId(), changeToken.getValue()));
 				} catch (Exception e) {
-					LOG.error("updating properties in bulk upadate failed for object: {}, {}, repositoryId: {}",
-							obj.getId(), e, repositoryId);
+					LOG.error(
+							"updating properties in bulk upadate failed for object: {}, {}, repositoryId: {}, TraceId: {}",
+							obj.getId(), e, repositoryId, span.getTraceId());
+					attrMap.put("error",
+							"updating properties in bulk upadate failed" + " ,TraceId:" + span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span, true,
+							"updating properties in bulk upadate failed", attrMap);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				}
 			}
 			if (result != null) {
 				LOG.debug("updating properties in bulk upadate success object count: {}", result.size());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -2585,8 +3004,12 @@ public class CmisObjectService {
 		 */
 		@SuppressWarnings("unchecked")
 		public static void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-				Properties properties, Acl acl, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
+				Properties properties, Acl acl, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId,
+				String tracingId, ISpan parentSpan)
 				throws CmisRuntimeException, CmisObjectNotFoundException, CmisUpdateConflictException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::updateProperties", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			Map<String, Object> objectFlowUpdateContentProps = new HashMap<String, Object>();
 			String id = objectId.getValue().trim();
@@ -2594,10 +3017,15 @@ public class CmisObjectService {
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, id, properties, null, acl, null,
 					userObject == null ? null : userObject.getUserDN(), null, ObjectFlowType.UPDATED);
 			if (properties == null) {
-				LOG.error("Method name: {}, no properties given for object id: {}, repositoryId: {}",
-						"updateProperties", id, repositoryId);
-				throw new CmisRuntimeException(
-						"update properties: no properties given for object id: " + objectId.getValue());
+				LOG.error("Method name: {}, no properties given for object id: {}, repositoryId: {}, TraceId: {}",
+						"updateProperties", id, repositoryId, span.getTraceId());
+				attrMap.put("error", "update properties: no properties given for object id:" + id + " ,TraceId:"
+						+ span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"update properties: no properties given for object id", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisRuntimeException("update properties: no properties given for object id: "
+						+ objectId.getValue() + ",TraceId:" + span.getTraceId());
 			}
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
@@ -2610,14 +3038,25 @@ public class CmisObjectService {
 						MNavigationServiceDAO.class);
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null, typeId);
 			} catch (MongoException e) {
-				LOG.error("updateProperties unknown object: {}, repositoryId: {}", objectId, repositoryId);
-				throw new CmisObjectNotFoundException("Object not found!");
+				LOG.error("updateProperties unknown object: {}, repositoryId: {}, TraceId: {}", objectId, repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "updateProperties unknown object:" + objectId + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "updateProperties unknown object",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(data.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
-				LOG.error("updateProperties failed: changeToken does not match: {}, repositoryId: {}", changeToken,
-						repositoryId);
-				throw new CmisUpdateConflictException("updateProperties failed: changeToken does not match");
+				LOG.error("updateProperties failed: changeToken does not match: {}, repositoryId: {},  TraceId: {}",
+						changeToken, repositoryId, span.getTraceId());
+				attrMap.put("error", "updateProperties failed: changeToken does not match" + objectId + " ,TraceId:"
+						+ span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"updateProperties failed: changeToken does not match", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisUpdateConflictException(
+						"updateProperties failed: changeToken does not match" + " ,TraceId:" + span.getTraceId());
 			}
 
 			// only for updating name
@@ -2634,17 +3073,24 @@ public class CmisObjectService {
 					try {
 						localService.rename(data.getPath(), gettingPath(data.getPath(), customData.getFirstValue()));
 					} catch (Exception e) {
-						LOG.error("updateProperties folder rename exception: {}, repositoryId: {}", e, repositoryId);
-						throw new IllegalArgumentException(e);
+						LOG.error("updateProperties folder rename exception: {}, repositoryId: {}, TraceId: {}", e,
+								repositoryId, span.getTraceId());
+						attrMap.put("error",
+								"updateProperties folder rename exception" + e + " ,TraceId:" + span.getTraceId());
+						TracingApiServiceFactory.getApiService().updateSpan(span, true,
+								"updateProperties folder rename exception", attrMap);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						throw new IllegalArgumentException(e + " ,TraceId:" + span.getTraceId());
 					}
 
 					updateChildPath(repositoryId, data.getName(), customData.getFirstValue().toString(), id,
 							baseMorphiaDAO, navigationMorphiaDAO, userObject, data.getInternalPath(), data.getAcl(),
-							objectFlowService, data.getTypeId());
+							objectFlowService, data.getTypeId(), tracingId, span);
 				}
 			}
 
-			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, data);
+			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, data,
+					tracingId, span);
 			Long modifiedTime = System.currentTimeMillis();
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, modifiedTime);
 			updatecontentProps.put("modifiedAt", modifiedTime);
@@ -2770,13 +3216,15 @@ public class CmisObjectService {
 					LOG.debug("updateSecondaryProperties for: {}, object: {}", id, secondaryTypes);
 				}
 			}
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		private static void updateChildPath(String repositoryId, String oldName, String newName, String id,
 				MBaseObjectDAO baseMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject,
-				String dataPath, AccessControlListImplExt dataAcl, IObjectFlowService objectFlowService,
-				String typeId) {
+				String dataPath, AccessControlListImplExt dataAcl, IObjectFlowService objectFlowService, String typeId,
+				String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::updateChildPath", null);
 			if (id != null) {
 				LOG.info("updateChildPath for object: {}", id);
 			}
@@ -2791,6 +3239,7 @@ public class CmisObjectService {
 					invokeObjectFlowServiceAfterCreate(objectFlowService, child, ObjectFlowType.UPDATED, null);
 				}
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		private static String gettingPath(String path, Object newName) {
@@ -2843,7 +3292,11 @@ public class CmisObjectService {
 		 * CMIS getContentStream.
 		 */
 		public static ContentStream getContentStream(String repositoryId, String objectId, String streamId,
-				BigInteger offset, BigInteger length) throws CmisObjectNotFoundException {
+				BigInteger offset, BigInteger length, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::getContentStream", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			try {
 				IDocumentObject docDetails = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -2865,11 +3318,17 @@ public class CmisObjectService {
 				// LOG.error("ContentStream should not be :{}", contentStream);
 				// throw new CmisObjectNotFoundException("Unkonwn ObjectId");
 				// }
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				return contentStream;
 			} catch (Exception e) {
-				LOG.error("getContentStream this file does not exist: {}, repositoryId: {}", objectId, repositoryId);
+				LOG.error("getContentStream this file does not exist: {}, repositoryId: {}, TraceId: {}", objectId,
+						repositoryId, span.getTraceId());
 				MetricsInputs.markDownloadErrorMeter();
-				throw new CmisObjectNotFoundException("this file does not exist : " + objectId);
+				attrMap.put("error", "this file does not exist:" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "this file does not exist", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"this file does not exist : " + objectId + ",TraceId:" + span.getTraceId());
 			}
 
 		}
@@ -2878,7 +3337,10 @@ public class CmisObjectService {
 		 * set the contentStream.
 		 */
 		public static void setContentStream(String repositoryId, Holder<String> objectId, Boolean overwrite,
-				Holder<String> changeToken, ContentStream contentStream) {
+				Holder<String> changeToken, ContentStream contentStream, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::setContentStream", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			String id = objectId.getValue().trim();
@@ -2891,9 +3353,15 @@ public class CmisObjectService {
 					null);
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(object.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
-				LOG.error("set content failed changeToken does not match: {}, repositoryId: {}", changeToken,
-						repositoryId);
-				throw new CmisUpdateConflictException("set content failed: changeToken does not match");
+				LOG.error("set content failed changeToken does not match: {}, repositoryId: {}, TraceId: {}",
+						changeToken, repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"set content failed changeToken does not match" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"set content failed changeToken does not match", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisUpdateConflictException(
+						"set content failed: changeToken does not match" + ",TraceId:" + span.getTraceId());
 			}
 			Map<String, Object> updateProps = new HashMap<String, Object>();
 			if (overwrite != null && overwrite.booleanValue()) {
@@ -2924,13 +3392,17 @@ public class CmisObjectService {
 			if (updatecontentProps != null) {
 				LOG.debug("setContentStream updateObjects id: {}, properties: {}", id, updatecontentProps);
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		/**
 		 * append the contentStream present in CMIS 1.1.
 		 */
 		public static void appendContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-				ContentStream contentStream, Boolean isLastChunk) {
+				ContentStream contentStream, Boolean isLastChunk, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::appendContentStream", null);
+
 			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -2970,14 +3442,17 @@ public class CmisObjectService {
 			invokeObjectFlowServiceAfterCreate(objectFlowService, docDetails, ObjectFlowType.UPDATED, null);
 
 			LOG.debug("appendContentStream updateObjects for object: {}, {}", id, updatecontentProps);
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		/**
 		 * delete the contentStream.
 		 */
-		public static void deleteContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken)
-				throws CmisStorageException {
+		public static void deleteContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
+				String tracingId, ISpan parentSpan) throws CmisStorageException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::deleteContentStream", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			MDocumentObjectDAO docorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
@@ -2986,9 +3461,15 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(docDetails.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
-				LOG.error("delete content failed: changeToken does not match in repositoryId: {}", changeToken,
-						repositoryId);
-				throw new CmisUpdateConflictException("delete content failed: changeToken does not match");
+				LOG.error("delete content failed: changeToken does not match in repositoryId: {}, TraceId: {}",
+						changeToken, repositoryId, span.getTraceId());
+				attrMap.put("error", "delete content failed: changeToken does not match in repositoryId" + " ,TraceId:"
+						+ span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"delete content failed: changeToken does not match in repositoryId", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisUpdateConflictException(
+						"delete content failed: changeToken does not match" + ",TraceId:" + span.getTraceId());
 			}
 			boolean contentDeleted = localService.deleteContent(docDetails.getContentStreamFileName(),
 					docDetails.getPath(), docDetails.getContentStreamMimeType());
@@ -3010,13 +3491,18 @@ public class CmisObjectService {
 			if (updatecontentProps != null) {
 				LOG.debug("deleteContentStream, removeFields id: {}, properties: {}", id, updatecontentProps);
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		/**
 		 * delete the object.
 		 */
 		public static void deleteObject(String repositoryId, String objectId, Boolean allVersions,
-				IUserObject userObject, String typeId) throws CmisObjectNotFoundException, CmisNotSupportedException {
+				IUserObject userObject, String typeId, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException, CmisNotSupportedException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::deleteObject", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, objectId, null, null, null, null,
 					userObject == null ? null : userObject.getUserDN(), allVersions, ObjectFlowType.DELETED);
@@ -3033,18 +3519,27 @@ public class CmisObjectService {
 						MNavigationServiceDAO.class);
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			} catch (MongoException e) {
-				LOG.error("deleteObject object not found in repositoryId: {}", repositoryId);
-				throw new CmisObjectNotFoundException("Object not found!");
+				LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "Object not found!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object not found!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
-				LOG.error("deleteObject failed: {}, repositoryId: {}", "can't delete a root folder.", repositoryId);
-				throw new CmisNotSupportedException("can't delete a root folder");
+				LOG.error("deleteObject failed: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.",
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "deleteObject failed" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "deleteObject failed:!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisNotSupportedException("can't delete a root folder" + ",TraceId:" + span.getTraceId());
 			}
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
 			deleteObjectChildrens(repositoryId, data, baseMorphiaDAO, docMorphiaDAO, navigationMorphiaDAO, localService,
-					userObject, allVersions, typeId);
+					userObject, allVersions, typeId, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		/**
@@ -3052,10 +3547,19 @@ public class CmisObjectService {
 		 */
 		public static void deleteObjectChildrens(String repositoryId, IBaseObject data, MBaseObjectDAO baseMorphiaDAO,
 				MDocumentObjectDAO docMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO,
-				IStorageService localService, IUserObject userObject, Boolean allVersions, String typeId) {
+				IStorageService localService, IUserObject userObject, Boolean allVersions, String typeId,
+				String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::deleteObjectChildrens", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (data == null) {
-				LOG.error("deleteObjectChildrens object not found! in repositoryId: {}", repositoryId);
-				throw new CmisObjectNotFoundException("Object not found!");
+				LOG.error("deleteObjectChildrens object not found! in repositoryId: {}, TraceId: {}", repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "deleteObjectChildrens object not found" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"deleteObjectChildrens object not found!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -3141,15 +3645,19 @@ public class CmisObjectService {
 				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		/**
 		 * deleteTree from a set of properties.
 		 */
 		public static FailedToDeleteData deleteTree(String repositoryId, String folderId, Boolean allVers,
-				UnfileObject unfile, Boolean continueOnFail, IUserObject userObject, String typeId)
-				throws CmisObjectNotFoundException, CmisInvalidArgumentException, CmisNotSupportedException,
-				CmisStorageException {
+				UnfileObject unfile, Boolean continueOnFail, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) throws CmisObjectNotFoundException, CmisInvalidArgumentException,
+				CmisNotSupportedException, CmisStorageException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::deleteTree", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, null, null, null, null,
 					userObject == null ? null : userObject.getUserDN(), allVers, ObjectFlowType.DELETED);
@@ -3167,37 +3675,60 @@ public class CmisObjectService {
 						MNavigationServiceDAO.class);
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			} catch (MongoException e) {
-				LOG.error("deleteTree object not found: {}, repositoryId: {}", folderId, repositoryId);
-				throw new CmisObjectNotFoundException("Object not found!");
+				LOG.error("deleteTree object not found: {}, repositoryId: {}, TraceId: {}", folderId, repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "deleteTree object not found" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "deleteTree object not found", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			List<String> failedToDeleteIds = new ArrayList<String>();
 			FailedToDeleteDataImpl result = new FailedToDeleteDataImpl();
 
 			if (data == null) {
-				LOG.error("deleteTree cannot delete object with id: {}, {}, repositoryId: {}", folderId,
-						"Object does not exist.", repositoryId);
-				throw new CmisInvalidArgumentException(
-						"Cannot delete object with id  " + folderId + ". Object does not exist.");
+				LOG.error("deleteTree cannot delete object with id: {}, {}, repositoryId: {}, TraceId: {}", folderId,
+						"Object does not exist.", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"deleteTree cannot delete object with id:" + folderId + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"deleteTree cannot delete object with id", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException("Cannot delete object with id  " + folderId
+						+ ". Object does not exist." + ",TraceId:" + span.getTraceId());
 			}
 
 			if (!(data.getBaseId() == BaseTypeId.CMIS_FOLDER)) {
 				LOG.error(
-						"deleteTree can only be invoked on a folder but id: {}  does not refer to a folder, repositoryId: {}",
-						folderId, repositoryId);
+						"deleteTree can only be invoked on a folder but id: {}  does not refer to a folder, repositoryId: {}, TraceId: {}",
+						folderId, repositoryId, span.getTraceId());
+				attrMap.put("error", "deleteTree can only be invoked on a folder " + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"deleteTree can only be invoked on a folder ", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				throw new CmisInvalidArgumentException("deleteTree can only be invoked on a folder, but id " + folderId
-						+ " does not refer to a folder");
+						+ " does not refer to a folder" + ",TraceId:" + span.getTraceId());
 			}
 
 			if (unfileObjects == UnfileObject.UNFILE) {
-				LOG.error("deleteTree: {}, repositoryId: {}", " This repository does not support unfile operations.",
-						repositoryId);
-				throw new CmisNotSupportedException("This repository does not support unfile operations.");
+				LOG.error("deleteTree: {}, repositoryId: {}, TraceId: {}",
+						" This repository does not support unfile operations.", repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"This repository does not support unfile operations." + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"This repository does not support unfile operations.", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisNotSupportedException(
+						"This repository does not support unfile operations." + ",TraceId:" + span.getTraceId());
 			}
 
 			// check if it is the root folder
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
-				LOG.error("deleteTree: {}, repositoryId: {}", "can't delete a root folder.", repositoryId);
-				throw new CmisNotSupportedException("can't delete a root folder");
+				LOG.error("deleteTree: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.", repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "can't delete a root folder:" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "can't delete a root folder", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisNotSupportedException("can't delete a root folder" + ",TraceId:" + span.getTraceId());
 			}
 
 			@SuppressWarnings("unused")
@@ -3231,6 +3762,7 @@ public class CmisObjectService {
 			}
 			LOG.info("failedToDeleteIds for folder: {}, {}", folderId, failedToDeleteIds);
 			result.setIds(failedToDeleteIds);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -3239,8 +3771,11 @@ public class CmisObjectService {
 		 */
 
 		public static ObjectData moveObject(String repositoryId, Holder<String> objectId, String targetFolderId,
-				String sourceFolderId, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
-				throws CmisObjectNotFoundException, CmisNotSupportedException {
+				String sourceFolderId, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId,
+				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException, CmisNotSupportedException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::moveObject", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MNavigationDocServiceDAO navigationMorphiaDAO = null;
@@ -3255,26 +3790,50 @@ public class CmisObjectService {
 				String id = objectId.getValue();
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null, typeId);
 			} catch (MongoException e) {
-				LOG.error("moveObject object not found:{}, repositoryId: {}", objectId.getValue(), repositoryId);
-				throw new CmisObjectNotFoundException("Object not found!");
+				LOG.error("moveObject object not found:{}, repositoryId: {}, TraceId: {}", objectId.getValue(),
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Object not found!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object not found!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			if (data == null) {
-				LOG.error("moveObject unknown object: {}, repositoryId: {}", objectId.getValue(), repositoryId);
-				throw new CmisObjectNotFoundException("Unknown object: " + objectId.getValue());
+				LOG.error("moveObject unknown object: {}, repositoryId: {}, TraceId: {}", objectId.getValue(),
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Unknown object!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Unknown object: " + objectId.getValue() + ",TraceId:" + span.getTraceId());
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
-				LOG.error("moveObject rootFolder: {}, have no move operation: {}, repositoryId: {}", data.getId(),
-						objectId.getValue(), repositoryId);
-				throw new CmisNotSupportedException("RootFolder " + data.getId() + " have no move operation");
+				LOG.error("moveObject rootFolder: {}, have no move operation: {}, repositoryId: {}, TraceId: {}",
+						data.getId(), objectId.getValue(), repositoryId, span.getTraceId());
+				attrMap.put("error", "RootFolder have no move operation!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "RootFolder have no move operation!",
+						attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisNotSupportedException(
+						"RootFolder " + data.getId() + " have no move operation" + ",TraceId:" + span.getTraceId());
 			}
 			IBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, targetFolderId, null, data.getTypeId());
 			if (null == soTarget) {
-				LOG.error("moveObject unknown target folder: {}, repositoryId: {}", targetFolderId, repositoryId);
-				throw new CmisObjectNotFoundException("Unknown target folder: " + targetFolderId);
+				LOG.error("moveObject unknown target folder: {}, repositoryId: {}, TraceId: {}", targetFolderId,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Unknown target folder!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown target folder!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Unknown target folder: " + targetFolderId + ",TraceId:" + span.getTraceId());
 			} else if (soTarget.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 			} else {
-				LOG.error("moveObject destination move operation must be a folder: {}, repositoryId: {}",
-						targetFolderId, repositoryId);
+				LOG.error("moveObject destination move operation must be a folder: {}, repositoryId: {}, TraceId: {}",
+						targetFolderId, repositoryId, span.getTraceId());
+				attrMap.put("error",
+						"Destination of a move operation must be a folder!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Destination of a move operation must be a folder!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				throw new CmisNotSupportedException(
 						"Destination " + targetFolderId + " of a move operation must be a folder");
 			}
@@ -3282,13 +3841,23 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 			IBaseObject soSource = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceFolderId, null, data.getTypeId());
 			if (null == soSource) {
-				LOG.error("moveObject unknown source folder: {}, repositoryId: {}", sourceFolderId, repositoryId);
-				throw new CmisObjectNotFoundException("Unknown source folder: " + sourceFolderId);
+				LOG.error("moveObject unknown source folder: {}, repositoryId: {}, TraceId: {}", sourceFolderId,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Unknown source folder!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown source folder!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Unknown source folder: " + sourceFolderId + ",TraceId:" + span.getTraceId());
 			} else if (soSource.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 			} else {
-				LOG.error("moveObject source move operation must be a folder:{}", sourceFolderId);
-				throw new CmisNotSupportedException(
-						"Source " + sourceFolderId + " of a move operation must be a folder");
+				LOG.error("moveObject source move operation must be a folder:{}, TraceId: {}", sourceFolderId,
+						span.getTraceId());
+				attrMap.put("error", "Source of a move operation must be a folder!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true,
+						"Source of a move operation must be a folder!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisNotSupportedException("Source " + sourceFolderId + " of a move operation must be a folder"
+						+ " ,TraceId:" + span.getTraceId());
 			}
 			String updatePath = soTarget.getInternalPath() + soTarget.getId() + ",";
 			String cmisUpdatePath = soTarget.getPath() + "/" + data.getName();
@@ -3297,10 +3866,15 @@ public class CmisObjectService {
 					boolean checkParent = checkParentFolder(data.getPath(), soSource.getName());
 					if (!checkParent) {
 						LOG.error(
-								"moveObject destination is not a parent folder for this document: {}, repositoryId: {}",
-								targetFolderId, repositoryId);
-						throw new CmisNotSupportedException(
-								"Destination " + targetFolderId + " is not a parent folder for this document");
+								"moveObject destination is not a parent folder for this document: {}, repositoryId: {}, TraceId: {}",
+								targetFolderId, repositoryId, span.getTraceId());
+						attrMap.put("error", "Destination is not a parent folder for this document!" + " ,TraceId:"
+								+ span.getTraceId());
+						TracingApiServiceFactory.getApiService().updateSpan(span, true,
+								"Destination is not a parent folder for this document!", attrMap);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						throw new CmisNotSupportedException("Destination " + targetFolderId
+								+ " is not a parent folder for this document" + " ,TraceId:" + span.getTraceId());
 					}
 					try {
 						IDocumentObject docObj = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, data.getId(),
@@ -3314,8 +3888,12 @@ public class CmisObjectService {
 						}
 
 					} catch (Exception ex) {
-						LOG.error("Move Object failed: {}, repositoryId: {}", ex, repositoryId);
-						throw new IllegalArgumentException(ex);
+						LOG.error("Move Object failed: {}, repositoryId: {}, TraceId: {}", ex, repositoryId,
+								span.getTraceId());
+						attrMap.put("error", "Move Object failed!" + " ,TraceId:" + span.getTraceId());
+						TracingApiServiceFactory.getApiService().updateSpan(span, true, "Move Object failed!", attrMap);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 					}
 				} else if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 					try {
@@ -3323,8 +3901,12 @@ public class CmisObjectService {
 						LOG.info("Folder: {}, moved from source: {}, to target location: {}, repositoryId: {}",
 								soTarget.getId().toString(), data.getPath(), soTarget.getPath(), repositoryId);
 					} catch (Exception ex) {
-						LOG.error("Move Object Filed: {}, repositoryId: {}", ex, repositoryId);
-						throw new IllegalArgumentException(ex);
+						LOG.error("Move Object Failed: {}, repositoryId: {}, TraceId: {}", ex, repositoryId,
+								span.getTraceId());
+						attrMap.put("error", "Move Object failed!" + " ,TraceId:" + span.getTraceId());
+						TracingApiServiceFactory.getApiService().updateSpan(span, true, "Move Object failed!", attrMap);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 					}
 				}
 
@@ -3357,7 +3939,7 @@ public class CmisObjectService {
 							moveChildFolder(repositoryId, childPath, baseMorphiaDAO, navigationMorphiaDAO,
 									documentMorphiaDAO, updateChildPath, updatePath, child.getId(), data.getId(),
 									cmisPath, userObject, child.getInternalPath(), child.getAcl(), modifiedTime,
-									child.getTypeId());
+									child.getTypeId(), tracingId, span);
 						} else {
 							Map<String, Object> updatePropsDoc = new HashMap<String, Object>();
 							String docName = child.getContentStreamFileName() != null ? child.getContentStreamFileName()
@@ -3405,8 +3987,8 @@ public class CmisObjectService {
 			}
 			LOG.info("getting object for this object id: {}", data.getId());
 			ObjectData objectData = getObject(repositoryId, data.getId(), null, false, IncludeRelationships.NONE, null,
-					false, false, objectInfos, userObject, data.getBaseId(), data.getTypeId());
-
+					false, false, objectInfos, userObject, data.getBaseId(), data.getTypeId(), tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return objectData;
 
 		}
@@ -3427,7 +4009,10 @@ public class CmisObjectService {
 		private static void moveChildFolder(String repositoryId, String path, MBaseObjectDAO baseMorphiaDAO,
 				MNavigationDocServiceDAO navigationMorphiaDAO, MDocumentObjectDAO documentMorphiaDAO, String childPath,
 				String parentPath, String childId, String parentId, String cmisPath, IUserObject userObject,
-				String dataPath, AccessControlListImplExt dataAcl, Long modifiedTime, String typeId) {
+				String dataPath, AccessControlListImplExt dataAcl, Long modifiedTime, String typeId, String tracingId,
+				ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::moveChildFolder", null);
 			if (childPath != null) {
 				LOG.debug("moveChildFolder on childPath: {}", childPath);
 			}
@@ -3451,7 +4036,8 @@ public class CmisObjectService {
 						String cmisPaths = cmisPath + "/" + child.getName();
 						moveChildFolder(repositoryId, childPaths, baseMorphiaDAO, navigationMorphiaDAO,
 								documentMorphiaDAO, childUpdatePaths, parentPath, child.getId(), childId, cmisPaths,
-								userObject, child.getInternalPath(), child.getAcl(), modifiedTime, child.getTypeId());
+								userObject, child.getInternalPath(), child.getAcl(), modifiedTime, child.getTypeId(),
+								tracingId, span);
 					} else {
 						Map<String, Object> updatePropsDoc = new HashMap<String, Object>();
 						String docName = child.getContentStreamFileName() != null ? child.getContentStreamFileName()
@@ -3474,6 +4060,7 @@ public class CmisObjectService {
 					}
 				}
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
 
 		/**
@@ -3482,22 +4069,32 @@ public class CmisObjectService {
 
 		@SuppressWarnings("null")
 		private static PropertiesImpl compileWriteProperties(String repositoryId, TypeDefinition type,
-				IUserObject userObject, Properties properties, IBaseObject data) {
+				IUserObject userObject, Properties properties, IBaseObject data, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::compileWriteProperties", null);
+			Map<String, Object> attrMap = new HashMap<String, Object>();
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			PropertiesImpl result = new PropertiesImpl();
 			// Set<String> addedProps = new HashSet<String>();
 
 			if (properties == null || properties.getProperties() == null) {
-				LOG.error("Method name: {}, unknown properties: {}, repositoryId: {}", "compileWriteProperties",
-						properties, repositoryId);
-				throw new IllegalArgumentException("No properties!");
+				LOG.error("Method name: {}, unknown properties: {}, repositoryId: {}, TraceId: {}",
+						"compileWriteProperties", properties, repositoryId, span.getTraceId());
+				attrMap.put("error", "No properties!!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "No properties!!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new IllegalArgumentException("No properties!" + " ,TraceId:" + span.getTraceId());
 			}
 
 			if (type == null) {
-				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}", "compileWriteProperties", type,
-						repositoryId);
-				throw new CmisObjectNotFoundException("Type '" + type.getId() + "' is unknown!");
+				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}",
+						"compileWriteProperties", type, repositoryId, span.getTraceId());
+				attrMap.put("error", "Type is unknown!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type is unknown!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						"Type '" + type.getId() + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
 
 			List<?> secondaryObjectTypeIds = null;
@@ -3535,9 +4132,13 @@ public class CmisObjectService {
 
 				}
 				if (propTypes == null) {
-					LOG.error("Method name: {}, unknown propertiesTypes: {}, repositoryId: {}",
-							"compileWriteProperties", prop.getId(), repositoryId);
-					throw new IllegalArgumentException("Property '" + prop.getId() + "' is unknown!");
+					LOG.error("Method name: {}, unknown propertiesTypes: {}, repositoryId: {}, TraceId: {}",
+							"compileWriteProperties", prop.getId(), repositoryId, span.getTraceId());
+					attrMap.put("error", "Property is unknown!" + " ,TraceId:" + span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Property is unknown!", attrMap);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new IllegalArgumentException(
+							"Property '" + prop.getId() + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 				}
 
 				// can it be set?
@@ -3557,6 +4158,7 @@ public class CmisObjectService {
 			if (result != null) {
 				LOG.debug("compileWriteProperties data count: {}", result.getPropertyList().size());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
@@ -3940,7 +4542,7 @@ public class CmisObjectService {
 			objInfo.setObject(od);
 
 			List<RenditionData> renditions = getRenditions(repositoryId, so, null, null, BigInteger.ZERO,
-					BigInteger.ZERO, null, so.getTypeId());
+					BigInteger.ZERO, null, so.getTypeId(), null, null);
 			if (renditions == null || renditions.size() == 0) {
 				objInfo.setRenditionInfos(null);
 			} else {
