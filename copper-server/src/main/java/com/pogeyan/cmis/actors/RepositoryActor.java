@@ -142,6 +142,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, t.getUserName() + " is not authorized",
 					attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
 		// call DB and get the repositoryInfo
@@ -219,6 +220,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
@@ -247,6 +249,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
@@ -280,6 +283,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
@@ -299,6 +303,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " Type tree is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Type tree is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -324,6 +329,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
@@ -335,6 +341,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " Type definition missing!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisInvalidArgumentException("Type definition missing!, TraceId:" + span.getTraceId());
 		}
 
@@ -349,12 +356,14 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " JSON Parser error ", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 		}
 		if (!(typeJson instanceof Map)) {
 			attrMap.put("error", request.getUserName() + "Invalid type definition! , TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " Invalid type definition! ", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisInvalidArgumentException("Invalid type definition!, TraceId:" + span.getTraceId());
 		}
 
@@ -383,6 +392,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}
@@ -394,6 +404,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " Type definition missing!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisInvalidArgumentException("Type definition missing!, TraceId:" + span.getTraceId());
 		}
 
@@ -408,12 +419,14 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " JSON parse exception", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 		}
 		if (!(typeJson instanceof Map)) {
 			attrMap.put("error", request.getUserName() + ":Invalid type definition!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " Invalid type definition! ", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisInvalidArgumentException("Invalid type definition!, TraceId:" + span.getTraceId());
 		}
 
@@ -442,6 +455,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized." + " TraceId:" + span.getTraceId());
 		}

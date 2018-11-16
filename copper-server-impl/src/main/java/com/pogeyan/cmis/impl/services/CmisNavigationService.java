@@ -115,8 +115,9 @@ public class CmisNavigationService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getChildrenIntern unknown object id",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id:" + folderId + ",TraceId:" + span.getTraceId());
+						"Unknown object id:" + folderId + " ,TraceId:" + span.getTraceId());
 
 			}
 
@@ -225,6 +226,7 @@ public class CmisNavigationService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"getDescendants a zero depth is not allowed for getDescendants", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"A zero depth is not allowed for getDescendants()." + " ,TraceId:" + span.getTraceId());
 			} else {
@@ -541,6 +543,7 @@ public class CmisNavigationService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"getFolderParent cannot get parent of a root folder", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot get parent of a root folder" + " ,TraceId:" + span.getTraceId());
 			}
@@ -567,6 +570,7 @@ public class CmisNavigationService {
 					filterCollection, includeAllowableActions, false, true, objectInfos, null, includeRelationships,
 					user, tracingId, span);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			return objectData;
 		}
 
@@ -593,6 +597,7 @@ public class CmisNavigationService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"getFolderTree a zero depth is not allowed for getDescendants()", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"A zero depth is not allowed for getDescendants()." + " ,TraceId:" + span.getTraceId());
 			} else {

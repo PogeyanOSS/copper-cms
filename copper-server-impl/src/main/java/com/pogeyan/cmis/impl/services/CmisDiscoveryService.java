@@ -74,6 +74,7 @@ public class CmisDiscoveryService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"change log token value should not be null!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"change log token value should not be null!, TraceId:" + span.getTraceId());
 			}

@@ -162,6 +162,7 @@ public class CmisObjectService {
 						"addRootFolder exception:" + ExceptionUtils.getStackTrace(e) + " TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "addRootFolder exception", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return null;
@@ -189,6 +190,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"getObject objectId and filter is null in repository", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Object Id should not be null" + " ,TraceId:" + span.getTraceId());
 			} else if (objectId == null) {
@@ -197,6 +199,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object Id should not be null",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Object Id should not be null" + " ,TraceId:" + span.getTraceId());
 			}
@@ -222,12 +225,14 @@ public class CmisObjectService {
 						"getObject Exception: {}" + ExceptionUtils.getStackTrace(e) + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getObject Exception:", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new MongoException(e.toString() + " ,TraceId:" + span.getTraceId());
 			}
 			if (data == null) {
 				attrMap.put("error", "Object must not be null" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object must not be null!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object must not be null!, TraceId:" + span.getTraceId());
 			}
 
@@ -270,8 +275,8 @@ public class CmisObjectService {
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), typeId).get(0);
+			TypeDefinition type = CmisTypeServices.Impl
+					.getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId, userObject, typeId).get(0);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
@@ -853,14 +858,16 @@ public class CmisObjectService {
 			Map<String, Object> attrMap = new HashMap<String, Object>();
 			if (data == null && objectId != null) {
 				try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 				} catch (Exception e) {
 					LOG.error("getAllowableActions Exception: {}, repository: {}, TraceId: {}",
 							ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
-					attrMap.put("error", "getAllowableActions Exception" + ExceptionUtils.getStackTrace(e) + " ,TraceId:" + span.getTraceId());
+					attrMap.put("error", "getAllowableActions Exception" + ExceptionUtils.getStackTrace(e)
+							+ " ,TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "getAllowableActions Exception",
 							attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new MongoException(e.toString() + ",TraceId:" + span.getTraceId());
 				}
 			}
@@ -873,6 +880,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getAllowableActions Exception:",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Object Id must be set." + ",TraceId:" + span.getTraceId());
 			}
 
@@ -884,6 +892,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getAllowableActions for this objectId",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object must not be null!" + ",TraceId:" + span.getTraceId());
 			}
 
@@ -1061,7 +1070,7 @@ public class CmisObjectService {
 			if (data == null && objectId != null) {
 				try {
 					data = null;
-//					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+					// data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 				} catch (Exception e) {
 					LOG.error("getRenditions Exception: {}, repositoryId: {}, TraceId: {}",
 							ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
@@ -1069,6 +1078,7 @@ public class CmisObjectService {
 							+ span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "getRenditions Exception", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new MongoException(e.toString() + "TraceId:" + span.getTraceId());
 				}
 			}
@@ -1081,16 +1091,18 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getRenditions unknown objectId",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Object Id must be set." + " ,TraceId:" + span.getTraceId());
 			}
 
 			if (data == null) {
 				LOG.error("getRenditions for this objectId: {}, is null in: {} repository!, TraceId: {}", objectId,
 						repositoryId, span.getTraceId());
-				attrMap.put("error", "getRenditions for this objectId: "  + objectId + ", is null in repository!" + repositoryId
-						+ " ,TraceId:" + span.getTraceId());
+				attrMap.put("error", "getRenditions for this objectId: " + objectId + ", is null in repository!"
+						+ repositoryId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object must not be null!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object must not be null!" + " ,TraceId:" + span.getTraceId());
 			}
 
@@ -1281,8 +1293,7 @@ public class CmisObjectService {
 					if (typeId.getPropertyDefinitions().get(map.getKey()) == null) {
 						if (data.getSecondaryTypeIds() != null) {
 							List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl
-									.checkTypePermissionList(typePermissionFlow, repositoryId,
-											userObject == null ? null : userObject.getGroups(),
+									.checkTypePermissionList(typePermissionFlow, repositoryId, userObject,
 											data.getSecondaryTypeIds());
 							secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 								Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
@@ -1443,12 +1454,12 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject == null ? null : userObject.getUserDN(),
-					null, ObjectFlowType.CREATED);
-			AccessControlListImplExt aclAdd = TypeValidators.impl.expandAclMakros(
-					userObject == null ? null : userObject == null ? null : userObject.getUserDN(), addAces);
-			Acl aclRemove = TypeValidators.impl.expandAclMakros(
-					userObject == null ? null : userObject == null ? null : userObject.getUserDN(), removeAces);
+					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
+					ObjectFlowType.CREATED);
+			AccessControlListImplExt aclAdd = TypeValidators.impl
+					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
+			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
+					removeAces);
 			IBaseObject parent = null;
 			List<String> secondaryObjectTypeIds = null;
 
@@ -1463,6 +1474,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"createFolderIntern unknown folder name!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a folder without a name." + ",TraceId:" + span.getTraceId());
 			}
@@ -1474,6 +1486,7 @@ public class CmisObjectService {
 				attrMap.put("error", "createFolderIntern error" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createFolderIntern error!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + folderName + ",TraceId:" + span.getTraceId());
 			}
@@ -1495,6 +1508,7 @@ public class CmisObjectService {
 				attrMap.put("error", "typeId is unknown!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "typeId is unknown!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Type '" + typeId + "' is unknown!" + ",TraceId:" + span.getTraceId());
 			}
@@ -1508,6 +1522,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a folder, with a non-folder type!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Cannot create a folder, with a non-folder type: "
 						+ typeDef.getId() + ",TraceId:" + span.getTraceId());
 			}
@@ -1527,6 +1542,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createFolderIntern parent is unknown!",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Parent is unknown !" + ",TraceId:" + span.getTraceId());
 			}
 
@@ -1565,6 +1581,7 @@ public class CmisObjectService {
 					attrMap.put("error", e + " ,TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Exception", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(e + ",TraceId:" + span.getTraceId());
 				}
 			}
@@ -1620,6 +1637,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createFolderObject already present ",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(
 						folderName + " is already present" + ",TraceId:" + span.getTraceId());
 			}
@@ -1783,6 +1801,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"createDocumentIntern unknown properties", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Properties must be set!" + ",TraceId:" + span.getTraceId());
 			}
 
@@ -1805,6 +1824,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"createDocumentIntern unknown document name", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a document without a name." + ",TraceId:" + span.getTraceId());
 			}
@@ -1822,6 +1842,7 @@ public class CmisObjectService {
 						+ span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocumentIntern error", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName
 						+ "TraceId:" + span.getTraceId());
 			}
@@ -1840,6 +1861,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocument unknown typeId",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Type '" + typeId + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
@@ -1850,6 +1872,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must be a document type!",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Type must be a document type!" + "TraceId:" + span.getTraceId());
 			}
@@ -1878,6 +1901,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocumentIntern unknown parent!",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Parent is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
 
@@ -1910,6 +1934,7 @@ public class CmisObjectService {
 					TracingApiServiceFactory.getApiService().updateSpan(span, true,
 							"createDocumentIntern file creation exception", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 				}
 			}
@@ -2094,6 +2119,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"createDocumentFromSource unknown document name", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a document without a name." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2106,6 +2132,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createDocumentFromSource error",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME + " Name is: " + documentName
 						+ " ,TraceId:" + span.getTraceId());
 			}
@@ -2120,6 +2147,7 @@ public class CmisObjectService {
 				attrMap.put("error", "typeId is unknown!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "typeId is unknown!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Type '" + typeId + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
@@ -2130,6 +2158,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must be a document type!",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Type must be a document type!" + " ,TraceId:" + span.getTraceId());
 			}
@@ -2161,6 +2190,7 @@ public class CmisObjectService {
 				attrMap.put("error", "Parent is unknown !" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Parent is unknown !", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Parent is unknown !" + " ,TraceId:" + span.getTraceId());
 			}
 
@@ -2196,6 +2226,7 @@ public class CmisObjectService {
 					TracingApiServiceFactory.getApiService().updateSpan(span, true,
 							"createDocumentFromSource file creation exception !", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 				}
 			}
@@ -2260,6 +2291,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createItemIntern unknown item name !",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a folder without a name." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2271,6 +2303,7 @@ public class CmisObjectService {
 				attrMap.put("error", "createItemIntern error" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createItemIntern error!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME,
 						" Name is: " + itemName + " ,TraceId:" + span.getTraceId());
 			}
@@ -2289,6 +2322,7 @@ public class CmisObjectService {
 				attrMap.put("error", "typeId is unknown!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "typeId is unknown!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
 			}
 			// check if the given type is a folder type
@@ -2302,6 +2336,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a folder, with a non-folder type", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Cannot create a folder, with a non-folder type: "
 						+ typeDef.getId() + " ,TraceId:" + span.getTraceId());
 			}
@@ -2360,6 +2395,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"createItemObject object id already present:", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(itemName + " is already present" + " ,TraceId:" + span.getTraceId());
 			}
 
@@ -2445,6 +2481,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Create relationship exception",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship without a relation_name." + ",TraceId:" + span.getTraceId());
 			}
@@ -2457,6 +2494,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a relationship without a relation_name", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship without a relation_name." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2470,6 +2508,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a relationship without a sourceId", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship without a sourceId." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2483,6 +2522,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a relationship without a sourceId", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship without a sourceId." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2496,6 +2536,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a relationship without a targetId", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship without a targetId." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2508,6 +2549,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a relationship without a targetId", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship without a targetId." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2523,6 +2565,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Create relationship typeId must use cmis base type", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("TypeId must use cmis base type{"
 						+ CustomTypeId.CMIS_EXT_RELATIONSHIP.value() + "}" + " ,TraceId:" + span.getTraceId());
 			}
@@ -2539,6 +2582,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a relationship, with a non-relationship type", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Cannot create a relationship, with a non-relationship type: "
 						+ typeDef.getId() + " ,TraceId:" + span.getTraceId());
 			}
@@ -2569,6 +2613,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Wrong sourceId,SourceObject should not be null", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Wrong sourceId,SourceObject should not be null" + " ,TraceId:" + span.getTraceId());
 			}
@@ -2580,6 +2625,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Wrong sourceId,TargetObject should not be null", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Wrong sourceId,TargetObject should not be null" + " ,TraceId:" + span.getTraceId());
 			}
@@ -2594,6 +2640,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a relationship without a Name.", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a relationship without a Name." + " ,TraceId:" + span.getTraceId());
 			}
@@ -2651,6 +2698,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"createRelationshipObject unknown relation object", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Impossible to create folder properties" + ",TraceId:" + span.getTraceId());
 			}
@@ -2663,6 +2711,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Relationship object already present",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(typeId + " is already present" + ",TraceId:" + span.getTraceId());
 			}
 
@@ -2697,6 +2746,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"SourceTable  not present in relationship object", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(
 						"SourceTable  not present in relationShipObject" + ",TraceId:" + span.getTraceId());
 			}
@@ -2709,6 +2759,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"targetTable  not present in relationship object", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(
 						"targetTable  not present in relationShipObject" + ",TraceId:" + span.getTraceId());
 			}
@@ -2719,6 +2770,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Wrong relationShipDocumentObject",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(
 						"Wrong relationShipDocumentObject" + ",TraceId:" + span.getTraceId());
 			}
@@ -2729,6 +2781,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Wrong relationShipDocumentObject",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(
 						"Wrong relationShipDocumentObject" + ",TraceId:" + span.getTraceId());
 			}
@@ -2820,6 +2873,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Cannot create a policy without a name",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Cannot create a policy without a name." + ",TraceId:" + span.getTraceId());
 			}
@@ -2829,6 +2883,7 @@ public class CmisObjectService {
 				attrMap.put("error", "createPolicyIntern error" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createPolicyIntern error", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(NameValidator.ERROR_ILLEGAL_NAME,
 						" Name is: " + policyName + ",TraceId:" + span.getTraceId());
 			}
@@ -2848,6 +2903,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createPolicyIntern unknown typeId",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Type '" + typeId + "' is unknown!" + ",TraceId:" + span.getTraceId());
 			}
@@ -2861,6 +2917,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Cannot create a policy with a non-folder type", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Cannot create a policy with a non-folder type: "
 						+ typeDef.getId() + " ,TraceId:" + span.getTraceId());
 			}
@@ -2891,6 +2948,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "createPolicyIntern parent is unknown",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Parent is unknown !" + ",TraceId:" + span.getTraceId());
 			}
 
@@ -2934,6 +2992,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"createPolicyObject policy Object already present", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException(
 						policyName + " is already present" + ",TraceId:" + span.getTraceId());
 			}
@@ -2990,6 +3049,7 @@ public class CmisObjectService {
 					TracingApiServiceFactory.getApiService().updateSpan(span, true,
 							"updating properties in bulk upadate failed", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				}
 			}
 			if (result != null) {
@@ -3024,6 +3084,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"update properties: no properties given for object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisRuntimeException("update properties: no properties given for object id: "
 						+ objectId.getValue() + ",TraceId:" + span.getTraceId());
 			}
@@ -3044,6 +3105,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "updateProperties unknown object",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			if (changeToken != null && changeToken.getValue() != null
@@ -3055,6 +3117,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"updateProperties failed: changeToken does not match", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisUpdateConflictException(
 						"updateProperties failed: changeToken does not match" + " ,TraceId:" + span.getTraceId());
 			}
@@ -3080,6 +3143,7 @@ public class CmisObjectService {
 						TracingApiServiceFactory.getApiService().updateSpan(span, true,
 								"updateProperties folder rename exception", attrMap);
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 						throw new IllegalArgumentException(e + " ,TraceId:" + span.getTraceId());
 					}
 
@@ -3327,6 +3391,7 @@ public class CmisObjectService {
 				attrMap.put("error", "this file does not exist:" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "this file does not exist", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"this file does not exist : " + objectId + ",TraceId:" + span.getTraceId());
 			}
@@ -3360,6 +3425,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"set content failed changeToken does not match", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisUpdateConflictException(
 						"set content failed: changeToken does not match" + ",TraceId:" + span.getTraceId());
 			}
@@ -3468,6 +3534,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"delete content failed: changeToken does not match in repositoryId", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisUpdateConflictException(
 						"delete content failed: changeToken does not match" + ",TraceId:" + span.getTraceId());
 			}
@@ -3524,7 +3591,17 @@ public class CmisObjectService {
 				attrMap.put("error", "Object not found!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object not found!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
+			}
+			if (data == null) {
+				LOG.error("deleteObject Object id: {}, null in : {} repository!, TraceId: {}", objectId, repositoryId,
+						span.getTraceId());
+				attrMap.put("error", "Object must not be null!" + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object must not be null!", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
+				throw new CmisObjectNotFoundException("Object must not be null!" + ",TraceId:" + span.getTraceId());
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				LOG.error("deleteObject failed: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.",
@@ -3532,6 +3609,7 @@ public class CmisObjectService {
 				attrMap.put("error", "deleteObject failed" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "deleteObject failed:!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisNotSupportedException("can't delete a root folder" + ",TraceId:" + span.getTraceId());
 			}
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -3559,6 +3637,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"deleteObjectChildrens object not found!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
@@ -3680,6 +3759,7 @@ public class CmisObjectService {
 				attrMap.put("error", "deleteTree object not found" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "deleteTree object not found", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			List<String> failedToDeleteIds = new ArrayList<String>();
@@ -3693,6 +3773,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"deleteTree cannot delete object with id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("Cannot delete object with id  " + folderId
 						+ ". Object does not exist." + ",TraceId:" + span.getTraceId());
 			}
@@ -3705,6 +3786,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"deleteTree can only be invoked on a folder ", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("deleteTree can only be invoked on a folder, but id " + folderId
 						+ " does not refer to a folder" + ",TraceId:" + span.getTraceId());
 			}
@@ -3717,6 +3799,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"This repository does not support unfile operations.", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisNotSupportedException(
 						"This repository does not support unfile operations." + ",TraceId:" + span.getTraceId());
 			}
@@ -3728,6 +3811,7 @@ public class CmisObjectService {
 				attrMap.put("error", "can't delete a root folder:" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "can't delete a root folder", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisNotSupportedException("can't delete a root folder" + ",TraceId:" + span.getTraceId());
 			}
 
@@ -3795,6 +3879,7 @@ public class CmisObjectService {
 				attrMap.put("error", "Object not found!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object not found!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Object not found!" + ",TraceId:" + span.getTraceId());
 			}
 			if (data == null) {
@@ -3803,6 +3888,7 @@ public class CmisObjectService {
 				attrMap.put("error", "Unknown object!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Unknown object: " + objectId.getValue() + ",TraceId:" + span.getTraceId());
 			}
@@ -3813,6 +3899,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "RootFolder have no move operation!",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisNotSupportedException(
 						"RootFolder " + data.getId() + " have no move operation" + ",TraceId:" + span.getTraceId());
 			}
@@ -3823,6 +3910,7 @@ public class CmisObjectService {
 				attrMap.put("error", "Unknown target folder!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown target folder!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Unknown target folder: " + targetFolderId + ",TraceId:" + span.getTraceId());
 			} else if (soTarget.getBaseId() == BaseTypeId.CMIS_FOLDER) {
@@ -3834,6 +3922,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Destination of a move operation must be a folder!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisNotSupportedException(
 						"Destination " + targetFolderId + " of a move operation must be a folder");
 			}
@@ -3846,6 +3935,7 @@ public class CmisObjectService {
 				attrMap.put("error", "Unknown source folder!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown source folder!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Unknown source folder: " + sourceFolderId + ",TraceId:" + span.getTraceId());
 			} else if (soSource.getBaseId() == BaseTypeId.CMIS_FOLDER) {
@@ -3856,6 +3946,7 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Source of a move operation must be a folder!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisNotSupportedException("Source " + sourceFolderId + " of a move operation must be a folder"
 						+ " ,TraceId:" + span.getTraceId());
 			}
@@ -3873,6 +3964,7 @@ public class CmisObjectService {
 						TracingApiServiceFactory.getApiService().updateSpan(span, true,
 								"Destination is not a parent folder for this document!", attrMap);
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 						throw new CmisNotSupportedException("Destination " + targetFolderId
 								+ " is not a parent folder for this document" + " ,TraceId:" + span.getTraceId());
 					}
@@ -3893,6 +3985,7 @@ public class CmisObjectService {
 						attrMap.put("error", "Move Object failed!" + " ,TraceId:" + span.getTraceId());
 						TracingApiServiceFactory.getApiService().updateSpan(span, true, "Move Object failed!", attrMap);
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 						throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 					}
 				} else if (data.getBaseId() == BaseTypeId.CMIS_FOLDER) {
@@ -3906,6 +3999,7 @@ public class CmisObjectService {
 						attrMap.put("error", "Move Object failed!" + " ,TraceId:" + span.getTraceId());
 						TracingApiServiceFactory.getApiService().updateSpan(span, true, "Move Object failed!", attrMap);
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 						throw new IllegalArgumentException(ex + " ,TraceId:" + span.getTraceId());
 					}
 				}
@@ -4084,6 +4178,7 @@ public class CmisObjectService {
 				attrMap.put("error", "No properties!!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "No properties!!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException("No properties!" + " ,TraceId:" + span.getTraceId());
 			}
 
@@ -4093,6 +4188,7 @@ public class CmisObjectService {
 				attrMap.put("error", "Type is unknown!" + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type is unknown!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Type '" + type.getId() + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 			}
@@ -4117,8 +4213,7 @@ public class CmisObjectService {
 					if (secondaryObjectTypeIds != null) {
 						Map<String, PropertyDefinition<?>> secondaryPropertyDefinition = new HashMap<>();
 						List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl.checkTypePermissionList(
-								typePermissionFlow, repositoryId, userObject == null ? null : userObject.getGroups(),
-								secondaryObjectTypeIds);
+								typePermissionFlow, repositoryId, userObject, secondaryObjectTypeIds);
 						secondaryObject.stream().collect(Collectors.toList()).forEach(e -> {
 							Map<String, PropertyDefinition<?>> secondaryProperty = e.getPropertyDefinitions();
 							secondaryProperty.entrySet().stream().collect(Collectors.toList()).forEach(t -> {
@@ -4137,6 +4232,7 @@ public class CmisObjectService {
 					attrMap.put("error", "Property is unknown!" + " ,TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Property is unknown!", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(
 							"Property '" + prop.getId() + "' is unknown!" + " ,TraceId:" + span.getTraceId());
 				}

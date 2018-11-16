@@ -62,7 +62,11 @@ public class CmisRelationshipService {
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
 						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
-				throw new MongoException(e.toString() + "  TraceId:" + span.getTraceId());
+				attrMap.put("error", e.toString()  + " ,TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, true, "getObjectRelationships Exception", attrMap);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
+				throw new MongoException(e.toString() + " ,TraceId:" + span.getTraceId());
 			}
 
 			if (so == null) {
@@ -71,6 +75,7 @@ public class CmisRelationshipService {
 				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}

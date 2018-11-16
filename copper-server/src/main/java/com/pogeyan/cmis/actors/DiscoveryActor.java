@@ -72,6 +72,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to getContentChanges", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized to getContentChanges." + " TraceId:" + span.getTraceId());
 		}

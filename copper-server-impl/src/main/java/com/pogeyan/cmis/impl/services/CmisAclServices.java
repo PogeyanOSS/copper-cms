@@ -60,15 +60,16 @@ public class CmisAclServices {
 			Map<String, Object> attrMap = new HashMap<String, Object>();
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "getAcl", objectId, repositoryId);
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId, repositoryId, span.getTraceId());
 				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id: " + objectId + " TraceId:" + span.getTraceId());
+						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
-					false, objectInfos, null, null, userObject);
+					false, objectInfos, null, null, userObject, tracingId, span);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
@@ -88,34 +89,34 @@ public class CmisAclServices {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}", "applyAcl", objectId, repositoryId);
-				attrMap.put("error", "Unknown object id:" + objectId + " TraceId:" + span.getTraceId());
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId, repositoryId, span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id: " + objectId + " TraceId:" + span.getTraceId());
+						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}
-			if (addAces != null || removeAces != null) {
-				Long modifiedTime = System.currentTimeMillis();
-				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
-				switch (aclPropagation) {
-				case REPOSITORYDETERMINED: {
-					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-							tracingId, span);
-					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
-					break;
-				}
-				case OBJECTONLY:
-					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-							tracingId, span);
-					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
-					break;
-				case PROPAGATE:
-					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-							tracingId, span);
-					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
-					break;
-				}
+
+			Long modifiedTime = System.currentTimeMillis();
+			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
+			switch (aclPropagation) {
+			case REPOSITORYDETERMINED: {
+				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+						tracingId, span);
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
+				break;
+			}
+			case OBJECTONLY:
+				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+						tracingId, span);
+				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
+				break;
+			case PROPAGATE:
+				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+						tracingId, span);
+				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
+				break;
 			}
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, data.getTypeId());
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
@@ -167,6 +168,10 @@ public class CmisAclServices {
 									.filter(remAce -> remAce.getPrincipalId().equals(ace.getPrincipalId())).count() < 1)
 							.collect(Collectors.toList());
 				}
+			}
+
+			if (addAces == null && removeAces == null) {
+				aces.addAll(object.getAcl().getAces());
 			}
 
 			Set<Ace> removeDuplicate = aces.stream()

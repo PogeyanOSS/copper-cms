@@ -179,6 +179,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -194,6 +195,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + "  does not have valid acces control permission to access this object", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisInvalidArgumentException(
 					t.getUserName() + "{} does not have valid acces control permission to access this object" + " ,TraceId:" + span.getTraceId());
 		}
@@ -214,7 +216,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (returnVersion == ReturnVersion.LATEST || returnVersion == ReturnVersion.LASTESTMAJOR) {
 			object = CmisVersioningServices.Impl.getObjectOfLatestVersion(t.getRepositoryId(), objectId, null,
 					returnVersion == ReturnVersion.LASTESTMAJOR, filter, includeAllowableActions, null,
-					includePolicyIds, includeAcl, null, null, t.getUserObject(), tracingId, span);
+					includePolicyIds, includeAcl, null, null, t.getUserObject());
 		} else {
 			object = CmisObjectService.Impl.getObject(t.getRepositoryId(), objectId, filter, includeAllowableActions,
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null, t.getUserObject(),
@@ -239,6 +241,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -261,6 +264,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				attrMap.put("error", "Properties are null!, TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Properties are null!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisRuntimeException("Properties are null!, TraceId:" + span.getTraceId());
 			}
 			JSONObject result = JSONConverter.convert(properties, objectId.toString(),
@@ -285,6 +289,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -310,6 +315,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -349,6 +355,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -369,6 +376,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "New folder is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "New folder is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("New folder is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -398,6 +406,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -431,6 +440,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "New document is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "New document is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("New document is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -458,6 +468,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -478,6 +489,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "Source object has no type!?!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "Source object has no type!?!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Source object has no type!?!, TraceId:" + span.getTraceId());
 		}
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
@@ -495,6 +507,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "New document is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "New document is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("New document is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -523,6 +536,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -545,6 +559,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "New folder is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "New folder is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("New folder is null!, TraceId:" + span.getTraceId());
 		}
 		// return object
@@ -571,6 +586,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -592,6 +608,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "New folder is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "New folder is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("New folder is null!, TraceId:" + span.getTraceId());
 		}
 		// return object
@@ -618,6 +635,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -639,6 +657,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "New folder is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "New folder is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("New folder is null!, TraceId:" + span.getTraceId());
 		}
 		// return object
@@ -663,6 +682,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -725,6 +745,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -757,6 +778,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "New folder is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "New folder is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("New folder is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -780,6 +802,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -797,6 +820,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				attrMap.put("error", "Invalid download parameter value!, TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Invalid download parameter value!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisRuntimeException("Invalid download parameter value!, TraceId:" + span.getTraceId());
 			}
 		}
@@ -849,6 +873,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -879,6 +904,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "Object is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Object is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -901,6 +927,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -929,6 +956,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "Object is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Object is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -953,6 +981,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -976,6 +1005,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "Object is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "Object is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Object is null!, TraceId:" + span.getTraceId());
 		}
 
@@ -1000,6 +1030,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -1028,6 +1059,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}
@@ -1062,6 +1094,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl." + " TraceId:",
 					span.getTraceId());
 		}

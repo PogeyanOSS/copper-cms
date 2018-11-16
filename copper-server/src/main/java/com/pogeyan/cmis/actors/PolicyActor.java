@@ -80,6 +80,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized."+ " TraceId:" + span.getTraceId());
 		}
 		String objectId = request.getObjectId();
@@ -115,6 +116,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to applyPolicy", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyPolicy." + " TraceId:" + span.getTraceId());
 		}
 		String objectId = request.getObjectId();
@@ -132,6 +134,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Object is null!, TraceId:", span.getTraceId());
 		}
 
@@ -156,6 +159,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to removePolicy", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to removePolicy.");
 		}
 		String objectId = request.getObjectId();
@@ -173,6 +177,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Object is null!, TraceId:", span.getTraceId());
 		}
 

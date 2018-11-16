@@ -70,6 +70,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
 					request.getUserName() + " is not authorized." + " ,TraceId:" + span.getTraceId());
 		}
@@ -97,6 +98,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " Relationships are null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException("Relationships are null!" + " ,TraceId:" + span.getTraceId());
 		}
 

@@ -31,6 +31,7 @@ import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.DateTimeHelper;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanImpl;
@@ -67,7 +68,7 @@ public class CmisPropertyConverter {
 			List<String> objectTypeIdsValues = properties.get(PropertyIds.OBJECT_TYPE_ID);
 			if (isNotEmpty(objectTypeIdsValues)) {
 				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-						objectTypeIdsValues.get(0), null, userObject);
+						objectTypeIdsValues.get(0), null, userObject, null, null);
 				objectType.add(typeDef);
 				if (typeDef == null) {
 					throw new CmisInvalidArgumentException("Invalid type: " + objectTypeIdsValues.get(0));
@@ -79,7 +80,7 @@ public class CmisPropertyConverter {
 			if (isNotEmpty(secondaryObjectTypeIdsValues)) {
 				for (String secTypeId : secondaryObjectTypeIdsValues) {
 					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
-							userObject);
+							userObject, null, null);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
 						throw new CmisInvalidArgumentException("Invalid type: " + secTypeId);
@@ -123,7 +124,7 @@ public class CmisPropertyConverter {
 			// load primary type
 			if (typeId != null) {
 				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null,
-						userObject);
+						userObject, null, null);
 				objectType.add(typeDef);
 				if (typeDef == null) {
 					throw new CmisInvalidArgumentException("Invalid type: " + typeId);
@@ -135,7 +136,7 @@ public class CmisPropertyConverter {
 			if (isNotEmpty(secondaryObjectTypeIdsValues)) {
 				for (String secTypeId : secondaryObjectTypeIdsValues) {
 					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
-							userObject);
+							userObject, null, null);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
 						throw new CmisInvalidArgumentException("Invalid type: " + secTypeId);
@@ -146,7 +147,7 @@ public class CmisPropertyConverter {
 			if (secondaryTypeIds != null) {
 				for (String secTypeId : secondaryTypeIds) {
 					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
-							userObject);
+							userObject, null, null);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
 						throw new CmisInvalidArgumentException("Invalid secondary type: " + secTypeId);
@@ -162,7 +163,7 @@ public class CmisPropertyConverter {
 					for (String objectId : objectIds) {
 						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-								object.getTypeId(), null, userObject);
+								object.getTypeId(), null, userObject, null, null);
 						innerObjectType.add(typeDef);
 						propDef = getPropertyDefinition(innerObjectType, property.getKey());
 						if (propDef != null) {
@@ -174,7 +175,7 @@ public class CmisPropertyConverter {
 					if (secondaryTypes.isEmpty()) {
 						for (String secTypeId : data.getSecondaryTypeIds()) {
 							TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId,
-									null, userObject);
+									null, userObject, null, null);
 							secondaryTypes.add(typeDef);
 							if (typeDef == null) {
 								throw new CmisInvalidArgumentException("Invalid secondary type: " + secTypeId);
@@ -312,7 +313,10 @@ public class CmisPropertyConverter {
 			} catch (Exception e) {
 				throw new MongoException(e.toString());
 			}
-
+			if (data == null) {
+				LOG.error("getTypeIdForObject Object id: {}, null in : {} repository!", objectId, repositoryId);
+				throw new CmisObjectNotFoundException("Object must not be null!");
+			}
 			return data.getTypeId();
 		}
 	}

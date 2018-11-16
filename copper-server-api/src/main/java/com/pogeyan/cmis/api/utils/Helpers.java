@@ -34,8 +34,11 @@ import java.util.stream.Collectors;
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.pogeyan.cmis.api.CustomTypeId;
 import com.pogeyan.cmis.api.auth.IUserGroupObject;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
@@ -61,6 +64,11 @@ public class Helpers {
 			"description", "baseTypeId", "parent", "isFileable", "isQueryable", "isFulltextIndexed",
 			"isIncludedInSupertypeQuery", "isControllablePolicy", "typeMutability", "isControllableAcl",
 			"propertyDefinition.cmis:name", "propertyDefinition.cmis:objectTypeId" };
+
+	public static String[] basicTypes = { BaseTypeId.CMIS_FOLDER.value(), BaseTypeId.CMIS_DOCUMENT.value(),
+			BaseTypeId.CMIS_ITEM.value(), BaseTypeId.CMIS_POLICY.value(), BaseTypeId.CMIS_RELATIONSHIP.value(),
+			BaseTypeId.CMIS_SECONDARY.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
+			CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_CONFIG.value() };
 
 	/**
 	 * Gets the utc time.
@@ -410,11 +418,25 @@ public class Helpers {
 		return result;
 	}
 
-	public static String[] getTypeMappedColumns(List<String> fieldAccess) {
-		String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
-		String[] fieldAccessValues = Stream.concat(Arrays.stream(defaultProperty), Arrays.stream(accessValues))
-				.toArray(String[]::new);
-		return fieldAccessValues;
+	public static String[] getTypeMappedColumns(List<String> fieldAccess, IUserObject role, String typeId) {
+		if (role == null || ArrayUtils.contains(basicTypes, typeId) || fieldAccess.isEmpty()) {
+			return null;
+		} else {
+			String[] accessValues = fieldAccess.stream().map(t -> "propertyDefinition." + t).toArray(String[]::new);
+			String[] fieldAccessValues = Stream.concat(Arrays.stream(defaultProperty), Arrays.stream(accessValues))
+					.toArray(String[]::new);
+			return fieldAccessValues;
+		}
+	}
 
+	public static Boolean isSystemUser(IUserObject role) {
+		if (role != null) {
+			for (IUserGroupObject userobject : role.getGroups()) {
+				if (userobject.getGroupDN().equals("system")) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

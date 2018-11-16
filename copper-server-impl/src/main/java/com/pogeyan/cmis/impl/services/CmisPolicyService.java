@@ -53,18 +53,19 @@ public class CmisPolicyService {
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAppliedPolicies", objectId,
 						repositoryId, span.getTraceId());
-				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id: " + objectId + "TraceId:" + span.getTraceId());
+						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}
 			List<String> polIds = data.getPolicies();
 			if (null != polIds && polIds.size() > 0) {
 				for (String polId : polIds) {
 					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null, data.getTypeId());
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
-							false, true, null, null, IncludeRelationships.NONE, userObject);
+							false, true, null, null, IncludeRelationships.NONE, userObject, tracingId, span);
 
 					res.add(objectData);
 				}
@@ -90,11 +91,12 @@ public class CmisPolicyService {
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "removePolicy", objectId,
 						repositoryId, span.getTraceId());
-				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id: " + objectId + "TraceId:" + span.getTraceId());
+						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			polIds = data.getPolicies();
@@ -107,9 +109,10 @@ public class CmisPolicyService {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"cannot be removed because it is not applied to object", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Policy id: " + policyId + " cannot be removed because it is not applied to object: " + objectId
-								+ " TraceId:" + span.getTraceId());
+								+ " ,TraceId:" + span.getTraceId());
 			}
 			polIds.remove(policyId);
 			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token, typeId);
@@ -132,21 +135,23 @@ public class CmisPolicyService {
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyPolicy", objectId,
 						repositoryId, span.getTraceId());
-				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id: " + objectId + "TraceId:" + span.getTraceId());
+						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}
 			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, policyId, null, data.getTypeId());
 			if (policy == null) {
 				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy", policyId,
 						repositoryId, span.getTraceId());
-				attrMap.put("error", "Unknown policy id:" + policyId + "TraceId:" + span.getTraceId());
+				attrMap.put("error", "Unknown policy id:" + policyId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown policy id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown policy id: " + policyId + " TraceId:" + span.getTraceId());
+						"Unknown policy id: " + policyId + " ,TraceId:" + span.getTraceId());
 			}
 			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
 			polIds = data.getPolicies();
@@ -154,14 +159,15 @@ public class CmisPolicyService {
 				LOG.error(
 						"Method name: {}, policyId: {}, cannot be added because it is already applied to object: {}, repository: {}, TraceId:{}",
 						"applyPolicy", policyId, objectId, repositoryId, span.getTraceId());
-				attrMap.put("error", "cannot be added because it is already applied to object" + objectId + "TraceId:"
+				attrMap.put("error", "cannot be added because it is already applied to object" + objectId + " ,TraceId:"
 						+ span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"cannot be added because it is already applied to object", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
 						"Policy id: " + policyId + " cannot be added because it is already applied to object: "
-								+ objectId + " TraceId:" + span.getTraceId());
+								+ objectId + " ,TraceId:" + span.getTraceId());
 			}
 			if (polIds == null) {
 				polIds = new ArrayList<String>();

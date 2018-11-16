@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
@@ -57,7 +58,6 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.CustomTypeId;
-import com.pogeyan.cmis.api.auth.IUserGroupObject;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
@@ -120,12 +120,13 @@ public class CmisTypeServices {
 									LOG.error("Folder creation exception:  {}, repositoryId: {}, TraceId:{}", e,
 											repositoryId, span.getTraceId());
 									attrMap.put("error",
-											"Folder creation exception: {}" + e + " TraceId:" + span.getTraceId());
+											"Folder creation exception: {}" + e + " ,TraceId:" + span.getTraceId());
 									TracingApiServiceFactory.getApiService().updateSpan(span, true,
 											"Folder creation exception", attrMap);
 									TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+									TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 									throw new IllegalArgumentException(
-											e.getMessage() + " TraceId:" + span.getTraceId());
+											e.getMessage() + " ,TraceId:" + span.getTraceId());
 								}
 							}
 							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, tm.getId(), tm);
@@ -137,11 +138,12 @@ public class CmisTypeServices {
 			} catch (MongoException e) {
 				LOG.error("MongoObject shouldnot be null: {}, repository: {}, TraceId:{}", e, repositoryId,
 						span.getTraceId());
-				attrMap.put("error", "MongoObject shouldnot be null: {}" + e + " TraceId:" + span.getTraceId());
+				attrMap.put("error", "MongoObject shouldnot be null: {}" + e + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "MongoObject shouldnot be null",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-				throw new MongoException("MongoObject shouldnot be null" + " TraceId:" + span.getTraceId());
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
+				throw new MongoException("MongoObject shouldnot be null" + " ,TraceId:" + span.getTraceId());
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		}
@@ -529,15 +531,16 @@ public class CmisTypeServices {
 			if (type == null) {
 				LOG.error("Type must be set! in repository: {} , TraceId:{}", repositoryId, span.getTraceId());
 				attrMap.put("error",
-						"Type must be set! in repository:" + repositoryId + "TraceId:" + span.getTraceId());
+						"Type must be set! in repository:" + repositoryId + " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must be set!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException("Type must be set!, TraceId:" + span.getTraceId());
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId,
-					userObject == null ? null : userObject.getGroups(), type.getId(), TypePermissionType.WRITE);
+			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId, userObject, type.getId(),
+					TypePermissionType.WRITE);
 			if (permission) {
 				TypeMutabilityImpl typeMutability = null;
 				Map<String, PropertyDefinitionImpl<?>> Mproperty = null;
@@ -546,15 +549,16 @@ public class CmisTypeServices {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				TypeDefinition object = null;
-			
+
 				if (type.getId() == null || type.getId().trim().length() == 0) {
 					LOG.error("Type must have a valid id! in repository: {}, TraceId:{}", repositoryId,
 							span.getTraceId());
-					attrMap.put("error", "Type must have a valid id! in repository:" + repositoryId + "TraceId:"
+					attrMap.put("error", "Type must have a valid id! in repository:" + repositoryId + " ,TraceId:"
 							+ span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must have a valid id!",
 							attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException("Type must have a valid id!, TraceId:" + span.getTraceId());
 				}
 				if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
@@ -565,6 +569,7 @@ public class CmisTypeServices {
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must have a valid parent id!",
 							attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(
 							"Type must have a valid parent id!, TraceId:" + span.getTraceId());
 				}
@@ -577,9 +582,10 @@ public class CmisTypeServices {
 				if (object != null) {
 					LOG.error(type.getId() + ": {}, repository: {}, TraceId: {}", " is already present!", repositoryId,
 							span.getTraceId());
-					attrMap.put("error", "id already present:"+ type.getId()  + " ,TraceId:" + span.getTraceId());
+					attrMap.put("error", "id already present:" + type.getId() + " ,TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "id already present", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(
 							type.getId() + " id already present" + " ,TraceId:" + span.getTraceId());
 				}
@@ -617,14 +623,15 @@ public class CmisTypeServices {
 						typeManagerDAO.delete(type.getId());
 						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
 								span.getTraceId());
-						attrMap.put("error",
-								"Type folder creation exception:" + e + " ,TraceId:" + span.getTraceId());
+						attrMap.put("error", "Type folder creation exception:" + e + " ,TraceId:" + span.getTraceId());
 						TracingApiServiceFactory.getApiService().updateSpan(span, true,
 								"Type folder creation exception", attrMap);
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-						throw new IllegalArgumentException(e.getMessage() + " TraceId:" + span.getTraceId());
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
+						throw new IllegalArgumentException(e.getMessage() + " ,TraceId:" + span.getTraceId());
 					}
-					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, null, userObject);
+					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, typePermissionFlow,
+							userObject);
 					return getType;
 				} else {
 					TypeDefinition newType = getTypeDefinitionManager(typeManagerDAO, type, Mproperty, typeMutability);
@@ -639,25 +646,27 @@ public class CmisTypeServices {
 						typeManagerDAO.delete(type.getId());
 						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
 								span.getTraceId());
-						attrMap.put("error",
-								"Type folder creation exception:" + e + " ,TraceId:" + span.getTraceId());
+						attrMap.put("error", "Type folder creation exception:" + e + " ,TraceId:" + span.getTraceId());
 						TracingApiServiceFactory.getApiService().updateSpan(span, true,
 								"Type folder creation exception", attrMap);
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-						throw new IllegalArgumentException(e.getMessage() + " TraceId:" + span.getTraceId());
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
+						throw new IllegalArgumentException(e.getMessage() + " ,TraceId:" + span.getTraceId());
 					}
-					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, null, userObject);
+					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, typePermissionFlow,
+							userObject);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 					return getType;
 				}
 			} else {
 				LOG.error("Create type permission denied for this user: {}, repository: {}, TraceId: {}",
 						userObject.getUserDN(), repositoryId, span.getTraceId());
-				attrMap.put("error",
-						"Create type permission denied for this user:" + userObject.getUserDN() + " ,TraceId:" + span.getTraceId());
+				attrMap.put("error", "Create type permission denied for this user:" + userObject.getUserDN()
+						+ " ,TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Create type permission denied for this user", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisPermissionDeniedException("Create type permission denied for this userId:"
 						+ userObject.getUserDN() + " ,TraceId:" + span.getTraceId());
 			}
@@ -680,12 +689,13 @@ public class CmisTypeServices {
 						"Type must be set! in repository:" + repositoryId + ",TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must be set!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException("Type must be set!, TraceId:" + span.getTraceId());
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId,
-					userObject == null ? null : userObject.getGroups(), type.getId(), TypePermissionType.WRITE);
+			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId, userObject, type.getId(),
+					TypePermissionType.WRITE);
 			if (permission) {
 				TypeMutabilityImpl typeMutability = null;
 				Map<String, PropertyDefinitionImpl<?>> Mproperty = null;
@@ -699,16 +709,18 @@ public class CmisTypeServices {
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must have a valid id!",
 							attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException("Type must have a valid id!, TraceId:" + span.getTraceId());
 				}
 				if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
 					LOG.error("Type must have a valid parent id! in repository: {}, TraceId:{}", repositoryId,
 							span.getTraceId());
-					attrMap.put("error", "Type must have a valid parent id! in repository:" + repositoryId + " ,TraceId:"
-							+ span.getTraceId());
+					attrMap.put("error", "Type must have a valid parent id! in repository:" + repositoryId
+							+ " ,TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type must have a valid parent id!",
 							attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(
 							"Type must have a valid parent id!, TraceId:" + span.getTraceId());
 				}
@@ -726,6 +738,7 @@ public class CmisTypeServices {
 					attrMap.put("error", "Unknown TypeId:" + type.getId() + " ,TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown TypeId", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException(
 							"Unknown TypeId" + type.getId() + ",TraceId:" + span.getTraceId());
 				}
@@ -761,11 +774,12 @@ public class CmisTypeServices {
 			} else {
 				LOG.error("Update type permission denied for this user: {}, repository: {}", userObject.getUserDN(),
 						repositoryId);
-				attrMap.put("error",
-						"Update type permission denied for this user:" + repositoryId + " ,TraceId:" + span.getTraceId());
+				attrMap.put("error", "Update type permission denied for this user:" + repositoryId + " ,TraceId:"
+						+ span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Update type permission denied for this user", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisPermissionDeniedException("Update type permission denied for this userId:"
 						+ userObject.getUserDN() + " ,TraceId:" + span.getTraceId());
 			}
@@ -788,12 +802,13 @@ public class CmisTypeServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Type is not available to delete",
 						attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException("Type must be set!, TraceId:" + span.getTraceId());
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId,
-					userObject == null ? null : userObject.getGroups(), type, TypePermissionType.DELETE);
+			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId, userObject, type,
+					TypePermissionType.DELETE);
 			if (permission) {
 				TypeDefinition object = null;
 
@@ -814,6 +829,7 @@ public class CmisTypeServices {
 					attrMap.put("error", "Unknown TypeId" + type + ",TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown TypeId", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException("Unknown TypeId:" + type + ",TraceId:" + span.getTraceId());
 				}
 				// Map<String, String> parameters =
@@ -832,11 +848,12 @@ public class CmisTypeServices {
 			} else {
 				LOG.error("Delete type permission denied for this user: {}, repository: {}, TraceId: {}",
 						userObject.getUserDN(), repositoryId, span.getTraceId());
-				attrMap.put("error", "Delete type permission denied for this user:" + userObject.getUserDN() + ",TraceId:"
-						+ span.getTraceId());
+				attrMap.put("error", "Delete type permission denied for this user:" + userObject.getUserDN()
+						+ ",TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"Delete type permission denied for this user", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisPermissionDeniedException("Delete type permission denied for this userId:"
 						+ userObject.getUserDN() + ",TraceId:" + span.getTraceId());
 			}
@@ -856,13 +873,14 @@ public class CmisTypeServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"getTypeDefinition typeId should not be null in repository", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new IllegalArgumentException("Type must be set!, TraceId:" + span.getTraceId());
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			TypeDefinition typeDefinition = null;
 			List<? extends TypeDefinition> typeDef = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), typeId);
+					repositoryId, userObject, typeId);
 			if (typeDef != null && typeDef.size() > 0) {
 				typeDefinition = typeDef.get(0);
 			}
@@ -890,6 +908,7 @@ public class CmisTypeServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"getTypeDefinition typeId should not be null in repository", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException("Type must be set!, TraceId:" + span.getTraceId());
 
 			}
@@ -916,8 +935,7 @@ public class CmisTypeServices {
 			if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 
 				DocumentTypeDefinition docType = getDocumentDefinitionWithTypePermission(typePermissionFlow,
-						repositoryId, userObject == null ? null : userObject.getGroups(),
-						typeDefinition.getId().toString());
+						repositoryId, userObject, typeDefinition.getId().toString());
 				Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(typeDefinition, repositoryId,
 						innerChild, null, typePermissionFlow, userObject);
 				CmisDocumentTypeDefinitionImpl documentType = getTypeDocumentObjectInstance(docType, list);
@@ -1113,7 +1131,7 @@ public class CmisTypeServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			List<? extends TypeDefinition> typeDef = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), typeId);
+					repositoryId, userObject, typeId);
 			if (typeDef != null && typeDef.size() > 0) {
 				typeDefinition = typeDef.get(0);
 			}
@@ -1137,7 +1155,7 @@ public class CmisTypeServices {
 					.createTypePermissionFlowService(repositoryId);
 			if (typeId != null) {
 				List<? extends TypeDefinition> typeDef = getTypeDefinitionWithTypePermission(typePermissionFlow,
-						repositoryId, userObject == null ? null : userObject.getGroups(), typeId);
+						repositoryId, userObject, typeId);
 				if (typeDef != null && typeDef.size() > 0) {
 					object = typeDef.get(0);
 				}
@@ -1148,6 +1166,7 @@ public class CmisTypeServices {
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "getTypeChildren unknown TypeId",
 							attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException("Unknown TypeID:" + typeId + ",TraceId:" + span.getTraceId());
 				}
 			}
@@ -1169,7 +1188,7 @@ public class CmisTypeServices {
 					List<TypeDefinition> resultTypes = childrenList.stream()
 							.filter(t -> typePermissionFlow != null
 									? typePermissionFlow.checkTypeAccess(repositoryId,
-											userObject.getGroups() == null ? null : userObject.getGroups(), t.getId())
+											userObject.getGroups() == null ? null : userObject, t.getId())
 									: true)
 							.map(t -> getPropertyIncludeObject(repositoryId, t, includePropertyDefinitions,
 									typePermissionFlow, userObject))
@@ -1189,43 +1208,37 @@ public class CmisTypeServices {
 				} else {
 					List<TypeDefinition> resultTypes = new ArrayList<>();
 					List<? extends TypeDefinition> folderType = getTypeDefinitionWithTypePermission(typePermissionFlow,
-							repositoryId, userObject == null ? null : userObject.getGroups(),
-							BaseTypeId.CMIS_FOLDER.value());
+							repositoryId, userObject, BaseTypeId.CMIS_FOLDER.value());
 					if (folderType != null) {
 						resultTypes.add(getPropertyIncludeObject(repositoryId, folderType.get(0),
 								includePropertyDefinitions, typePermissionFlow, userObject));
 					}
 					DocumentTypeDefinition documentType = getDocumentDefinitionWithTypePermission(typePermissionFlow,
-							repositoryId, userObject == null ? null : userObject.getGroups(),
-							BaseTypeId.CMIS_DOCUMENT.value());
+							repositoryId, userObject, BaseTypeId.CMIS_DOCUMENT.value());
 					if (documentType != null) {
 						resultTypes.add(getPropertyIncludeObject(repositoryId, documentType, includePropertyDefinitions,
 								typePermissionFlow, userObject));
 					}
 					List<? extends TypeDefinition> itemType = getTypeDefinitionWithTypePermission(typePermissionFlow,
-							repositoryId, userObject == null ? null : userObject.getGroups(),
-							BaseTypeId.CMIS_ITEM.value());
+							repositoryId, userObject, BaseTypeId.CMIS_ITEM.value());
 					if (itemType != null) {
 						resultTypes.add(getPropertyIncludeObject(repositoryId, itemType.get(0),
 								includePropertyDefinitions, typePermissionFlow, userObject));
 					}
 					List<? extends TypeDefinition> policyType = getTypeDefinitionWithTypePermission(typePermissionFlow,
-							repositoryId, userObject == null ? null : userObject.getGroups(),
-							BaseTypeId.CMIS_POLICY.value());
+							repositoryId, userObject, BaseTypeId.CMIS_POLICY.value());
 					if (policyType != null) {
 						resultTypes.add(getPropertyIncludeObject(repositoryId, policyType.get(0),
 								includePropertyDefinitions, typePermissionFlow, userObject));
 					}
 					List<? extends TypeDefinition> relationshipType = getTypeDefinitionWithTypePermission(
-							typePermissionFlow, repositoryId, userObject == null ? null : userObject.getGroups(),
-							BaseTypeId.CMIS_RELATIONSHIP.value());
+							typePermissionFlow, repositoryId, userObject, BaseTypeId.CMIS_RELATIONSHIP.value());
 					if (relationshipType != null) {
 						resultTypes.add(getPropertyIncludeObject(repositoryId, relationshipType.get(0),
 								includePropertyDefinitions, typePermissionFlow, userObject));
 					}
 					List<? extends TypeDefinition> secondaryType = getTypeDefinitionWithTypePermission(
-							typePermissionFlow, repositoryId, userObject == null ? null : userObject.getGroups(),
-							BaseTypeId.CMIS_SECONDARY.value());
+							typePermissionFlow, repositoryId, userObject, BaseTypeId.CMIS_SECONDARY.value());
 					if (secondaryType != null) {
 						resultTypes.add(getPropertyIncludeObject(repositoryId, secondaryType.get(0),
 								includePropertyDefinitions, typePermissionFlow, userObject));
@@ -1262,7 +1275,7 @@ public class CmisTypeServices {
 			if (typeId != null) {
 				TypeDefinition object = null;
 				List<? extends TypeDefinition> typeDef = getTypeDefinitionWithTypePermission(typePermissionFlow,
-						repositoryId, userObject == null ? null : userObject.getGroups(), typeId);
+						repositoryId, userObject, typeId);
 				if (typeDef != null && typeDef.size() > 0) {
 					object = typeDef.get(0);
 				}
@@ -1274,6 +1287,7 @@ public class CmisTypeServices {
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "getTypeDescendants unknown typeID",
 							attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new IllegalArgumentException("Unknown typeID " + typeId + "TraceId:" + span.getTraceId());
 				}
 
@@ -1291,6 +1305,7 @@ public class CmisTypeServices {
 					attrMap.put("error", "unknown type id:" + typeId + "TraceId:" + span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span, true, "unknown type id:", attrMap);
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 					throw new CmisInvalidArgumentException(
 							"unknown type id: " + typeId + "TraceId:" + span.getTraceId());
 				} else {
@@ -1306,6 +1321,7 @@ public class CmisTypeServices {
 				attrMap.put("error", "unknown type id:" + typeId + "TraceId:" + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "unknown type id:", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException("unknown typeId: " + typeId + "TraceId:" + span.getTraceId());
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
@@ -1325,12 +1341,12 @@ public class CmisTypeServices {
 			TypeDefinition result = null;
 
 			List<? extends TypeDefinition> typeDef = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), typeId);
+					repositoryId, userObject, typeId);
 			if (typeDef != null && typeDef.size() > 0) {
 				result = typeDef.get(0);
 				if (result.getBaseTypeId().value().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
 					DocumentTypeDefinition docResult = getDocumentDefinitionWithTypePermission(typePermissionFlow,
-							repositoryId, userObject == null ? null : userObject.getGroups(), typeId);
+							repositoryId, userObject, typeId);
 					Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(docResult, repositoryId, null, null,
 							typePermissionFlow, userObject);
 					typeDefinitionContainer = getDocTypeDefContainer(
@@ -1359,7 +1375,7 @@ public class CmisTypeServices {
 				if (child.getId() != null) {
 					if (typePermissionFlow != null
 							? typePermissionFlow.checkTypeAccess(repositoryId,
-									userObject.getGroups() != null ? userObject.getGroups() : null, child.getId())
+									userObject.getGroups() != null ? userObject : null, child.getId())
 							: true) {
 						childTypes = getTypeDesChildrens(repositoryId, child, innerChild, depth,
 								includePropertyDefinitions, typePermissionFlow, userObject);
@@ -1376,19 +1392,17 @@ public class CmisTypeServices {
 				ITypePermissionService typePermissionFlow, IUserObject userObject) {
 			List<TypeDefinitionContainer> object = new ArrayList<TypeDefinitionContainer>();
 			List<? extends TypeDefinition> folder = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), BaseTypeId.CMIS_FOLDER.value());
+					repositoryId, userObject, BaseTypeId.CMIS_FOLDER.value());
 			DocumentTypeDefinition document = getDocumentDefinitionWithTypePermission(typePermissionFlow, repositoryId,
-					userObject == null ? null : userObject.getGroups(), BaseTypeId.CMIS_DOCUMENT.value());
+					userObject, BaseTypeId.CMIS_DOCUMENT.value());
 			List<? extends TypeDefinition> policy = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), BaseTypeId.CMIS_POLICY.value());
+					repositoryId, userObject, BaseTypeId.CMIS_POLICY.value());
 			List<? extends TypeDefinition> relationship = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(),
-					BaseTypeId.CMIS_RELATIONSHIP.value());
+					repositoryId, userObject, BaseTypeId.CMIS_RELATIONSHIP.value());
 			List<? extends TypeDefinition> item = getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId,
-					userObject == null ? null : userObject.getGroups(), BaseTypeId.CMIS_ITEM.value());
+					userObject, BaseTypeId.CMIS_ITEM.value());
 			List<? extends TypeDefinition> secondary = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(),
-					BaseTypeId.CMIS_SECONDARY.value());
+					repositoryId, userObject, BaseTypeId.CMIS_SECONDARY.value());
 			if (folder != null) {
 				TypeDefinitionContainerImpl typeFolderDefinitionContainer = getTypeDefinitionContainerImpl(repositoryId,
 						folder.get(0), docTypeMorphia, depth, includePropertyDefinitions, typePermissionFlow,
@@ -1471,8 +1485,9 @@ public class CmisTypeServices {
 			} else {
 				for (TypeDefinition childType : childrenList) {
 					if (childType != null) {
-						if (typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-								userObject.getGroups() != null ? userObject.getGroups() : null, childType.getId())
+						if (typePermissionFlow != null
+								? typePermissionFlow.checkTypeAccess(repositoryId,
+										userObject.getGroups() != null ? userObject : null, childType.getId())
 								: true) {
 							List<TypeDefinitionContainer> TypeChild = new ArrayList<>();
 							TypeChild.clear();
@@ -1498,7 +1513,7 @@ public class CmisTypeServices {
 			TypeDefinitionContainerImpl typeDefinitionContainer = null;
 			if (child.getBaseTypeId().value().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
 				DocumentTypeDefinition docType = getDocumentDefinitionWithTypePermission(typePermission, repositoryId,
-						userObject == null ? null : userObject.getGroups(), child.getId());
+						userObject, child.getId());
 				typeDefinitionContainer = getDocTypeDefContainer(getDocTypeObject(repositoryId, docType,
 						includePropertyDefinitions, typePermission, userObject));
 			} else {
@@ -1521,8 +1536,8 @@ public class CmisTypeServices {
 			} else {
 				for (TypeDefinition childType : childrenList) {
 					if (childType != null) {
-						if (typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-								userObject.getGroups() != null ? userObject.getGroups() : null, childType.getId())
+						if (typePermissionFlow != null
+								? typePermissionFlow.checkTypeAccess(repositoryId, userObject, childType.getId())
 								: true) {
 							List<TypeDefinitionContainer> typeInnerChild = new ArrayList<>();
 							typeInnerChild.clear();
@@ -1609,7 +1624,7 @@ public class CmisTypeServices {
 
 			TypeDefinition parent = null;
 			List<? extends TypeDefinition> typeDef = getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject == null ? null : userObject.getGroups(), parentId);
+					repositoryId, userObject, parentId);
 			if (typeDef != null && typeDef.size() > 0) {
 				parent = typeDef.get(0);
 			}
@@ -1822,7 +1837,7 @@ public class CmisTypeServices {
 			PropertyData<?> propertyNameData = new PropertyIdImpl(PropertyIds.NAME, type.getId());
 			result.addProperty(propertyIDData);
 			result.addProperty(propertyNameData);
-			CmisObjectService.Impl.createTypeFolder(repositoryId, result, userObject);
+			CmisObjectService.Impl.createTypeFolder(repositoryId, result, userObject, null, null);
 		}
 
 		private static TypeDefinition getTypeDefinitionManager(MTypeManagerDAO typeManagerDAO, TypeDefinition type,
@@ -1879,90 +1894,74 @@ public class CmisTypeServices {
 		}
 
 		public static List<? extends TypeDefinition> getTypeDefinitionWithTypePermission(
-				ITypePermissionService typePermissionFlow, String repositoryId, IUserGroupObject[] role,
-				String typeId) {
-			LOG.info("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
-					"CmisTypeServices", "getTypeDefinitionWithTypePermission", repositoryId, typePermissionFlow, role);
+				ITypePermissionService typePermissionFlow, String repositoryId, IUserObject role, String typeId) {
+			LOG.debug(
+					"className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, typeId: {}, user role: {}",
+					"CmisTypeServices", "getTypeDefinitionWithTypePermission", repositoryId, typePermissionFlow, typeId,
+					role);
 			List<? extends TypeDefinition> typeDef = null;
-			if (typePermissionFlow != null) {
-				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
-					if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
-						List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
-						if (fieldsAcess != null) {
-							typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(typeId),
-									Helpers.getTypeMappedColumns(fieldsAcess));
-						}
-
+			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
+				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
+					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
+					if (fieldsAcess != null) {
+						typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(typeId),
+								Helpers.getTypeMappedColumns(fieldsAcess, role, typeId));
 					}
 				}
-			} else {
-				typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, Arrays.asList(typeId), null);
 			}
+
 			return typeDef;
 		}
 
 		public static DocumentTypeDefinition getDocumentDefinitionWithTypePermission(
-				ITypePermissionService typePermissionFlow, String repositoryId, IUserGroupObject[] role,
-				String typeId) {
-			LOG.info("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
+				ITypePermissionService typePermissionFlow, String repositoryId, IUserObject role, String typeId) {
+			LOG.debug("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
 					"CmisTypeServices", "getDocumentDefinitionWithTypePermission", repositoryId, typePermissionFlow,
 					role);
 			DocumentTypeDefinition docType = null;
-			if (typePermissionFlow != null) {
-				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
-					if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
-						List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
-						if (fieldsAcess != null) {
-							docType = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId,
-									Helpers.getTypeMappedColumns(fieldsAcess));
-						}
+			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
+				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
+					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
+					if (fieldsAcess != null) {
+						docType = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId,
+								Helpers.getTypeMappedColumns(fieldsAcess, role, typeId));
 					}
 				}
-			} else {
-				docType = DBUtils.DocumentTypeManagerDAO.getByTypeId(repositoryId, typeId, null);
 			}
+
 			return docType;
 		}
 
 		public static List<? extends TypeDefinition> checkTypePermissionList(ITypePermissionService typePermissionFlow,
-				String repositoryId, IUserGroupObject[] role, List<?> typeId) {
-			LOG.info("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
+				String repositoryId, IUserObject role, List<?> typeId) {
+			LOG.debug("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
 					"CmisTypeServices", "checkTypePermissionList", repositoryId, typePermissionFlow, role);
 			List<? extends TypeDefinition> typeDef = null;
 			List<TypeDefinition> typeSecDef = new ArrayList<>();
-			if (typePermissionFlow != null) {
-				for (Object id : typeId) {
-					if (typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(),
-							TypePermissionType.READ)) {
-						if (typePermissionFlow.checkTypeAccess(repositoryId, role, id.toString())) {
-							List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role,
-									id.toString());
-							if (fieldsAcess != null) {
-								TypeDefinition typeProp = DBUtils.TypeServiceDAO.getById(repositoryId,
-										Arrays.asList(id.toString()), Helpers.getTypeMappedColumns(fieldsAcess)).get(0);
-								typeSecDef.add(typeProp);
-							}
-
+			for (Object id : typeId) {
+				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(),
+						TypePermissionType.READ)) {
+					if (typePermissionFlow.checkTypeAccess(repositoryId, role, id.toString())) {
+						List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, id.toString());
+						if (fieldsAcess != null) {
+							TypeDefinition typeProp = DBUtils.TypeServiceDAO
+									.getById(repositoryId, Arrays.asList(id.toString()),
+											Helpers.getTypeMappedColumns(fieldsAcess, role, id.toString()))
+									.get(0);
+							typeSecDef.add(typeProp);
 						}
+
 					}
 				}
-				typeDef = typeSecDef;
-
-			} else {
-				typeDef = DBUtils.TypeServiceDAO.getById(repositoryId, typeId, null);
 			}
+			typeDef = typeSecDef;
+
 			return typeDef;
 		}
 
 		private static Boolean checkCrudPermission(ITypePermissionService typePermissionFlow, String repositoryId,
-				IUserGroupObject[] role, String typeId, TypePermissionType permission) {
-			LOG.info("className: {},  methodName: {}, repositoryId: {}, ITypePermissionService: {}, user role: {}",
-					"CmisTypeServices", "checkCrudPermission", repositoryId, typePermissionFlow, role);
-			if (typePermissionFlow != null) {
-				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, permission)) {
-					return true;
-				}
-			} else {
+				IUserObject role, String typeId, TypePermissionType permission) {
+			if (typePermissionFlow != null && role.getPermission().equals(BasicPermissions.ALL)) {
 				return true;
 			}
 			return false;
