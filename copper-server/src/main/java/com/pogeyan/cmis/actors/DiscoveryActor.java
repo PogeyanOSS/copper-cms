@@ -61,6 +61,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws CmisRuntimeException {
+		//Starting span for getContentChanges
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,

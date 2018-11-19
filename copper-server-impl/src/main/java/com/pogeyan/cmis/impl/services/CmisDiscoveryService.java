@@ -62,6 +62,7 @@ public class CmisDiscoveryService {
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId,
 				ISpan parentSpan) {
+			//starting span for getContentChanges
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisDiscoveryService::getContentChanges", null);
 			Map<String, Object> attrMap = new HashMap<String, Object>();

@@ -61,6 +61,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 
 	private JSONObject applyACL(PostRequest t, HashMap<String, Object> baggage)
 			throws CmisObjectNotFoundException, CmisRuntimeException {
+		//starting span for applyAcl
 		String permission = t.getUserObject().getPermission();
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
