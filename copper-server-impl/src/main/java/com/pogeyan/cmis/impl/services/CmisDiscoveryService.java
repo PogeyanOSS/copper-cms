@@ -60,7 +60,8 @@ public class CmisDiscoveryService {
 	public static class Impl {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
-				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId, ISpan parentSpan) {
+				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId,
+				ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisDiscoveryService::getContentChanges", null);
 			Map<String, Object> attrMap = new HashMap<String, Object>();
@@ -70,13 +71,12 @@ public class CmisDiscoveryService {
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
-				attrMap.put("error", "change log token value should not be null!, TraceId:" + span.getTraceId());
+				attrMap.put("error", "change log token value should not be null!, TraceId: " + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true,
 						"change log token value should not be null!", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisInvalidArgumentException(
-						"change log token value should not be null!, TraceId:" + span.getTraceId());
+						"change log token value should not be null!, TraceId: " + span.getTraceId());
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
@@ -179,7 +179,7 @@ public class CmisDiscoveryService {
 				props = result;
 			} else {
 				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo,
-						userObject);
+						userObject, null, null);
 			}
 
 			odImpl.setProperties(props);

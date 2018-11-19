@@ -65,16 +65,17 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 				"DiscoveryActor::getContentChanges", null);
-		String permission = request.getUserObject().getPermission();
 		Map<String, Object> attrMap = new HashMap<String, Object>();
+		String permission = request.getUserObject().getPermission();
+
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			attrMap.put("error", request.getUserName() + "is not authorized to getContentChanges, TraceId:" + span.getTraceId());
+			attrMap.put("error",
+					request.getUserName() + "is not authorized to getContentChanges, TraceId: " + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					request.getUserName() + " is not authorized to getContentChanges", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
-			throw new CmisRuntimeException(
-					request.getUserName() + " is not authorized to getContentChanges." + " TraceId:" + span.getTraceId());
+			throw new CmisRuntimeException(request.getUserName() + " is not authorized to getContentChanges."
+					+ " TraceId: " + span.getTraceId());
 		}
 		String changeLogToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_LOG_TOKEN);
 		Boolean includeProperties = request.getBooleanParameter(QueryGetRequest.PARAM_PROPERTIES);

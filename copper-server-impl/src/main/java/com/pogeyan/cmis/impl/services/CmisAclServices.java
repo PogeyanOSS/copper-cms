@@ -60,13 +60,13 @@ public class CmisAclServices {
 			Map<String, Object> attrMap = new HashMap<String, Object>();
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId, repositoryId, span.getTraceId());
-				attrMap.put("error", "Unknown object id:" + objectId + "TraceId:" + span.getTraceId());
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId: " + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
-						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
+						"Unknown object id: " + objectId + " ,TraceId: " + span.getTraceId());
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
 					false, objectInfos, null, null, userObject, tracingId, span);
@@ -86,14 +86,14 @@ public class CmisAclServices {
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
-
+//			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+			IBaseObject data = null;
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId, repositoryId, span.getTraceId());
-				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId:" + span.getTraceId());
+				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
+						repositoryId, span.getTraceId());
+				attrMap.put("error", "Unknown object id:" + objectId + " ,TraceId: " + span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span, true, "Unknown object id", attrMap);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 				throw new CmisObjectNotFoundException(
 						"Unknown object id: " + objectId + " ,TraceId:" + span.getTraceId());
 			}

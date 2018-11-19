@@ -68,12 +68,11 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				null);
 		Map<String, Object> attrMap = new HashMap<String, Object>();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			attrMap.put("error", t.getUserName() + "is not authorized to applyAcl, TraceId:" + span.getTraceId());
+			attrMap.put("error", t.getUserName() + "is not authorized to applyAcl, TraceId: " + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + " is not authorized to applyAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl." + " ,TraceId:",
+			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl." + " ,TraceId: ",
 					span.getTraceId());
 		}
 		String aclPro = t.getAclPropagation();
@@ -84,13 +83,13 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject().getUserDN(),
 				t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
-			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
+			attrMap.put("error", "object acl is null!, TraceId: " + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
-			throw new CmisRuntimeException("object acl is null!, TraceId:", span.getTraceId());
+			throw new CmisRuntimeException("object acl is null!, TraceId: ", span.getTraceId());
 		}
 		JSONObject jsonObject = JSONConverter.convert(objectAcl);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 		return jsonObject;
 
 	}
@@ -104,13 +103,12 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				null);
 		Map<String, Object> attrMap = new HashMap<String, Object>();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			attrMap.put("error", t.getUserName() + "is not authorized to getAcl, TraceId:" + span.getTraceId());
+			attrMap.put("error", t.getUserName() + "is not authorized to getAcl, TraceId: " + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true,
 					t.getUserName() + " is not authorized to getAcl", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
 			throw new CmisRuntimeException(
-					t.getUserName() + " is not authorized to getAcl." + " ,TraceId:" + span.getTraceId());
+					t.getUserName() + " is not authorized to getAcl." + " ,TraceId: " + span.getTraceId());
 		}
 		String objectId = t.getObjectId();
 		Boolean onlyBasicPermissions = t.getBooleanParameter(QueryGetRequest.PARAM_ONLY_BASIC_PERMISSIONS);
@@ -119,11 +117,10 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Acl objectAcl = CmisAclServices.Impl.getAcl(t.getRepositoryId(), objectId, onlyBasicPermissions, null, null,
 				t.getUserObject(), t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
-			attrMap.put("error", "object acl is null!, TraceId:" + span.getTraceId());
+			attrMap.put("error", "object acl is null!, TraceId: " + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span, true, "object acl is null!", attrMap);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, parentSpan);
-			throw new CmisRuntimeException("object acl is null!, TraceId:" + span.getTraceId());
+			throw new CmisRuntimeException("object acl is null!, TraceId: " + span.getTraceId());
 		}
 		JSONObject jsonObject = JSONConverter.convert(objectAcl);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
