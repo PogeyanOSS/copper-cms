@@ -121,7 +121,8 @@ public class CmisNavigationService {
 				path = "," + data.getId() + ",";
 				children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
 						filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, typeId);
-				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true, repositoryId, typeId);
+				childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true, repositoryId, typeId,
+						Helpers.splitFilterQuery(filter), typeManagerDAO);
 			} else {
 				path = data.getInternalPath() + folderId + ",";
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, data.getInternalPath(), data.getAcl(),
@@ -141,7 +142,7 @@ public class CmisNavigationService {
 											skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter),
 											typeManagerDAO, repositoryId, typeId);
 									childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false,
-											repositoryId, typeId);
+											repositoryId, typeId, Helpers.splitFilterQuery(filter), typeManagerDAO);
 									objectOnly = false;
 									break;
 								}
@@ -155,8 +156,8 @@ public class CmisNavigationService {
 				if (objectOnly) {
 					children = navigationMorphiaDAO.getChildren(path, principalIds, true, maxItems, skipCount, orderBy,
 							filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, typeId);
-					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true, repositoryId,
-							typeId);
+					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, true, repositoryId, typeId,
+							Helpers.splitFilterQuery(filter), typeManagerDAO);
 				}
 			}
 
