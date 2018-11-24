@@ -108,11 +108,20 @@ public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectI
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public long getChildrenSize(String path, String[] principalIds, boolean aclPropagation, String repositoryId,
-			String typeId) {
+			String typeId, String filterExpression, MTypeManagerDAO typeManager) {
 		Query<MDocumentObject> query = createQuery().disableValidation().filter("internalPath", path)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
+		if (!StringUtils.isEmpty(filterExpression)) {
+			try {
+				FilterExpression expression = UriParser.parseFilter(filterExpression);
+				query = (Query<MDocumentObject>) expression
+						.accept(new MongoExpressionVisitor<MDocumentObject>(query, typeManager));
+			} catch (ExpressionParserException | ExceptionVisitExpression e) {
+			}
+		}
 		if (aclPropagation) {
 			query.or(getAclCriteria(principalIds, query));
 			return query.countAll();

@@ -17,7 +17,7 @@ public interface MNavigationDocServiceDAO {
 	 * Get children size.
 	 */
 	public long getChildrenSize(String path, String[] principalIds, boolean aclPropagation, String repositoryId,
-			String typeId);
+			String typeId, String filterExpression, MTypeManagerDAO typeManager);
 
 	/**
 	 * Returns List of MBaseObject childrens values depending on ObjectId
