@@ -39,8 +39,8 @@ public class ACLPluginTest extends AbstractSessionTest {
 		CmisObject object_user2 = session_user2.getObject(newDocument, op);
 		if (object_user2 != null) {
 			addResult(createResult(INFO,
-					"the ace's are updated and document can be accessed by"
-							+ session_user1.getSessionParameters().get(SessionParameter.USER) + "parent that is "
+					"the ace's are updated and document can be accessed by "
+							+ session_user1.getSessionParameters().get(SessionParameter.USER) + " parent, that is "
 							+ session_user2.getSessionParameters().get(SessionParameter.USER)));
 		}
 		try {
@@ -49,10 +49,10 @@ public class ACLPluginTest extends AbstractSessionTest {
 			Session session_user3 = createsession(user3, password3);
 			CmisObject object_user3 = session_user3.getObject(newDocument, op);
 			if (object_user3 != null) {
-				addResult(createResult(INFO, "does not have valid acces control permission to access this object"));
+				addResult(createResult(INFO, "does not have valid access control permission to access this object"));
 			}
 		} catch (Exception e) {
-			addResult(createResult(INFO, "does not have valid acces control permission to access this object"));
+			addResult(createResult(FAILURE, "does not have valid access control permission to access this object"));
 		}
 	}
 
