@@ -93,6 +93,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
 	private static final String PROPERTY_DB_CLIENT_FACTORY = "cbmClientFactory";
 	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
+	private static final String PROPERTY_ACL_MANAGER_CLASS = "aclManagerClass";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 
@@ -134,14 +135,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
 		}
 
-		if (Helpers.isPerfMode()) {
-			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
-					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
-			reporter.start(10, TimeUnit.SECONDS);
-			if (Helpers.isPrometheusMode()) {
-				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
-			}
-		}
+//		if (Helpers.isPerfMode()) {
+//			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
+//					.convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
+//			reporter.start(10, TimeUnit.SECONDS);
+//			if (Helpers.isPrometheusMode()) {
+//				MetricsInputs.collectorRegistry().register(new DropwizardExports(MetricsInputs.get().getMetrics()));
+//			}
+//		}
 	}
 
 	@Override
@@ -231,6 +232,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		String externalActorClassName = props.getProperty(PROPERTY_ACTOR_CLASS);
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
+		String aclFlowManagerClass = props.getProperty(PROPERTY_ACL_MANAGER_CLASS);
 
 		String typePermissionServiceClass = props.getProperty(PROPERTY_TYPE_PERMISSION_CLASS);
 		if (typePermissionServiceClass == null) {
@@ -246,7 +248,13 @@ public class AkkaServletContextListener implements ServletContextListener {
 			boolean checkObjectServicePermission = ObjectFlowServiceClass != null
 					? ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)
 					: true;
+			boolean checkAclServicePermission = aclFlowManagerClass != null
+					? ObjectFlowFactoryClassinitializeExtensions(aclFlowManagerClass)
+					: true;
 			if (checkObjectServicePermission) {
+				if (checkAclServicePermission) {
+					return true;
+				}
 				return true;
 			}
 
