@@ -273,8 +273,12 @@ public class CmisVersioningServices {
 				Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
 						data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
 						userObject);
-				CmisObjectService.Impl.updateProperties(repositoryId, objectId, null, updateProperties, null, null,
-						userObject, data.getTypeId());
+				if (updateProperties != null) {
+					CmisObjectService.Impl.updateProperties(repositoryId, objectId, null, updateProperties, null, null,
+							userObject, data.getTypeId());
+				} else {
+					properties.putAll(data.getProperties());
+				}
 				properties.remove(PropertyIds.VERSION_LABEL);
 				properties.replace(PropertyIds.LAST_MODIFIED_BY, userName);
 			}
