@@ -5,42 +5,34 @@ import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.SKIPPED;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.UNEXPECTED_EXCEPTION;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.WARNING;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Item;
 import org.apache.chemistry.opencmis.client.api.ObjectType;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.CreatablePropertyTypes;
 import org.apache.chemistry.opencmis.commons.data.NewTypeSettableAttributes;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
-import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.ItemTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
-import org.apache.chemistry.opencmis.commons.enums.ContentStreamAllowed;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
-import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AbstractPropertyDefinition;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.DocumentTypeDefinitionImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ItemTypeDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDateTimeDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDecimalDefinitionImpl;
@@ -58,7 +50,7 @@ public class ChoiceListTest extends AbstractSessionTest {
 	public void init(Map<String, String> parameters) {
 		super.init(parameters);
 		setName("Create Type with ChoiceList");
-		setDescription("Creates a document type with choice list property definition and creates object of that type");
+		setDescription("Creates a Item type with choice list property definition and creates object of that type");
 	}
 
 	@Override
@@ -68,7 +60,7 @@ public class ChoiceListTest extends AbstractSessionTest {
 			return;
 		}
 
-		ObjectType parentType = session.getTypeDefinition(getDocumentTestTypeId());
+		ObjectType parentType = session.getTypeDefinition(getItemTestTypeId());
 		if (parentType.getTypeMutability() == null
 				|| !Boolean.TRUE.equals(parentType.getTypeMutability().canCreate())) {
 			addResult(createResult(SKIPPED, "Test document type doesn't allow creating a sub-type. Test skipped!"));
@@ -88,8 +80,7 @@ public class ChoiceListTest extends AbstractSessionTest {
 		}
 
 		// define the type
-		DocumentTypeDefinitionImpl newTypeDef = createDocumentTypeDefinition(session, "tck:testid_with_properties",
-				parentType);
+		ItemTypeDefinitionImpl newTypeDef = createItemTypeDefinition(session, "tck:testid_with_properties", parentType);
 
 		// add a property for each creatable property type
 		for (PropertyType propType : PropertyType.values()) {
@@ -143,17 +134,16 @@ public class ChoiceListTest extends AbstractSessionTest {
 		// add object of that type
 		// create a test folder
 		Folder testFolder = createTestFolder(session);
-		Document newDocument = null;
+		Item newItem = null;
 		try {
-			newDocument = createDocumentWithCustomProperties(session, testFolder, "docWithChoiceList", newType.getId(),
-					null, null);
+			newItem = createItemtWithCustomProperties(session, testFolder, "itemWithChoiceList", newType.getId());
 			for (Map.Entry<String, PropertyDefinition<?>> propDef : newType.getPropertyDefinitions().entrySet()) {
 				if (propDef.getValue().getChoices().size() > 0
 						&& (propDef.getValue().getPropertyType().equals(PropertyType.BOOLEAN)
 								|| propDef.getValue().getPropertyType().equals(PropertyType.STRING)
 								|| propDef.getValue().getPropertyType().equals(PropertyType.INTEGER))) {
 
-					List<Object> choiceValues = newDocument.getPropertyValue(propDef.getValue().getId());
+					List<Object> choiceValues = newItem.getPropertyValue(propDef.getValue().getId());
 					failure = createResult(FAILURE, "choiceValues list should not be empty!");
 					addResult(assertListNotEmpty(choiceValues, null, failure));
 
@@ -162,7 +152,7 @@ public class ChoiceListTest extends AbstractSessionTest {
 				}
 			}
 		} finally {
-			// delete the test folder
+			// delete the folder
 			deleteTestFolder();
 			// delete the type
 			deleteType(session, newType.getId());
@@ -170,8 +160,7 @@ public class ChoiceListTest extends AbstractSessionTest {
 		addResult(createInfoResult("Tested the creation of type with ChoiceList and adding object of that type"));
 	}
 
-	private DocumentTypeDefinitionImpl createDocumentTypeDefinition(Session session, String typeId,
-			ObjectType parentType) {
+	private ItemTypeDefinitionImpl createItemTypeDefinition(Session session, String typeId, ObjectType parentType) {
 		CmisTestResult failure = null;
 
 		NewTypeSettableAttributes settableAttributes = session.getRepositoryInfo().getCapabilities()
@@ -180,7 +169,7 @@ public class ChoiceListTest extends AbstractSessionTest {
 			addResult(createResult(WARNING, "Capability NewTypeSettableAttributes is not set!"));
 		}
 
-		DocumentTypeDefinitionImpl result = new DocumentTypeDefinitionImpl();
+		ItemTypeDefinitionImpl result = new ItemTypeDefinitionImpl();
 
 		result.setBaseTypeId(parentType.getBaseTypeId());
 		result.setParentTypeId(parentType.getId());
@@ -208,14 +197,14 @@ public class ChoiceListTest extends AbstractSessionTest {
 		}
 
 		if (settableAttributes == null || Boolean.TRUE.equals(settableAttributes.canSetDisplayName())) {
-			result.setDisplayName("TCK Document Type");
+			result.setDisplayName("TCK Item Type");
 		} else if (settableAttributes != null) {
 			failure = createResult(WARNING, "Flag 'displayName' in capability NewTypeSettableAttributes is not set!");
 			addResult(assertNotNull(settableAttributes.canSetDisplayName(), null, failure));
 		}
 
 		if (settableAttributes == null || Boolean.TRUE.equals(settableAttributes.canSetDescription())) {
-			result.setDescription("This is the TCK document type");
+			result.setDescription("This is the TCK Item type");
 		} else if (settableAttributes != null) {
 			failure = createResult(WARNING, "Flag 'description' in capability NewTypeSettableAttributes is not set!");
 			addResult(assertNotNull(settableAttributes.canSetDescription(), null, failure));
@@ -280,9 +269,6 @@ public class ChoiceListTest extends AbstractSessionTest {
 			failure = createResult(WARNING, "Flag 'fileable' in capability NewTypeSettableAttributes is not set!");
 			addResult(assertNotNull(settableAttributes.canSetFileable(), null, failure));
 		}
-
-		result.setIsVersionable(true);
-		result.setContentStreamAllowed(ContentStreamAllowed.ALLOWED);
 
 		return result;
 	}
@@ -377,11 +363,16 @@ public class ChoiceListTest extends AbstractSessionTest {
 	}
 
 	/**
-	 * Creates a document with custom properties
+	 * Creates a item.
 	 */
-	protected Document createDocumentWithCustomProperties(Session session, Folder parent, String name,
-			String objectTypeId, String[] secondaryTypeIds, String content) {
+	protected Item createItem(Session session, Folder parent, String name) {
+		return createItem(session, parent, name, getItemTestTypeId());
+	}
 
+	/**
+	 * Creates a item.
+	 */
+	protected Item createItemtWithCustomProperties(Session session, Folder parent, String name, String objectTypeId) {
 		if (parent == null) {
 			throw new IllegalArgumentException("Parent is not set!");
 		}
@@ -392,45 +383,26 @@ public class ChoiceListTest extends AbstractSessionTest {
 			throw new IllegalArgumentException("Object Type ID is not set!");
 		}
 
-		if (content == null) {
-			content = "";
-		}
-
 		// check type
 		ObjectType type;
 		try {
 			type = session.getTypeDefinition(objectTypeId);
 		} catch (CmisObjectNotFoundException e) {
 			addResult(createResult(UNEXPECTED_EXCEPTION,
-					"Document type '" + objectTypeId + "' is not available: " + e.getMessage(), e, true));
+					"Item type '" + objectTypeId + "' is not available: " + e.getMessage(), e, true));
 			return null;
 		}
 
 		if (Boolean.FALSE.equals(type.isCreatable())) {
-			addResult(createResult(SKIPPED, "Document type '" + objectTypeId + "' is not creatable!", true));
+			addResult(createResult(SKIPPED, "Item type '" + objectTypeId + "' is not creatable!", true));
 			return null;
 		}
-
+		ItemTypeDefinition itemType = (ItemTypeDefinition) type;
 		// create
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(PropertyIds.NAME, name);
 		properties.put(PropertyIds.OBJECT_TYPE_ID, objectTypeId);
-
-		if (secondaryTypeIds != null) {
-			properties.put(PropertyIds.SECONDARY_OBJECT_TYPE_IDS, Arrays.asList(secondaryTypeIds));
-		}
-
-		type = session.getTypeDefinition(objectTypeId);
-		if (!(type instanceof DocumentTypeDefinition)) {
-			addResult(createResult(FAILURE, "Type is not a document type! Type: " + objectTypeId, true));
-			return null;
-		}
-
-		DocumentTypeDefinition docType = (DocumentTypeDefinition) type;
-		VersioningState versioningState = (Boolean.TRUE.equals(docType.isVersionable()) ? VersioningState.MAJOR
-				: VersioningState.NONE);
-
-		for (Map.Entry<String, PropertyDefinition<?>> propDef : docType.getPropertyDefinitions().entrySet()) {
+		for (Map.Entry<String, PropertyDefinition<?>> propDef : itemType.getPropertyDefinitions().entrySet()) {
 			if (propDef.getValue().getChoices().size() > 0) {
 				if (propDef.getValue().getPropertyType().equals(PropertyType.BOOLEAN)) {
 					List<Boolean> booleanList = new ArrayList<Boolean>();
@@ -486,63 +458,27 @@ public class ChoiceListTest extends AbstractSessionTest {
 				}
 			}
 		}
-
-		byte[] contentBytes = null;
-		Document result = null;
+		Item result = null;
 		try {
-			contentBytes = IOUtils.toUTF8Bytes(content);
-			ContentStream contentStream = new ContentStreamImpl(name, BigInteger.valueOf(contentBytes.length),
-					"text/plain", new ByteArrayInputStream(contentBytes));
-
-			// create the document
-			result = parent.createDocument(properties, contentStream, versioningState, null, null, null,
-					SELECT_ALL_NO_CACHE_OC);
-
-			contentStream.getStream().close();
-		} catch (Exception e) {
-			addResult(createResult(UNEXPECTED_EXCEPTION, "Document could not be created! Exception: " + e.getMessage(),
-					e, true));
+			// create the item
+			result = parent.createItem(properties, null, null, null, SELECT_ALL_NO_CACHE_OC);
+		} catch (CmisBaseException e) {
+			addResult(createResult(UNEXPECTED_EXCEPTION, "Item could not be created! Exception: " + e.getMessage(), e,
+					true));
 			return null;
 		}
 
 		try {
 			CmisTestResult f;
 
-			// check document name
-			f = createResult(FAILURE, "Document name does not match!", false);
+			// check item name
+			f = createResult(FAILURE, "Item name does not match!", false);
 			addResult(assertEquals(name, result.getName(), null, f));
 
-			// check content length
-			f = createResult(WARNING, "Content length does not match!", false);
-			addResult(assertEquals((long) contentBytes.length, result.getContentStreamLength(), null, f));
-
-			// check the new document
-			addResult(checkObject(session, result, getAllProperties(result), "New document object spec compliance"));
-
-			// check content
-			try {
-				ContentStream contentStream = result.getContentStream();
-
-				f = createResult(WARNING, "Document filename and the filename of the content stream do not match!",
-						false);
-				addResult(assertEquals(name, contentStream.getFileName(), null, f));
-
-				f = createResult(WARNING,
-						"cmis:contentStreamFileName and the filename of the content stream do not match!", false);
-				addResult(assertEquals(result.getContentStreamFileName(), contentStream.getFileName(), null, f));
-
-				String fetchedContent = getStringFromContentStream(result.getContentStream());
-				if (!content.equals(fetchedContent)) {
-					addResult(createResult(FAILURE,
-							"Content of newly created document doesn't match the orign content!"));
-				}
-			} catch (IOException e) {
-				addResult(createResult(UNEXPECTED_EXCEPTION,
-						"Content of newly created document couldn't be read! Exception: " + e.getMessage(), e, true));
-			}
+			addResult(checkObject(session, result, getAllProperties(result), "New item object spec compliance"));
 		} catch (CmisBaseException e) {
-			addResult(createResult(UNEXPECTED_EXCEPTION,
-					"Newly created document is invalid! Exception: " + e.getMessage(), e, true));
+			addResult(createResult(UNEXPECTED_EXCEPTION, "Newly created item is invalid! Exception: " + e.getMessage(),
+					e, true));
 		}
 
 		// check parents
@@ -557,7 +493,7 @@ public class ChoiceListTest extends AbstractSessionTest {
 
 		if (!found) {
 			addResult(createResult(FAILURE,
-					"The folder the document has been created in is not in the list of the document parents!"));
+					"The folder the item has been created in is not in the list of the item parents!"));
 		}
 
 		return result;
