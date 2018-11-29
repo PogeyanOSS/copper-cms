@@ -346,25 +346,26 @@ public class CmisVersioningServices {
 					LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
 				}
 			}
-			String fileName;
-			if (documentObject.getContentStreamFileName().contains(".")) {
-				String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
-				String type = MimeUtils.checkFileExtension(fileNames[1]);
-				if (type != null) {
-					fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "." + fileNames[1];
+			if (contentStreamParam != null && contentStreamParam.getStream() != null) {
+				String fileName;
+				if (documentObject.getContentStreamFileName().contains(".")) {
+					String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
+					String type = MimeUtils.checkFileExtension(fileNames[1]);
+					if (type != null) {
+						fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "."
+								+ fileNames[1];
+					} else {
+						fileName = documentObject.getContentStreamFileName()
+								+ documentObject.getVersionLabel().replace(".", "_");
+					}
+
 				} else {
 					fileName = documentObject.getContentStreamFileName()
 							+ documentObject.getVersionLabel().replace(".", "_");
 				}
-
-			} else {
-				fileName = documentObject.getContentStreamFileName()
-						+ documentObject.getVersionLabel().replace(".", "_");
-			}
-			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
-			if (contentStreamParam != null && contentStreamParam.getStream() != null) {
+				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+				Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 				try {
 					ContentStream versionCustomContentStream = new ContentStreamImpl(fileName,
 							contentStreamParam.getBigLength(), documentObject.getContentStreamMimeType(),
