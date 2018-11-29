@@ -45,14 +45,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
-import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.utils.TracingMessages;
 
 public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
@@ -60,7 +62,8 @@ public class CmisDiscoveryService {
 	public static class Impl {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
-				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId, ISpan parentSpan) {
+				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId,
+				ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisDiscoveryService::getContentChanges", null);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -69,7 +72,12 @@ public class CmisDiscoveryService {
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
-				throw new CmisInvalidArgumentException("change log token value should not be null!");
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						new TracingMessages(String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisInvalidArgumentException(
+						String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
@@ -172,7 +180,7 @@ public class CmisDiscoveryService {
 				props = result;
 			} else {
 				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo,
-						userObject);
+						userObject, null, null);
 			}
 
 			odImpl.setProperties(props);
