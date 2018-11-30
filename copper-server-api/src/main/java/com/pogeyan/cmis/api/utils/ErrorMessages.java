@@ -2,6 +2,8 @@ package com.pogeyan.cmis.api.utils;
 
 public class ErrorMessages {
 
+	public static String MONGO_EXCEPTION = "mongoException";
+	public static String OBJECT_NOT_FOUND_EXCEPTION = "CmisObjectNotFoundException";
 	public static String INVALID_EXCEPTION = "CmisInvalidArgumentException";
 	public static String RUNTIME_EXCEPTION = "CmisRuntimeException";
 	public static String UNKNOWN_OBJECT = "Unknown object id: %s, TraceId: %s";
