@@ -22,6 +22,8 @@
 ###############################################################
 
   org.apache.chemistry.opencmis.tck.tests.basics.BasicsTestGroup
+  org.apache.chemistry.opencmis.tck.tests.choiceList.ChoiceListTestGroup
+  org.apache.chemistry.opencmis.tck.tests.AclCases.AclCaseTestGroup
   org.apache.chemistry.opencmis.tck.tests.types.TypesTestGroup
 # org.apache.chemistry.opencmis.tck.tests.crud.CRUDTestGroup
   org.apache.chemistry.opencmis.tck.tests.versioning.VersioningTestGroup
