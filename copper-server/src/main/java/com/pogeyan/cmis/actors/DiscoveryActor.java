@@ -35,7 +35,9 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.TracingMessage;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
@@ -65,8 +67,15 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 				"DiscoveryActor::getContentChanges", null);
 		String permission = request.getUserObject().getPermission();
+
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingMessage.message(
+							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			throw new CmisRuntimeException(
+					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
 		}
 		String changeLogToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_LOG_TOKEN);
 		Boolean includeProperties = request.getBooleanParameter(QueryGetRequest.PARAM_PROPERTIES);

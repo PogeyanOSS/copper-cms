@@ -36,6 +36,6 @@ public interface ITracingService {
 	 * @param attrMap
 	 *            additional information that is included in the span
 	 */
-	public void updateSpan(ISpan span, boolean isError, String description, Map<String, Object> attrMap);
+	public void updateSpan(ISpan span, ITracingMessage tracingMessage);
 
 }

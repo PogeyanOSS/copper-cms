@@ -12,11 +12,13 @@ public class TracingDefaultSpanImpl implements ISpan {
 
 	long startTime;
 	String name;
+	String tracingId;
 
 	public TracingDefaultSpanImpl() {
 		super();
 		this.name = "Default";
 		this.startTime = 0;
+		this.tracingId = null;
 	}
 
 	@Override
@@ -30,9 +32,10 @@ public class TracingDefaultSpanImpl implements ISpan {
 	}
 
 	@Override
-	public void setChildSpan(String name, Map<String, String> headers) {
+	public void setChildSpan(String tracingId, String name, Map<String, String> headers) {
 		this.name = name;
 		this.startTime = System.currentTimeMillis();
+		this.tracingId = tracingId;
 		LOG.debug("Method Name: {}, StartTime: {} ms", name, startTime);
 	}
 
@@ -44,5 +47,10 @@ public class TracingDefaultSpanImpl implements ISpan {
 	@Override
 	public ISpan getParentSpan() {
 		return null;
+	}
+
+	@Override
+	public String getTraceId() {
+		return tracingId;
 	}
 }
