@@ -5,19 +5,23 @@ import java.util.Map;
 
 import com.pogeyan.cmis.api.data.ITracingMessage;
 
-public class TracingMessages implements ITracingMessage {
+ public class TracingMessage implements ITracingMessage {
 
 	String errorMessage;
 	String description;
 	String repoId;
 	boolean isError;
 
-	public TracingMessages(String errorMessage, String description, String repoId, boolean isError) {
+	private TracingMessage(String errorMessage, String description, String repoId, boolean isError) {
 		super();
 		this.errorMessage = errorMessage;
 		this.description = description;
 		this.repoId = repoId;
 		this.isError = isError;
+	}
+
+	public static TracingMessage message(String errorMessage, String description, String repoId, boolean isError) {
+		return new TracingMessage(errorMessage, description, repoId, isError);
 	}
 
 	public String getErrorMessage() {
