@@ -32,10 +32,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoException;
-import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
+import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class CmisRelationshipService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisNavigationService.class);
@@ -47,21 +51,32 @@ public class CmisRelationshipService {
 		public static ObjectList getObjectRelationships(String repositoryId, String objectId,
 				Boolean includeSubRelationshipTypes, RelationshipDirection relationshipDirection, String typeId,
 				String filter, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
-				ObjectInfoHandler objectInfos, IUserObject userObject)
+				ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId, ISpan parentSpan)
 				throws CmisObjectNotFoundException, MongoException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisRelationshipService::getobjectRelationships", null);
 			IBaseObject so = null;
 			try {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			} catch (Exception e) {
-				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}",
-						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId);
-				throw new MongoException(e.toString());
+				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
+						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingMessage.message(String.format(ErrorMessages.EXCEPTION, e.toString(), span.getTraceId()),
+								ErrorMessages.MONGO_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new MongoException(String.format(ErrorMessages.EXCEPTION, e.toString(), span.getTraceId()));
 			}
 
 			if (so == null) {
-				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}",
-						"getObjectRelationships", "Unknown object id", objectId, repositoryId);
-				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
+				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}, traceId: {}",
+						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				throw new CmisObjectNotFoundException(
+						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
@@ -99,6 +114,7 @@ public class CmisRelationshipService {
 			if (result != null) {
 				LOG.debug("ObjectRelationships result count: {}", result.getNumItems());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 
 		}
