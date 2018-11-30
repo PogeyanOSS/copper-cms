@@ -262,7 +262,11 @@ public class CmisVersioningServices {
 					if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().get(0))) {
 						continue;
 					} else {
-						properties.put(entry.getKey(), entry.getValue());
+						if (entry.getValue().size() == 1) {
+							properties.put(entry.getKey(), entry.getValue().get(0));
+						} else {
+							properties.put(entry.getKey(), entry.getValue());
+						}
 					}
 				}
 			}
