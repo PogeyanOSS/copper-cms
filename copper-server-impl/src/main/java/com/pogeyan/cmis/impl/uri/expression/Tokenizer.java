@@ -53,8 +53,8 @@ public class Tokenizer {
 	}
 
 	/**
-	 * Inform the Tokenizer whether extra tokens for whitespace characters
-	 * should be added to the token list or not.
+	 * Inform the Tokenizer whether extra tokens for whitespace characters should be
+	 * added to the token list or not.
 	 * 
 	 * @param flagIncludeWhitespace
 	 *            True -> Whitespace token will be added to token list; False
@@ -144,7 +144,7 @@ public class Tokenizer {
 				if (isFunction) {
 					break;
 				}
-				
+
 				// Bug->If we send rightLiteral boolean value,it won't add in
 				// token map because if it is boolean value,it will return
 				// empty.
@@ -168,6 +168,8 @@ public class Tokenizer {
 	private boolean checkForLiteral(final int oldPosition, final char curCharacter, final String rem_expr) {
 		final Matcher matcher = OTHER_LIT.matcher(rem_expr);
 		boolean isLiteral = false;
+		String rem_expr1 = null;
+		String token1 = null;
 		if (matcher.lookingAt()) {
 			String token = matcher.group();
 			try {
@@ -188,6 +190,24 @@ public class Tokenizer {
 					isLiteral = true;
 				} else {
 					curPosition = curPosition + token.length();
+					if (curPosition < expression.length()) {
+						rem_expr1 = expression.substring(curPosition + 1); // remaining
+																			// expression
+						final Matcher matcher1 = OTHER_LIT.matcher(rem_expr1);
+						if (matcher1.lookingAt()) {
+							token1 = matcher1.group();
+							if (!(token1.contains("eq") || token1.contains("ne") || token1.contains("gt")
+									|| token1.contains("lt") || token1.contains("le") || token1.contains("ge")
+									|| token1.contains("and") || token1.contains("or"))) {
+								char preChar = expression.charAt(curPosition);
+								if (preChar == ' ') {
+									token = token + preChar + token1;
+									curPosition = curPosition + token.length();
+								}
+							}
+						}
+					}
+
 					tokens.appendToken(oldPosition, TokenKind.LITERAL, token);
 					isLiteral = true;
 				}
@@ -286,8 +306,8 @@ public class Tokenizer {
 	}
 
 	/**
-	 * Read up to single ' and move pointer to the following char and tries a
-	 * type detection
+	 * Read up to single ' and move pointer to the following char and tries a type
+	 * detection
 	 * 
 	 * @param curCharacter
 	 * @param token
