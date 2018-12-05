@@ -77,7 +77,11 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 				LiteralExpression rightOp = (LiteralExpression) rightSide;
 				rightSideValue = rightOp.getUriLiteral();
 			} else if (rightSide instanceof String) {
-				rightSideValue = rightSide.toString();
+				if (((String) rightSide).startsWith("'") && ((String) rightSide).endsWith("'")) {
+					rightSideValue = ((String) rightSide).substring(1, ((String) rightSide).length() - 1);
+				} else {
+					rightSideValue = rightSide.toString();
+				}
 			}
 			switch (operator) {
 			case EQ:
