@@ -1457,7 +1457,8 @@ public class CmisObjectService {
 			return result;
 		}
 
-		public static void createTypeFolder(String repositoryId, Properties properties, IUserObject userObject) {
+		public static void createTypeFolder(String repositoryId, Properties properties, IUserObject userObject,
+				BaseTypeId baseType) {
 			String typeId = getObjectTypeId(properties);
 
 			LOG.debug("createTypeFolder for custom type: {}", typeId);
@@ -1473,8 +1474,13 @@ public class CmisObjectService {
 			aclImp.setAclPropagation(AclPropagation.REPOSITORYDETERMINED.toString());
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
-			createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
-					props.getProperties(), objectMorphiaDAO, null, aclImp, null);
+			if (baseType == BaseTypeId.CMIS_DOCUMENT) {
+				CmisObjectService.Impl.createFolder(repositoryId, parent.getId(), properties, null, aclImp, null,
+						userObject);
+			} else {
+				createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
+						props.getProperties(), objectMorphiaDAO, null, aclImp, null);
+			}
 		}
 
 		/**
@@ -1779,7 +1785,7 @@ public class CmisObjectService {
 						userObject == null ? null : userObject.getUserDN(), token, p._1(), custom, policies, addACEs,
 						p._2(), parentData.getId().toString());
 				if (contentStream != null) {
-				//	p = resolvePathForObject(parentData, contentStream.getFileName());
+					// p = resolvePathForObject(parentData, contentStream.getFileName());
 					// getting path name again
 					baseObject = objectDAO.createObjectFacade(docName, BaseTypeId.CMIS_DOCUMENT, typeId, repositoryId,
 							secondaryObjectTypeIds,
