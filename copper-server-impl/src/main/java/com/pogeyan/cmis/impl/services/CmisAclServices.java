@@ -42,6 +42,7 @@ import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
+import com.pogeyan.cmis.api.utils.SuccessMessage;
 import com.pogeyan.cmis.api.utils.TracingMessage;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
@@ -69,9 +70,13 @@ public class CmisAclServices {
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
-					false, objectInfos, null, null, userObject, tracingId, span);
+					false, objectInfos, null, null, userObject);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingMessage.message(
+							(String.format(SuccessMessage.AclMessage.GET_ACL_RESULT, objectId, span.getTraceId())),
+							SuccessMessage.AclMessage.ACL_SERVICE, repositoryId, false));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return objectData.getAcl();
 		}
@@ -119,6 +124,10 @@ public class CmisAclServices {
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, data.getTypeId());
 
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingMessage.message(
+							(String.format(SuccessMessage.AclMessage.APPLY_ACL_RESULT, objectId, span.getTraceId())),
+							SuccessMessage.AclMessage.ACL_SERVICE, repositoryId, false));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return newData.getAcl();
 		}
@@ -178,6 +187,9 @@ public class CmisAclServices {
 			aces = new ArrayList<Ace>(removeDuplicate);
 			AccessControlListImplExt aclimpl = new AccessControlListImplExt(aces, aclPropagation, false);
 			LOG.debug("After validatedAces: {}", aclimpl != null ? aclimpl.getAces() : null);
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingMessage.message((String.format(SuccessMessage.AclMessage.VALID_ACES, span.getTraceId())),
+							SuccessMessage.AclMessage.ACL_SERVICE, null, false));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return aclimpl;
 		}

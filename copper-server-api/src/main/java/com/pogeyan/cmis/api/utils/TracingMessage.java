@@ -5,16 +5,16 @@ import java.util.Map;
 
 import com.pogeyan.cmis.api.data.ITracingMessage;
 
- public class TracingMessage implements ITracingMessage {
+public class TracingMessage implements ITracingMessage {
 
-	String errorMessage;
+	String message;
 	String description;
 	String repoId;
 	boolean isError;
 
-	private TracingMessage(String errorMessage, String description, String repoId, boolean isError) {
+	private TracingMessage(String message, String description, String repoId, boolean isError) {
 		super();
-		this.errorMessage = errorMessage;
+		this.message = message;
 		this.description = description;
 		this.repoId = repoId;
 		this.isError = isError;
@@ -25,11 +25,11 @@ import com.pogeyan.cmis.api.data.ITracingMessage;
 	}
 
 	public String getErrorMessage() {
-		return errorMessage;
+		return message;
 	}
 
 	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
+		this.message = errorMessage;
 	}
 
 	public String getRepoId() {
@@ -52,7 +52,11 @@ import com.pogeyan.cmis.api.data.ITracingMessage;
 	public Map<String, Object> getAttrMap() {
 		Map<String, Object> attrMap = new HashMap<String, Object>();
 		attrMap.put("repoId", getRepoId());
-		attrMap.put("error", getErrorMessage());
+		if (this.isError) {
+			attrMap.put("error", getErrorMessage());
+		} else {
+			attrMap.put("success", getErrorMessage());
+		}
 		return attrMap;
 	}
 
