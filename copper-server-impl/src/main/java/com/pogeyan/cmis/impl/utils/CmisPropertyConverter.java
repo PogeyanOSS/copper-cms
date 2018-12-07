@@ -48,7 +48,11 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
+import com.pogeyan.cmis.api.utils.TracingMessage;
 import com.pogeyan.cmis.impl.services.CmisTypeServices;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class CmisPropertyConverter {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisPropertyConverter.class);
@@ -56,7 +60,9 @@ public class CmisPropertyConverter {
 	public static class Impl {
 
 		public static Properties createNewProperties(Map<String, List<String>> propertiesdata, String repositoryId,
-				IUserObject userObject) {
+				IUserObject userObject, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisPropertyConverter::createNewProperties", null);
 			List<TypeDefinition> secondaryTypes = new ArrayList<>();
 			List<TypeDefinition> objectType = new ArrayList<>();
 			Map<String, List<String>> properties = propertiesdata;
@@ -68,10 +74,18 @@ public class CmisPropertyConverter {
 			List<String> objectTypeIdsValues = properties.get(PropertyIds.OBJECT_TYPE_ID);
 			if (isNotEmpty(objectTypeIdsValues)) {
 				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-						objectTypeIdsValues.get(0), null, userObject);
+						objectTypeIdsValues.get(0), null, userObject, tracingId, span);
 				objectType.add(typeDef);
 				if (typeDef == null) {
-					throw new CmisInvalidArgumentException("Invalid type: " + objectTypeIdsValues.get(0));
+					TracingApiServiceFactory.getApiService()
+							.updateSpan(span,
+									TracingMessage.message(
+											String.format(objectTypeIdsValues.get(0),
+													ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()),
+											ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new CmisInvalidArgumentException(String.format(objectTypeIdsValues.get(0),
+							ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 				}
 			}
 
@@ -80,10 +94,17 @@ public class CmisPropertyConverter {
 			if (isNotEmpty(secondaryObjectTypeIdsValues)) {
 				for (String secTypeId : secondaryObjectTypeIdsValues) {
 					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
-							userObject);
+							userObject, tracingId, span);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
-						throw new CmisInvalidArgumentException("Invalid type: " + secTypeId);
+						TracingApiServiceFactory.getApiService().updateSpan(span,
+								TracingMessage.message(
+										String.format(objectTypeIdsValues.get(0), ErrorMessages.INVALID_TYPE_DEFINITION,
+												span.getTraceId()),
+										ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						throw new CmisInvalidArgumentException(String.format(objectTypeIdsValues.get(0),
+								ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 					}
 				}
 			}
@@ -97,18 +118,25 @@ public class CmisPropertyConverter {
 				}
 
 				if (propDef == null) {
-					throw new CmisInvalidArgumentException(property.getKey() + " is unknown!");
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingMessage.message(String.format(ErrorMessages.UNKNOWN_PROPERTY, span.getTraceId()),
+									ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new CmisInvalidArgumentException(
+							String.format(ErrorMessages.UNKNOWN_PROPERTY, span.getTraceId()));
 				}
 
 				result.addProperty(createPropertyData(propDef, property.getValue()));
 			}
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return result;
 		}
 
 		public static Properties createUpdateProperties(Map<String, List<String>> propertiesdata, String typeId,
 				List<String> secondaryTypeIds, List<String> objectIds, String repositoryId, IBaseObject data,
-				IUserObject userObject) {
+				IUserObject userObject, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisPropertyConverter::createUpdateProperties", null);
 			List<TypeDefinition> secondaryTypes = new ArrayList<>();
 			List<TypeDefinition> objectType = new ArrayList<>();
 			List<TypeDefinition> innerObjectType = new ArrayList<>();
@@ -123,11 +151,16 @@ public class CmisPropertyConverter {
 
 			// load primary type
 			if (typeId != null) {
-				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null,
-						userObject);
+				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, tracingId, span);
 				objectType.add(typeDef);
 				if (typeDef == null) {
-					throw new CmisInvalidArgumentException("Invalid type: " + typeId);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingMessage.message(
+									String.format(typeId, ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()),
+									ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					throw new CmisInvalidArgumentException(
+							String.format(typeId, ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 				}
 			}
 
@@ -136,10 +169,17 @@ public class CmisPropertyConverter {
 			if (isNotEmpty(secondaryObjectTypeIdsValues)) {
 				for (String secTypeId : secondaryObjectTypeIdsValues) {
 					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
-							userObject);
+							userObject, tracingId, span);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
-						throw new CmisInvalidArgumentException("Invalid type: " + secTypeId);
+						TracingApiServiceFactory.getApiService().updateSpan(span,
+								TracingMessage.message(
+										String.format(secTypeId, ErrorMessages.INVALID_TYPE_DEFINITION,
+												span.getTraceId()),
+										ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						throw new CmisInvalidArgumentException(
+								String.format(secTypeId, ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 					}
 				}
 			}
@@ -147,10 +187,17 @@ public class CmisPropertyConverter {
 			if (secondaryTypeIds != null) {
 				for (String secTypeId : secondaryTypeIds) {
 					TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId, null,
-							userObject);
+							userObject, tracingId, span);
 					secondaryTypes.add(typeDef);
 					if (typeDef == null) {
-						throw new CmisInvalidArgumentException("Invalid secondary type: " + secTypeId);
+						TracingApiServiceFactory.getApiService().updateSpan(span,
+								TracingMessage.message(
+										String.format(secTypeId, ErrorMessages.INVALID_TYPE_DEFINITION,
+												span.getTraceId()),
+										ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+						throw new CmisInvalidArgumentException(
+								String.format(secTypeId, ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 					}
 				}
 			}
@@ -163,7 +210,7 @@ public class CmisPropertyConverter {
 					for (String objectId : objectIds) {
 						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
-								object.getTypeId(), null, userObject);
+								object.getTypeId(), null, userObject, tracingId, span);
 						innerObjectType.add(typeDef);
 						propDef = getPropertyDefinition(innerObjectType, property.getKey());
 						if (propDef != null) {
@@ -175,10 +222,17 @@ public class CmisPropertyConverter {
 					if (secondaryTypes.isEmpty()) {
 						for (String secTypeId : data.getSecondaryTypeIds()) {
 							TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, secTypeId,
-									null, userObject);
+									null, userObject, tracingId, span);
 							secondaryTypes.add(typeDef);
 							if (typeDef == null) {
-								throw new CmisInvalidArgumentException("Invalid secondary type: " + secTypeId);
+								TracingApiServiceFactory.getApiService().updateSpan(span,
+										TracingMessage.message(
+												String.format(secTypeId, ErrorMessages.INVALID_TYPE_DEFINITION,
+														span.getTraceId()),
+												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+								TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+								throw new CmisInvalidArgumentException(String.format(secTypeId,
+										ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 							}
 						}
 					}

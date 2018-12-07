@@ -384,11 +384,11 @@ public class ServletHelpers {
 		if (objectId != null) {
 			object = CmisObjectService.Impl.getObject(repositoryId, objectId,
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, userObject, BaseTypeId.CMIS_FOLDER, typeId);
+					false, false, null, userObject, BaseTypeId.CMIS_FOLDER, typeId, null, null);
 		} else if (pathFragments != null) {
 			object = CmisObjectService.Impl.getObjectByPath(repositoryId, getPath(pathFragments),
 					"cmis:objectId,cmis:objectTypeId,cmis:baseTypeId", false, IncludeRelationships.NONE, "cmis:none",
-					false, false, null, userObject, typeId);
+					false, false, null, userObject, typeId, null, null);
 		} else {
 			return null;
 		}

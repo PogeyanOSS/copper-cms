@@ -102,7 +102,7 @@ public class CreateAndDeleteTypeTest extends AbstractSessionTest {
         }
 
         // delete the type
-        deleteType(session, newType.getId());
+         deleteType(session, newType.getId());
     }
 
     private void createTypeWithProperties(Session session, ObjectType parentType) {

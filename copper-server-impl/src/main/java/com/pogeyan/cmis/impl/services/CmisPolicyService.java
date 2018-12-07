@@ -52,7 +52,7 @@ public class CmisPolicyService {
 				for (String polId : polIds) {
 					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null, data.getTypeId());
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
-							false, true, null, null, IncludeRelationships.NONE, userObject);
+							false, true, null, null, IncludeRelationships.NONE, userObject, null, null);
 
 					res.add(objectData);
 				}

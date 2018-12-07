@@ -57,7 +57,7 @@ public class CmisAclServices {
 				throw new CmisObjectNotFoundException("Unknown object id: " + objectId);
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
-					false, objectInfos, null, null, userObject);
+					false, objectInfos, null, null, userObject, null, null);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
 			return objectData.getAcl();

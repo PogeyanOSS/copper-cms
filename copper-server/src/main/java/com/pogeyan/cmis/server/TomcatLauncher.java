@@ -15,7 +15,7 @@
  */
 package com.pogeyan.cmis.server;
 
-/*import java.io.File;
+import java.io.File;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.WebResourceRoot;
@@ -23,7 +23,7 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
 import org.apache.tomcat.JarScanner;
-import org.apache.tomcat.util.scan.StandardJarScanner;*/
+import org.apache.tomcat.util.scan.StandardJarScanner;
 
 public class TomcatLauncher {
 
@@ -37,7 +37,7 @@ public class TomcatLauncher {
 	 */
 	public static void main(String[] args) throws Exception {
 		// Define a folder to hold web application contents.
-		/*String webappDirLocation = "src/main/webapp/";
+		String webappDirLocation = "src/main/webapp/";
 		Tomcat tomcat = new Tomcat();
 
 		// Define port number for the web application
@@ -71,6 +71,6 @@ public class TomcatLauncher {
 		}
 
 		tomcat.start();
-		tomcat.getServer().await();*/
+		tomcat.getServer().await();
 	}
 }
