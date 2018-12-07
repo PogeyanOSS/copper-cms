@@ -351,6 +351,20 @@ public class CmisVersioningServices {
 					}
 				}
 			}
+			Map<String, Object> properties = new HashMap<String, Object>();
+			if (listProperties != null) {
+				for (Map.Entry<String, List<String>> entry : listProperties.entrySet()) {
+					if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().get(0))) {
+						continue;
+					} else {
+						if (entry.getValue().size() == 1) {
+							properties.put(entry.getKey(), entry.getValue().get(0));
+						} else {
+							properties.put(entry.getKey(), entry.getValue());
+						}
+					}
+				}
+			}
 
 			IDocumentObject documentObject = null;
 			checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
