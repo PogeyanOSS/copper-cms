@@ -199,3 +199,32 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 ## Enable CBM Adapter
 * Add cbmAdaptorClass classpath in repository.properties file.
 * Example - cbmAdaptorClass=com.pogeyan.cbm.mongo.adapter.services
+
+## Connect tenant-cms and app-cms locale
+
+   * Import **aws-content** and **tenent-repo** from CMIS.ServerExtentions module 
+   
+**tenant-cms**
+* In repojson change the file storage from local to aws
+* In repository.properties uncomment the following classes
+	**repositoryManagerClass=com.pogeyan.cmis.repo.local.LocalRepoImpl**
+	**authenticationManagerClass=com.pogeyan.cmis.repo.local.LocalRepoAuthFactory**
+	**storageManagerClass=com.pogeyan.cmis.aws.content.AWSServiceFactory**
+* Set the following Environment Variables
+	- CMIS_USERNAME=admin
+	- CMIS_PASSWORD=Welc0me123*
+* Start the tenant-cms(port:9090)
+**app-cms**
+* In repository.properties uncomment the following classes
+   **repositoryManagerClass=com.pogeyan.cmis.tenantrepo.TenantRepoImpl**
+   **authenticationManagerClass=com.pogeyan.cmis.aws.auth.AwsCognitoFactory**
+   **storageManagerClass=com.pogeyan.cmis.aws.content.AWSServiceFactory**
+   **objectFlowManagerClass=com.pogeyan.cmis.aws.content.AwsObjectFlowFactory**
+* Set the following Environment Variables
+   - CMIS_APP_USERNAME=admin
+   - CMIS_APP_PASSWORD=Welc0me123*
+   - CMIS_APP_REPOSITORY_ID=Tenant
+   - CMIS_APP_CONNECTION_URL=http://localhost:9090/
+   - COGNITO_BACKEND_USERNAME=a788f8e0-ebc0-11e8-9941-b93c2bca4e5d
+* Start the app-cms(port:9091)
+
