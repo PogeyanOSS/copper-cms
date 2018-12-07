@@ -37,7 +37,6 @@ import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.SuccessMessage;
 import com.pogeyan.cmis.api.utils.TracingMessage;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisAclServices;
@@ -81,10 +80,6 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = t.getObjectId();
 		LOG.info("Method name: {}, apply acl for object using this id: {}, repositoryId: {}, addAcl: {}, removeAcl: {}",
 				"applyACL", objectId, t.getRepositoryId(), t.getAddAcl(), t.getRemoveAcl());
-		TracingApiServiceFactory.getApiService().updateSpan(span,
-				TracingMessage.message(
-						(String.format(SuccessMessage.AclMessage.APPLY_ACL, objectId, span.getTraceId())),
-						SuccessMessage.AclMessage.ACL_ACTOR, t.getRepositoryId(), false));
 		Acl objectAcl = CmisAclServices.Impl.applyAcl(t.getRepositoryId(), objectId, t.getAddAcl(), t.getRemoveAcl(),
 				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject().getUserDN(),
 				t.getTypeId(), tracingId, span);
@@ -121,10 +116,6 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Boolean onlyBasicPermissions = t.getBooleanParameter(QueryGetRequest.PARAM_ONLY_BASIC_PERMISSIONS);
 		LOG.info("Method name: {}, get acl using this id: {}, repositoryId: {}, onlyBasicPermissions: {}", "getAcl",
 				objectId, t.getRepositoryId(), onlyBasicPermissions);
-		TracingApiServiceFactory.getApiService().updateSpan(span,
-				TracingMessage.message(
-						(String.format(SuccessMessage.AclMessage.APPLY_ACL, objectId, span.getTraceId())),
-						SuccessMessage.AclMessage.ACL_ACTOR, t.getRepositoryId(), false));
 		Acl objectAcl = CmisAclServices.Impl.getAcl(t.getRepositoryId(), objectId, onlyBasicPermissions, null, null,
 				t.getUserObject(), t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
