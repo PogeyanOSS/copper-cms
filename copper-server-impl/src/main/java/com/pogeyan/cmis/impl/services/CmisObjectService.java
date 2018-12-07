@@ -1779,7 +1779,7 @@ public class CmisObjectService {
 						userObject == null ? null : userObject.getUserDN(), token, p._1(), custom, policies, addACEs,
 						p._2(), parentData.getId().toString());
 				if (contentStream != null) {
-					p = resolvePathForObject(parentData, contentStream.getFileName());
+				//	p = resolvePathForObject(parentData, contentStream.getFileName());
 					// getting path name again
 					baseObject = objectDAO.createObjectFacade(docName, BaseTypeId.CMIS_DOCUMENT, typeId, repositoryId,
 							secondaryObjectTypeIds,
