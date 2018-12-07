@@ -50,6 +50,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MimeUtils;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
+import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.auth.IUserObject;
@@ -238,9 +239,10 @@ public class CmisVersioningServices {
 			return document.getId();
 		}
 
-		public static String checkIn(String repositoryId, Map<String, Object> properties,
+		public static String checkIn(String repositoryId, Map<String, List<String>> listProperties,
 				ContentStream contentStreamParam, Holder<String> objectId, Boolean majorParam, String checkinComment,
-				ObjectInfoHandler objectInfos, String userName) throws CmisObjectNotFoundException {
+				ObjectInfoHandler objectInfos, String userName, IUserObject userObject)
+				throws CmisObjectNotFoundException {
 			MDocumentObjectDAO documentObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue(), null);
@@ -254,11 +256,33 @@ public class CmisVersioningServices {
 				LOG.error("checkIn document is not versionable: {}, repositoryid: {}", objectId, repositoryId);
 				throw new CmisUpdateConflictException(objectId + "document is not versionable");
 			}
+			Map<String, Object> properties = new HashMap<String, Object>();
+			if (listProperties != null) {
+				for (Map.Entry<String, List<String>> entry : listProperties.entrySet()) {
+					if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().get(0))) {
+						continue;
+					} else {
+						if (entry.getValue().size() == 1) {
+							properties.put(entry.getKey(), entry.getValue().get(0));
+						} else {
+							properties.put(entry.getKey(), entry.getValue());
+						}
+					}
+				}
+			}
 
 			IDocumentObject documentObject = null;
 			checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
 			if (data.getProperties() != null) {
-				properties.putAll(data.getProperties());
+				Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
+						data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
+						userObject);
+				if (updateProperties != null) {
+					CmisObjectService.Impl.updateProperties(repositoryId, objectId, null, updateProperties, null, null,
+							userObject, data.getTypeId());
+				} else {
+					properties.putAll(data.getProperties());
+				}
 				properties.remove(PropertyIds.VERSION_LABEL);
 				properties.replace(PropertyIds.LAST_MODIFIED_BY, userName);
 			}
@@ -326,25 +350,26 @@ public class CmisVersioningServices {
 					LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
 				}
 			}
-			String fileName;
-			if (documentObject.getContentStreamFileName().contains(".")) {
-				String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
-				String type = MimeUtils.checkFileExtension(fileNames[1]);
-				if (type != null) {
-					fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "." + fileNames[1];
+			if (contentStreamParam != null && contentStreamParam.getStream() != null) {
+				String fileName;
+				if (documentObject.getContentStreamFileName().contains(".")) {
+					String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
+					String type = MimeUtils.checkFileExtension(fileNames[1]);
+					if (type != null) {
+						fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "."
+								+ fileNames[1];
+					} else {
+						fileName = documentObject.getContentStreamFileName()
+								+ documentObject.getVersionLabel().replace(".", "_");
+					}
+
 				} else {
 					fileName = documentObject.getContentStreamFileName()
 							+ documentObject.getVersionLabel().replace(".", "_");
 				}
-
-			} else {
-				fileName = documentObject.getContentStreamFileName()
-						+ documentObject.getVersionLabel().replace(".", "_");
-			}
-			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			Map<String, Object> updatecontentProps = new HashMap<String, Object>();
-			if (contentStreamParam != null && contentStreamParam.getStream() != null) {
+				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+				Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 				try {
 					ContentStream versionCustomContentStream = new ContentStreamImpl(fileName,
 							contentStreamParam.getBigLength(), documentObject.getContentStreamMimeType(),

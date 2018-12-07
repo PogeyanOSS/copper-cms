@@ -15,9 +15,7 @@
  */
 package com.pogeyan.cmis.actors;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -33,7 +31,6 @@ import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,17 +116,14 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		// execute
 		Holder<String> objectIdHolder = new Holder<String>(objectId);
-		Map<String, List<String>> listProperties = request.getPropertyData();
-		Map<String, Object> properties = new HashMap<String, Object>();
-		if (listProperties != null) {
-			for (Map.Entry<String, List<String>> entry : listProperties.entrySet()) {
-				if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().get(0))) {
-					continue;
-				} else {
-					properties.put(entry.getKey(), entry.getValue());
-				}
-			}
-		}
+		/*
+		 * Map<String, List<String>> listProperties = request.getPropertyData();
+		 * Map<String, Object> properties = new HashMap<String, Object>(); if
+		 * (listProperties != null) { for (Map.Entry<String, List<String>> entry :
+		 * listProperties.entrySet()) { if (entry.getValue() == null ||
+		 * StringUtils.isBlank(entry.getValue().get(0))) { continue; } else {
+		 * properties.put(entry.getKey(), entry.getValue()); } } }
+		 */
 		/*
 		 * if (listProperties != null) { properties =
 		 * listProperties.entrySet().stream().collect(Collectors.toMap(p -> p.getKey(),
@@ -139,8 +133,9 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info(
 				"Method name: {}, checkIn the document using this ids: {}, repositoryId: {}, version: {}, checkinComment: {}",
 				"checkIn", objectId, request.getRepositoryId(), major, checkinComment);
-		String versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), properties,
-				request.getContentStream(), objectIdHolder, major, checkinComment, null, request.getUserName());
+		String versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), request.getPropertyData(),
+				request.getContentStream(), objectIdHolder, major, checkinComment, null, request.getUserName(),
+				request.getUserObject());
 		LOG.info("Method name: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), versionId,
