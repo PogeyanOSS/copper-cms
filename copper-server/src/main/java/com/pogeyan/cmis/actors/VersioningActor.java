@@ -184,7 +184,6 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			throw new CmisRuntimeException(String.format(ErrorMessages.DOCUMENT_NULL, span.getTraceId()));
 		}
-		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);

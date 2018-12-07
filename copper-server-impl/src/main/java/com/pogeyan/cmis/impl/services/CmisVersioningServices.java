@@ -357,7 +357,7 @@ public class CmisVersioningServices {
 			if (data.getProperties() != null) {
 				Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
 						data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
-						userObject);
+						userObject, tracingId, span);
 				if (updateProperties != null) {
 					CmisObjectService.Impl.updateProperties(repositoryId, objectId, null, updateProperties, null, null,
 							userObject, data.getTypeId(), tracingId, span);
