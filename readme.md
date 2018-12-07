@@ -206,6 +206,46 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
    
 **tenant-cms**
 * In repojson change the file storage from local to aws
+	*Example json file format
+	```
+[
+
+    {
+        "repositoryId": "Tenant",
+        "repositoryName": "Tenant",
+        "db": {
+            "type": "mongo",
+            "connectionString": "localhost:27017;TenantDB"
+        },
+        "description": "Tenant",
+        "file": {
+            "storage": "aws",
+            "encryption": "",
+            "bucket": "",
+            "accessKeyId": "",
+            "secretAccessKey": "",
+            "region": "",
+            "kms_id": "",
+            "kms_region": ""
+        },
+        "login": {
+            "type": "local",
+            "users": [
+                {
+                    "userDetails": "admin:Welc0me123*",
+                    "permission": "cmis:all",
+                    "groups": [
+                        {
+                            "groupName": "admin",
+                            "permission": "cmis:all"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+]
+```
 * In repository.properties uncomment the following classes
 	**repositoryManagerClass=com.pogeyan.cmis.repo.local.LocalRepoImpl**
 	**authenticationManagerClass=com.pogeyan.cmis.repo.local.LocalRepoAuthFactory**
@@ -225,6 +265,6 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
    - CMIS_APP_PASSWORD=Welc0me123*
    - CMIS_APP_REPOSITORY_ID=Tenant
    - CMIS_APP_CONNECTION_URL=http://localhost:9090/
-   - COGNITO_BACKEND_USERNAME=a788f8e0-ebc0-11e8-9941-b93c2bca4e5d
+   - COGNITO_BACKEND_USERNAME=$COGNITO_BACKEND_USERNAME
 * Start the app-cms(port:9091)
 
