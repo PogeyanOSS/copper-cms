@@ -1779,7 +1779,7 @@ public class CmisObjectService {
 						userObject == null ? null : userObject.getUserDN(), token, p._1(), custom, policies, addACEs,
 						p._2(), parentData.getId().toString());
 				if (contentStream != null) {
-				//	p = resolvePathForObject(parentData, contentStream.getFileName());
+					// p = resolvePathForObject(parentData, contentStream.getFileName());
 					// getting path name again
 					baseObject = objectDAO.createObjectFacade(docName, BaseTypeId.CMIS_DOCUMENT, typeId, repositoryId,
 							secondaryObjectTypeIds,
@@ -1961,7 +1961,8 @@ public class CmisObjectService {
 			if (sourceResult.getContentStreamFileName() != null) {
 				contentStream = localService.getContent(sourceResult.getContentStreamFileName(), sourceResult.getPath(),
 						sourceResult.getContentStreamMimeType(),
-						BigInteger.valueOf(sourceResult.getContentStreamLength()));
+						BigInteger.valueOf(sourceResult.getContentStreamLength()),
+						sourceResult.getContentStreamFileName());
 			}
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
@@ -2845,8 +2846,13 @@ public class CmisObjectService {
 					} else {
 						Contentlength = BigInteger.valueOf(docDetails.getContentStreamLength());
 					}
+					String fileName = docDetails.getProperties() != null
+							? (String) docDetails.getProperties().get(PropertyIds.CONTENT_STREAM_FILE_NAME) != null
+									? (String) docDetails.getProperties().get(PropertyIds.CONTENT_STREAM_FILE_NAME)
+									: docDetails.getContentStreamFileName()
+							: docDetails.getContentStreamFileName();
 					contentStream = localService.getContent(docDetails.getContentStreamFileName(), docDetails.getPath(),
-							docDetails.getContentStreamMimeType(), Contentlength);
+							docDetails.getContentStreamMimeType(), Contentlength, fileName);
 					LOG.info("ContentStream: {}", contentStream);
 				}
 
