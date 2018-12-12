@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
+import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
+import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParseException;
+import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,7 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
+import com.pogeyan.cmis.api.utils.TracingMessage;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 import akka.actor.ActorRef;
@@ -54,6 +58,8 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	private static final String TRACINGID = "TracingId";
 	private static final String REQUEST_HEADERS = "RequestHeaders";
 	private static final String PARENT_SPAN = "ParentSpan";
+	public static final String BASE_MESSAGE = "ActionName: %s, TypeName: %s, TraceId: %s, RequestData: %s";
+	public static final String REPOID = "repositoryId";
 
 	public abstract String getName();
 
@@ -108,7 +114,22 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 					b.addBaggage(TRACINGID, b.getMessageId());
 					b.addBaggage(PARENT_SPAN, parentSpan);
 					this.traceContext.put(b.getMessageId(), parentSpan);
+					if (logger.isInfoEnabled()) {
+						try {
+							String repoId = (String) ((JSONObject) new JSONParser().parse(b.getMessagePlain()))
+									.get(REPOID);
+							TracingApiServiceFactory.getApiService().updateSpan(parentSpan,
+									TracingMessage.message(
+											((String.format(BASE_MESSAGE, b.getActionName(), b.getTypeName(),
+													b.getMessagePlain(), parentSpan.getTraceId()))),
+											this.getClass().getSimpleName(), repoId, true));
+						} catch (JSONParseException e) {
+							e.printStackTrace();
+						}
+
+					}
 				}
+
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());
 				if (Helpers.isPerfMode()) {
 					Timer.Context timerContext = MetricsInputs.get()
