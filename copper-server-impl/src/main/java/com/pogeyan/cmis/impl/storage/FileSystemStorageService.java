@@ -266,9 +266,6 @@ public class FileSystemStorageService implements IStorageService {
 			String mimeType, BigInteger length, String fileName) {
 		LOG.info("getConetent file name:{}" + objectName);
 		try {
-			if (fileName == null) {
-				fileName = objectName;
-			}
 			String objectNameWithExtension = objectName;
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("getConetent file name:{}" + objectName);

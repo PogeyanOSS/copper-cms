@@ -1961,7 +1961,8 @@ public class CmisObjectService {
 			if (sourceResult.getContentStreamFileName() != null) {
 				contentStream = localService.getContent(sourceResult.getContentStreamFileName(), sourceResult.getPath(),
 						sourceResult.getContentStreamMimeType(),
-						BigInteger.valueOf(sourceResult.getContentStreamLength()), null);
+						BigInteger.valueOf(sourceResult.getContentStreamLength()),
+						sourceResult.getContentStreamFileName());
 			}
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
@@ -2848,8 +2849,8 @@ public class CmisObjectService {
 					String fileName = docDetails.getProperties() != null
 							? (String) docDetails.getProperties().get(PropertyIds.CONTENT_STREAM_FILE_NAME) != null
 									? (String) docDetails.getProperties().get(PropertyIds.CONTENT_STREAM_FILE_NAME)
-									: null
-							: null;
+									: docDetails.getContentStreamFileName()
+							: docDetails.getContentStreamFileName();
 					contentStream = localService.getContent(docDetails.getContentStreamFileName(), docDetails.getPath(),
 							docDetails.getContentStreamMimeType(), Contentlength, fileName);
 					LOG.info("ContentStream: {}", contentStream);
