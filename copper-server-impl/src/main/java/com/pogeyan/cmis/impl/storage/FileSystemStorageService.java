@@ -206,7 +206,7 @@ public class FileSystemStorageService implements IStorageService {
 						+ File.separator + objectName), ByteStreams.toByteArray(id), StandardOpenOption.WRITE);
 				id.close();
 				oldContent = getContent(objectName, path, contentStream.getMimeType(),
-						BigInteger.valueOf(appendFileName.length()));
+						BigInteger.valueOf(appendFileName.length()), null);
 			}
 		} catch (Exception e) {
 			LOG.error("appendContent exception: {}, {}", e.getMessage(), ExceptionUtils.getStackTrace(e));
@@ -263,9 +263,12 @@ public class FileSystemStorageService implements IStorageService {
 
 	@Override
 	public org.apache.chemistry.opencmis.commons.data.ContentStream getContent(String objectName, String path,
-			String mimeType, BigInteger length) {
+			String mimeType, BigInteger length, String fileName) {
 		LOG.info("getConetent file name:{}" + objectName);
 		try {
+			if (fileName == null) {
+				fileName = objectName;
+			}
 			String objectNameWithExtension = objectName;
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("getConetent file name:{}" + objectName);
@@ -288,7 +291,7 @@ public class FileSystemStorageService implements IStorageService {
 						new FileInputStream(file));
 			}
 
-			contentStream = new ContentStreamImpl(objectName, length, MimeTypes.getMIMEType(file),
+			contentStream = new ContentStreamImpl(fileName, length, MimeTypes.getMIMEType(file),
 					new FileInputStream(file));
 			return contentStream;
 		} catch (Exception e) {
