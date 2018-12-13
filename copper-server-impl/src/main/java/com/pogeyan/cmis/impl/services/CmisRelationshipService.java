@@ -64,7 +64,7 @@ public class CmisRelationshipService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.EXCEPTION, e.toString(), span.getTraceId()),
 								ErrorMessages.MONGO_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new MongoException(String.format(ErrorMessages.EXCEPTION, e.toString(), span.getTraceId()));
 			}
 
@@ -74,7 +74,7 @@ public class CmisRelationshipService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
@@ -114,7 +114,7 @@ public class CmisRelationshipService {
 			if (result != null) {
 				LOG.debug("ObjectRelationships result count: {}", result.getNumItems());
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 
 		}

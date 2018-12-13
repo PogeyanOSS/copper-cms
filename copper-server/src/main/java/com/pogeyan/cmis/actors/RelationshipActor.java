@@ -68,11 +68,11 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
 		}
 		String objectId = request.getObjectId();
 		Boolean includeSubRelationshipTypes = request.getBooleanParameter(QueryGetRequest.PARAM_SUB_RELATIONSHIP_TYPES);
@@ -98,13 +98,13 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(String.format(ErrorMessages.RELATIONSHIP_NULL, span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(String.format(ErrorMessages.RELATIONSHIP_NULL, span.getTraceId()));
 		}
 
 		JSONObject jsonChildren = JSONConverter.convert(relationships, null, JSONConverter.PropertyMode.OBJECT,
 				succinct, dateTimeFormat);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonChildren;
 
 	}
