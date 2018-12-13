@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.definitions.PermissionDefinition;
@@ -89,9 +90,6 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	private static final Logger LOG = LoggerFactory.getLogger(RepositoryActor.class);
 	private static final String OPENCMIS_VERSION = "1.1";
 	private static final String OPENCMIS_SERVER = "Cloud CMIS DB";
-	private static final String CMIS_READ = "cmis:read";
-	private static final String CMIS_WRITE = "cmis:write";
-	private static final String CMIS_ALL = "cmis:all";
 
 	public RepositoryActor() {
 		this.registerMessageHandle("GetRepositories".toLowerCase(), QueryGetRequest.class,
@@ -142,16 +140,15 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(t.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					String.format(t.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()));
 
 		}
 		// call DB and get the repositoryInfo
-		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName(), t.getTypeId(),
-				tracingId, span);
+		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName(), t.getTypeId(), tracingId, span);
 		IRepository repository = RepositoryManagerFactory.getInstance().getRepositoryStore()
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
@@ -164,7 +161,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONObject result = new JSONObject();
 		result.put(repo.getId(), JSONConverter.convert(repo, repositoryUrl, rootUrl, true));
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
 
 	}
@@ -185,7 +182,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserObject(),
 								tracingId, span);
 						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
-								request.getUserName(), request.getTypeId(), tracingId, span);
+								request.getUserName(), request.getTypeId());
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
 								CmisVersion.CMIS_1_1, rootId,
 								repository.getDescription() == null ? "" : repository.getDescription()));
@@ -207,7 +204,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
 
 	}
@@ -222,11 +219,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
 
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
@@ -236,7 +233,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(request.getRepositoryId(), typeId, null,
 				request.getUserObject(), tracingId, span);
 		JSONObject resultType = JSONConverter.convert(type, dateTimeFormat);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return resultType;
 
 	}
@@ -251,11 +248,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -269,7 +266,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		TypeDefinitionList typeList = CmisTypeServices.Impl.getTypeChildren(request.getRepositoryId(), typeId,
 				includePropertyDefinitions, maxItems, skipCount, null, request.getUserObject(), tracingId, span);
 		JSONObject jsonTypeList = JSONConverter.convert(typeList, dateTimeFormat);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonTypeList;
 
 	}
@@ -284,11 +281,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -305,7 +302,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(String.format(ErrorMessages.TYPE_TREE_NULL, span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(String.format(ErrorMessages.TYPE_TREE_NULL, span.getTraceId()));
 		}
 
@@ -313,7 +310,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		for (TypeDefinitionContainer container : typeTree) {
 			jsonTypeTree.add(JSONConverter.convert(container, dateTimeFormat));
 		}
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonTypeTree;
 
 	}
@@ -328,11 +325,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
 		}
 		String typeStr = request.getParameter(QueryGetRequest.CONTROL_TYPE);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -340,12 +337,12 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (typeStr == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.TYPE_DEFINITION_MISSING,
+							String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName(),
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisInvalidArgumentException(
-					String.format(request.getUserName(), ErrorMessages.TYPE_DEFINITION_MISSING, span.getTraceId()));
+					String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName(), span.getTraceId()));
 		}
 
 		// convert type definition
@@ -359,7 +356,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					TracingMessage.message(
 							String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e), span.getTraceId()),
 							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 		}
 		if (!(typeJson instanceof Map)) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
@@ -367,7 +364,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 							String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION,
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisInvalidArgumentException(
 					String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 		}
@@ -379,7 +376,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		TypeDefinition typeOut = CmisTypeServices.Impl.createType(request.getRepositoryId(), typeIn, null,
 				request.getUserObject(), tracingId, span);
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonType;
 
 	}
@@ -394,11 +391,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
 		}
 		String typeStr = request.getParameter(QueryGetRequest.CONTROL_TYPE);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -406,12 +403,12 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (typeStr == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.TYPE_DEFINITION_MISSING,
+							String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName(),
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisInvalidArgumentException(
-					String.format(request.getUserName(), ErrorMessages.TYPE_DEFINITION_MISSING, span.getTraceId()));
+					String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName(), span.getTraceId()));
 		}
 
 		// convert type definition
@@ -425,7 +422,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					TracingMessage.message(
 							String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e), span.getTraceId()),
 							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 		}
 		if (!(typeJson instanceof Map)) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
@@ -433,7 +430,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 							String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION,
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisInvalidArgumentException(
 					String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION, span.getTraceId()));
 		}
@@ -445,7 +442,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		TypeDefinition typeOut = CmisTypeServices.Impl.updateType(request.getRepositoryId(), typeIn, null,
 				request.getUserObject(), tracingId, span);
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonType;
 
 	}
@@ -460,18 +457,18 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
 		}
 		String typeId = request.getParameter(QueryGetRequest.CONTROL_TYPE_ID);
 		LOG.info("Method name: {}, delete the type using this typeId: {}, repositoryId: {}", "deleteType", typeId,
 				request.getRepositoryId());
 		CmisTypeServices.Impl.deleteType(request.getRepositoryId(), typeId, null, request.getUserObject(), tracingId,
 				span);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return null;
 
 	}
@@ -523,9 +520,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		// permissions
 		List<PermissionDefinition> permissions = new ArrayList<PermissionDefinition>();
-		permissions.add(createPermission(CMIS_READ, "Read"));
-		permissions.add(createPermission(CMIS_WRITE, "Write"));
-		permissions.add(createPermission(CMIS_ALL, "All"));
+		permissions.add(createPermission(BasicPermissions.READ, "Read"));
+		permissions.add(createPermission(BasicPermissions.WRITE, "Write"));
+		permissions.add(createPermission(BasicPermissions.ALL, "All"));
 		if (cmisVersion == CmisVersion.CMIS_1_1) {
 			NewTypeSettableAttributesImpl typeAttrs = new NewTypeSettableAttributesImpl();
 			typeAttrs.setCanSetControllableAcl(true);
@@ -547,39 +544,39 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		// mapping
 		List<PermissionMapping> list = new ArrayList<PermissionMapping>();
-		list.add(createMapping(PermissionMapping.CAN_GET_DESCENDENTS_FOLDER, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_GET_CHILDREN_FOLDER, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_GET_PARENTS_FOLDER, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_GET_FOLDER_PARENT_OBJECT, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_CREATE_DOCUMENT_FOLDER, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_CREATE_FOLDER_FOLDER, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_CREATE_RELATIONSHIP_SOURCE, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_CREATE_RELATIONSHIP_TARGET, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_GET_PROPERTIES_OBJECT, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_VIEW_CONTENT_OBJECT, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_UPDATE_PROPERTIES_OBJECT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_MOVE_OBJECT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_MOVE_TARGET, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_MOVE_SOURCE, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_DELETE_OBJECT, CMIS_WRITE));
+		list.add(createMapping(PermissionMapping.CAN_GET_DESCENDENTS_FOLDER, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_CHILDREN_FOLDER, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_PARENTS_FOLDER, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_FOLDER_PARENT_OBJECT, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_CREATE_DOCUMENT_FOLDER, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_CREATE_FOLDER_FOLDER, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_CREATE_RELATIONSHIP_SOURCE, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_CREATE_RELATIONSHIP_TARGET, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_PROPERTIES_OBJECT, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_VIEW_CONTENT_OBJECT, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_UPDATE_PROPERTIES_OBJECT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_MOVE_OBJECT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_MOVE_TARGET, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_MOVE_SOURCE, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_DELETE_OBJECT, BasicPermissions.WRITE));
 
-		list.add(createMapping(PermissionMapping.CAN_DELETE_TREE_FOLDER, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_SET_CONTENT_DOCUMENT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_DELETE_CONTENT_DOCUMENT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_ADD_TO_FOLDER_OBJECT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_REMOVE_FROM_FOLDER_OBJECT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_CHECKOUT_DOCUMENT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_CANCEL_CHECKOUT_DOCUMENT, CMIS_WRITE));
+		list.add(createMapping(PermissionMapping.CAN_DELETE_TREE_FOLDER, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_SET_CONTENT_DOCUMENT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_DELETE_CONTENT_DOCUMENT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_ADD_TO_FOLDER_OBJECT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_REMOVE_FROM_FOLDER_OBJECT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_CHECKOUT_DOCUMENT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_CANCEL_CHECKOUT_DOCUMENT, BasicPermissions.WRITE));
 
-		list.add(createMapping(PermissionMapping.CAN_CHECKIN_DOCUMENT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_GET_ALL_VERSIONS_VERSION_SERIES, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_GET_OBJECT_RELATIONSHIPS_OBJECT, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_ADD_POLICY_OBJECT, CMIS_WRITE));
-		list.add(createMapping(PermissionMapping.CAN_REMOVE_POLICY_OBJECT, CMIS_WRITE));
+		list.add(createMapping(PermissionMapping.CAN_CHECKIN_DOCUMENT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_GET_ALL_VERSIONS_VERSION_SERIES, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_OBJECT_RELATIONSHIPS_OBJECT, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_ADD_POLICY_OBJECT, BasicPermissions.WRITE));
+		list.add(createMapping(PermissionMapping.CAN_REMOVE_POLICY_OBJECT, BasicPermissions.WRITE));
 
-		list.add(createMapping(PermissionMapping.CAN_GET_APPLIED_POLICIES_OBJECT, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_GET_ACL_OBJECT, CMIS_READ));
-		list.add(createMapping(PermissionMapping.CAN_APPLY_ACL_OBJECT, CMIS_ALL));
+		list.add(createMapping(PermissionMapping.CAN_GET_APPLIED_POLICIES_OBJECT, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_GET_ACL_OBJECT, BasicPermissions.READ));
+		list.add(createMapping(PermissionMapping.CAN_APPLY_ACL_OBJECT, BasicPermissions.ALL));
 
 		Map<String, PermissionMapping> map = new LinkedHashMap<String, PermissionMapping>();
 		for (PermissionMapping pm : list) {
