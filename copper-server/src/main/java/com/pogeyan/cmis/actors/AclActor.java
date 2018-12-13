@@ -72,7 +72,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 					TracingMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
 					String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()));
 		}
@@ -87,11 +87,11 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message((String.format(ErrorMessages.ACL_NULL, span.getTraceId())),
 							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(String.format(ErrorMessages.ACL_NULL, span.getTraceId()));
 		}
 		JSONObject jsonObject = JSONConverter.convert(objectAcl);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
@@ -108,7 +108,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 					TracingMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
 					String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()));
 		}
@@ -122,11 +122,11 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message((String.format(ErrorMessages.ACL_NULL, span.getTraceId())),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(String.format(ErrorMessages.ACL_NULL, span.getTraceId()));
 		}
 		JSONObject jsonObject = JSONConverter.convert(objectAcl);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}

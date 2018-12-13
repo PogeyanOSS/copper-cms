@@ -64,7 +64,7 @@ public class CmisAclServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
@@ -72,7 +72,7 @@ public class CmisAclServices {
 					false, objectInfos, null, null, userObject, tracingId, span);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectData.getAcl();
 		}
 
@@ -92,7 +92,7 @@ public class CmisAclServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
@@ -119,7 +119,7 @@ public class CmisAclServices {
 			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, data.getTypeId());
 
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return newData.getAcl();
 		}
 
@@ -178,7 +178,7 @@ public class CmisAclServices {
 			aces = new ArrayList<Ace>(removeDuplicate);
 			AccessControlListImplExt aclimpl = new AccessControlListImplExt(aces, aclPropagation, false);
 			LOG.debug("After validatedAces: {}", aclimpl != null ? aclimpl.getAces() : null);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return aclimpl;
 		}
 
