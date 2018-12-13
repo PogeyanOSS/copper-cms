@@ -58,8 +58,9 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	private static final String TRACINGID = "TracingId";
 	private static final String REQUEST_HEADERS = "RequestHeaders";
 	private static final String PARENT_SPAN = "ParentSpan";
-	public static final String BASE_MESSAGE = "ActionName: %s, TypeName: %s, TraceId: %s, RequestData: %s";
+	public static final String BASE_MESSAGE = "ActionName: %s, TypeName: %s, RequestData: %s, TraceId: %s";
 	public static final String REPOID = "repositoryId";
+	public static final String USEROBJECT = "userObject";
 
 	public abstract String getName();
 
@@ -116,15 +117,16 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 					this.traceContext.put(b.getMessageId(), parentSpan);
 					if (logger.isInfoEnabled()) {
 						try {
-							String repoId = (String) ((JSONObject) new JSONParser().parse(b.getMessagePlain()))
-									.get(REPOID);
+							JSONObject jobj = (JSONObject) new JSONParser().parse(b.getMessagePlain());
+							jobj.remove(USEROBJECT);
 							TracingApiServiceFactory.getApiService().updateSpan(parentSpan,
 									TracingMessage.message(
-											((String.format(BASE_MESSAGE, b.getActionName(), b.getTypeName(),
-													b.getMessagePlain(), parentSpan.getTraceId()))),
-											this.getClass().getSimpleName(), repoId, true));
+											((String.format(BASE_MESSAGE, b.getActionName(), b.getTypeName(), jobj,
+													parentSpan.getTraceId()))),
+											this.getClass().getSimpleName(), (String) jobj.get(REPOID), false));
 						} catch (JSONParseException e) {
-							e.printStackTrace();
+							logger.error("Exception in parsing message : {}, {}, {}", b.getTypeName(),
+									b.getActionName(), e.getMessage());
 						}
 
 					}

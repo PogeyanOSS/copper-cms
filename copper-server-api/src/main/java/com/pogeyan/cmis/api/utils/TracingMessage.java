@@ -28,8 +28,8 @@ public class TracingMessage implements ITracingMessage {
 		return message;
 	}
 
-	public void setMessage(String errorMessage) {
-		this.message = errorMessage;
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 	public String getRepoId() {
