@@ -55,7 +55,7 @@ public class CmisPolicyService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
@@ -72,7 +72,7 @@ public class CmisPolicyService {
 			if (res != null) {
 				LOG.debug("Applied policies result count: {}", res.size());
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return res;
 		}
 
@@ -92,7 +92,7 @@ public class CmisPolicyService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
@@ -106,7 +106,7 @@ public class CmisPolicyService {
 						TracingMessage.message(
 								String.format(ErrorMessages.POLICY_NOT_APPLIED, policyId, objectId, span.getTraceId()),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(
 						String.format(ErrorMessages.POLICY_NOT_APPLIED, policyId, objectId, span.getTraceId()));
 			}
@@ -115,7 +115,7 @@ public class CmisPolicyService {
 			if (polIds != null) {
 				LOG.debug("PolicyObject after removing policyids are: {}", polIds);
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 
 		/**
@@ -133,7 +133,7 @@ public class CmisPolicyService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
@@ -145,7 +145,7 @@ public class CmisPolicyService {
 						TracingMessage.message(
 								String.format(ErrorMessages.UNKNOWN_POLICY_ID, policyId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_POLICY_ID, policyId, span.getTraceId()));
 			}
@@ -159,7 +159,7 @@ public class CmisPolicyService {
 						TracingMessage.message(
 								String.format(ErrorMessages.POLICY_NOT_ADDED, policyId, objectId, span.getTraceId()),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(
 						String.format(ErrorMessages.POLICY_NOT_ADDED, policyId, objectId, span.getTraceId()));
 			}
@@ -171,7 +171,7 @@ public class CmisPolicyService {
 			if (polIds != null) {
 				LOG.debug("PolicyObject after adding policyids are: {}", polIds);
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 	}
 }
