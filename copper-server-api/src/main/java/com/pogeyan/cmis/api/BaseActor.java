@@ -174,7 +174,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 							this.perfTimerContext.remove(b.getMessageId());
 						}
 						TracingApiServiceFactory.getApiService().endSpan(b.getMessageId(),
-								this.traceContext.get(b.getMessageId()));
+								this.traceContext.get(b.getMessageId()), false);
 						this.traceContext.remove(b.getMessageId());
 					}
 
