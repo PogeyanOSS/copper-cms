@@ -70,11 +70,11 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(t.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			throw new CmisObjectNotFoundException(
-					String.format(t.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()));
 		}
 		String aclPro = t.getAclPropagation();
 		String objectId = t.getObjectId();
@@ -106,11 +106,11 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingMessage.message(
-							String.format(t.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			throw new CmisObjectNotFoundException(
-					String.format(t.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+					String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()));
 		}
 		String objectId = t.getObjectId();
 		Boolean onlyBasicPermissions = t.getBooleanParameter(QueryGetRequest.PARAM_ONLY_BASIC_PERMISSIONS);
