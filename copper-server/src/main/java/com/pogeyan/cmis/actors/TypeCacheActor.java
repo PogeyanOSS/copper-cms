@@ -44,7 +44,7 @@ public class TypeCacheActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		CacheProviderServiceFactory.getTypeCacheServiceProvider().removeAll(request.getRepositoryId());
 		JSONObject j = new JSONObject();
 		j.put("status", true);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return j;
 	}
 }
