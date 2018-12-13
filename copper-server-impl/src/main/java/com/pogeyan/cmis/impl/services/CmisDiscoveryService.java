@@ -75,7 +75,7 @@ public class CmisDiscoveryService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingMessage.message(String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(
 						String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
 			}
@@ -155,7 +155,7 @@ public class CmisDiscoveryService {
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
 			LOG.debug("getContentChanges result data count: {}", objList != null ? objList.getNumItems() : objList);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objList;
 		}
 
@@ -180,7 +180,7 @@ public class CmisDiscoveryService {
 				props = result;
 			} else {
 				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo,
-						userObject, null, null);
+						userObject);
 			}
 
 			odImpl.setProperties(props);
