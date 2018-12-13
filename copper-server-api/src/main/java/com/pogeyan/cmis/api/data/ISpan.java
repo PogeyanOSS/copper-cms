@@ -8,8 +8,7 @@ public interface ISpan {
 	 * @param name
 	 *            name of the span
 	 * @param headers
-	 *            list of tracing headers from which parent context will be
-	 *            formed
+	 *            list of tracing headers from which parent context will be formed
 	 */
 	void setChildSpan(String tracingId, String name, Map<String, String> headers);
 
@@ -37,13 +36,13 @@ public interface ISpan {
 	/**
 	 * ends the span
 	 */
-	void close();
+	void close(boolean isError);
 
 	/**
 	 * 
 	 * @return returns the parentSpan
 	 */
 	ISpan getParentSpan();
-	
+
 	String getTraceId();
 }
