@@ -31,7 +31,7 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
@@ -53,7 +53,8 @@ public class CmisPolicyService {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAppliedPolicies",
 						objectId, repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -64,7 +65,7 @@ public class CmisPolicyService {
 				for (String polId : polIds) {
 					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, polId, null, data.getTypeId());
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
-							false, true, null, null, IncludeRelationships.NONE, userObject, tracingId, span);
+							false, true, null, null, IncludeRelationships.NONE, userObject);
 
 					res.add(objectData);
 				}
@@ -90,7 +91,8 @@ public class CmisPolicyService {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "removePolicy",
 						objectId, repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -103,7 +105,7 @@ public class CmisPolicyService {
 						"Method name: {}, policyId: {}, cannot be removed because it is not applied to object: {}, repository: {}, TraceId: {}",
 						"removePolicy", policyId, objectId, repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(
+						TracingErrorMessage.message(
 								String.format(ErrorMessages.POLICY_NOT_APPLIED, policyId, objectId, span.getTraceId()),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -131,7 +133,8 @@ public class CmisPolicyService {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyPolicy",
 						objectId, repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -142,7 +145,7 @@ public class CmisPolicyService {
 				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy", policyId,
 						repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(
+						TracingErrorMessage.message(
 								String.format(ErrorMessages.UNKNOWN_POLICY_ID, policyId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -156,7 +159,7 @@ public class CmisPolicyService {
 						"Method name: {}, policyId: {}, cannot be added because it is already applied to object: {}, repository: {}, TraceId:{}",
 						"applyPolicy", policyId, objectId, repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(
+						TracingErrorMessage.message(
 								String.format(ErrorMessages.POLICY_NOT_ADDED, policyId, objectId, span.getTraceId()),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
