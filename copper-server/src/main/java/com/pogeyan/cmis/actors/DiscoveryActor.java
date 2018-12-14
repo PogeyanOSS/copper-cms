@@ -37,7 +37,7 @@ import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
@@ -68,9 +68,9 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 				"DiscoveryActor::getContentChanges", null);
 		String permission = request.getUserObject().getPermission();
 
-		if (!Helpers.checkingUserPremission(permission, "get")) {
+		if (!!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
