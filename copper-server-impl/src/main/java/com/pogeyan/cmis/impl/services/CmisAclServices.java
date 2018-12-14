@@ -42,7 +42,7 @@ import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -62,14 +62,15 @@ public class CmisAclServices {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId,
 						repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
-					false, objectInfos, null, null, userObject, tracingId, span);
+					false, objectInfos, null, null, userObject);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -90,7 +91,8 @@ public class CmisAclServices {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
 						repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(

@@ -37,7 +37,7 @@ import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisAclServices;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -69,7 +69,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -85,7 +85,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message((String.format(ErrorMessages.ACL_NULL, span.getTraceId())),
+					TracingErrorMessage.message((String.format(ErrorMessages.ACL_NULL, span.getTraceId())),
 							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(String.format(ErrorMessages.ACL_NULL, span.getTraceId()));
@@ -105,7 +105,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -120,7 +120,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				t.getUserObject(), t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message((String.format(ErrorMessages.ACL_NULL, span.getTraceId())),
+					TracingErrorMessage.message((String.format(ErrorMessages.ACL_NULL, span.getTraceId())),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(String.format(ErrorMessages.ACL_NULL, span.getTraceId()));
