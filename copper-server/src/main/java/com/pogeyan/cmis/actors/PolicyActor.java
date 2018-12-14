@@ -75,7 +75,7 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "PolicyActor::policies",
 				null);
 		String permission = request.getUserObject().getPermission();
-		if (!!Helpers.checkingUserPremission(permission, "get")) {
+		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
