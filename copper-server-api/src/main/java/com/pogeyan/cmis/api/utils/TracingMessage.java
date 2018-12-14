@@ -7,12 +7,31 @@ import com.pogeyan.cmis.api.data.ITracingMessage;
 
 public class TracingMessage implements ITracingMessage {
 
+	public static String REPOID = "repoId";
+	public static String SUCCESS = "Success";
+
 	String message;
 	String description;
 	String repoId;
 	boolean isError;
 
-	private TracingMessage(String message, String description, String repoId, boolean isError) {
+	TracingMessage() {
+
+	}
+
+	/**
+	 * 
+	 * @param repoId
+	 *            the repositoryId
+	 * @param isError
+	 *            for error cases
+	 * @param description
+	 *            description of the annotation
+	 * @param attrMap
+	 *            additional information that is included in the span
+	 */
+
+	TracingMessage(String message, String description, String repoId, boolean isError) {
 		super();
 		this.message = message;
 		this.description = description;
@@ -51,12 +70,8 @@ public class TracingMessage implements ITracingMessage {
 	@Override
 	public Map<String, Object> getAttrMap() {
 		Map<String, Object> attrMap = new HashMap<String, Object>();
-		attrMap.put("repoId", getRepoId());
-		if (this.isError) {
-			attrMap.put("error", getMessage());
-		} else {
-			attrMap.put("success", getMessage());
-		}
+		attrMap.put(REPOID, getRepoId());
+		attrMap.put(SUCCESS, getMessage());
 		return attrMap;
 	}
 

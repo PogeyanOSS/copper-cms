@@ -61,6 +61,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	public static final String BASE_MESSAGE = "ActionName: %s, TypeName: %s, RequestData: %s, TraceId: %s";
 	public static final String REPOID = "repositoryId";
 	public static final String USEROBJECT = "userObject";
+	public static final String TRACING = "tracing";
 
 	public abstract String getName();
 
@@ -110,12 +111,13 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 					logger.debug("Message decoded for sender:{} with messageId: {}", sender, b.getMessageId());
 				}
 				if (Helpers.isPerfMode()) {
+					HashMap<String, String> headers = b.getBaggage(REQUEST_HEADERS);
 					ISpan parentSpan = TracingApiServiceFactory.getApiService().startSpan(b.getMessageId(), null,
-							"BaseActor::" + b.getTypeName() + "::" + b.getActionName(), b.getBaggage(REQUEST_HEADERS));
+							"BaseActor::" + b.getTypeName() + "::" + b.getActionName(), headers);
 					b.addBaggage(TRACINGID, b.getMessageId());
 					b.addBaggage(PARENT_SPAN, parentSpan);
 					this.traceContext.put(b.getMessageId(), parentSpan);
-					if (logger.isInfoEnabled()) {
+					if (headers.get(TRACING) != null && Boolean.valueOf(headers.get(TRACING))) {
 						try {
 							JSONObject jobj = (JSONObject) new JSONParser().parse(b.getMessagePlain());
 							jobj.remove(USEROBJECT);
