@@ -37,7 +37,7 @@ import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
@@ -62,7 +62,8 @@ public class CmisRelationshipService {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
 						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.EXCEPTION, e.toString(), span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.EXCEPTION, e.toString(), span.getTraceId()),
 								ErrorMessages.MONGO_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new MongoException(String.format(ErrorMessages.EXCEPTION, e.toString(), span.getTraceId()));
@@ -72,7 +73,8 @@ public class CmisRelationshipService {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}, traceId: {}",
 						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(

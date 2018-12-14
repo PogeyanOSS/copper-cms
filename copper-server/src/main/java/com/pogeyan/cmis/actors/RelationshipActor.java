@@ -38,7 +38,7 @@ import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisRelationshipService;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -67,7 +67,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -96,7 +96,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 
 		if (relationships == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(String.format(ErrorMessages.RELATIONSHIP_NULL, span.getTraceId()),
+					TracingErrorMessage.message(String.format(ErrorMessages.RELATIONSHIP_NULL, span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(String.format(ErrorMessages.RELATIONSHIP_NULL, span.getTraceId()));
