@@ -78,7 +78,7 @@ import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
@@ -139,7 +139,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -148,7 +148,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		}
 		// call DB and get the repositoryInfo
-		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName(), t.getTypeId(), tracingId, span);
+		String rootId = CmisObjectService.Impl.addRootFolder(t.getRepositoryId(), t.getUserName(), t.getTypeId(),
+				tracingId, span);
 		IRepository repository = RepositoryManagerFactory.getInstance().getRepositoryStore()
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
@@ -218,7 +219,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -247,7 +248,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -280,7 +281,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -300,7 +301,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		if (typeTree == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(String.format(ErrorMessages.TYPE_TREE_NULL, span.getTraceId()),
+					TracingErrorMessage.message(String.format(ErrorMessages.TYPE_TREE_NULL, span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(String.format(ErrorMessages.TYPE_TREE_NULL, span.getTraceId()));
@@ -324,7 +325,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -336,7 +337,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		if (typeStr == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName(),
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
@@ -353,14 +354,14 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		} catch (JSONParseException e) {
 			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e), span.getTraceId()),
 							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 		}
 		if (!(typeJson instanceof Map)) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION,
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
@@ -390,7 +391,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -402,7 +403,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		if (typeStr == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName(),
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
@@ -419,14 +420,14 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		} catch (JSONParseException e) {
 			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span.getTraceId());
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e), span.getTraceId()),
 							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 		}
 		if (!(typeJson instanceof Map)) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION,
 									span.getTraceId()),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
@@ -456,7 +457,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
+					TracingErrorMessage.message(
 							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);

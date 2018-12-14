@@ -75,7 +75,7 @@ import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
@@ -120,7 +120,7 @@ public class CmisTypeServices {
 									LOG.error("Folder creation exception:  {}, repositoryId: {}, TraceId: {}", e,
 											repositoryId, span.getTraceId());
 									TracingApiServiceFactory.getApiService().updateSpan(span,
-											TracingMessage.message(
+											TracingErrorMessage.message(
 													String.format(ErrorMessages.EXCEPTION, e.getMessage(),
 															span.getTraceId()),
 													ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
@@ -139,7 +139,7 @@ public class CmisTypeServices {
 				LOG.error("MongoObject shouldnot be null: {}, repository: {}, TraceId: {}", e, repositoryId,
 						span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.MONGO_OBJECT_NULL, span.getTraceId()),
+						TracingErrorMessage.message(String.format(ErrorMessages.MONGO_OBJECT_NULL, span.getTraceId()),
 								ErrorMessages.MONGO_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new MongoException(String.format(ErrorMessages.MONGO_OBJECT_NULL, span.getTraceId()));
@@ -529,7 +529,7 @@ public class CmisTypeServices {
 			if (type == null) {
 				LOG.error("Type must be set! in repository: {}, TraceId: {}", repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
+						TracingErrorMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()));
@@ -550,7 +550,7 @@ public class CmisTypeServices {
 					LOG.error("Type must have a valid id! in repository: {}, TraceId: {}", repositoryId,
 							span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(String.format(ErrorMessages.NOT_VALID_ID, span.getTraceId()),
+							TracingErrorMessage.message(String.format(ErrorMessages.NOT_VALID_ID, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 					throw new IllegalArgumentException(String.format(ErrorMessages.NOT_VALID_ID, span.getTraceId()));
@@ -559,7 +559,8 @@ public class CmisTypeServices {
 					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId,
 							span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(String.format(ErrorMessages.PARENT_NOT_VALID, span.getTraceId()),
+							TracingErrorMessage.message(
+									String.format(ErrorMessages.PARENT_NOT_VALID, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 					throw new IllegalArgumentException(
@@ -575,7 +576,8 @@ public class CmisTypeServices {
 					LOG.error(type.getId() + ": {}, repository: {}, TraceId: {}", " is already present!", repositoryId,
 							span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(String.format(ErrorMessages.PARENT_NOT_VALID, span.getTraceId()),
+							TracingErrorMessage.message(
+									String.format(ErrorMessages.PARENT_NOT_VALID, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 					throw new IllegalArgumentException(
@@ -616,7 +618,7 @@ public class CmisTypeServices {
 						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
 								span.getTraceId());
 						TracingApiServiceFactory.getApiService().updateSpan(span,
-								TracingMessage.message(
+								TracingErrorMessage.message(
 										String.format(ErrorMessages.EXCEPTION, e.getMessage(), span.getTraceId()),
 										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -640,7 +642,7 @@ public class CmisTypeServices {
 						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
 								span.getTraceId());
 						TracingApiServiceFactory.getApiService().updateSpan(span,
-								TracingMessage.message(
+								TracingErrorMessage.message(
 										String.format(ErrorMessages.EXCEPTION, e.getMessage(), span.getTraceId()),
 										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 						TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -657,7 +659,7 @@ public class CmisTypeServices {
 						userObject.getUserDN(), repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService()
 						.updateSpan(span,
-								TracingMessage.message(
+								TracingErrorMessage.message(
 										String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN(),
 												span.getTraceId()),
 										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
@@ -679,7 +681,7 @@ public class CmisTypeServices {
 			if (type == null) {
 				LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
+						TracingErrorMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()));
@@ -696,7 +698,7 @@ public class CmisTypeServices {
 				if (type.getId() == null || type.getId().trim().length() == 0) {
 					LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId, span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(String.format(ErrorMessages.NOT_VALID_ID, span.getTraceId()),
+							TracingErrorMessage.message(String.format(ErrorMessages.NOT_VALID_ID, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 					throw new IllegalArgumentException(String.format(ErrorMessages.NOT_VALID_ID, span.getTraceId()));
@@ -705,7 +707,8 @@ public class CmisTypeServices {
 					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId,
 							span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(String.format(ErrorMessages.PARENT_NOT_VALID, span.getTraceId()),
+							TracingErrorMessage.message(
+									String.format(ErrorMessages.PARENT_NOT_VALID, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 					throw new IllegalArgumentException(
@@ -723,7 +726,7 @@ public class CmisTypeServices {
 					LOG.error(type.getId() + ": {}, repository: {}", " is unknown", repositoryId, ", TraceId: ",
 							span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(
+							TracingErrorMessage.message(
 									String.format(ErrorMessages.UNKNOWN_TYPE_ID, type.getId(), span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -764,7 +767,7 @@ public class CmisTypeServices {
 						userObject.getUserDN(), repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService()
 						.updateSpan(span,
-								TracingMessage.message(
+								TracingErrorMessage.message(
 										String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN(),
 												span.getTraceId()),
 										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
@@ -788,7 +791,7 @@ public class CmisTypeServices {
 				LOG.error("Type is not available to delete: {}, repository: {}, TraceId: {}", type, repositoryId,
 						span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
+						TracingErrorMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()));
@@ -815,7 +818,8 @@ public class CmisTypeServices {
 					LOG.error(type + ": {}, repository: {}", " Unknown TypeId", repositoryId, "TraceId: ",
 							span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
+							TracingErrorMessage.message(
+									String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 					throw new IllegalArgumentException(
@@ -839,7 +843,7 @@ public class CmisTypeServices {
 						userObject.getUserDN(), repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService()
 						.updateSpan(span,
-								TracingMessage.message(
+								TracingErrorMessage.message(
 										String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN(),
 												span.getTraceId()),
 										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
@@ -858,7 +862,7 @@ public class CmisTypeServices {
 				LOG.error("getTypeDefinition typeId should not be null in repository: {}, TraceId: {}", repositoryId,
 						span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
+						TracingErrorMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()));
@@ -889,7 +893,7 @@ public class CmisTypeServices {
 				// typeDefinitionContainer.getTypeDefinition();
 				// return emptyTypeDefinition;
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
+						TracingErrorMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(String.format(ErrorMessages.TYPE_MUST_BE_SET, span.getTraceId()));
@@ -1146,7 +1150,7 @@ public class CmisTypeServices {
 							span.getTraceId());
 
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(
+							TracingErrorMessage.message(
 									String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -1266,7 +1270,7 @@ public class CmisTypeServices {
 					LOG.error("getTypeDescendants unknown typeID : {}, repository: {}, TraceId: {}", typeId,
 							repositoryId, span.getTraceId());
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(
+							TracingErrorMessage.message(
 									String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -1286,7 +1290,7 @@ public class CmisTypeServices {
 						depth == null ? -1 : depth.intValue(), cmis11, typePermissionFlow, userObject);
 				if (tc == null) {
 					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingMessage.message(
+							TracingErrorMessage.message(
 									String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId, span.getTraceId()),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
@@ -1303,7 +1307,8 @@ public class CmisTypeServices {
 				LOG.error("getTypeDescendants unknown typeId: {}, repository: {}, TraceId: {}", typeId, repositoryId,
 						span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId, span.getTraceId()),
+						TracingErrorMessage.message(
+								String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId, span.getTraceId()),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(
