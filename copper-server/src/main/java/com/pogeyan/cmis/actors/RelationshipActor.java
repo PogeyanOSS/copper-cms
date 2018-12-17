@@ -39,6 +39,7 @@ import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisRelationshipService;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -68,11 +69,12 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
+									span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
 		}
 		String objectId = request.getObjectId();
 		Boolean includeSubRelationshipTypes = request.getBooleanParameter(QueryGetRequest.PARAM_SUB_RELATIONSHIP_TYPES);
@@ -96,10 +98,12 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 
 		if (relationships == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(String.format(ErrorMessages.RELATIONSHIP_NULL, span.getTraceId()),
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.RELATIONSHIP_NULL), span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(String.format(ErrorMessages.RELATIONSHIP_NULL, span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.RELATIONSHIP_NULL), span.getTraceId()));
 		}
 
 		JSONObject jsonChildren = JSONConverter.convert(relationships, null, JSONConverter.PropertyMode.OBJECT,
