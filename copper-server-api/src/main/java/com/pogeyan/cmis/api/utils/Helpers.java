@@ -356,8 +356,14 @@ public class Helpers {
 		if (contentStream != null) {
 			return documentMorphiaDAO.createObjectFacade(baseObject, false, isLatestVersion, isMajorVersion,
 					isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false, null, null,
-					"Commit Document", contentStream.getLength(), contentStream.getMimeType(),
-					contentStream.getFileName(), Helpers.getObjectId(), null);
+					"Commit Document", contentStream.getLength(),
+					baseObject.getProperties().get("cmis:contentStreamMimeType") != null
+							? (String) baseObject.getProperties().get("cmis:contentStreamMimeType")
+							: contentStream.getMimeType(),
+					baseObject.getProperties().get("cmis:contentStreamFileName") != null
+							? (String) baseObject.getProperties().get("cmis:contentStreamFileName")
+							: contentStream.getFileName(),
+					Helpers.getObjectId(), null);
 		} else {
 			return documentMorphiaDAO.createObjectFacade(baseObject, false, isLatestVersion, isMajorVersion,
 					isLatestMajorVersion, false, "1.0", versionSeriesId, versionReferenceId, false, null, null,
