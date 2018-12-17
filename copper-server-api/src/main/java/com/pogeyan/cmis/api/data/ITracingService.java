@@ -23,7 +23,7 @@ public interface ITracingService {
 	 * @param spanC
 	 *            span to end
 	 */
-	public void endSpan(String tracingId, ISpan spanC, boolean isError);
+	public void endSpan(String tracingId, ISpan spanC);
 
 	/**
 	 * 

@@ -20,9 +20,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
-import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
-import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParseException;
-import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +29,6 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
-import com.pogeyan.cmis.api.utils.TracingMessage;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 import akka.actor.ActorRef;
@@ -58,10 +54,6 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 	private static final String TRACINGID = "TracingId";
 	private static final String REQUEST_HEADERS = "RequestHeaders";
 	private static final String PARENT_SPAN = "ParentSpan";
-	public static final String BASE_MESSAGE = "ActionName: %s, TypeName: %s, RequestData: %s, TraceId: %s";
-	public static final String REPOID = "repositoryId";
-	public static final String USEROBJECT = "userObject";
-	public static final String TRACING = "tracing";
 
 	public abstract String getName();
 
@@ -111,29 +103,12 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 					logger.debug("Message decoded for sender:{} with messageId: {}", sender, b.getMessageId());
 				}
 				if (Helpers.isPerfMode()) {
-					HashMap<String, String> headers = b.getBaggage(REQUEST_HEADERS);
 					ISpan parentSpan = TracingApiServiceFactory.getApiService().startSpan(b.getMessageId(), null,
-							"BaseActor::" + b.getTypeName() + "::" + b.getActionName(), headers);
+							"BaseActor::" + b.getTypeName() + "::" + b.getActionName(), b.getBaggage(REQUEST_HEADERS));
 					b.addBaggage(TRACINGID, b.getMessageId());
 					b.addBaggage(PARENT_SPAN, parentSpan);
 					this.traceContext.put(b.getMessageId(), parentSpan);
-					if (headers.get(TRACING) != null && Boolean.valueOf(headers.get(TRACING))) {
-						try {
-							JSONObject jobj = (JSONObject) new JSONParser().parse(b.getMessagePlain());
-							jobj.remove(USEROBJECT);
-							TracingApiServiceFactory.getApiService().updateSpan(parentSpan,
-									TracingMessage.message(
-											((String.format(BASE_MESSAGE, b.getActionName(), b.getTypeName(), jobj,
-													parentSpan.getTraceId()))),
-											this.getClass().getSimpleName(), (String) jobj.get(REPOID), false));
-						} catch (JSONParseException e) {
-							logger.error("Exception in parsing message : {}, {}, {}", b.getTypeName(),
-									b.getActionName(), e.getMessage());
-						}
-
-					}
 				}
-
 				CompletableFuture<R> f_response = ctx.fn.apply(tIn, b.getBaggage());
 				if (Helpers.isPerfMode()) {
 					Timer.Context timerContext = MetricsInputs.get()
@@ -176,7 +151,7 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 							this.perfTimerContext.remove(b.getMessageId());
 						}
 						TracingApiServiceFactory.getApiService().endSpan(b.getMessageId(),
-								this.traceContext.get(b.getMessageId()), false);
+								this.traceContext.get(b.getMessageId()));
 						this.traceContext.remove(b.getMessageId());
 					}
 

@@ -52,10 +52,9 @@ import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
-import com.pogeyan.cmis.api.utils.TracingWriter;
+import com.pogeyan.cmis.api.utils.TracingMessage;
 
 public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
@@ -74,12 +73,11 @@ public class CmisDiscoveryService {
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(
-								TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
+						TracingMessage.message(String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 				throw new CmisInvalidArgumentException(
-						TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
+						String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
@@ -157,7 +155,7 @@ public class CmisDiscoveryService {
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
 			LOG.debug("getContentChanges result data count: {}", objList != null ? objList.getNumItems() : objList);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
 			return objList;
 		}
 
