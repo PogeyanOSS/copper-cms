@@ -16,8 +16,7 @@
 package com.pogeyan.cmis.api.messages;
 
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.Enumeration;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -416,4 +415,12 @@ public class QueryGetRequest extends CmisBaseRequest {
 	public void setUserObject(IUserObject userObject) {
 		this.userObject = userObject;
 	}
+
+	@Override
+	public String toString() {
+		return "QueryGetRequest [parameters=" + parameters + ", typeId=" + typeId + ", baseTypeId=" + baseTypeId
+				+ ", pathFragments=" + Arrays.toString(pathFragments) + ", offset=" + offset + ", length=" + length
+				+ ", getRepositoryId()=" + getRepositoryId() + "]";
+	}
+
 }

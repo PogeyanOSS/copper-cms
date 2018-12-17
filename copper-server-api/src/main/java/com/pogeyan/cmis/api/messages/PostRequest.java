@@ -22,7 +22,7 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 
 public class PostRequest extends QueryGetRequest {
-	private boolean isMultipart = false;	
+	private boolean isMultipart = false;
 	private String cmisAction;
 	private String token;
 	private Map<String, List<String>> propertyData;
@@ -36,7 +36,7 @@ public class PostRequest extends QueryGetRequest {
 	private List<String> removeSecondaryTypes;
 	private String policyId;
 	private String aclPropagation;
-	private String requestBody = "";	
+	private String requestBody = "";
 
 	public String getAclPropagation() {
 		return aclPropagation;
@@ -156,6 +156,16 @@ public class PostRequest extends QueryGetRequest {
 
 	public void setRequestBody(String requestBody) {
 		this.requestBody = requestBody;
+	}
+
+	@Override
+	public String toString() {
+		return "PostRequest [isMultipart=" + isMultipart + ", cmisAction=" + cmisAction + ", token=" + token
+				+ ", propertyData=" + propertyData + ", policies=" + policies + ", addAcl=" + addAcl + ", removeAcl="
+				+ removeAcl + ", contentStream=" + contentStream + ", objectIds=" + objectIds + ", changeTokens="
+				+ changeTokens + ", addSecondaryTypes=" + addSecondaryTypes + ", removeSecondaryTypes="
+				+ removeSecondaryTypes + ", policyId=" + policyId + ", aclPropagation=" + aclPropagation
+				+ ", requestBody=" + requestBody + ", getRepositoryId()=" + getRepositoryId() + "]";
 	}
 
 }
