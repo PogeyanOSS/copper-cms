@@ -7,6 +7,6 @@ public interface ITracingMessage {
 	public Map<String, Object> getAttrMap();
 
 	public String getDescription();
-
+	
 	public boolean isError();
 }

@@ -17,8 +17,8 @@ public class TracingDefaultImpl implements ITracingService {
 	}
 
 	@Override
-	public void endSpan(String tracingId, ISpan spanC, boolean isError) {
-		spanC.close(isError);
+	public void endSpan(String tracingId, ISpan spanC) {
+		spanC.close();
 	}
 
 	@Override
