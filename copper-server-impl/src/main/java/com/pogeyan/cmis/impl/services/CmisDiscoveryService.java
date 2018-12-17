@@ -55,7 +55,7 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 
 public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
@@ -74,11 +74,12 @@ public class CmisDiscoveryService {
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
+						TracingErrorMessage.message(
+								TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(
-						String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
+						TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
