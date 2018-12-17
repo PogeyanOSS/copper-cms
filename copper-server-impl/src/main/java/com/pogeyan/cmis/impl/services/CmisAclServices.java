@@ -43,6 +43,7 @@ import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -63,11 +64,12 @@ public class CmisAclServices {
 						repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
-						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
 					false, objectInfos, null, null, userObject);
@@ -92,11 +94,12 @@ public class CmisAclServices {
 						repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
-						String.format(ErrorMessages.UNKNOWN_OBJECT, objectId, span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 			Long modifiedTime = System.currentTimeMillis();
 			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
