@@ -59,7 +59,7 @@ public interface IStorageService {
 	public boolean deleteContent(String objectName, String path, String mimeType);
 
 	public org.apache.chemistry.opencmis.commons.data.ContentStream getContent(String objectName, String path,
-			String mimeType, BigInteger length);
+			String mimeType, BigInteger length, String fileName);
 
 	/**
 	 * Tests if a content is already stored.
