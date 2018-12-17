@@ -16,10 +16,10 @@ public class ErrorMessages {
 	public static String ACL_NULL = "object acl is null";
 	public static String RELATIONSHIP_NULL = "Relationships are null, TraceId: %s";
 	public static String EXCEPTION = "exception: %s, TraceId: %s";
-	public static String OBJECT_NULL = "Object is null, TraceId: %s";
-	public static String POLICY_NOT_APPLIED = "Policy id: %s, cannot be removed because it is not applied to object: %s, TraceId: %s";
-	public static String UNKNOWN_POLICY_ID = "Unknown policy id: %s, TraceId: %s";
-	public static String POLICY_NOT_ADDED = "Policy id: %s, cannot be added because it is already applied to object: %s, TraceId: %s";
+	public static String OBJECT_NULL = "Object is null";
+	public static String POLICY_NOT_APPLIED = "Policy id: %s, cannot be removed because it is not applied to object: %s";
+	public static String UNKNOWN_POLICY_ID = "Unknown policy id: %s";
+	public static String POLICY_NOT_ADDED = "Policy id: %s, cannot be added because it is already applied to object: %s";
 	public static String TYPE_TREE_NULL = "Type tree is null, TraceId: %s";
 	public static String TYPE_DEFINITION_MISSING = "%s, Type definition missing, TraceId: %s";
 	public static String JSON_ERROR = "JSON Parser error: %s, TraceId: %s";

@@ -41,6 +41,7 @@ import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisObjectService;
 import com.pogeyan.cmis.impl.services.CmisPolicyService;
@@ -78,11 +79,12 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
-							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
+									span.getTraceId()),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisObjectNotFoundException(
-					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
 		}
 		String objectId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -114,11 +116,12 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
-							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
+									span.getTraceId()),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisObjectNotFoundException(
-					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -133,10 +136,12 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getUserObject(), BaseTypeId.CMIS_POLICY, request.getTypeId());
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(String.format(ErrorMessages.OBJECT_NULL, span.getTraceId()),
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(String.format(ErrorMessages.OBJECT_NULL, span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()));
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
@@ -156,11 +161,12 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()),
-							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
+									span.getTraceId()),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisObjectNotFoundException(
-					String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName(), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -175,10 +181,12 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getUserObject(), BaseTypeId.CMIS_POLICY, request.getTypeId());
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(String.format(ErrorMessages.OBJECT_NULL, span.getTraceId()),
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(String.format(ErrorMessages.OBJECT_NULL, span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()));
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
