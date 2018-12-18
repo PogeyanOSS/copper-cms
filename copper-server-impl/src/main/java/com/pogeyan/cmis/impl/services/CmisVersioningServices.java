@@ -46,13 +46,18 @@ import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MimeUtils;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
 import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 
@@ -63,15 +68,26 @@ public class CmisVersioningServices {
 
 		public static List<ObjectData> getAllVersions(String repositoryId, String objectId, String versionSeriesId,
 				String filter, Boolean includeAllowableActions, ExtensionsData extension, ObjectInfoHandler objectInfos,
-				IUserObject userObject) throws CmisObjectNotFoundException, CmisUpdateConflictException {
+				IUserObject userObject, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException, CmisUpdateConflictException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisVersioningServices::getAllVersions", null);
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			List<ObjectData> objectData = new ArrayList<ObjectData>();
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id:{}, repositoryid: {}", "getAllVersions", objectId,
-						repositoryId);
-				throw new CmisObjectNotFoundException("unknown object Id" + objectId);
+				LOG.error("Method name: {}, unknown object Id:{}, repositoryid: {}, TraceId: {}", "getAllVersions",
+						objectId, repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 			String versionReferenceId = data.getVersionReferenceId();
+
 			// if (data.getIsPrivateWorkingCopy()) {
 			// LOG.error("objectId:{},is not a PWC document ", objectId);
 			// throw new CmisUpdateConflictException(objectId + " is PWC not a
@@ -91,45 +107,71 @@ public class CmisVersioningServices {
 			if (objectData != null) {
 				LOG.debug("getAllVersions result data count:{}, for this id: {}", objectData.size(), objectId);
 			}
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectData;
 		}
 
 		public static ObjectData getObjectOfLatestVersion(String repositoryId, String objectId, String versionSeriesId,
 				boolean major, String filter, Boolean includeAllowableActions, String renditionFilter,
 				Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension, ObjectInfoHandler objectInfos,
-				IUserObject userObject) throws CmisObjectNotFoundException {
+				IUserObject userObject, String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisVersioningServices::getObjectOfLatestVersion", null);
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}", "getObjectOfLatestVersion",
-						objectId, repositoryId);
-				throw new CmisObjectNotFoundException("unknown object Id " + objectId);
+				LOG.error("Method name: {}, unknown object Id:{}, repositoryid: {}, TraceId: {}", "getAllVersions",
+						objectId, repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 			String versionReferenceId = data.getVersionReferenceId();
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
 			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
 			if (docObj == null) {
-				LOG.error("getObjectOfLatestVersion error while getting latest version: {}, repositoryid: {}", objectId,
-						repositoryId);
-				throw new CmisObjectNotFoundException("error while getting latest version " + objectId);
+				LOG.error(
+						"getObjectOfLatestVersion error while getting latest version: {}, repositoryid: {}, TraceId: {}",
+						objectId, repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.ERROR_IN_VERSION, objectId),
+										span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.ERROR_IN_VERSION, objectId), span.getTraceId()));
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, docObj, filterCollection,
 					includeAllowableActions, false, true, objectInfos, null, null, userObject);
 
 			LOG.debug("getObjectOfLatestVersion result data count: {}", objectData);
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectData;
 		}
 
 		public static Properties getPropertiesOfLatestVersion(String repositoryId, String objectId,
-				String versionSeriesId, Boolean major, String filter, ExtensionsData extension, IUserObject userObject)
-				throws CmisObjectNotFoundException {
+				String versionSeriesId, Boolean major, String filter, ExtensionsData extension, IUserObject userObject,
+				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisVersioningServices::getPropertiesOfLatestVersion", null);
 			IBaseObject latestVersionDocument = null;
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}", "getPropertiesOfLatestVersion",
-						objectId, repositoryId);
-				throw new CmisObjectNotFoundException("unknown object Id" + objectId);
+				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}, TraceId: {}",
+						"getPropertiesOfLatestVersion", objectId, repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 
 			String versionReferenceId = data.getVersionReferenceId();
@@ -141,37 +183,67 @@ public class CmisVersioningServices {
 			if (objectData != null) {
 				LOG.debug("Properties of latest version of object: {}", objectData.getProperties());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectData.getProperties();
 		}
 
 		public static String checkOut(String repositoryId, Holder<String> objectId, ExtensionsData extension,
-				Holder<Boolean> contentCopied, IUserObject userObject) throws CmisObjectNotFoundException,
-				CmisUpdateConflictException, CmisNotSupportedException, CmisInvalidArgumentException {
+				Holder<Boolean> contentCopied, IUserObject userObject, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException, CmisUpdateConflictException, CmisNotSupportedException,
+				CmisInvalidArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisVersioningServices::checkOut", null);
 			MDocumentObjectDAO documentObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue(), null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}", "checkOut", objectId,
-						repositoryId);
-				throw new CmisObjectNotFoundException("unknown object Id " + objectId);
+				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}, TraceId: {}", "checkOut", objectId,
+						repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 
 			if (data.getIsVersionSeriesCheckedOut()) {
-				LOG.error("checkOut document: {} is already checked out, repositoryid: {}", objectId.getValue(),
-						repositoryId);
-				throw new CmisUpdateConflictException("Document " + objectId.getValue() + " is already checked out.");
+				LOG.error("checkOut document: {} is already checked out, repositoryid: {}, TraceId: {}",
+						objectId.getValue(), repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.ALREADY_CHECKEDOUT), span.getTraceId()),
+								ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisUpdateConflictException(
+						TracingWriter.log(String.format(ErrorMessages.ALREADY_CHECKEDOUT), span.getTraceId()));
 			}
 
 			if (data.getIsLatestVersion() == false) {
-				LOG.error("checkOut only latest version can able to check out in repositoryid: {}", repositoryId);
-				throw new CmisUpdateConflictException("Only latest version can able to check out.");
+				LOG.error("checkOut only latest version can able to check out in repositoryid: {}, TraceId: {}",
+						repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.CANNOT_CHECKOUT), span.getTraceId()),
+								ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisUpdateConflictException(
+						TracingWriter.log(String.format(ErrorMessages.CANNOT_CHECKOUT), span.getTraceId()));
 			}
 
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null,
-					userObject);
+					userObject, tracingId, span);
 
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-				throw new CmisNotSupportedException("Only documents can be checked-out.");
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.DOCUMENTS_CHECKOUT), span.getTraceId()),
+								ErrorMessages.NOT_SUPPORTED_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisNotSupportedException(
+						TracingWriter.log(String.format(ErrorMessages.DOCUMENTS_CHECKOUT), span.getTraceId()));
 			}
 
 			/*
@@ -202,25 +274,41 @@ public class CmisVersioningServices {
 			documentObjectDAO.update(objectId.getValue(), updateProps);
 			LOG.info("Successfully checkout PWC for this document : {}",
 					documentObject != null ? documentObject.getId() : null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return documentObject.getId();
 		}
 
 		public static String cancelCheckOut(String repositoryId, String objectId, ExtensionsData extension,
-				String userName) throws CmisUpdateConflictException, CmisUpdateConflictException {
+				String userName, String tracingId, ISpan parentSpan)
+				throws CmisUpdateConflictException, CmisUpdateConflictException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisVersioningServices::cancelCheckOut", null);
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown pwc object Id: {}, repositoryid: {}", "cancelCheckOut", objectId,
-						repositoryId);
-				throw new CmisObjectNotFoundException("unknown pwc object Id " + objectId);
+				LOG.error("Method name: {}, unknown pwc object Id: {}, repositoryid: {}, TraceId: {}", "cancelCheckOut",
+						objectId, repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 
 			if (data.getIsPrivateWorkingCopy() == false) {
-				LOG.error("cancelCheckOut pwc: {}, is not private working copy in repositoryid: {}", objectId,
-						repositoryId);
-				throw new CmisUpdateConflictException("pwc " + objectId + " is not private working copy.");
+				LOG.error("cancelCheckOut pwc: {}, is not private working copy in repositoryid: {}, TraceId: {}",
+						objectId, repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
+						TracingWriter.log(String.format(ErrorMessages.OBJECTID_NOT_PRIVATE_COPY), span.getTraceId()),
+						ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisUpdateConflictException(
+						TracingWriter.log(String.format(ErrorMessages.OBJECTID_NOT_PRIVATE_COPY), span.getTraceId()));
 			}
 
 			IDocumentObject document = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
@@ -236,25 +324,41 @@ public class CmisVersioningServices {
 			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			documentMorphiaDAO.delete(document.getId(), removeFields, false, true, updateToken);
 			LOG.info("Cancel checkout for this document :{} done", document != null ? document.getId() : null);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return document.getId();
 		}
 
 		public static String checkIn(String repositoryId, Map<String, List<String>> listProperties,
 				ContentStream contentStreamParam, Holder<String> objectId, Boolean majorParam, String checkinComment,
-				ObjectInfoHandler objectInfos, String userName, IUserObject userObject)
-				throws CmisObjectNotFoundException {
+				ObjectInfoHandler objectInfos, String userName, IUserObject userObject, String tracingId,
+				ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisVersioningServices::checkIn", null);
 			MDocumentObjectDAO documentObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId.getValue(), null);
 			if (data == null) {
-				LOG.error("Method name: {}, unknown object Id :{}, repositoryid: {}", "checkIn", objectId,
-						repositoryId);
-				throw new CmisObjectNotFoundException("unknown object Id " + objectId);
+				LOG.error("Method name: {}, unknown object Id :{}, repositoryid: {}, TraceId: {}", "checkIn", objectId,
+						repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
+										span.getTraceId()),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
 			}
 
 			if (data.getVersionSeriesId() == null) {
-				LOG.error("checkIn document is not versionable: {}, repositoryid: {}", objectId, repositoryId);
-				throw new CmisUpdateConflictException(objectId + "document is not versionable");
+				LOG.error("checkIn document is not versionable: {}, repositoryid: {}, TraceId: {}", objectId,
+						repositoryId, span.getTraceId());
+				TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
+						TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NOT_VERSIONABLE), span.getTraceId()),
+						ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisUpdateConflictException(
+						TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NOT_VERSIONABLE), span.getTraceId()));
 			}
 			Map<String, Object> properties = new HashMap<String, Object>();
 			if (listProperties != null) {
@@ -262,11 +366,7 @@ public class CmisVersioningServices {
 					if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().get(0))) {
 						continue;
 					} else {
-						if (entry.getValue().size() == 1) {
-							properties.put(entry.getKey(), entry.getValue().get(0));
-						} else {
-							properties.put(entry.getKey(), entry.getValue());
-						}
+						properties.put(entry.getKey(), entry.getValue());
 					}
 				}
 			}
@@ -377,7 +477,13 @@ public class CmisVersioningServices {
 					localService.writeContent(documentObject.getId().toString(), fileName, documentObject.getPath(),
 							versionCustomContentStream);
 				} catch (Exception e) {
-					LOG.error("checkIn file creation exception:  {}, repositoryid: {}", e, repositoryId);
+					LOG.error("checkIn file creation exception:  {}, repositoryid: {}, TraceId: {}", e, repositoryId,
+							span.getTraceId());
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span.getTraceId()),
+									ErrorMessages.BASE_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				}
 				updatecontentProps.put("contentStreamLength", contentStreamParam.getLength());
 				updatecontentProps.put("contentStreamFileName", fileName);
@@ -395,6 +501,7 @@ public class CmisVersioningServices {
 			TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			documentObjectDAO.delete(objectId.getValue(), null, true, false, deleteToken);
 			LOG.info("checkIn PWC done for: {}", objectId);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return documentObject.getId();
 		}
 	}
