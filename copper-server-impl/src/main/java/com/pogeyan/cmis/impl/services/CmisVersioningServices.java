@@ -234,7 +234,7 @@ public class CmisVersioningServices {
 			}
 
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null,
-					userObject);
+					userObject, tracingId, span);
 
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
 				TracingApiServiceFactory.getApiService().updateSpan(span,

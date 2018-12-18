@@ -99,6 +99,7 @@ public class ErrorMessages {
 	public static String DOCUMENT_NULL = "New document is null";
 	public static String VERSION_NULL = "version are null";
 	public static String OBJECT_NOT_PRESENT = "object is not present";
+
 	public static String SESSION_CREATION = "Session Creation, TraceId: %s";
 	public static String SESSION = "session creation";
 	public static String AUTHORIZATION_NULL = "Authorization Header is null, TraceId: %s";
@@ -109,4 +110,5 @@ public class ErrorMessages {
 	public static String DOCUMENTS_CHECKOUT = "Only documents can be checked-out";
 	public static String OBJECTID_NOT_PRIVATE_COPY = "pwc objectId is not private working copy";
 	public static String DOCUMENT_NOT_VERSIONABLE = "checkIn document is not versionable";
+
 }
