@@ -110,5 +110,4 @@ public class ErrorMessages {
 	public static String DOCUMENTS_CHECKOUT = "Only documents can be checked-out";
 	public static String OBJECTID_NOT_PRIVATE_COPY = "pwc objectId is not private working copy";
 	public static String DOCUMENT_NOT_VERSIONABLE = "checkIn document is not versionable";
-
 }

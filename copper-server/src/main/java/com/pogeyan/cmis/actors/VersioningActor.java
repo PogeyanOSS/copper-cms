@@ -149,7 +149,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(TracingWriter
 					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
 		}
-		// get parameters
+	
 		String objectId = request.getObjectId();
 		Boolean major = request.getBooleanParameter(QueryGetRequest.PARAM_MAJOR);
 		String checkinComment = request.getParameter(QueryGetRequest.PARAM_CHECKIN_COMMENT);

@@ -490,7 +490,6 @@ public class CmisVersioningServices {
 				documentObjectDAO.update(documentObject.getId(), updatecontentProps);
 
 			}
-
 			Map<String, Object> updateProps = new HashMap<String, Object>();
 			updateProps.put("isLatestVersion", false);
 			updateProps.put("isLatestMajorVersion", false);
