@@ -60,6 +60,7 @@ import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -86,7 +87,7 @@ public class CmisNavigationService {
 			if (res != null) {
 				LOG.debug("getChildren result for folderId: {}, numItems: {}", folderId, res.getNumItems());
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return res;
 		}
 
@@ -111,11 +112,13 @@ public class CmisNavigationService {
 				LOG.error("getChildrenIntern unknown object id : {}, repository: {}, TraceId: {}", folderId,
 						repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.UNKNOWN_OBJECT, folderId, span.getTraceId()),
+						TracingMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, folderId),
+										span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
-						String.format(ErrorMessages.UNKNOWN_OBJECT, folderId, span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, folderId), span.getTraceId()));
 			}
 
 			String[] filterArray = new String[] {};
@@ -184,7 +187,7 @@ public class CmisNavigationService {
 
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child, filterCollection,
 						includeAllowableActions, false, true, objectInfos, renditionFilter, includeRelationships,
-						userObject, tracingId, span);
+						userObject);
 				oifd.setObject(objectData);
 				folderList.add(oifd);
 				if (objectInfos != null) {
@@ -196,7 +199,7 @@ public class CmisNavigationService {
 			result.setObjects(folderList);
 			result.setNumItems(BigInteger.valueOf(childrenCount));
 			result.setHasMoreItems(skipCount + 1 * maxItems < childrenCount);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -218,10 +221,12 @@ public class CmisNavigationService {
 				LOG.error("getDescendants a zero depth is not allowed for getDescendants: {}, repository: {}", folderId,
 						repositoryId);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.ZERO_DEPTH, span.getTraceId()),
+						TracingMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-				throw new CmisObjectNotFoundException(String.format(ErrorMessages.ZERO_DEPTH, span.getTraceId()));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span.getTraceId()));
 			} else {
 				levels = depth.intValue();
 			}
@@ -241,7 +246,7 @@ public class CmisNavigationService {
 					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data,
 							filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
-							includeRelationships, userObject, tracingId, span);
+							includeRelationships, userObject);
 					oifd.setObject(objectData);
 					boolean acl = false;
 					if (data.getAcl() != null && data.getAcl().getAces().size() > 0) {
@@ -278,7 +283,7 @@ public class CmisNavigationService {
 			{
 				LOG.debug("getDescendants result for folderId: {}, numItems: {}", folderId, result.size());
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -344,7 +349,7 @@ public class CmisNavigationService {
 			childrenOfFolderId = getDifferenceDescendants(repositoryId, children, folderId, includePathSegments, filter,
 					includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
 					listOfParentIds, childrenOfFolderId, tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
@@ -375,7 +380,7 @@ public class CmisNavigationService {
 					childrenOfFolderId.add(oifc);
 				}
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
@@ -422,7 +427,7 @@ public class CmisNavigationService {
 				}
 
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
@@ -444,7 +449,7 @@ public class CmisNavigationService {
 					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child,
 							filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-							includeRelationships, userObject, tracingId, span);
+							includeRelationships, userObject);
 					oifd.setObject(objectData);
 					folderList.add(oifd);
 					if (objectInfos != null) {
@@ -460,7 +465,7 @@ public class CmisNavigationService {
 
 				}
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -487,7 +492,7 @@ public class CmisNavigationService {
 				targetObject.setName(name);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, targetObject,
 						filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
-						includeRelationships, userObject, tracingId, span);
+						includeRelationships, userObject);
 				oifd.setObject(objectData);
 
 				folderList.add(oifd);
@@ -513,7 +518,7 @@ public class CmisNavigationService {
 					childrenOfFolderId.add(oifc);
 				}
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
@@ -531,16 +536,17 @@ public class CmisNavigationService {
 				LOG.error("getFolderParent cannot get parent of a root folder of: {}, repository: {}, TraceId: {}",
 						folderId, repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.CANNOT_GET_PARENT, span.getTraceId()),
+						TracingMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.CANNOT_GET_PARENT), span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
-						String.format(ErrorMessages.CANNOT_GET_PARENT, span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.CANNOT_GET_PARENT), span.getTraceId()));
 			}
 			if (res != null) {
 				LOG.debug("Parent for folderId: {}, and result object count: {}", folderId, res);
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return res;
 		}
 
@@ -558,8 +564,8 @@ public class CmisNavigationService {
 			Set<String> filterCollection = Helpers.splitFilter(filter);
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, folderParent,
 					filterCollection, includeAllowableActions, false, true, objectInfos, null, includeRelationships,
-					user, tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+					user);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectData;
 		}
 
@@ -581,10 +587,12 @@ public class CmisNavigationService {
 						"getFolderTree a zero depth is not allowed for getDescendants() in repository: {}, TraceId: {}",
 						repositoryId, span.getTraceId());
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.ZERO_DEPTH, span.getTraceId()),
+						TracingMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span.getTraceId()),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-				throw new CmisObjectNotFoundException(String.format(ErrorMessages.ZERO_DEPTH, span.getTraceId()));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span.getTraceId()));
 			} else {
 				levels = depth.intValue();
 			}
@@ -595,7 +603,7 @@ public class CmisNavigationService {
 			if (result != null) {
 				LOG.debug("descendant folder objects count: {}", result.size());
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -653,7 +661,7 @@ public class CmisNavigationService {
 			folderTree = getDifferenceDescendants(repositoryId, children, folderId, includePathSegments, filter,
 					includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
 					listOfParentIds, folderTree, tracingId, span);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return folderTree;
 		}
 
@@ -672,7 +680,7 @@ public class CmisNavigationService {
 			if (result != null) {
 				LOG.debug("getObjectParents result object count: {}", result.size());
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -698,7 +706,7 @@ public class CmisNavigationService {
 					if (resultData.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 						ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, resultData,
 								filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-								includeRelationships, userObject, tracingId, span);
+								includeRelationships, userObject);
 						ObjectParentDataImpl parent = new ObjectParentDataImpl();
 						parent.setObject(objectData);
 						parent.setRelativePathSegment(i == 1 ? data.getName()
@@ -709,7 +717,7 @@ public class CmisNavigationService {
 					}
 				}
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectParent;
 		}
 
@@ -795,7 +803,7 @@ public class CmisNavigationService {
 				Set<String> filterCollection = Helpers.splitFilter(filter);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, checkedOutDocs,
 						filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-						includeRelationships, userObject, null, null);
+						includeRelationships, userObject);
 				odList.add(objectData);
 				if (objectInfos != null) {
 					ObjectInfoImpl objectInfo = new ObjectInfoImpl();
