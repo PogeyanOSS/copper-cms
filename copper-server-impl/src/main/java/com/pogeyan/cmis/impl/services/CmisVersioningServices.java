@@ -274,15 +274,7 @@ public class CmisVersioningServices {
 			IDocumentObject documentObject = null;
 			checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
 			if (data.getProperties() != null) {
-				Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
-						data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
-						userObject);
-				if (updateProperties != null) {
-					CmisObjectService.Impl.updateProperties(repositoryId, objectId, null, updateProperties, null, null,
-							userObject, data.getTypeId());
-				} else {
-					properties.putAll(data.getProperties());
-				}
+				properties.putAll(data.getProperties());
 				properties.remove(PropertyIds.VERSION_LABEL);
 				properties.replace(PropertyIds.LAST_MODIFIED_BY, userName);
 			}
@@ -347,6 +339,14 @@ public class CmisVersioningServices {
 					}
 
 					documentObjectDAO.commit(documentObject);
+					Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
+							data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
+							userObject);
+					if (updateProperties != null) {
+						CmisObjectService.Impl.updateProperties(repositoryId,
+								new Holder<String>(documentObject.getId()), null, updateProperties, null, null,
+								userObject, data.getTypeId());
+					}
 					LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
 				}
 			}
