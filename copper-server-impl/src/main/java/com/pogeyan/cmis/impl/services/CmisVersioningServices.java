@@ -307,7 +307,7 @@ public class CmisVersioningServices {
 							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true,
 									false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
-									contentStreamParam.getLength(), data.getContentStreamMimeType(),
+									contentStreamParam.getLength(), contentStreamParam.getMimeType(),
 									contentStreamParam.getFileName(), data.getContentStreamId(),
 									data.getPreviousVersionObjectId());
 						}
