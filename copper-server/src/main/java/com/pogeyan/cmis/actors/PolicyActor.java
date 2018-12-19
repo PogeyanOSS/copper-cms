@@ -80,11 +80,11 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+									span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -117,11 +117,11 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+									span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -137,11 +137,11 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()));
+					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
@@ -162,11 +162,11 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+									span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -182,11 +182,11 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span.getTraceId()));
+					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
