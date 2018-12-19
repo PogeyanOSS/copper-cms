@@ -98,12 +98,11 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String typeId = request.getParameter("typeId");
 		String folderId = request.getObjectId();
@@ -125,14 +124,13 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		ObjectInFolderList children = CmisNavigationService.Impl.getChildren(request.getRepositoryId(), folderId,
 				filter, orderBy, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment,
 				maxItems, skipCount, null, request.getUserObject(), typeId, tracingId, span);
+
 		if (children == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span));
 		}
 
 		JSONObject jsonChildren = JSONConverter.convert(children, CmisTypeCacheService.get(request.getRepositoryId()),
@@ -152,12 +150,11 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String folderId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -180,12 +177,10 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		if (descendants == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.DESCENDANTS_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.DESCENDANTS_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.DESCENDANTS_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DESCENDANTS_NULL), span));
 		}
 
 		JSONArray jsonDescendants = new JSONArray();
@@ -208,12 +203,11 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String folderId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -233,14 +227,13 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		List<ObjectInFolderContainer> folderTree = CmisNavigationService.Impl.getFolderTree(request.getRepositoryId(),
 				folderId, depth, filter, includeAllowableActions, includeRelationships, renditionFilter,
 				includePathSegment, null, request.getUserObject(), request.getTypeId(), tracingId, span);
+
 		if (folderTree == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.FOLDER_TREE_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.FOLDER_TREE_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.FOLDER_TREE_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.FOLDER_TREE_NULL), span));
 		}
 
 		JSONArray jsonDescendants = new JSONArray();
@@ -263,12 +256,11 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -281,12 +273,10 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		if (parent == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.PARENT_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.PARENT_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.PARENT_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.PARENT_NULL), span));
 		}
 
 		JSONObject jsonObject = JSONConverter.convert(parent, CmisTypeCacheService.get(request.getRepositoryId()),
@@ -305,12 +295,11 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String filter = request.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -329,14 +318,13 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		List<ObjectParentData> parents = CmisNavigationService.Impl.getObjectParents(request.getRepositoryId(),
 				objectId, filter, includeAllowableActions, includeRelationships, renditionFilter,
 				includeRelativePathSegment, null, request.getUserObject(), request.getTypeId(), tracingId, span);
+
 		if (parents == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.PARENTS_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.PARENTS_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.PARENTS_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.PARENTS_NULL), span));
 		}
 		JSONArray jsonParents = new JSONArray();
 		for (ObjectParentData parent : parents) {
