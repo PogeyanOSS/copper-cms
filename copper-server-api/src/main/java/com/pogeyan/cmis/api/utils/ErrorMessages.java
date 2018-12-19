@@ -42,7 +42,7 @@ public class ErrorMessages {
 	public static String PARENTS_NULL = "Parents are null";
 	public static String NO_OBJECT_ID = "No object ids provided, TraceId: %s";
 	public static String SOURCE_NO_TYPE = "Source object has no type, TraceId: %s";
-	public static String PROPERTIES_NULL = "Properties are null, TraceId: %s";
+	public static String PROPERTIES_NULL = "Properties are null";
 	public static String ACCESS_DENIED = "%s, does not have valid access control permission to access this object, TraceId: %s";
 	public static String OBJECT_ID_NULL = "Object Id should not be null, TraceId: %s";
 	public static String OBJECTID_MUST_BE_SET = "object Id must be set, TraceId: %s";
@@ -96,17 +96,19 @@ public class ErrorMessages {
 	public static String COMPILE_PROPERTY = "Compiling Properties for Id: %s, TraceId: %s";
 	public static String BULKDOCS_ERROR = "BulkDocs Error in compiling properties, TraceId: %s";
 	public static String REPLICATION_ERROR = "GET ReplicationLogs Error: No replicateChildren, TraceId: %s";
-	public static String DOCUMENT_NULL = "New document is null, TraceId: %s";
-	public static String VERSION_NULL = "version are null, TraceId: %s";
-	public static String OBJECT_NOT_PRESENT = "object is not present, TraceId: %s";
+	public static String DOCUMENT_NULL = "New document is null";
+	public static String VERSION_NULL = "version are null";
+	public static String OBJECT_NOT_PRESENT = "object is not present";
+
 	public static String SESSION_CREATION = "Session Creation, TraceId: %s";
 	public static String SESSION = "session creation";
 	public static String AUTHORIZATION_NULL = "Authorization Header is null, TraceId: %s";
 	public static String AUTHORIZATION = "authorization";
-	public static String ERROR_IN_VERSION = "error while getting latest version: %s, TraceId: %s";
-	public static String ALREADY_CHECKEDOUT = "Document is already checkedOut, TraceId: %s";
-	public static String CANNOT_CHECKOUT = "Only latest version can able to check out, TraceId: %s";
-	public static String DOCUMENTS_CHECKOUT = "Only documents can be checked-out, TraceId: %s";
-	public static String OBJECTID_NOT_PRIVATE_COPY = "pwc objectId is not private working copy, TraceId: %s";
-	public static String DOCUMENT_NOT_VERSIONABLE = "checkIn document is not versionable, TraceId: %s";
+	public static String ERROR_IN_VERSION = "error while getting latest version: %s";
+	public static String ALREADY_CHECKEDOUT = "Document is already checkedOut";
+	public static String CANNOT_CHECKOUT = "Only latest version can able to check out";
+	public static String DOCUMENTS_CHECKOUT = "Only documents can be checked-out";
+	public static String OBJECTID_NOT_PRIVATE_COPY = "pwc objectId is not private working copy";
+	public static String DOCUMENT_NOT_VERSIONABLE = "checkIn document is not versionable";
+
 }
