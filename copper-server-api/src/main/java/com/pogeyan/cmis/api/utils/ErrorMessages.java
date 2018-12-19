@@ -14,8 +14,8 @@ public class ErrorMessages {
 	public static String NOT_AUTHORISED = "%s is not authorized to applyAcl";
 	public static String TOKEN_VALUE_NULL = "change log token value should not be null";
 	public static String ACL_NULL = "object acl is null";
-	public static String RELATIONSHIP_NULL = "Relationships are null, TraceId: %s";
-	public static String EXCEPTION = "exception: %s, TraceId: %s";
+	public static String RELATIONSHIP_NULL = "Relationships are null";
+	public static String EXCEPTION = "exception: %s;
 	public static String OBJECT_NULL = "Object is null";
 	public static String POLICY_NOT_APPLIED = "Policy id: %s, cannot be removed because it is not applied to object: %s";
 	public static String UNKNOWN_POLICY_ID = "Unknown policy id: %s";
