@@ -187,9 +187,9 @@ public class CmisVersioningServices {
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			IBaseObject baseObject = baseObjectDAO.createObjectFacade(data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
-					data.getTypeId(), repositoryId, null, "", userObject.getUserDN(), userObject.getUserDN(), token,
-					data.getInternalPath(), data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(),
-					data.getParentId());
+					data.getTypeId(), repositoryId, data.getSecondaryTypeIds(), "", userObject.getUserDN(),
+					userObject.getUserDN(), token, data.getInternalPath(), data.getProperties(), data.getPolicies(),
+					data.getAcl(), data.getPath(), data.getParentId());
 			IDocumentObject documentObject = documentObjectDAO.createObjectFacade(baseObject, false, false, false,
 					false, true, data.getVersionLabel(), data.getVersionSeriesId(), data.getVersionReferenceId(), true,
 					userObject.getUserDN(), baseObject.getId(), "Commit Document", data.getContentStreamLength(),
@@ -293,9 +293,9 @@ public class CmisVersioningServices {
 			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IBaseObject baseObject = baseObjectDAO.createObjectFacade(documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
-					documentdata.getTypeId(), repositoryId, null, "", documentdata.getCreatedBy(), userName, token,
-					data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
-					data.getPath(), data.getParentId());
+					documentdata.getTypeId(), repositoryId, documentdata.getSecondaryTypeIds(), "",
+					documentdata.getCreatedBy(), userName, token, data.getInternalPath(), properties,
+					documentdata.getPolicies(), documentdata.getAcl(), data.getPath(), data.getParentId());
 			String versionSeriesId = Helpers.getObjectId();
 			if (data.getIsVersionSeriesCheckedOut()) {
 				if (data.getIsPrivateWorkingCopy()) {
