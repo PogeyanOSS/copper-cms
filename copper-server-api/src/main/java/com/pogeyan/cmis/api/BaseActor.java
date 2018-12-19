@@ -118,14 +118,11 @@ abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 					if (headers.get(TRACING) != null && Boolean.valueOf(headers.get(TRACING))) {
 						BaseRequest req = (BaseRequest) tIn;
 						if (req != null) {
-							TracingApiServiceFactory.getApiService()
-									.updateSpan(parentSpan,
-											TracingMessage.message(
-													TracingWriter.log(
-															String.format(BASE_MESSAGE, b.getActionName(),
-																	b.getTypeName(), req.toString()),
-															parentSpan.getTraceId()),
-													this.getClass().getSimpleName(), req.getRepositoryId(), false));
+							TracingApiServiceFactory.getApiService().updateSpan(parentSpan,
+									TracingMessage.message(
+											TracingWriter.log(String.format(BASE_MESSAGE, b.getActionName(),
+													b.getTypeName(), req.toString()), parentSpan),
+											this.getClass().getSimpleName(), req.getRepositoryId(), false));
 						}
 					}
 				}

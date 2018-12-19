@@ -74,12 +74,10 @@ public class CmisDiscoveryService {
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(
-								TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
+						TracingErrorMessage.message(TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisInvalidArgumentException(
-						TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
+				throw new CmisInvalidArgumentException(TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span));
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
