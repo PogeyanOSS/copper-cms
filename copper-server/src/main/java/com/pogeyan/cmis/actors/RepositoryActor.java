@@ -139,12 +139,13 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"RepositoryActor::getRepositoryInfo", null);
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span.getTraceId()),
-					ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span.getTraceId()));
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span));
 
 		}
 		// call DB and get the repositoryInfo
@@ -220,12 +221,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
@@ -250,12 +250,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -284,12 +283,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String typeId = request.getParameter(QueryGetRequest.PARAM_TYPE_ID);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -304,12 +302,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		if (typeTree == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.TYPE_TREE_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.TYPE_TREE_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.TYPE_TREE_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.TYPE_TREE_NULL), span));
 		}
 
 		JSONArray jsonTypeTree = new JSONArray();
@@ -331,24 +327,24 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String typeStr = request.getParameter(QueryGetRequest.CONTROL_TYPE);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 
 		if (typeStr == null) {
-			TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-					TracingWriter.log(String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()),
-							span.getTraceId()),
-					ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(
+									String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()), span),
+							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisInvalidArgumentException(TracingWriter.log(
-					String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()), span.getTraceId()));
+			throw new CmisInvalidArgumentException(TracingWriter
+					.log(String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()), span));
 		}
 
 		// convert type definition
@@ -357,22 +353,22 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span.getTraceId());
+			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)),
-									span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter
+							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
 							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 		}
 		if (!(typeJson instanceof Map)) {
-			TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-					TracingWriter.log(String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION),
-							span.getTraceId()),
-					ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(
+									String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span),
+							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisInvalidArgumentException(TracingWriter.log(
-					String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span.getTraceId()));
+			throw new CmisInvalidArgumentException(TracingWriter
+					.log(String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span));
 		}
 
 		@SuppressWarnings("unchecked")
@@ -397,24 +393,24 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String typeStr = request.getParameter(QueryGetRequest.CONTROL_TYPE);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 
 		if (typeStr == null) {
-			TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-					TracingWriter.log(String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()),
-							span.getTraceId()),
-					ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(
+									String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()), span),
+							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisInvalidArgumentException(TracingWriter.log(
-					String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()), span.getTraceId()));
+			throw new CmisInvalidArgumentException(TracingWriter
+					.log(String.format(ErrorMessages.TYPE_DEFINITION_MISSING, request.getUserName()), span));
 		}
 
 		// convert type definition
@@ -423,22 +419,22 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span.getTraceId());
+			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)),
-									span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter
+							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
 							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 		}
 		if (!(typeJson instanceof Map)) {
-			TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-					TracingWriter.log(String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION),
-							span.getTraceId()),
-					ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(
+									String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span),
+							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisInvalidArgumentException(TracingWriter.log(
-					String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span.getTraceId()));
+			throw new CmisInvalidArgumentException(TracingWriter
+					.log(String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span));
 		}
 
 		@SuppressWarnings("unchecked")
@@ -463,12 +459,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String typeId = request.getParameter(QueryGetRequest.CONTROL_TYPE_ID);
 		LOG.info("Method name: {}, delete the type using this typeId: {}, repositoryId: {}", "deleteType", typeId,
