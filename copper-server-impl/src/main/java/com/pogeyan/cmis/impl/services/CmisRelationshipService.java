@@ -61,27 +61,27 @@ public class CmisRelationshipService {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
-						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span.getTraceId());
+						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
-								.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span.getTraceId()),
+								.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
 								ErrorMessages.MONGO_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new MongoException(
-						TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span));
 			}
 
 			if (so == null) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}, traceId: {}",
-						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span.getTraceId());
+						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span.getTraceId()),
+										span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
-						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
