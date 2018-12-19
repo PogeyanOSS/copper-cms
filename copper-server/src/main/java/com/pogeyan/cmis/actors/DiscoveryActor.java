@@ -73,11 +73,11 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span.getTraceId()),
+									span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span.getTraceId()));
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String changeLogToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_LOG_TOKEN);
 		Boolean includeProperties = request.getBooleanParameter(QueryGetRequest.PARAM_PROPERTIES);
