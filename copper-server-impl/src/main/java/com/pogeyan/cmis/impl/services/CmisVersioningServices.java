@@ -259,9 +259,9 @@ public class CmisVersioningServices {
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 			IBaseObject baseObject = baseObjectDAO.createObjectFacade(data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
-					data.getTypeId(), repositoryId, null, "", userObject.getUserDN(), userObject.getUserDN(), token,
-					data.getInternalPath(), data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(),
-					data.getParentId());
+					data.getTypeId(), repositoryId, data.getSecondaryTypeIds(), "", userObject.getUserDN(),
+					userObject.getUserDN(), token, data.getInternalPath(), data.getProperties(), data.getPolicies(),
+					data.getAcl(), data.getPath(), data.getParentId());
 			IDocumentObject documentObject = documentObjectDAO.createObjectFacade(baseObject, false, false, false,
 					false, true, data.getVersionLabel(), data.getVersionSeriesId(), data.getVersionReferenceId(), true,
 					userObject.getUserDN(), baseObject.getId(), "Commit Document", data.getContentStreamLength(),
@@ -374,15 +374,7 @@ public class CmisVersioningServices {
 			IDocumentObject documentObject = null;
 			checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
 			if (data.getProperties() != null) {
-				Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
-						data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
-						userObject);
-				if (updateProperties != null) {
-					CmisObjectService.Impl.updateProperties(repositoryId, objectId, null, updateProperties, null, null,
-							userObject, data.getTypeId());
-				} else {
-					properties.putAll(data.getProperties());
-				}
+				properties.putAll(data.getProperties());
 				properties.remove(PropertyIds.VERSION_LABEL);
 				properties.replace(PropertyIds.LAST_MODIFIED_BY, userName);
 			}
@@ -393,9 +385,9 @@ public class CmisVersioningServices {
 			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IBaseObject baseObject = baseObjectDAO.createObjectFacade(documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
-					documentdata.getTypeId(), repositoryId, null, "", documentdata.getCreatedBy(), userName, token,
-					data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
-					data.getPath(), data.getParentId());
+					documentdata.getTypeId(), repositoryId, documentdata.getSecondaryTypeIds(), "",
+					documentdata.getCreatedBy(), userName, token, data.getInternalPath(), properties,
+					documentdata.getPolicies(), documentdata.getAcl(), data.getPath(), data.getParentId());
 			String versionSeriesId = Helpers.getObjectId();
 			if (data.getIsVersionSeriesCheckedOut()) {
 				if (data.getIsPrivateWorkingCopy()) {
@@ -415,7 +407,7 @@ public class CmisVersioningServices {
 							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true,
 									false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
 									data.getVersionReferenceId(), false, null, null, checkinComment,
-									contentStreamParam.getLength(), data.getContentStreamMimeType(),
+									contentStreamParam.getLength(), contentStreamParam.getMimeType(),
 									contentStreamParam.getFileName(), data.getContentStreamId(),
 									data.getPreviousVersionObjectId());
 						}
@@ -447,6 +439,14 @@ public class CmisVersioningServices {
 					}
 
 					documentObjectDAO.commit(documentObject);
+					Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
+							data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
+							userObject);
+					if (updateProperties != null) {
+						CmisObjectService.Impl.updateProperties(repositoryId,
+								new Holder<String>(documentObject.getId()), null, updateProperties, null, null,
+								userObject, data.getTypeId());
+					}
 					LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
 				}
 			}
