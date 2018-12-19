@@ -97,17 +97,18 @@ public class ErrorMessages {
 	public static String COMPILE_PROPERTY = "Compiling Properties for Id: %s, TraceId: %s";
 	public static String BULKDOCS_ERROR = "BulkDocs Error in compiling properties, TraceId: %s";
 	public static String REPLICATION_ERROR = "GET ReplicationLogs Error: No replicateChildren, TraceId: %s";
-	public static String DOCUMENT_NULL = "New document is null, TraceId: %s";
-	public static String VERSION_NULL = "version are null, TraceId: %s";
-	public static String OBJECT_NOT_PRESENT = "object is not present, TraceId: %s";
+	public static String DOCUMENT_NULL = "New document is null";
+	public static String VERSION_NULL = "version are null";
+	public static String OBJECT_NOT_PRESENT = "object is not present";
 	public static String SESSION_CREATION = "Session Creation, TraceId: %s";
 	public static String SESSION = "session creation";
 	public static String AUTHORIZATION_NULL = "Authorization Header is null, TraceId: %s";
 	public static String AUTHORIZATION = "authorization";
-	public static String ERROR_IN_VERSION = "error while getting latest version: %s, TraceId: %s";
-	public static String ALREADY_CHECKEDOUT = "Document is already checkedOut, TraceId: %s";
-	public static String CANNOT_CHECKOUT = "Only latest version can able to check out, TraceId: %s";
-	public static String DOCUMENTS_CHECKOUT = "Only documents can be checked-out, TraceId: %s";
-	public static String OBJECTID_NOT_PRIVATE_COPY = "pwc objectId is not private working copy, TraceId: %s";
-	public static String DOCUMENT_NOT_VERSIONABLE = "checkIn document is not versionable, TraceId: %s";
+	public static String ERROR_IN_VERSION = "error while getting latest version: %s";
+	public static String ALREADY_CHECKEDOUT = "Document is already checkedOut";
+	public static String CANNOT_CHECKOUT = "Only latest version can able to check out";
+	public static String DOCUMENTS_CHECKOUT = "Only documents can be checked-out";
+	public static String OBJECTID_NOT_PRIVATE_COPY = "pwc objectId is not private working copy";
+	public static String DOCUMENT_NOT_VERSIONABLE = "checkIn document is not versionable";
+
 }

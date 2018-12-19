@@ -50,15 +50,20 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class CmisNavigationService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisNavigationService.class);
@@ -70,16 +75,19 @@ public class CmisNavigationService {
 		public static ObjectInFolderList getChildren(String repositoryId, String folderId, String filter,
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
-				throws CmisObjectNotFoundException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getChildren", null);
 			int maxItemsInt = maxItems == null ? -1 : maxItems.intValue();
 			int skipCountInt = skipCount == null ? 0 : skipCount.intValue();
 			ObjectInFolderList res = getChildrenIntern(repositoryId, folderId, filter, orderBy, includeAllowableActions,
 					includeRelationships, renditionFilter, includePathSegment, maxItemsInt, skipCountInt, false, false,
-					objectInfos, userObject, typeId);
+					objectInfos, userObject, typeId, tracingId, span);
 			if (res != null) {
 				LOG.debug("getChildren result for folderId: {}, numItems: {}", folderId, res.getNumItems());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return res;
 		}
 
@@ -89,8 +97,10 @@ public class CmisNavigationService {
 		private static ObjectInFolderList getChildrenIntern(String repositoryId, String folderId, String filter,
 				String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int maxItems, int skipCount, boolean folderOnly,
-				boolean includePwc, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
-				throws CmisObjectNotFoundException {
+				boolean includePwc, ObjectInfoHandler objectInfos, IUserObject userObject, String typeId,
+				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getChildrenIntern", null);
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -99,8 +109,15 @@ public class CmisNavigationService {
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			if (data == null) {
-				LOG.error("getChildrenIntern unknown object id: {}, repository: {}", folderId, repositoryId);
-				throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
+				LOG.error("getChildrenIntern unknown object id : {}, repository: {}, TraceId: {}", folderId,
+						repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, folderId), span),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, folderId), span));
 			}
 
 			String[] filterArray = new String[] {};
@@ -169,7 +186,7 @@ public class CmisNavigationService {
 
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child, filterCollection,
 						includeAllowableActions, false, true, objectInfos, renditionFilter, includeRelationships,
-						userObject);
+						userObject, tracingId, span);
 				oifd.setObject(objectData);
 				folderList.add(oifd);
 				if (objectInfos != null) {
@@ -181,7 +198,7 @@ public class CmisNavigationService {
 			result.setObjects(folderList);
 			result.setNumItems(BigInteger.valueOf(childrenCount));
 			result.setHasMoreItems(skipCount + 1 * maxItems < childrenCount);
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -192,15 +209,21 @@ public class CmisNavigationService {
 		public static List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
-				throws CmisInvalidArgumentException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) throws CmisInvalidArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getDescendants", null);
 			int levels = 0;
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
 			} else if (depth.intValue() == 0) {
 				LOG.error("getDescendants a zero depth is not allowed for getDescendants: {}, repository: {}", folderId,
 						repositoryId);
-				throw new CmisInvalidArgumentException("A zero depth is not allowed for getDescendants().");
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span));
 			} else {
 				levels = depth.intValue();
 			}
@@ -212,7 +235,7 @@ public class CmisNavigationService {
 					int level = 0;
 					result = getDescendantsIntern(repositoryId, folderId, filter, includeAllowableActions,
 							includeRelationships, renditionFilter, includePathSegment, level, levels, false,
-							objectInfos, userObject, typeId);
+							objectInfos, userObject, typeId, tracingId, span);
 				} else {
 					int level = 0;
 					ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
@@ -220,7 +243,7 @@ public class CmisNavigationService {
 					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data,
 							filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
-							includeRelationships, userObject);
+							includeRelationships, userObject, tracingId, span);
 					oifd.setObject(objectData);
 					boolean acl = false;
 					if (data.getAcl() != null && data.getAcl().getAces().size() > 0) {
@@ -242,7 +265,7 @@ public class CmisNavigationService {
 					if (acl) {
 						result = getDescendantsRelationObjects(repositoryId, folderId, filter, includeAllowableActions,
 								includeRelationships, renditionFilter, includePathSegment, level, levels, false,
-								objectInfos, userObject, typeId);
+								objectInfos, userObject, typeId, tracingId, span);
 						oifc.setObject(oifd);
 						oifc.setChildren(result);
 						List<ObjectInFolderContainer> parentData = new ArrayList<ObjectInFolderContainer>();
@@ -257,6 +280,7 @@ public class CmisNavigationService {
 			{
 				LOG.debug("getDescendants result for folderId: {}, numItems: {}", folderId, result.size());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -266,7 +290,10 @@ public class CmisNavigationService {
 		private static List<ObjectInFolderContainer> getDescendantsIntern(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId) {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getDescendantsIntern", null);
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -315,22 +342,26 @@ public class CmisNavigationService {
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			childrenOfFolderId = getDescendants(repositoryId, children, folderId, includePathSegments, filter,
 					includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
-					listOfParentIds);
+					listOfParentIds, tracingId, span);
 			childrenOfFolderId = getDifferenceDescendants(repositoryId, children, folderId, includePathSegments, filter,
 					includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
-					listOfParentIds, childrenOfFolderId);
+					listOfParentIds, childrenOfFolderId, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
 		private static List<ObjectInFolderContainer> getDescendants(String repositoryId,
 				List<? extends IBaseObject> children, String folderId, Boolean includePathSegments, String filter,
 				Boolean includeAllowableActions, ObjectInfoHandler objectInfos, String renditionFilter,
-				IncludeRelationships includeRelationships, IUserObject userObject, List<String> listOfParentIds) {
+				IncludeRelationships includeRelationships, IUserObject userObject, List<String> listOfParentIds,
+				String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getDescendants", null);
 			LOG.debug("getDescendants child object data: {}", children);
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			ObjectInFolderList childList = getChildernList(repositoryId, children, folderId, includePathSegments,
 					filter, includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
-					listOfParentIds);
+					listOfParentIds, tracingId, span);
 			if (0 != childList.getObjects().size()) {
 				for (ObjectInFolderData child : childList.getObjects()) {
 					ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
@@ -338,7 +369,7 @@ public class CmisNavigationService {
 					listOfParentIds.add(childId);
 					List<ObjectInFolderContainer> subChildren = getDescendants(repositoryId, children, childId,
 							includePathSegments, filter, includeAllowableActions, objectInfos, renditionFilter,
-							includeRelationships, userObject, listOfParentIds);
+							includeRelationships, userObject, listOfParentIds, tracingId, span);
 					oifc.setObject(child);
 					if (0 != subChildren.size()) {
 						oifc.setChildren(subChildren);
@@ -346,6 +377,7 @@ public class CmisNavigationService {
 					childrenOfFolderId.add(oifc);
 				}
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
@@ -353,12 +385,14 @@ public class CmisNavigationService {
 				List<? extends IBaseObject> children, String folderId, Boolean includePathSegments, String filter,
 				Boolean includeAllowableActions, ObjectInfoHandler objectInfos, String renditionFilter,
 				IncludeRelationships includeRelationships, IUserObject userObject, List<String> listOfParentIds,
-				List<ObjectInFolderContainer> childrenOfFolderId) {
+				List<ObjectInFolderContainer> childrenOfFolderId, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getDifferenceDescendants", null);
 			if (listOfParentIds.isEmpty()) {
 				if (children.size() > 0) {
 					ObjectInFolderList childLists = getChildernList(repositoryId, children, null, includePathSegments,
 							filter, includeAllowableActions, objectInfos, renditionFilter, includeRelationships,
-							userObject, listOfParentIds);
+							userObject, listOfParentIds, tracingId, span);
 					for (ObjectInFolderData child : childLists.getObjects()) {
 						ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
 						oifc.setObject(child);
@@ -380,7 +414,7 @@ public class CmisNavigationService {
 						ObjectInFolderList childLists = getChildernList(repositoryId,
 								Arrays.asList(childrenMap.get(id)), null, includePathSegments, filter,
 								includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
-								listOfParentIds);
+								listOfParentIds, tracingId, span);
 						for (ObjectInFolderData child : childLists.getObjects()) {
 							ObjectInFolderContainerImpl oifc = new ObjectInFolderContainerImpl();
 							oifc.setObject(child);
@@ -390,13 +424,16 @@ public class CmisNavigationService {
 				}
 
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
 		private static ObjectInFolderList getChildernList(String repositoryId, List<? extends IBaseObject> children,
 				String folderId, Boolean includePathSegments, String filter, Boolean includeAllowableActions,
 				ObjectInfoHandler objectInfos, String renditionFilter, IncludeRelationships includeRelationships,
-				IUserObject userObject, List<String> listOfParentIds) {
+				IUserObject userObject, List<String> listOfParentIds, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getChildernList", null);
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			for (IBaseObject child : children) {
@@ -409,7 +446,7 @@ public class CmisNavigationService {
 					Set<String> filterCollection = Helpers.splitFilter(filter);
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child,
 							filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-							includeRelationships, userObject);
+							includeRelationships, userObject, tracingId, span);
 					oifd.setObject(objectData);
 					folderList.add(oifd);
 					if (objectInfos != null) {
@@ -425,13 +462,17 @@ public class CmisNavigationService {
 
 				}
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
 		public static List<ObjectInFolderContainer> getDescendantsRelationObjects(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegment, int level, int levels, boolean b,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId) {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getDescendantsRelationObjects", null);
 			LOG.debug("getDescendantsRelationObjects for folder data: {}", folderId);
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
@@ -448,7 +489,7 @@ public class CmisNavigationService {
 				targetObject.setName(name);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, targetObject,
 						filterCollection, includeAllowableActions, true, true, objectInfos, renditionFilter,
-						includeRelationships, userObject);
+						includeRelationships, userObject, tracingId, span);
 				oifd.setObject(objectData);
 
 				folderList.add(oifd);
@@ -466,7 +507,7 @@ public class CmisNavigationService {
 					String childId = child.getObject().getId();
 					List<ObjectInFolderContainer> subChildren = getDescendantsRelationObjects(repositoryId, childId,
 							filter, includeAllowableActions, includeRelationships, renditionFilter, includePathSegment,
-							level, level, b, objectInfos, userObject, typeId);
+							level, level, b, objectInfos, userObject, typeId, tracingId, span);
 					oifc.setObject(child);
 					if (0 != subChildren.size()) {
 						oifc.setChildren(subChildren);
@@ -474,6 +515,7 @@ public class CmisNavigationService {
 					childrenOfFolderId.add(oifc);
 				}
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return childrenOfFolderId;
 		}
 
@@ -481,18 +523,27 @@ public class CmisNavigationService {
 		 * Gets the parent folder object for the specified folder
 		 */
 		public static ObjectData getFolderParent(String repositoryId, String folderId, String filter,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
-				throws CmisInvalidArgumentException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) throws CmisInvalidArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getFolderParent", null);
 			ObjectData res = getFolderParentIntern(repositoryId, folderId, filter, false, IncludeRelationships.NONE,
-					userObject, objectInfos, typeId);
+					userObject, objectInfos, typeId, tracingId, span);
 			if (res == null) {
-				LOG.error("getFolderParent cannot get parent of a root folder of: {}, repository: {}", folderId,
-						repositoryId);
-				throw new CmisInvalidArgumentException("Cannot get parent of a root folder");
+				LOG.error("getFolderParent cannot get parent of a root folder of: {}, repository: {}, TraceId: {}",
+						folderId, repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.CANNOT_GET_PARENT), span),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.CANNOT_GET_PARENT), span));
 			}
 			if (res != null) {
 				LOG.debug("Parent for folderId: {}, and result object count: {}", folderId, res);
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return res;
 		}
 
@@ -501,14 +552,17 @@ public class CmisNavigationService {
 		 */
 		private static ObjectData getFolderParentIntern(String repositoryId, String folderId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, IUserObject user,
-				ObjectInfoHandler objectInfos, String typeId) {
+				ObjectInfoHandler objectInfos, String typeId, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getFolderParentIntern", null);
 			IBaseObject folderParent = null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			folderParent = DBUtils.BaseDAO.getByObjectId(repositoryId, data.getParentId(), null, data.getTypeId());
 			Set<String> filterCollection = Helpers.splitFilter(filter);
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, folderParent,
 					filterCollection, includeAllowableActions, false, true, objectInfos, null, includeRelationships,
-					user);
+					user, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectData;
 		}
 
@@ -518,25 +572,33 @@ public class CmisNavigationService {
 		public static List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includePathSegment,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
-				throws CmisInvalidArgumentException {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) throws CmisInvalidArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getFolderTree", null);
 			int levels;
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
 			} else if (depth.intValue() == 0) {
-				LOG.error("getFolderTree a zero depth is not allowed for getDescendants() in repository: {}",
-						repositoryId);
-				throw new CmisInvalidArgumentException("A zero depth is not allowed for getDescendants().");
+				LOG.error(
+						"getFolderTree a zero depth is not allowed for getDescendants() in repository: {}, TraceId: {}",
+						repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span));
 			} else {
 				levels = depth.intValue();
 			}
 			int level = 0;
 			List<ObjectInFolderContainer> result = getFolderTreeIntern(repositoryId, folderId, filter,
 					includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, level, levels,
-					true, objectInfos, userObject, typeId);
+					true, objectInfos, userObject, typeId, tracingId, span);
 			if (result != null) {
 				LOG.debug("descendant folder objects count: {}", result.size());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -546,7 +608,10 @@ public class CmisNavigationService {
 		private static List<ObjectInFolderContainer> getFolderTreeIntern(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
 				String renditionFilter, Boolean includePathSegments, int level, int maxLevels, boolean folderOnly,
-				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId) {
+				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId, String tracingId,
+				ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getFolderTreeIntern", null);
 			List<ObjectInFolderContainer> folderTree = null;
 			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
@@ -587,10 +652,11 @@ public class CmisNavigationService {
 			List<String> listOfParentIds = new ArrayList<>();
 			folderTree = getDescendants(repositoryId, children, folderId, includePathSegments, filter,
 					includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
-					listOfParentIds);
+					listOfParentIds, tracingId, span);
 			folderTree = getDifferenceDescendants(repositoryId, children, folderId, includePathSegments, filter,
 					includeAllowableActions, objectInfos, renditionFilter, includeRelationships, userObject,
-					listOfParentIds, folderTree);
+					listOfParentIds, folderTree, tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return folderTree;
 		}
 
@@ -600,13 +666,16 @@ public class CmisNavigationService {
 		public static List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String filter,
 				Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 				Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos, IUserObject userObject,
-				String typeId) {
+				String typeId, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getObjectParents", null);
 			List<ObjectParentData> result = getObjectParentsIntern(repositoryId, objectId, filter, objectInfos,
 					includeAllowableActions, includeRelationships, renditionFilter, includeRelativePathSegment,
-					userObject, typeId);
+					userObject, typeId, tracingId, span);
 			if (result != null) {
 				LOG.debug("getObjectParents result object count: {}", result.size());
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
@@ -616,9 +685,10 @@ public class CmisNavigationService {
 		private static List<ObjectParentData> getObjectParentsIntern(String repositoryId, String objectId,
 				String filter, ObjectInfoHandler objectInfos, Boolean includeAllowableActions,
 				IncludeRelationships includeRelationships, String renditionFilter, Boolean includeRelativePathSegment,
-				IUserObject userObject, String typeId) {
+				IUserObject userObject, String typeId, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getObjectParentsIntern", null);
 			Set<String> filterCollection = Helpers.splitFilter(filter);
-
 			List<ObjectParentData> objectParent = new ArrayList<ObjectParentData>();
 			IBaseObject resultData = null;
 			DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId, MBaseObjectDAO.class);
@@ -631,7 +701,7 @@ public class CmisNavigationService {
 					if (resultData.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 						ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, resultData,
 								filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-								includeRelationships, userObject);
+								includeRelationships, userObject, tracingId, span);
 						ObjectParentDataImpl parent = new ObjectParentDataImpl();
 						parent.setObject(objectData);
 						parent.setRelativePathSegment(i == 1 ? data.getName()
@@ -642,7 +712,7 @@ public class CmisNavigationService {
 					}
 				}
 			}
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objectParent;
 		}
 
@@ -728,7 +798,7 @@ public class CmisNavigationService {
 				Set<String> filterCollection = Helpers.splitFilter(filter);
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, checkedOutDocs,
 						filterCollection, includeAllowableActions, false, true, objectInfos, renditionFilter,
-						includeRelationships, userObject);
+						includeRelationships, userObject, null, null);
 				odList.add(objectData);
 				if (objectInfos != null) {
 					ObjectInfoImpl objectInfo = new ObjectInfoImpl();

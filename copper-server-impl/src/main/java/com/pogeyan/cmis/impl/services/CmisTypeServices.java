@@ -47,7 +47,6 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionContainerImpl;
@@ -60,6 +59,7 @@ import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.CustomTypeId;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.CmisDocumentTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.CmisFolderTypeDefinitionImpl;
@@ -73,18 +73,25 @@ import com.pogeyan.cmis.api.data.common.TypePermissionType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class CmisTypeServices {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisTypeServices.class);
 
 	public static class Impl {
 
-		public static void addBaseType(String repositoryId, IUserObject userObject) throws MongoException {
+		public static void addBaseType(String repositoryId, IUserObject userObject, String tracingId, ISpan parentSpan)
+				throws MongoException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisTypeServices::addBaseType", null);
 			LOG.info("addBaseType for this repo: {}", repositoryId);
 			try {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -92,6 +99,7 @@ public class CmisTypeServices {
 				List<? extends TypeDefinition> getTypeObject = DBUtils.TypeServiceDAO.getById(repositoryId, null, null);
 				if (getTypeObject != null) {
 				} else {
+
 					List<? extends TypeDefinition> typeDef = typeManagerDAO.getById(null, null);
 					if (typeDef != null && typeDef.size() > 0) {
 						LOG.info("BaseType already created for repository: {}", repositoryId);
@@ -110,8 +118,15 @@ public class CmisTypeServices {
 									createFolderForType(tm, userObject, repositoryId);
 								} catch (IOException e) {
 									typeManagerDAO.delete(tm.getId());
-									LOG.error("Folder creation exception:  {}, repositoryId: {}", e, repositoryId);
-									throw new IllegalArgumentException(e.getMessage());
+									LOG.error("Folder creation exception:  {}, repositoryId: {}, TraceId: {}", e,
+											repositoryId, span);
+									TracingApiServiceFactory.getApiService().updateSpan(span,
+											TracingErrorMessage.message(TracingWriter
+													.log(String.format(ErrorMessages.EXCEPTION, e.getMessage()), span),
+													ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+									TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+									throw new IllegalArgumentException(TracingWriter
+											.log(String.format(ErrorMessages.EXCEPTION, e.getMessage()), span));
 								}
 							}
 							CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, tm.getId(), tm);
@@ -121,9 +136,15 @@ public class CmisTypeServices {
 				}
 
 			} catch (MongoException e) {
-				LOG.error("MongoObject shouldnot be null: {}, repository: {}", e, repositoryId);
-				throw new MongoException("MongoObject shouldnot be null");
+				LOG.error("MongoObject shouldnot be null: {}, repository: {}, TraceId: {}", e, repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.MONGO_OBJECT_NULL), span),
+								ErrorMessages.MONGO_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new MongoException(TracingWriter.log(String.format(ErrorMessages.MONGO_OBJECT_NULL), span));
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 
 		/**
@@ -502,10 +523,18 @@ public class CmisTypeServices {
 		 * @throws CmisException
 		 */
 		public static TypeDefinition createType(String repositoryId, TypeDefinition type, ExtensionsData extension,
-				IUserObject userObject) throws IllegalArgumentException {
+				IUserObject userObject, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisTypeService::createType", null);
 			if (type == null) {
-				LOG.error("Type must be set! in repository: {}", repositoryId);
-				throw new IllegalArgumentException("Type must be set!");
+				LOG.error("Type must be set! in repository: {}, TraceId: {}", repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span));
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
@@ -520,12 +549,24 @@ public class CmisTypeServices {
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				TypeDefinition object = null;
 				if (type.getId() == null || type.getId().trim().length() == 0) {
-					LOG.error("Type must have a valid id! in repository: {}", repositoryId);
-					throw new IllegalArgumentException("Type must have a valid id!");
+					LOG.error("Type must have a valid id! in repository: {}, TraceId: {}", repositoryId, span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span));
 				}
 				if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
-					LOG.error("Type must have a valid parent id! in repository: {}", repositoryId);
-					throw new IllegalArgumentException("Type must have a valid parent id!");
+					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId, span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span));
 				}
 
 				List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
@@ -534,8 +575,15 @@ public class CmisTypeServices {
 					object = typeDef.get(0);
 				}
 				if (object != null) {
-					LOG.error(type.getId() + ": {}, repository: {}", " is already present!", repositoryId);
-					throw new IllegalArgumentException(type.getId() + " is already present");
+					LOG.error(type.getId() + ": {}, repository: {}, TraceId: {}", " is already present!", repositoryId,
+							span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span));
 				}
 				if (type.getPropertyDefinitions() != null) {
 					Map<String, PropertyDefinition<?>> property = type.getPropertyDefinitions();
@@ -569,8 +617,15 @@ public class CmisTypeServices {
 						createFolderForType(type, userObject, repositoryId);
 					} catch (IOException e) {
 						typeManagerDAO.delete(type.getId());
-						LOG.error("Type folder creation exception:  {}, repository: {}", e, repositoryId);
-						throw new IllegalArgumentException(e.getMessage());
+						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
+								span);
+						TracingApiServiceFactory.getApiService().updateSpan(span,
+								TracingErrorMessage.message(
+										TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.getMessage()), span),
+										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+						throw new IllegalArgumentException(
+								TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.getMessage()), span));
 					}
 					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, typePermissionFlow,
 							userObject);
@@ -586,20 +641,32 @@ public class CmisTypeServices {
 						}
 					} catch (IOException e) {
 						typeManagerDAO.delete(type.getId());
-						LOG.error("Type  folder creation exception:  {}, repository: {}", e, repositoryId);
-						throw new IllegalArgumentException(e.getMessage());
+						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
+								span);
+						TracingApiServiceFactory.getApiService().updateSpan(span,
+								TracingErrorMessage.message(
+										TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.getMessage()), span),
+										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+						throw new IllegalArgumentException(
+								TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.getMessage()), span));
 					}
 					TypeDefinition getType = gettingAllTypeDefinition(repositoryId, newType, typePermissionFlow,
 							userObject);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 					return getType;
 				}
 			} else {
-				LOG.error("Create type permission denied for this user: {}, repository: {}", userObject.getUserDN(),
-						repositoryId);
-				throw new CmisPermissionDeniedException(
-						"Create type permission denied for this userId" + userObject.getUserDN());
+				LOG.error("Create type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(TracingWriter
+						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
-
 		}
 
 		/**
@@ -608,10 +675,18 @@ public class CmisTypeServices {
 		 * @throws CmisException
 		 */
 		public static TypeDefinition updateType(String repositoryId, TypeDefinition type, ExtensionsData extension,
-				IUserObject userObject) throws IllegalArgumentException {
+				IUserObject userObject, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisTypeService::updateType", null);
 			if (type == null) {
-				LOG.error("Type must be set in repository: {}", repositoryId);
-				throw new IllegalArgumentException("Type must be set!");
+				LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span));
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
@@ -623,12 +698,24 @@ public class CmisTypeServices {
 				TypeDefinition object = null;
 
 				if (type.getId() == null || type.getId().trim().length() == 0) {
-					LOG.error("Type must have a valid id in  repository: {}", repositoryId);
-					throw new IllegalArgumentException("Type must have a valid id!");
+					LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId, span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span));
 				}
 				if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
-					LOG.error("Type must have a valid parent id repository: {}", repositoryId);
-					throw new IllegalArgumentException("Type must have a valid parent id!");
+					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId, span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span));
 				}
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
@@ -639,8 +726,14 @@ public class CmisTypeServices {
 					object = tyeDef.get(0);
 				}
 				if (object == null) {
-					LOG.error(type.getId() + ": {}, repository: {}", " is unknown", repositoryId);
-					throw new IllegalArgumentException("Unknown TypeId" + type.getId());
+					LOG.error(type.getId() + ": {}, repository: {}", " is unknown", repositoryId, ", TraceId: ", span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, type.getId()), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, type.getId()), span));
 				}
 				if (type.getPropertyDefinitions() != null) {
 					Map<String, PropertyDefinition<?>> property = type.getPropertyDefinitions();
@@ -667,13 +760,20 @@ public class CmisTypeServices {
 					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(),
 							newType);
 				}
-				TypeDefinition getType = getTypeDefinition(repositoryId, type.getId(), extension, userObject);
+				TypeDefinition getType = getTypeDefinition(repositoryId, type.getId(), extension, userObject, tracingId,
+						span);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 				return getType;
 			} else {
-				LOG.error("Update type permission denied for this user: {}, repository: {}", userObject.getUserDN(),
-						repositoryId);
-				throw new CmisPermissionDeniedException(
-						"Update type permission denied for this userId" + userObject.getUserDN());
+				LOG.error("Update type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(TracingWriter
+						.log(String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 
 		}
@@ -684,11 +784,18 @@ public class CmisTypeServices {
 		 * @throws CmisException
 		 */
 		public static void deleteType(String repositoryId, String type, ExtensionsData extension,
-				IUserObject userObject) throws IllegalArgumentException {
-
+				IUserObject userObject, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisTypeService::deleteType", null);
 			if (type == null) {
-				LOG.error("Type is not available to delete: {}, repository: {}", type, repositoryId);
-				throw new IllegalArgumentException("Type must be set!");
+				LOG.error("Type is not available to delete: {}, repository: {}, TraceId: {}", type, repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span));
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
@@ -709,8 +816,14 @@ public class CmisTypeServices {
 				}
 
 				if (object == null) {
-					LOG.error(type + ": {}, repository: {}", " does not exists", repositoryId);
-					throw new IllegalArgumentException("Unknown TypeId " + type);
+					LOG.error(type + ": {}, repository: {}", " Unknown TypeId", repositoryId, "TraceId: ", span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span));
 				}
 				// Map<String, String> parameters =
 				// RepositoryManager.get().getFileDetails(repositoryId);
@@ -726,18 +839,33 @@ public class CmisTypeServices {
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);
 				LOG.info("Successfully deleted type: {}", type);
 			} else {
-				LOG.error("Delete type permission denied for this user: {}, repository: {}", userObject.getUserDN(),
-						repositoryId);
-				throw new CmisPermissionDeniedException(
-						"Delete type permission denied for this userId" + userObject.getUserDN());
+				LOG.error("Delete type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(TracingWriter
+						.log(String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 
 		public static TypeDefinition getTypeDefinition(String repositoryId, String typeId, ExtensionsData extension,
-				IUserObject userObject) {
+				IUserObject userObject, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisTypeService::getTypeDefinition", null);
 			if (typeId == null) {
-				LOG.error("getTypeDefinition typeId should not be null in repository: {}", repositoryId);
-				throw new IllegalArgumentException("Type must be set!");
+				LOG.error("getTypeDefinition typeId should not be null in repository: {}, TraceId: {}", repositoryId,
+						span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span));
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
@@ -764,12 +892,15 @@ public class CmisTypeServices {
 				// TypeDefinition emptyTypeDefinition =
 				// typeDefinitionContainer.getTypeDefinition();
 				// return emptyTypeDefinition;
-				LOG.error("getTypeDefinition typeId should not be null in repository: {}", repositoryId);
-				throw new CmisObjectNotFoundException("Type must be set!");
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(String.format(ErrorMessages.TYPE_MUST_BE_SET, span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(String.format(ErrorMessages.TYPE_MUST_BE_SET, span));
 
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return gettingAllTypeDefinition(repositoryId, typeDefinition, typePermissionFlow, userObject);
-
 		}
 
 		private static TypeDefinition gettingAllTypeDefinition(String repositoryId, TypeDefinition typeDefinition,
@@ -998,7 +1129,9 @@ public class CmisTypeServices {
 		 */
 		public static TypeDefinitionList getTypeChildren(String repositoryId, String typeId,
 				Boolean includePropertyDefinitions, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension,
-				IUserObject userObject) throws IllegalArgumentException {
+				IUserObject userObject, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisTypeService::getTypeChildren", null);
 			boolean inclPropDefs = includePropertyDefinitions == null ? false : includePropertyDefinitions;
 			int skip = skipCount == null ? 0 : skipCount.intValue();
 			int max = maxItems == null ? -1 : maxItems.intValue();
@@ -1011,11 +1144,20 @@ public class CmisTypeServices {
 				if (typeDef != null && typeDef.size() > 0) {
 					object = typeDef.get(0);
 				}
+
 				if (object == null) {
-					LOG.error("getTypeChildren unknown TypeId : {}, repository: {}", typeId, repositoryId);
-					throw new IllegalArgumentException("Unknown TypeID " + typeId);
+					LOG.error("getTypeChildren unknown TypeId : {}, repository: {}, TraceId: {}", typeId, repositoryId,
+							span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span));
 				}
 			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return getTypeChildrenIntern(repositoryId, typeId, inclPropDefs, max, skip, object, typePermissionFlow,
 					userObject);
 		}
@@ -1107,8 +1249,10 @@ public class CmisTypeServices {
 		 * getting the TypeDescendants for particular TypeID
 		 */
 		public static List<TypeDefinitionContainer> getTypeDescendants(String repositoryId, String typeId,
-				BigInteger depth, Boolean includePropertyDefinitions, ExtensionsData extension, IUserObject userObject)
-				throws IllegalArgumentException, CmisInvalidArgumentException {
+				BigInteger depth, Boolean includePropertyDefinitions, ExtensionsData extension, IUserObject userObject,
+				String tracingId, ISpan parentSpan) throws IllegalArgumentException, CmisInvalidArgumentException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisTypeService::getTypeDescendants", null);
 			boolean inclPropDefs = includePropertyDefinitions == null ? true : includePropertyDefinitions;
 			MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
@@ -1122,8 +1266,15 @@ public class CmisTypeServices {
 					object = typeDef.get(0);
 				}
 				if (object == null) {
-					LOG.error("getTypeDescendants unknown typeID : {}, repository: {}", typeId, repositoryId);
-					throw new IllegalArgumentException("Unknown typeID " + typeId);
+					LOG.error("getTypeDescendants unknown typeID : {}, repository: {}, TraceId: {}", typeId,
+							repositoryId, span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span));
 				}
 
 			}
@@ -1137,7 +1288,13 @@ public class CmisTypeServices {
 				TypeDefinitionContainer tc = getTypeById(repositoryId, typeId, inclPropDefs,
 						depth == null ? -1 : depth.intValue(), cmis11, typePermissionFlow, userObject);
 				if (tc == null) {
-					throw new CmisInvalidArgumentException("unknown type id: " + typeId);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
+									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new IllegalArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span));
 				} else {
 					result = tc.getChildren();
 				}
@@ -1146,10 +1303,17 @@ public class CmisTypeServices {
 						includePropertyDefinitions, typePermissionFlow, userObject);
 			}
 			if (result == null) {
-				LOG.error("getTypeDescendants unknown typeId: {}, repository: {}", typeId, repositoryId);
-				throw new CmisInvalidArgumentException("unknown typeId: " + typeId);
+				LOG.error("getTypeDescendants unknown typeId: {}, repository: {}, TraceId: {}", typeId, repositoryId,
+						span);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span));
 			}
-
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
