@@ -69,12 +69,13 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				null);
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span.getTraceId()),
-					ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span.getTraceId()));
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span));
 		}
 		String aclPro = t.getAclPropagation();
 		String objectId = t.getObjectId();
@@ -85,11 +86,10 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span));
 		}
 		JSONObject jsonObject = JSONConverter.convert(objectAcl);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -105,12 +105,13 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				null);
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span.getTraceId()),
-					ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span.getTraceId()));
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span));
 		}
 		String objectId = t.getObjectId();
 		Boolean onlyBasicPermissions = t.getBooleanParameter(QueryGetRequest.PARAM_ONLY_BASIC_PERMISSIONS);
@@ -120,11 +121,10 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				t.getUserObject(), t.getTypeId(), tracingId, span);
 		if (objectAcl == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span.getTraceId()),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span.getTraceId()));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span));
 		}
 		JSONObject jsonObject = JSONConverter.convert(objectAcl);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);

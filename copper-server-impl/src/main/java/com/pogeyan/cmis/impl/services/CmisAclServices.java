@@ -61,15 +61,15 @@ public class CmisAclServices {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId,
-						repositoryId, span.getTraceId());
+						repositoryId, span);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span.getTraceId()),
+										span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
-						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
 					false, objectInfos, null, null, userObject);
@@ -91,15 +91,15 @@ public class CmisAclServices {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
-						repositoryId, span.getTraceId());
+						repositoryId, span);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span.getTraceId()),
+										span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
-						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span.getTraceId()));
+						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
 			Long modifiedTime = System.currentTimeMillis();
 			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
