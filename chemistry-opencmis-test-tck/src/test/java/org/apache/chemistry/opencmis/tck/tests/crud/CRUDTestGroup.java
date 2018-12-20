@@ -26,34 +26,35 @@ import org.apache.chemistry.opencmis.tck.impl.AbstractSessionTestGroup;
  * This test group contains simple Create, Read, Update and Delete tests.
  */
 public class CRUDTestGroup extends AbstractSessionTestGroup {
-    @Override
-    public void init(Map<String, String> parameters) throws Exception {
-        super.init(parameters);
+	@Override
+	public void init(Map<String, String> parameters) throws Exception {
+		super.init(parameters);
 
-        setName("CRUD Test Group");
-        setDescription("Create, Read, Update, and Delete tests.");
+		setName("CRUD Test Group");
+		setDescription("Create, Read, Update, and Delete tests.");
 
-        addTest(new CreateAndDeleteFolderTest());
-        addTest(new CreateAndDeleteDocumentTest());
-        addTest(new CreateBigDocument());
-        addTest(new CreateDocumentWithoutContent());
-        addTest(new CreateInvalidTypeTest());
-        addTest(new NameCharsetTest());
-        addTest(new WhitespaceInNameTest());
-        addTest(new CreateAndDeleteRelationshipTest());
-        addTest(new CreateAndDeletePolicyTest());
-        addTest(new CreateAndDeleteItemTest());
-        addTest(new PropertyFilterTest());
-        addTest(new UpdateSmokeTest());
-        addTest(new BulkUpdatePropertiesTest());
-        addTest(new SetAndDeleteContentTest());
-        addTest(new ChangeTokenTest());
-        addTest(new ContentRangesTest());
-        addTest(new CopyTest());
-        addTest(new MoveTest());
-        addTest(new DeleteTreeTest());
-        addTest(new OperationContextTest());
-        addTest(new AsyncCreateAndDeleteDocumentTest());
-        addTest(new AsyncCreateAndDeleteFolderTest());
-    }
+		addTest(new CreateAndDeleteFolderTest());
+		addTest(new CreateAndDeleteDocumentTest());
+		addTest(new CreateBigDocument());
+		addTest(new CreateDocumentWithoutContent());
+		addTest(new CreateInvalidTypeTest());
+		addTest(new NameCharsetTest());
+		addTest(new WhitespaceInNameTest());
+		addTest(new CreateAndDeleteRelationshipTest());
+		addTest(new CreateAndDeletePolicyTest());
+		addTest(new CreateAndDeleteItemTest());
+		addTest(new PropertyFilterTest());
+		addTest(new UpdateSmokeTest());
+		addTest(new BulkUpdatePropertiesTest());
+		addTest(new SetAndDeleteContentTest());
+		addTest(new ChangeTokenTest());
+		addTest(new ContentRangesTest());
+		addTest(new CopyTest());
+		addTest(new MoveTest());
+		addTest(new DeleteTreeTest());
+		addTest(new OperationContextTest());
+		addTest(new AsyncCreateAndDeleteDocumentTest());
+		addTest(new AsyncCreateAndDeleteFolderTest());
+		addTest(new VirtualFolderLocalStorageTest());
+	}
 }
