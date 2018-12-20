@@ -180,7 +180,7 @@ public class CmisDiscoveryService {
 				props = result;
 			} else {
 				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo,
-						userObject);
+						userObject, null, null);
 			}
 
 			odImpl.setProperties(props);

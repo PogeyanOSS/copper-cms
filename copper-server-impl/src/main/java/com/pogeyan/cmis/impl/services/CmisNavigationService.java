@@ -110,7 +110,7 @@ public class CmisNavigationService {
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			if (data == null) {
 				LOG.error("getChildrenIntern unknown object id : {}, repository: {}, TraceId: {}", folderId,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, folderId), span),
@@ -217,8 +217,8 @@ public class CmisNavigationService {
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
 			} else if (depth.intValue() == 0) {
-				LOG.error("getDescendants a zero depth is not allowed for getDescendants: {}, repository: {}", folderId,
-						repositoryId);
+				LOG.error("getDescendants a zero depth is not allowed for getDescendants: {}, repository: {}, TraceId: {}", folderId,
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -531,7 +531,7 @@ public class CmisNavigationService {
 					userObject, objectInfos, typeId, tracingId, span);
 			if (res == null) {
 				LOG.error("getFolderParent cannot get parent of a root folder of: {}, repository: {}, TraceId: {}",
-						folderId, repositoryId, span);
+						folderId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_GET_PARENT), span),
@@ -582,7 +582,7 @@ public class CmisNavigationService {
 			} else if (depth.intValue() == 0) {
 				LOG.error(
 						"getFolderTree a zero depth is not allowed for getDescendants() in repository: {}, TraceId: {}",
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));

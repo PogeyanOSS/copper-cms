@@ -161,7 +161,7 @@ public class CmisObjectService {
 			} catch (MongoException e) {
 
 				LOG.error("addRootFolder exception: {}, repositoryId: {},  TraceId: {}",
-						ExceptionUtils.getStackTrace(e), repositoryId, span);
+						ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
 								ErrorMessages.BASE_EXCEPTION, repositoryId, true));
@@ -185,7 +185,7 @@ public class CmisObjectService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::getObject", null);
 			if (objectId == null && filter == null) {
-				LOG.error("getObject objectId and filter is null in repository: {}, TraceId: {}", repositoryId, span);
+				LOG.error("getObject objectId and filter is null in repository: {}, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECT_ID_NULL), span),
@@ -194,7 +194,7 @@ public class CmisObjectService {
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.OBJECT_ID_NULL), span));
 			} else if (objectId == null) {
-				LOG.error("getObject objectId is null in repository: {}, TraceId: {}", repositoryId, span);
+				LOG.error("getObject objectId is null in repository: {}, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECT_ID_NULL), span),
@@ -220,7 +220,7 @@ public class CmisObjectService {
 				}
 			} catch (Exception e) {
 				LOG.error("getObject Exception: {}, repository: {}, TraceId: {}", ExceptionUtils.getStackTrace(e),
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
@@ -320,7 +320,7 @@ public class CmisObjectService {
 			LOG.info("getObjectByPath compileObjectData for: {}, repositoryid: {}", path, repositoryId);
 			if (path == null && filter == null) {
 				LOG.error("getObjectByPath unknown object id: {}, repository: {}, TraceId: {}", path, repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECTID_MUST_BE_SET), span),
@@ -335,7 +335,7 @@ public class CmisObjectService {
 				data = DBUtils.BaseDAO.getByPath(repositoryId, path, typeId);
 			} catch (Exception e) {
 				LOG.error("getObjectByPath Exception: {}, repository: {}, TraceId: {}", ExceptionUtils.getStackTrace(e),
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
@@ -345,7 +345,7 @@ public class CmisObjectService {
 			}
 
 			if (data == null) {
-				LOG.error("getObjectByPath: {}, is null in {} repository!, TraceId: {}", path, repositoryId, span);
+				LOG.error("getObjectByPath: {}, is null in {} repository!, TraceId: {}", path, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -440,7 +440,7 @@ public class CmisObjectService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::compileProperties", null);
 			if (data == null) {
-				LOG.error("compileProperties object is null in: {} repository!, TraceId: {}", repositoryId, span);
+				LOG.error("compileProperties object is null in: {} repository!, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
@@ -450,7 +450,7 @@ public class CmisObjectService {
 
 			if (objectInfo == null) {
 				LOG.error("compileProperties ObjectInfoImpl is null in: {} repository!, TraceId: {}", repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECT_INFOIMPL_NULL), span),
@@ -619,7 +619,8 @@ public class CmisObjectService {
 			// let's do it
 			try {
 				PropertiesImpl result = new PropertiesImpl();
-				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+						tracingId, span);
 				// id
 				String id = data.getId().toString();
 				addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_ID, id, userObject);
@@ -882,7 +883,7 @@ public class CmisObjectService {
 				return result;
 			} catch (Exception e) {
 				LOG.error("Method name: {}, error: {}, repository: {}, TraceId: {}", "compileProperties", e,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
 								ErrorMessages.RUNTIME_EXCEPTION, repositoryId, true));
@@ -900,7 +901,7 @@ public class CmisObjectService {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 				} catch (Exception e) {
 					LOG.error("getAllowableActions Exception: {}, repository: {}, TraceId: {}",
-							ExceptionUtils.getStackTrace(e), repositoryId, span);
+							ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
@@ -912,7 +913,7 @@ public class CmisObjectService {
 			}
 			if (data == null && objectId == null) {
 				LOG.error("getAllowableActions unknown objectId: {}, repository: {}, TraceId: {}", objectId,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECTID_MUST_BE_SET), span),
@@ -924,7 +925,7 @@ public class CmisObjectService {
 
 			if (data == null) {
 				LOG.error("getAllowableActions for this objectId: {}, is null in: {} repository!, TraceId: {}",
-						objectId, repositoryId, span);
+						objectId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -1106,10 +1107,9 @@ public class CmisObjectService {
 			if (data == null && objectId != null) {
 				try {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
-					data = null;
 				} catch (Exception e) {
 					LOG.error("getRenditions Exception: {}, repositoryId: {}, TraceId: {}",
-							ExceptionUtils.getStackTrace(e), repositoryId, span);
+							ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
@@ -1122,7 +1122,7 @@ public class CmisObjectService {
 
 			if (data == null && objectId == null) {
 				LOG.error("getRenditions unknown objectId: {}, repositoryId: {}, TraceId: {}", objectId, repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECTID_MUST_BE_SET), span),
@@ -1134,7 +1134,7 @@ public class CmisObjectService {
 
 			if (data == null) {
 				LOG.error("getRenditions for this objectId: {}, is null in: {} repository!, TraceId: {}", objectId,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -1506,7 +1506,7 @@ public class CmisObjectService {
 			String folderName = (String) pd.getFirstValue();
 			if (folderName == null || folderName.length() == 0) {
 				LOG.error("createFolderIntern unknown folder name: {}, repositoryId: {}, TraceId: {}", folderName,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_FOLDER), span),
@@ -1519,7 +1519,7 @@ public class CmisObjectService {
 			// check name syntax
 			if (!NameValidator.impl.isValidName(folderName)) {
 				LOG.error("createFolderIntern error: {}, : {}, repositoryId: {}, TraceId: {}",
-						NameValidator.ERROR_ILLEGAL_NAME, folderName, repositoryId, span);
+						NameValidator.ERROR_ILLEGAL_NAME, folderName, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.ERROR, NameValidator.ERROR_ILLEGAL_NAME), span),
@@ -1537,11 +1537,12 @@ public class CmisObjectService {
 			String typeId = getObjectTypeId(properties);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					tracingId, span);
 
 			if (typeDef == null) {
 				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}", "createFolder", typeDef,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
@@ -1554,7 +1555,7 @@ public class CmisObjectService {
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
 				LOG.error(
 						"createFolderIntern cannot create a folder with a non-folder type: {}, repositoryId: {}, TraceId: {}",
-						typeDef.getId(), repositoryId, span);
+						typeDef.getId(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService()
 						.updateSpan(span,
 								TracingErrorMessage.message(TracingWriter.log(String.format(
@@ -1575,7 +1576,7 @@ public class CmisObjectService {
 
 			if (parent == null) {
 				LOG.error("createFolderIntern parent is unknown: {}, repositoryId: {}, TraceId: {}", parent,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_PARENT), span),
@@ -1616,7 +1617,7 @@ public class CmisObjectService {
 					objectMorphiaDAO.delete(repositoryId, folderId, true, null, typeId);
 					LOG.error(
 							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}, TraceId: {}",
-							"cmisObjectService", "createFolderIntern", repositoryId, e, span);
+							"cmisObjectService", "createFolderIntern", repositoryId, e, span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
@@ -1632,14 +1633,15 @@ public class CmisObjectService {
 		}
 
 		public static void createTypeFolder(String repositoryId, Properties properties, IUserObject userObject,
-				String tracingId, ISpan parentSpan) {
+				BaseTypeId baseType, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createTypeFolder", null);
 			String typeId = getObjectTypeId(properties);
 			LOG.debug("createTypeFolder for custom type: {}", typeId);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					tracingId, span);
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
 			IBaseObject parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
@@ -1650,9 +1652,14 @@ public class CmisObjectService {
 			aclImp.setAclPropagation(AclPropagation.REPOSITORYDETERMINED.toString());
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
+			if (baseType == BaseTypeId.CMIS_DOCUMENT) {
+				CmisObjectService.Impl.createFolder(repositoryId, parent.getId(), properties, null, aclImp, null,
+						userObject, tracingId, span);
+			} else {
+				createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
+						props.getProperties(), objectMorphiaDAO, null, aclImp, null, tracingId, span);
+			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-			createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
-					props.getProperties(), objectMorphiaDAO, null, aclImp, null, tracingId, span);
 		}
 
 		/**
@@ -1672,7 +1679,7 @@ public class CmisObjectService {
 					parentData.getId().toString(), typeId);
 			if (folderObject != null) {
 				LOG.error("createFolderObject already present FolderObject:{}, repositoryId: {}, TraceId: {}",
-						folderObject.getId(), repositoryId, span);
+						folderObject.getId(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(folderName, ErrorMessages.FOLDER_PRESENT), span),
@@ -1714,7 +1721,8 @@ public class CmisObjectService {
 		private static Map<String, Object> readCustomPropetiesData(Map<String, PropertyData<?>> properties,
 				String repositoryId, String typeId, IUserObject userObject) {
 			Map<String, Object> custom = new HashMap<String, Object>();
-			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null,
+					null);
 			Set<Map.Entry<String, PropertyData<?>>> customData = properties.entrySet();
 			for (Map.Entry<String, PropertyData<?>> customValues : customData) {
 				PropertyData<?> valueName = customValues.getValue();
@@ -1833,7 +1841,7 @@ public class CmisObjectService {
 			List<String> secondaryObjectTypeIds = null;
 			if (properties == null || properties.getProperties() == null) {
 				LOG.error("createDocumentIntern unknown properties: {}, repositoryId: {}, TraceId: {}", properties,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.PROPERTIES_MUST_BE_SET), span),
@@ -1856,7 +1864,7 @@ public class CmisObjectService {
 			String documentName = (String) pd.getFirstValue();
 			if (documentName == null || documentName.length() == 0) {
 				LOG.error("createDocumentIntern unknown document name, repositoryId: {}, TraceId: {}", repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_DOCUMENT), span),
@@ -1874,7 +1882,7 @@ public class CmisObjectService {
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
 				LOG.error("createDocumentIntern error: {}, : {}, repositoryId: {}, TraceId: {}",
-						NameValidator.ERROR_ILLEGAL_NAME, documentName, repositoryId, span);
+						NameValidator.ERROR_ILLEGAL_NAME, documentName, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.ERROR, NameValidator.ERROR_ILLEGAL_NAME), span),
@@ -1888,10 +1896,11 @@ public class CmisObjectService {
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					tracingId, span);
 			if (typeDef == null) {
 				LOG.error("Method name : {}, unknown typeId: {}, repositoryId: {}, TraceId: {}", "createDocument",
-						typeDef, repositoryId, span);
+						typeDef, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
@@ -1902,7 +1911,7 @@ public class CmisObjectService {
 			}
 			if (typeDef.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT) {
 				LOG.error("createDocumentIntern Type: {} is not a document type!, repositoryId: {}, TraceId: {}",
-						typeDef.getBaseTypeId(), repositoryId, span);
+						typeDef.getBaseTypeId(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_DOCUMENT_TYPE), span),
@@ -1929,7 +1938,7 @@ public class CmisObjectService {
 			}
 			if (parent == null) {
 				LOG.error("createDocumentIntern unknown parent: {}, repositoryId: {}, TraceId: {}", parent,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_PARENT), span),
@@ -1963,7 +1972,7 @@ public class CmisObjectService {
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
 					LOG.error("createDocumentIntern file creation exception: {}, repositoryId: {}, TraceId: {}", ex,
-							repositoryId, span);
+							repositoryId, span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, ex), span),
@@ -2062,8 +2071,8 @@ public class CmisObjectService {
 					validateAcl(repositoryId, removeACEs, baseObject.getId(), baseObject);
 				if (versioningState == VersioningState.CHECKEDOUT) {
 					Holder<String> objectsId = new Holder<String>(baseObject.getId().toString());
-					String pwcId = CmisVersioningServices.Impl.checkOut(repositoryId, objectsId, null, null,
-							userObject);
+					String pwcId = CmisVersioningServices.Impl.checkOut(repositoryId, objectsId, null, null, userObject,
+							tracingId, span);
 					documentObject = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, pwcId, null);
 				}
 				return documentObject;
@@ -2147,7 +2156,7 @@ public class CmisObjectService {
 			String documentName = (String) pd.getFirstValue();
 			if (null == documentName || documentName.length() == 0) {
 				LOG.error("createDocumentFromSource unknown document name: {}, repositoryId: {}, TraceId: {}",
-						documentName, repositoryId, span);
+						documentName, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_DOCUMENT), span),
@@ -2160,7 +2169,7 @@ public class CmisObjectService {
 			// check name syntax
 			if (!NameValidator.impl.isValidName(documentName)) {
 				LOG.error("createDocumentFromSource error: {}, : {} , TraceId: {}", NameValidator.ERROR_ILLEGAL_NAME,
-						documentName, span);
+						documentName, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.ERROR, NameValidator.ERROR_ILLEGAL_NAME), span),
@@ -2171,10 +2180,11 @@ public class CmisObjectService {
 			}
 			String typeId = getObjectTypeId(properties);
 
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					tracingId, span);
 			if (typeDef == null) {
 				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}",
-						"createDocumentFromSource", typeDef, repositoryId, span);
+						"createDocumentFromSource", typeDef, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
@@ -2185,7 +2195,7 @@ public class CmisObjectService {
 			}
 			if (typeDef.getBaseTypeId() != BaseTypeId.CMIS_DOCUMENT) {
 				LOG.error("createDocumentFromSource Type: {} must be a document type!, repositoryId: {}, TraceId: {}",
-						typeDef.getBaseTypeId(), repositoryId, span);
+						typeDef.getBaseTypeId(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_DOCUMENT_TYPE), span),
@@ -2218,7 +2228,7 @@ public class CmisObjectService {
 
 			if (parent == null) {
 				LOG.error("createDocumentFromSource unknown parent: {}, repositoryId: {}, TraceId: {}", parent,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_PARENT), span),
@@ -2235,7 +2245,7 @@ public class CmisObjectService {
 			if (sourceResult.getContentStreamFileName() != null) {
 				contentStream = localService.getContent(sourceResult.getContentStreamFileName(), sourceResult.getPath(),
 						sourceResult.getContentStreamMimeType(),
-						BigInteger.valueOf(sourceResult.getContentStreamLength()), documentName);
+						BigInteger.valueOf(sourceResult.getContentStreamLength()), sourceResult.getContentStreamFileName());
 			}
 
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
@@ -2254,7 +2264,7 @@ public class CmisObjectService {
 				} catch (Exception ex) {
 					documentMorphiaDAO.delete(result.getId(), null, true, false, null);
 					LOG.error("createDocumentFromSource file creation exception: {}, repositoryId: {}, TraceId: {}", ex,
-							repositoryId, span);
+							repositoryId, span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, ex), span),
@@ -2318,7 +2328,7 @@ public class CmisObjectService {
 			String itemName = (String) pd.getFirstValue();
 			if (null == itemName || itemName.length() == 0) {
 				LOG.error("createItemIntern unknown item name: {}, repositoryId: {}, TraceId: {}", itemName,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_ITEM), span),
@@ -2331,7 +2341,7 @@ public class CmisObjectService {
 			// check name syntax
 			if (!NameValidator.impl.isValidName(itemName)) {
 				LOG.error("createItemIntern error: {}, : {}, repositoryId: {}, TraceId: {} ",
-						NameValidator.ERROR_ILLEGAL_NAME, itemName, repositoryId, span);
+						NameValidator.ERROR_ILLEGAL_NAME, itemName, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.ERROR, NameValidator.ERROR_ILLEGAL_NAME), span),
@@ -2347,10 +2357,11 @@ public class CmisObjectService {
 			}
 
 			String typeId = getObjectTypeId(properties);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					tracingId, span);
 			if (typeDef == null) {
 				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}", "createItem", typeDef,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId, span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -2362,7 +2373,7 @@ public class CmisObjectService {
 				LOG.error(
 						"createItemIntern cannot create a folder with a non-folder type: {}, repositoryId: {}, TraceId: {}"
 								+ typeDef.getId(),
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService()
 						.updateSpan(span,
 								TracingErrorMessage.message(TracingWriter.log(String.format(
@@ -2421,7 +2432,7 @@ public class CmisObjectService {
 					typeId);
 			if (itemObject != null) {
 				LOG.error("createItemObject object id already present: {}, repositoryId: {}, TraceId: {}",
-						itemObject.getId(), repositoryId, span);
+						itemObject.getId(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ITEM_PRESENT), span),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
@@ -2503,10 +2514,10 @@ public class CmisObjectService {
 			if (secondaryObjectType != null) {
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
-			PropertyData<?> relationTypeProperty = properties.getProperties().get("RELATION_NAME");
+			PropertyData<?> relationTypeProperty = properties.getProperties().get(RELATION_NAME);
 			if (relationTypeProperty == null) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"cannot create a relationship without a relation_name.", repositoryId, span);
+						"cannot create a relationship without a relation_name.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP), span),
@@ -2518,7 +2529,7 @@ public class CmisObjectService {
 			String relationName = (String) relationTypeProperty.getFirstValue();
 			if (relationName == null || relationName.isEmpty()) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"cannot create a relationship without a relation_name.", repositoryId, span);
+						"cannot create a relationship without a relation_name.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP), span),
@@ -2531,7 +2542,7 @@ public class CmisObjectService {
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.SOURCE_ID);
 			if (pd == null) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"cannot create a relationship without a sourceId.", repositoryId, span);
+						"cannot create a relationship without a sourceId.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(
@@ -2545,7 +2556,7 @@ public class CmisObjectService {
 			String sourceId = (String) pd.getFirstValue();
 			if (null == sourceId || sourceId.length() == 0) {
 				LOG.error("Create relationship exception: {}, repositoryId: {},  TraceId: {}",
-						"cannot create a relationship without a sourceId.", repositoryId, span);
+						"cannot create a relationship without a sourceId.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(
@@ -2559,7 +2570,7 @@ public class CmisObjectService {
 			pd = properties.getProperties().get(PropertyIds.TARGET_ID);
 			if (pd == null) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"cannot create a relationship without a targetId.", repositoryId, span);
+						"cannot create a relationship without a targetId.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(
@@ -2572,7 +2583,7 @@ public class CmisObjectService {
 			String targetId = (String) pd.getFirstValue();
 			if (null == targetId || targetId.length() == 0) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"cannot create a relationship without a targetId.", repositoryId, span);
+						"cannot create a relationship without a targetId.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(
@@ -2588,7 +2599,7 @@ public class CmisObjectService {
 			String typeId = (String) properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID).getFirstValue();
 			if (!typeId.equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONSHIP.value())) {
 				LOG.error("Create relationship typeId must use cmis base type: {}, repositoryId: {}, TraceId: {}",
-						CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), repositoryId, span);
+						CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.TYPEID_MUST_USE_BASE_TYPE,
@@ -2599,13 +2610,14 @@ public class CmisObjectService {
 						ErrorMessages.TYPEID_MUST_USE_BASE_TYPE, CustomTypeId.CMIS_EXT_RELATIONSHIP.value()), span));
 
 			}
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					tracingId, span);
 
 			// check if the given type is a relationship type
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_RELATIONSHIP)) {
 				LOG.error("Create relationship exception: {}, {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship with a non-relationship type: ", typeDef.getId(), repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE),
@@ -2635,7 +2647,7 @@ public class CmisObjectService {
 					: null;
 			if (sourceTypeId == null) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"wrong sourceId,SourceObject should not be null", repositoryId, span);
+						"wrong sourceId,SourceObject should not be null", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.WRONG_SOURCEID), span),
@@ -2646,7 +2658,7 @@ public class CmisObjectService {
 			}
 			if (targetTypeId == null) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"wrong targetId,TargetObject should not be null", repositoryId, span);
+						"wrong targetId,TargetObject should not be null", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.WRONG_TARGETID), span),
@@ -2661,7 +2673,7 @@ public class CmisObjectService {
 			pd = propMap.get(PropertyIds.NAME);
 			if (pd == null) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
-						"cannot create a relationship without a Name.", repositoryId, span);
+						"cannot create a relationship without a Name.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP), span),
@@ -2717,7 +2729,7 @@ public class CmisObjectService {
 					parentData.getId().toString());
 			if (result.equals(null)) {
 				LOG.error("createRelationshipObject unknown relation object: {}, repositoryId: {}, TraceId: {}", result,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.IMPOSSIBLE_CREATE_FOLDER), span),
@@ -2730,7 +2742,7 @@ public class CmisObjectService {
 			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, result.getId(), null, typeId);
 			if (itemObject != null) {
 				LOG.error("Relationship object already present: {}, repositoryId: {}, TraceId: {}", itemObject.getId(),
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(typeId, ErrorMessages.TYPE_ID_PRESENT), span),
@@ -2764,7 +2776,7 @@ public class CmisObjectService {
 			String sourceTable = relationProps.get("source_table").toString();
 			if (sourceTable == null) {
 				LOG.error("SourceTable  not present in relationship object: {}, repositoryId: {}, TraceId: {}",
-						sourceTable, repositoryId, span);
+						sourceTable, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.SOURCETABLE_NOT_PRESENT), span),
@@ -2776,7 +2788,7 @@ public class CmisObjectService {
 			String targetTable = relationProps.get("target_table").toString();
 			if (targetTable == null) {
 				LOG.error("target table  not present in relationship object: {}, repositoryId: {}, TraceId: {}",
-						sourceTable, repositoryId, span);
+						sourceTable, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.TARGETTABLE_NOT_PRESENT), span),
@@ -2787,7 +2799,7 @@ public class CmisObjectService {
 			}
 			if (!sourceTable.equalsIgnoreCase(sourceTypeId)) {
 				LOG.error("Wrong source relationship document object: {}, repositoryId: {}, TraceId: {}", sourceTypeId,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.WRONG_RELATIONSHIP_OBJECT), span),
@@ -2798,7 +2810,7 @@ public class CmisObjectService {
 			}
 			if (!targetTable.equalsIgnoreCase(targetTypeId)) {
 				LOG.error("Wrong target relationship document object: {}, repositoryId: {}, TraceId: {}", targetTable,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.WRONG_RELATIONSHIP_OBJECT), span),
@@ -2889,7 +2901,7 @@ public class CmisObjectService {
 			String policyName = (String) pd.getFirstValue();
 			if (null == policyName || policyName.length() == 0) {
 				LOG.error("createPolicyIntern unknown policy name: {}, repositoryId: {}, TraceId: {}", policyName,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_CREATE_POLICY), span),
@@ -2900,7 +2912,7 @@ public class CmisObjectService {
 			}
 			if (!NameValidator.impl.isValidName(policyName)) {
 				LOG.error("createPolicyIntern error: {}, : {}, repositoryId: {}, TraceId: {}",
-						NameValidator.ERROR_ILLEGAL_NAME, policyName, repositoryId, span);
+						NameValidator.ERROR_ILLEGAL_NAME, policyName, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.ERROR, NameValidator.ERROR_ILLEGAL_NAME), span),
@@ -2916,10 +2928,11 @@ public class CmisObjectService {
 			}
 
 			String typeId = getObjectTypeId(properties);
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject);
+			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
+					tracingId, span);
 			if (typeDef == null) {
 				LOG.error("createPolicyIntern unknown typeId: {}, repositoryId: {}, TraceId: {}", typeDef, repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeId), span),
@@ -2932,7 +2945,7 @@ public class CmisObjectService {
 			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_POLICY)) {
 				LOG.error(
 						"createPolicyIntern cannot create a policy with a non-folder type: {}, repositoryId: {}, TraceId: {}",
-						typeDef.getId(), repositoryId, span);
+						typeDef.getId(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService()
 						.updateSpan(span,
 								TracingErrorMessage.message(TracingWriter.log(String.format(
@@ -2963,7 +2976,7 @@ public class CmisObjectService {
 			}
 			if (parent == null) {
 				LOG.error("createPolicyIntern parent is unknown:{}, repositoryId: {}, TraceId: {}", parent,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_PARENT), span),
@@ -3005,7 +3018,7 @@ public class CmisObjectService {
 					parentData.getId().toString(), typeId);
 			if (policyObject != null) {
 				LOG.error("createPolicyObject policy Object already present: {}, repositoryId: {}, TraceId: {}",
-						policyObject.getName(), repositoryId, span);
+						policyObject.getName(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.POLICY_PRESENT), span),
@@ -3060,7 +3073,7 @@ public class CmisObjectService {
 				} catch (Exception e) {
 					LOG.error(
 							"updating properties in bulk upadate failed for object: {}, {}, repositoryId: {}, TraceId: {}",
-							obj.getId(), e, repositoryId, span);
+							obj.getId(), e, repositoryId, span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
@@ -3093,7 +3106,7 @@ public class CmisObjectService {
 					userObject == null ? null : userObject.getUserDN(), null, ObjectFlowType.UPDATED);
 			if (properties == null) {
 				LOG.error("Method name: {}, no properties given for object id: {}, repositoryId: {}, TraceId: {}",
-						"updateProperties", id, repositoryId, span);
+						"updateProperties", id, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
 						TracingWriter.log(String.format(ErrorMessages.UPDATE_FAILED, objectId.getValue()), span),
 						ErrorMessages.RUNTIME_EXCEPTION, repositoryId, true));
@@ -3113,7 +3126,7 @@ public class CmisObjectService {
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("updateProperties unknown object: {}, repositoryId: {}, TraceId: {}", objectId, repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
@@ -3125,7 +3138,7 @@ public class CmisObjectService {
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(data.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
 				LOG.error("updateProperties failed: changeToken does not match: {}, repositoryId: {},  TraceId: {}",
-						changeToken, repositoryId, span);
+						changeToken, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CHANGETOKEN_DOESNT_MATCH), span),
@@ -3137,7 +3150,7 @@ public class CmisObjectService {
 
 			// only for updating name
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null,
-					userObject);
+					userObject, tracingId, span);
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
@@ -3150,7 +3163,7 @@ public class CmisObjectService {
 						localService.rename(data.getPath(), gettingPath(data.getPath(), customData.getFirstValue()));
 					} catch (Exception e) {
 						LOG.error("updateProperties folder rename exception: {}, repositoryId: {}, TraceId: {}", e,
-								repositoryId, span);
+								repositoryId, span != null ? span.getTraceId() : null);
 						TracingApiServiceFactory.getApiService().updateSpan(span,
 								TracingErrorMessage.message(
 										TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
@@ -3385,8 +3398,13 @@ public class CmisObjectService {
 					} else {
 						Contentlength = BigInteger.valueOf(docDetails.getContentStreamLength());
 					}
+					String fileName = docDetails.getProperties() != null
+							? (String) docDetails.getProperties().get(PropertyIds.CONTENT_STREAM_FILE_NAME) != null
+									? (String) docDetails.getProperties().get(PropertyIds.CONTENT_STREAM_FILE_NAME)
+									: docDetails.getContentStreamFileName()
+							: docDetails.getContentStreamFileName();
 					contentStream = localService.getContent(docDetails.getContentStreamFileName(), docDetails.getPath(),
-							docDetails.getContentStreamMimeType(), Contentlength, null);
+							docDetails.getContentStreamMimeType(), Contentlength, fileName);
 					LOG.info("ContentStream: {}", contentStream);
 				}
 
@@ -3398,7 +3416,7 @@ public class CmisObjectService {
 				return contentStream;
 			} catch (Exception e) {
 				LOG.error("getContentStream this file does not exist: {}, repositoryId: {}, TraceId: {}", objectId,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				MetricsInputs.markDownloadErrorMeter();
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
@@ -3431,7 +3449,7 @@ public class CmisObjectService {
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(object.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
 				LOG.error("set content failed changeToken does not match: {}, repositoryId: {}, TraceId: {}",
-						changeToken, repositoryId, span);
+						changeToken, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.SET_CONTENT_FAILED), span),
@@ -3537,7 +3555,7 @@ public class CmisObjectService {
 			if (changeToken != null && changeToken.getValue() != null
 					&& Long.valueOf(docDetails.getChangeToken().getTime()) > Long.valueOf(changeToken.getValue())) {
 				LOG.error("delete content failed: changeToken does not match in repositoryId: {}, TraceId: {}",
-						changeToken, repositoryId, span);
+						changeToken, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.DELETE_CONTENT_FAILED), span),
@@ -3593,7 +3611,7 @@ public class CmisObjectService {
 						MNavigationServiceDAO.class);
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			} catch (MongoException e) {
-				LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId, span);
+				LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span),
@@ -3604,7 +3622,7 @@ public class CmisObjectService {
 			}
 			if (data == null) {
 				LOG.error("deleteObject Object id: {}, null in : {} repository!, TraceId: {}", objectId, repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -3614,7 +3632,7 @@ public class CmisObjectService {
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				LOG.error("deleteObject failed: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.",
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.DELETE_OBJECT_FAILED), span),
@@ -3642,7 +3660,7 @@ public class CmisObjectService {
 					"CmisObjectService::deleteObjectChildrens", null);
 			if (data == null) {
 				LOG.error("deleteObjectChildrens object not found! in repositoryId: {}, TraceId: {}", repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span),
@@ -3765,7 +3783,7 @@ public class CmisObjectService {
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("deleteTree object not found: {}, repositoryId: {}, TraceId: {}", folderId, repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span),
@@ -3778,7 +3796,7 @@ public class CmisObjectService {
 			FailedToDeleteDataImpl result = new FailedToDeleteDataImpl();
 			if (data == null) {
 				LOG.error("deleteTree cannot delete object with id: {}, {}, repositoryId: {}, TraceId: {}", folderId,
-						"Object does not exist.", repositoryId, span);
+						"Object does not exist.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_DELETE, folderId), span),
@@ -3791,7 +3809,7 @@ public class CmisObjectService {
 			if (!(data.getBaseId() == BaseTypeId.CMIS_FOLDER)) {
 				LOG.error(
 						"deleteTree can only be invoked on a folder but id: {}  does not refer to a folder, repositoryId: {}, TraceId: {}",
-						folderId, repositoryId, span);
+						folderId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.CANNOT_BE_INVOKED), span),
@@ -3803,7 +3821,7 @@ public class CmisObjectService {
 
 			if (unfileObjects == UnfileObject.UNFILE) {
 				LOG.error("deleteTree: {}, repositoryId: {}, TraceId: {}",
-						" This repository does not support unfile operations.", repositoryId, span);
+						" This repository does not support unfile operations.", repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.DOESNT_SUPPORT), span),
@@ -3816,7 +3834,7 @@ public class CmisObjectService {
 			// check if it is the root folder
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				LOG.error("deleteTree: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.", repositoryId,
-						span);
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.DELETE_OBJECT_FAILED), span),
@@ -3885,7 +3903,7 @@ public class CmisObjectService {
 				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("moveObject object not found:{}, repositoryId: {}, TraceId: {}", objectId.getValue(),
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span),
@@ -3896,7 +3914,7 @@ public class CmisObjectService {
 			}
 			if (data == null) {
 				LOG.error("moveObject unknown object: {}, repositoryId: {}, TraceId: {}", objectId.getValue(),
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId.getValue()), span),
 						ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -3907,7 +3925,7 @@ public class CmisObjectService {
 			}
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				LOG.error("moveObject rootFolder: {}, have no move operation: {}, repositoryId: {}, TraceId: {}",
-						data.getId(), objectId.getValue(), repositoryId, span);
+						data.getId(), objectId.getValue(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.NO_MOVE_OPERATION), span),
@@ -3919,7 +3937,7 @@ public class CmisObjectService {
 			IBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, targetFolderId, null, data.getTypeId());
 			if (null == soTarget) {
 				LOG.error("moveObject unknown target folder: {}, repositoryId: {}, TraceId: {}", targetFolderId,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TARGET_FOLDER), span),
@@ -3930,7 +3948,7 @@ public class CmisObjectService {
 			} else if (soTarget.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 			} else {
 				LOG.error("moveObject destination move operation must be a folder: {}, repositoryId: {}, TraceId: {}",
-						targetFolderId, repositoryId, span);
+						targetFolderId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.DESTINATION_MUST_BE_FOLDER), span),
@@ -3944,7 +3962,7 @@ public class CmisObjectService {
 			IBaseObject soSource = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceFolderId, null, data.getTypeId());
 			if (null == soSource) {
 				LOG.error("moveObject unknown source folder: {}, repositoryId: {}, TraceId: {}", sourceFolderId,
-						repositoryId, span);
+						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_SOURCE_FOLDER), span),
@@ -3954,7 +3972,7 @@ public class CmisObjectService {
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_SOURCE_FOLDER), span));
 			} else if (soSource.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 			} else {
-				LOG.error("moveObject source move operation must be a folder:{}, TraceId: {}", sourceFolderId, span);
+				LOG.error("moveObject source move operation must be a folder:{}, TraceId: {}", sourceFolderId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.MOVE_MUST_BE_FOLDER), span),
@@ -3971,7 +3989,7 @@ public class CmisObjectService {
 					if (!checkParent) {
 						LOG.error(
 								"moveObject destination is not a parent folder for this document: {}, repositoryId: {}, TraceId: {}",
-								targetFolderId, repositoryId, span);
+								targetFolderId, repositoryId, span != null ? span.getTraceId() : null);
 						TracingApiServiceFactory.getApiService().updateSpan(span,
 								TracingErrorMessage.message(TracingWriter
 										.log(String.format(ErrorMessages.DESTINATION_NOT_A_PARENT_FOLDER), span),
@@ -3993,7 +4011,7 @@ public class CmisObjectService {
 						}
 
 					} catch (Exception ex) {
-						LOG.error("Move Object failed: {}, repositoryId: {}, TraceId: {}", ex, repositoryId, span);
+						LOG.error("Move Object failed: {}, repositoryId: {}, TraceId: {}", ex, repositoryId, span != null ? span.getTraceId() : null);
 						TracingApiServiceFactory.getApiService().updateSpan(span,
 								TracingErrorMessage.message(
 										TracingWriter.log(String.format(ErrorMessages.MOVE_OBJECT_FAILED), span),
@@ -4008,7 +4026,7 @@ public class CmisObjectService {
 						LOG.info("Folder: {}, moved from source: {}, to target location: {}, repositoryId: {}",
 								soTarget.getId().toString(), data.getPath(), soTarget.getPath(), repositoryId);
 					} catch (Exception ex) {
-						LOG.error("Move Object Failed: {}, repositoryId: {}, TraceId: {}", ex, repositoryId, span);
+						LOG.error("Move Object Failed: {}, repositoryId: {}, TraceId: {}", ex, repositoryId, span != null ? span.getTraceId() : null);
 						TracingApiServiceFactory.getApiService().updateSpan(span,
 								TracingErrorMessage.message(
 										TracingWriter.log(String.format(ErrorMessages.EXCEPTION, ex), span),
@@ -4188,7 +4206,7 @@ public class CmisObjectService {
 
 			if (properties == null || properties.getProperties() == null) {
 				LOG.error("Method name: {}, unknown properties: {}, repositoryId: {}, TraceId: {}",
-						"compileWriteProperties", properties, repositoryId, span);
+						"compileWriteProperties", properties, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.NO_PROPERTIES), span),
 								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
@@ -4198,7 +4216,7 @@ public class CmisObjectService {
 
 			if (type == null) {
 				LOG.error("Method name: {}, unknown typeId: {}, repositoryId: {}, TraceId: {}",
-						"compileWriteProperties", type, repositoryId, span);
+						"compileWriteProperties", type, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, type), span),
@@ -4243,7 +4261,7 @@ public class CmisObjectService {
 				}
 				if (propTypes == null) {
 					LOG.error("Method name: {}, unknown propertiesTypes: {}, repositoryId: {}, TraceId: {}",
-							"compileWriteProperties", prop.getId(), repositoryId, span);
+							"compileWriteProperties", prop.getId(), repositoryId, span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_PROPERTY), span),
@@ -4584,7 +4602,7 @@ public class CmisObjectService {
 					if (secondaryObjectTypeIds != null) {
 						for (String typeId : secondaryObjectTypeIds) {
 							TypeDefinition types = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null,
-									userObject);
+									userObject, null, null);
 							Map<String, PropertyDefinition<?>> secondaryProperty = types.getPropertyDefinitions();
 							for (PropertyDefinition pros : secondaryProperty.values()) {
 								if (pros.getId().equals(id)) {
@@ -4637,7 +4655,7 @@ public class CmisObjectService {
 			// boolean cmis11 = callContext.getCmisVersion() !=
 			// CmisVersion.CMIS_1_0;
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, so.getTypeId(), null,
-					userobject);
+					userobject, null, null);
 
 			// Fill all setters:
 			objInfo.setId(so.getId().toString());

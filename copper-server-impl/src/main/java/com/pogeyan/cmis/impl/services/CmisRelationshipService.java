@@ -61,7 +61,7 @@ public class CmisRelationshipService {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
-						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span);
+						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
@@ -73,7 +73,7 @@ public class CmisRelationshipService {
 
 			if (so == null) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}, traceId: {}",
-						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span);
+						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),

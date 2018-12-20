@@ -215,7 +215,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (returnVersion == ReturnVersion.LATEST || returnVersion == ReturnVersion.LASTESTMAJOR) {
 			object = CmisVersioningServices.Impl.getObjectOfLatestVersion(t.getRepositoryId(), objectId, null,
 					returnVersion == ReturnVersion.LASTESTMAJOR, filter, includeAllowableActions, null,
-					includePolicyIds, includeAcl, null, null, t.getUserObject());
+					includePolicyIds, includeAcl, null, null, t.getUserObject(), tracingId, span);
 		} else {
 			object = CmisObjectService.Impl.getObject(t.getRepositoryId(), objectId, filter, includeAllowableActions,
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null, t.getUserObject(),

@@ -72,7 +72,7 @@ public class CmisAclServices {
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, data, null, true, true,
-					false, objectInfos, null, null, userObject);
+					false, objectInfos, null, null, userObject, tracingId, span);
 
 			LOG.debug("get acl result data: {}", objectData != null ? objectData.getAcl() : null);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);

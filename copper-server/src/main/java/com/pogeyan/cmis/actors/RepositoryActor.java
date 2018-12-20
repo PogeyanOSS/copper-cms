@@ -184,7 +184,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserObject(),
 								tracingId, span);
 						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
-								request.getUserName(), request.getTypeId());
+								request.getUserName(), request.getTypeId(), tracingId, span);
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
 								CmisVersion.CMIS_1_1, rootId,
 								repository.getDescription() == null ? "" : repository.getDescription()));
@@ -353,7 +353,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span);
+			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null ? span.getTraceId() : null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
@@ -419,7 +419,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span);
+			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null ? span.getTraceId() : null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
