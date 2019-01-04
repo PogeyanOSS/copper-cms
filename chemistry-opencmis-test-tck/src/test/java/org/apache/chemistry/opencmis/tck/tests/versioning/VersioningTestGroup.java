@@ -26,17 +26,21 @@ import org.apache.chemistry.opencmis.tck.impl.AbstractSessionTestGroup;
  * This test group contains versioning tests.
  */
 public class VersioningTestGroup extends AbstractSessionTestGroup {
-    @Override
-    public void init(Map<String, String> parameters) throws Exception {
-        super.init(parameters);
+	@Override
+	public void init(Map<String, String> parameters) throws Exception {
+		super.init(parameters);
 
-        setName("Versioning Test Group");
-        setDescription("Versioning tests.");
+		setName("Versioning Test Group");
+		setDescription("Versioning tests.");
 
-        addTest(new VersioningSmokeTest());
-        addTest(new VersionDeleteTest());
-        addTest(new VersioningStateCreateTest());
-        addTest(new CheckedOutTest());
-        addTest(new LatestAccessibleStateIdTest());
-    }
+		addTest(new VersioningSmokeTest());
+		addTest(new VersionDeleteTest());
+		addTest(new VersioningStateCreateTest());
+		addTest(new CheckedOutTest());
+		addTest(new LatestAccessibleStateIdTest());
+		addTest(new VerDeleteForCustomTypeTest());
+		addTest(new VerSmokeForCustomTypeTest());
+		addTest(new VerStateCreateForCustomTypeTest());
+		addTest(new VerSmokeForCustomTypeTestWithoutContentStream());
+	}
 }
