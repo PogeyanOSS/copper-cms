@@ -42,5 +42,6 @@ public class VersioningTestGroup extends AbstractSessionTestGroup {
 		addTest(new VerSmokeForCustomTypeTest());
 		addTest(new VerStateCreateForCustomTypeTest());
 		addTest(new VerSmokeForCustomTypeTestWithoutContentStream());
+		addTest(new CustomSecondaryTypeIdWithVersioningTest());
 	}
 }
