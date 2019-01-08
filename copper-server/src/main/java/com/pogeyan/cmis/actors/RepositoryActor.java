@@ -47,7 +47,6 @@ import org.apache.chemistry.opencmis.commons.enums.DateTimeFormat;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AclCapabilitiesDataImpl;
@@ -353,7 +352,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null ? span.getTraceId() : null);
+			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
+					? span.getTraceId()
+					: null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
@@ -364,11 +365,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							TracingWriter.log(
-									String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span),
+									String.format(ErrorMessages.INVALID_TYPE_DEFINITION, request.getUserName()), span),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisInvalidArgumentException(TracingWriter
-					.log(String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span));
+					.log(String.format(ErrorMessages.INVALID_TYPE_DEFINITION, request.getUserName()), span));
 		}
 
 		@SuppressWarnings("unchecked")
@@ -419,7 +420,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		try {
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
-			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null ? span.getTraceId() : null);
+			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
+					? span.getTraceId()
+					: null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
@@ -430,11 +433,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							TracingWriter.log(
-									String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span),
+									String.format(ErrorMessages.INVALID_TYPE_DEFINITION, request.getUserName()), span),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisInvalidArgumentException(TracingWriter
-					.log(String.format(request.getUserName(), ErrorMessages.INVALID_TYPE_DEFINITION), span));
+					.log(String.format(ErrorMessages.INVALID_TYPE_DEFINITION, request.getUserName()), span));
 		}
 
 		@SuppressWarnings("unchecked")
