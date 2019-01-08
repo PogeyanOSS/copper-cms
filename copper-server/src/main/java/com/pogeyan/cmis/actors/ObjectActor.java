@@ -18,6 +18,7 @@ package com.pogeyan.cmis.actors;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -58,18 +59,24 @@ import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.auth.IUserGroupObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostFileResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
+import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisObjectService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 import com.pogeyan.cmis.impl.services.CmisVersioningServices;
 import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
 import com.pogeyan.cmis.impl.utils.CmisUtils;
 import com.pogeyan.cmis.impl.utils.DBUtils;
+import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(ObjectActor.class);
@@ -82,71 +89,100 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 
 	public ObjectActor() {
 
-		this.registerMessageHandle("object".toLowerCase(), QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getObject((QueryGetRequest) t))));
+		this.registerMessageHandle("object".toLowerCase(), QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.getObject((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("properties".toLowerCase(), QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getProperties((QueryGetRequest) t))));
+		this.registerMessageHandle("properties".toLowerCase(), QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.getProperties((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("allowableActions", QueryGetRequest.class, (t, b) -> CompletableFuture.supplyAsync(
-				() -> CmisBaseResponse.fromWithTryCatch(() -> this.getAllowableActions((QueryGetRequest) t))));
+		this.registerMessageHandle("allowableActions", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.getAllowableActions((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("renditions", QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getRenditions((QueryGetRequest) t))));
+		this.registerMessageHandle("renditions", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.getRenditions((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("createFolder", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.createFolders((PostRequest) t))));
+		this.registerMessageHandle("createFolder", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.createFolders((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("createDocument", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.createDocument((PostRequest) t))));
+		this.registerMessageHandle("createDocument", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.createDocument((PostRequest) t, (HashMap<String, Object>) b))));
 
 		this.registerMessageHandle("createDocumentFromSource", PostRequest.class,
-				(t, b) -> CompletableFuture.supplyAsync(
-						() -> CmisBaseResponse.fromWithTryCatch(() -> this.createDocumentFromSource((PostRequest) t))));
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.createDocumentFromSource((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("createItem", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.createItem((PostRequest) t))));
+		this.registerMessageHandle("createItem", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.createItem((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("createPolicy", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.createPolicy((PostRequest) t))));
+		this.registerMessageHandle("createPolicy", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.createPolicy((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("createRelationship", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.createRelationship((PostRequest) t))));
+		this.registerMessageHandle("createRelationship", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
+						() -> this.createRelationship((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("bulkUpdate", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.bulkUpdate((PostRequest) t))));
+		this.registerMessageHandle("bulkUpdate", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.bulkUpdate((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("update", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.update((PostRequest) t))));
+		this.registerMessageHandle("update", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.update((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("content", QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getContent((QueryGetRequest) t))));
+		this.registerMessageHandle("content", QueryGetRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.getContent((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("setContent", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.setContent((PostRequest) t))));
+		this.registerMessageHandle("setContent", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.setContent((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("appendContent", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.appendContent((PostRequest) t))));
+		this.registerMessageHandle("appendContent", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.appendContent((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("deleteContent", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.deleteContent((PostRequest) t))));
+		this.registerMessageHandle("deleteContent", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.deleteContent((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("delete", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> ObjectActor.delete((PostRequest) t))));
+		this.registerMessageHandle("delete", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> ObjectActor.delete((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("deleteTree", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> ObjectActor.deleteTree((PostRequest) t))));
+		this.registerMessageHandle("deleteTree", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> ObjectActor.deleteTree((PostRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("move", PostRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> ObjectActor.moveObject((PostRequest) t))));
+		this.registerMessageHandle("move", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> ObjectActor.moveObject((PostRequest) t, (HashMap<String, Object>) b))));
 
 	}
 
-	private JSONObject getObject(QueryGetRequest t) throws CmisInvalidArgumentException, IllegalArgumentException,
-			CmisRuntimeException, CmisObjectNotFoundException {
+	private JSONObject getObject(QueryGetRequest t, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, IllegalArgumentException, CmisRuntimeException,
+			CmisObjectNotFoundException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "ObjectActor::getObject",
+				null);
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span));
 		}
 		String objectId = t.getObjectId();
 		String typeId = t.getParameter("typeId");
@@ -154,8 +190,13 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null, typeId);
 		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
 		if (data != null && !data.getName().equals(ROOT) && acessPermission == false) {
-			throw new CmisInvalidArgumentException(
-					"{} does not have valid acces control permission to access this object", t.getUserName());
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.ACCESS_DENIED, t.getUserName()), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(
+					TracingWriter.log(String.format(ErrorMessages.ACCESS_DENIED, t.getUserName()), span));
 		}
 
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
@@ -174,23 +215,33 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (returnVersion == ReturnVersion.LATEST || returnVersion == ReturnVersion.LASTESTMAJOR) {
 			object = CmisVersioningServices.Impl.getObjectOfLatestVersion(t.getRepositoryId(), objectId, null,
 					returnVersion == ReturnVersion.LASTESTMAJOR, filter, includeAllowableActions, null,
-					includePolicyIds, includeAcl, null, null, t.getUserObject());
+					includePolicyIds, includeAcl, null, null, t.getUserObject(), tracingId, span);
 		} else {
 			object = CmisObjectService.Impl.getObject(t.getRepositoryId(), objectId, filter, includeAllowableActions,
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null, t.getUserObject(),
-					t.getBaseTypeId(), typeId);
+					t.getBaseTypeId(), typeId, tracingId, span);
 		}
 		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(t.getRepositoryId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
-
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
 	}
 
-	private JSONObject getProperties(QueryGetRequest t)
+	private JSONObject getProperties(QueryGetRequest t, HashMap<String, Object> baggage)
 			throws CmisInvalidArgumentException, IllegalArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::getProperties", null);
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span));
 		}
 		String objectId = t.getObjectId();
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
@@ -205,36 +256,66 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		} else {
 			ObjectData object = CmisObjectService.Impl.getObject(t.getRepositoryId(), objectId, filter, true,
 					IncludeRelationships.NONE, "cmis:none", false, false, null, t.getUserObject(), t.getBaseTypeId(),
-					t.getTypeId());
+					t.getTypeId(), tracingId, span);
 			Properties properties = object.getProperties();
 			if (properties == null) {
-				throw new CmisRuntimeException("Properties are null!");
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span));
 			}
 			JSONObject result = JSONConverter.convert(properties, objectId.toString(),
 					CmisTypeCacheService.get(t.getRepositoryId()), JSONConverter.PropertyMode.CHANGE, succinct,
 					dateTimeFormat);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
 
 	}
 
-	private JSONObject getAllowableActions(QueryGetRequest t) throws CmisRuntimeException {
+	private JSONObject getAllowableActions(QueryGetRequest t, HashMap<String, Object> baggage)
+			throws CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::getAllowableActions", null);
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span));
 		}
 		LOG.info("Method name: {}, getting allowable actions using this id: {}, repositoryId: {}",
 				"getAllowableActions", t.getObjectId(), t.getRepositoryId());
 		AllowableActions allowableActions = CmisObjectService.Impl.getAllowableActions(t.getRepositoryId(), null,
-				t.getObjectId(), t.getUserObject().getUserDN(), t.getTypeId());
+				t.getObjectId(), t.getUserObject().getUserDN(), t.getTypeId(), tracingId, span);
 		JSONObject resultAllowableActions = JSONConverter.convert(allowableActions);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return resultAllowableActions;
 	}
 
-	private JSONArray getRenditions(QueryGetRequest t) throws CmisInvalidArgumentException, CmisRuntimeException {
+	private JSONArray getRenditions(QueryGetRequest t, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::getRenditions", null);
 		String permission = t.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(t.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, t.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, t.getUserName()), span));
 		}
 		String objectId = t.getObjectId();
 		String renditionFilter = t.getParameter(QueryGetRequest.PARAM_RENDITION_FILTER);
@@ -243,25 +324,37 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting renditions using this id: {}, repositoryId: {}", "getRenditions", objectId,
 				t.getRepositoryId());
 		List<RenditionData> renditions = CmisObjectService.Impl.getRenditions(t.getRepositoryId(), null, objectId,
-				renditionFilter, maxItems, skipCount, null, t.getTypeId());
+				renditionFilter, maxItems, skipCount, null, t.getTypeId(), tracingId, span);
 		JSONArray resultRenditions = new JSONArray();
 		if (renditions != null) {
 			for (RenditionData rendition : renditions) {
 				resultRenditions.add(JSONConverter.convert(rendition));
 			}
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return resultRenditions;
 
 	}
 
-	private JSONObject createFolders(PostRequest request) throws CmisObjectNotFoundException, IllegalArgumentException,
-			CmisInvalidArgumentException, CmisRuntimeException {
+	private JSONObject createFolders(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisObjectNotFoundException, IllegalArgumentException, CmisInvalidArgumentException,
+			CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::createFolders", null);
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
 		IUserGroupObject[] groupsId = request.getUserObject().getGroups();
 		if (!Helpers.getGroupPermission(permission, groupsId)) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -271,13 +364,17 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, creating folder using this id: {} , repository: {}", "createFolder", folderId,
 				request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createFolder(request.getRepositoryId(), folderId, prop,
-				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject());
+				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_FOLDER, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("New folder is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		if (LOG.isDebugEnabled()) {
@@ -285,17 +382,29 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
 
-	private JSONObject createDocument(PostRequest request) throws CmisInvalidArgumentException, CmisConstraintException,
-			IllegalArgumentException, CmisRuntimeException {
+	private JSONObject createDocument(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, CmisConstraintException, IllegalArgumentException,
+			CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::createDocument", null);
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
 		IUserGroupObject[] groupsId = request.getUserObject().getGroups();
 		if (!Helpers.getGroupPermission(permission, groupsId)) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
@@ -312,11 +421,12 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				folderId, request.getRepositoryId());
 		if (request.getContentStream() == null) {
 			newObjectId = CmisObjectService.Impl.createDocument(request.getRepositoryId(), prop, folderId, null,
-					versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject());
+					versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(),
+					tracingId, span);
 		} else {
 			newObjectId = CmisObjectService.Impl.createDocument(request.getRepositoryId(), prop, folderId,
 					request.getContentStream(), versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(),
-					request.getUserObject());
+					request.getUserObject(), tracingId, span);
 		}
 		LOG.info("Method name:{}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
@@ -324,23 +434,39 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			MetricsInputs.markUploadErrorMeter();
-			throw new CmisRuntimeException("New document is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
 
-	private JSONObject createDocumentFromSource(PostRequest request) throws CmisInvalidArgumentException,
-			CmisConstraintException, CmisObjectNotFoundException, CmisRuntimeException {
+	private JSONObject createDocumentFromSource(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, CmisConstraintException, CmisObjectNotFoundException,
+			CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::createDocumentFromSource", null);
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
 		IUserGroupObject[] groups = request.getUserObject().getGroups();
 		if (!Helpers.getGroupPermission(permission, groups)) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		VersioningState versioningState = request.getEnumParameter(QueryGetRequest.PARAM_VERSIONIG_STATE,
@@ -356,7 +482,11 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		PropertyData<?> sourceTypeId = sourceDoc.getProperties().getProperties().get(PropertyIds.OBJECT_TYPE_ID);
 		if (sourceTypeId == null || sourceTypeId.getFirstValue() == null) {
-			throw new CmisRuntimeException("Source object has no type!?!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.SOURCE_NO_TYPE), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.SOURCE_NO_TYPE), span));
 		}
 		Properties prop = CmisPropertyConverter.Impl.createNewProperties(request.getPropertyData(),
 				request.getRepositoryId(), request.getUserObject());
@@ -364,30 +494,46 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"createDocumentFromSource", folderId, request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createDocumentFromSource(request.getRepositoryId(), sourceId, prop,
 				folderId, versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(),
-				request.getUserObject());
+				request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("New document is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.CHANGE, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
 
-	private JSONObject createItem(PostRequest request) throws CmisInvalidArgumentException, CmisObjectNotFoundException,
-			IllegalArgumentException, CmisRuntimeException {
+	private JSONObject createItem(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException,
+			CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::createItem", null);
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
 		String typeId = request.getParameter("typeId");
 		IUserGroupObject[] groups = request.getUserObject().getGroups();
 		if (!Helpers.getGroupPermission(permission, groups)) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
@@ -399,28 +545,44 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, creating item under this folder: {}, repository: {}", "createItem", folderId,
 				request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createItem(request.getRepositoryId(), prop, folderId,
-				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject());
+				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_ITEM, typeId);
 		if (object == null) {
-			throw new CmisRuntimeException("New folder is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.CHANGE, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
 
-	private JSONObject createPolicy(PostRequest request) throws CmisInvalidArgumentException,
-			CmisObjectNotFoundException, IllegalArgumentException, CmisRuntimeException {
+	private JSONObject createPolicy(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException,
+			CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::createPolicy", null);
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
 		IUserGroupObject[] groups = request.getUserObject().getGroups();
 		if (!Helpers.getGroupPermission(permission, groups)) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -431,28 +593,44 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, creating policy under this folder: {}, repository: {}", "createPolicy", folderId,
 				request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createPolicy(request.getRepositoryId(), prop, folderId,
-				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject());
+				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_POLICY, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("New folder is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.CHANGE, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
 
-	private JSONObject createRelationship(PostRequest request) throws CmisInvalidArgumentException,
-			CmisObjectNotFoundException, IllegalArgumentException, CmisRuntimeException {
+	private JSONObject createRelationship(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException,
+			CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::createRelationship", null);
 		String permission = request.getUserObject().getPermission();
 		String principalId = request.getUserObject().getUserDN();
 		IUserGroupObject[] groups = request.getUserObject().getGroups();
 		if (!Helpers.getGroupPermission(permission, groups)) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -463,33 +641,53 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, creating realtionship under this folder: {}, repository: {}", "createRelationship",
 				folderId, request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createRelationship(request.getRepositoryId(), folderId, prop,
-				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject());
+				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_RELATIONSHIP, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("New folder is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.CHANGE, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
 
-	private JSONArray bulkUpdate(PostRequest request) throws CmisInvalidArgumentException, CmisRuntimeException {
+	private JSONArray bulkUpdate(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisInvalidArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::bulkUpdate", null);
 		// get object ids and change tokens
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken = new ArrayList<BulkUpdateObjectIdAndChangeToken>();
 		List<String> objectIds = request.getObjectIds();
 		List<String> changeTokens = request.getChangeTokens();
 
 		if (CmisPropertyConverter.Impl.isNullOrEmpty(objectIds)) {
-			throw new CmisInvalidArgumentException("No object ids provided!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.NO_OBJECT_ID), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.NO_OBJECT_ID), span));
 		}
 
 		int n = objectIds.size();
@@ -513,7 +711,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"bulkUpdateProperties", objectIdAndChangeToken, request.getRepositoryId());
 		List<BulkUpdateObjectIdAndChangeToken> result = CmisObjectService.Impl.bulkUpdateProperties(
 				request.getRepositoryId(), objectIdAndChangeToken, properties, addSecondaryTypes, removeSecondaryTypes,
-				null, request.getUserObject(), request.getTypeId());
+				null, request.getUserObject(), request.getTypeId(), tracingId, span);
 
 		// return result
 		JSONArray jsonList = new JSONArray();
@@ -524,16 +722,27 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				}
 			}
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonList;
 
 	}
 
 	@SuppressWarnings("unused")
-	private JSONObject update(PostRequest request) throws CmisRuntimeException, CmisObjectNotFoundException,
-			CmisRuntimeException, CmisUpdateConflictException {
+	private JSONObject update(PostRequest request, HashMap<String, Object> baggage) throws CmisRuntimeException,
+			CmisObjectNotFoundException, CmisRuntimeException, CmisUpdateConflictException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "ObjectActor::update",
+				null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId, null,
@@ -554,27 +763,42 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, update the object properties using this id: {}, repositoryId: {}",
 				"updateProperties", objectIdHolder, request.getRepositoryId());
 		CmisObjectService.Impl.updateProperties(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-				properties, null, null, request.getUserObject(), request.getTypeId());
+				properties, null, null, request.getUserObject(), request.getTypeId(), tracingId, span);
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), request.getBaseTypeId(), request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("Object is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.CHANGE, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 	}
 
-	private PostFileResponse getContent(QueryGetRequest request)
+	private PostFileResponse getContent(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws CmisObjectNotFoundException, CmisInvalidArgumentException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::getContent", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String streamId = request.getParameter(QueryGetRequest.PARAM_STREAM_ID);
@@ -596,7 +820,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting content stream using this id: {}, repositoryId: {}, offset: {}, length: {}",
 				"getContentStream", objectId, request.getRepositoryId(), offset, length);
 		ContentStream content = CmisObjectService.Impl.getContentStream(request.getRepositoryId(), objectId, streamId,
-				offset, length);
+				offset, length, tracingId, span);
 		PostFileResponse fileResponse = new PostFileResponse();
 		fileResponse.setDownload(download);
 		fileResponse.setOffset(offset);
@@ -604,6 +828,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (Helpers.isPerfMode()) {
 			MetricsInputs.get().getCounter("Count_Downloads_" + request.getObjectId()).inc();
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return fileResponse;
 		/*
 		 * if (content == null || content.getStream() == null) { throw new
@@ -626,10 +851,20 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 
 	}
 
-	private JSONObject setContent(PostRequest request) throws CmisRuntimeException {
+	private JSONObject setContent(PostRequest request, HashMap<String, Object> baggage) throws CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::setContent", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String changeToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_TOKEN);
@@ -642,10 +877,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Holder<String> changeTokenHolder = (changeToken == null ? null : new Holder<String>(changeToken));
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, null);
+					changeTokenHolder, null, tracingId, span);
 		} else {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, request.getContentStream());
+					changeTokenHolder, request.getContentStream(), tracingId, span);
 		}
 
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
@@ -655,19 +890,34 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			MetricsInputs.markUploadErrorMeter();
-			throw new CmisRuntimeException("Object is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.CHANGE, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 	}
 
-	private JSONObject appendContent(PostRequest request) throws CmisRuntimeException {
+	private JSONObject appendContent(PostRequest request, HashMap<String, Object> baggage) throws CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::appendContent", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String changeToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_TOKEN);
@@ -680,10 +930,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"appendContentStream", objectId, request.getRepositoryId(), isLastChunk);
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					null, isLastChunk);
+					null, isLastChunk, tracingId, span);
 		} else {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					request.getContentStream(), isLastChunk);
+					request.getContentStream(), isLastChunk, tracingId, span);
 		}
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
@@ -691,20 +941,36 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("Object is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.CHANGE, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 
 	}
 
-	private JSONObject deleteContent(PostRequest request) throws CmisStorageException, CmisRuntimeException {
+	private JSONObject deleteContent(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisStorageException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::deleteContent", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String changeToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_TOKEN);
@@ -716,44 +982,72 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Holder<String> changeTokenHolder = (changeToken == null ? null : new Holder<String>(changeToken));
 		LOG.info("Method name: {}, deleting content stream for this id: {}, repositoryId: {}", "deleteContentStream",
 				objectId, request.getRepositoryId());
-		CmisObjectService.Impl.deleteContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder);
+		CmisObjectService.Impl.deleteContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
+				tracingId, span);
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
-			throw new CmisRuntimeException("Object is null!");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 		}
 
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
 				dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
 	}
 
-	private static JSONObject delete(PostRequest request)
+	private static JSONObject delete(PostRequest request, HashMap<String, Object> baggage)
 			throws CmisObjectNotFoundException, CmisNotSupportedException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "ObjectActor::delete",
+				null);
 		String permission = request.getUserObject().getPermission();
 		String typeId = request.getParameter("typeId");
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		Boolean allVersions = request.getBooleanParameter(QueryGetRequest.PARAM_ALL_VERSIONS);
 		LOG.info("Method name: {}, delete the  object for this id: {}, repositoryId: {}, allVersions: {}",
 				"deleteObject", objectId, request.getRepositoryId(), allVersions);
 		CmisObjectService.Impl.deleteObject(request.getRepositoryId(), objectId, allVersions, request.getUserObject(),
-				typeId);
+				typeId, tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return null;
 
 	}
 
-	private static JSONObject deleteTree(PostRequest request) throws CmisObjectNotFoundException,
-			CmisInvalidArgumentException, CmisNotSupportedException, CmisStorageException, CmisRuntimeException {
+	private static JSONObject deleteTree(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisObjectNotFoundException, CmisInvalidArgumentException, CmisNotSupportedException,
+			CmisStorageException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::deleteTree", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		Boolean allVersions = request.getBooleanParameter(QueryGetRequest.PARAM_ALL_VERSIONS);
@@ -763,20 +1057,31 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"Method name: {}, deleting the  object tree for this id: {}, repositoryId: {}, allVersions: {}, unfileObjects: {}, continueOnFailure: {}",
 				"deleteTree", objectId, request.getRepositoryId(), allVersions, unfileObjects, continueOnFailure);
 		FailedToDeleteData ftd = CmisObjectService.Impl.deleteTree(request.getRepositoryId(), objectId, allVersions,
-				unfileObjects, continueOnFailure, request.getUserObject(), request.getTypeId());
+				unfileObjects, continueOnFailure, request.getUserObject(), request.getTypeId(), tracingId, span);
 		if (ftd != null && CmisPropertyConverter.Impl.isNotEmpty(ftd.getIds())) {
 			JSONObject JSONObject = JSONConverter.convert(ftd);
 			return JSONObject;
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return null;
 
 	}
 
-	private static JSONObject moveObject(PostRequest request)
+	private static JSONObject moveObject(PostRequest request, HashMap<String, Object> baggage)
 			throws CmisObjectNotFoundException, CmisNotSupportedException, CmisRuntimeException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::moveObject", null);
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "post")) {
-			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		String targetFolderId = request.getParameter(QueryGetRequest.PARAM_TARGET_FOLDER_ID);
@@ -790,10 +1095,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"Method name: {}, moving the object using this id: {}, from sourceFolderId: {}, to targetFolderId: {}, repositoryId: {}",
 				"moveObject", objectId, sourceFolderId, targetFolderId, request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.moveObject(request.getRepositoryId(), objectIdHolder, targetFolderId,
-				sourceFolderId, null, request.getUserObject(), request.getTypeId());
+				sourceFolderId, null, request.getUserObject(), request.getTypeId(), tracingId, span);
 		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
-
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
 	}
 }

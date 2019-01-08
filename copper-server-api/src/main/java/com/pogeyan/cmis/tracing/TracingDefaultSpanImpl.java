@@ -22,7 +22,7 @@ public class TracingDefaultSpanImpl implements ISpan {
 	}
 
 	@Override
-	public void close() {
+	public void close(boolean isError) {
 		Long totalTime = System.currentTimeMillis() - startTime;
 		LOG.debug("Method Name: {}, TotalTime: {} ms", name, totalTime);
 	}

@@ -37,7 +37,8 @@ import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisDiscoveryService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
@@ -70,12 +71,13 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingMessage.message(
-							String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()),
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
+									span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-			throw new CmisRuntimeException(
-					String.format(request.getUserName(), ErrorMessages.NOT_AUTHORISED, span.getTraceId()));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(TracingWriter
+					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String changeLogToken = request.getParameter(QueryGetRequest.PARAM_CHANGE_LOG_TOKEN);
 		Boolean includeProperties = request.getBooleanParameter(QueryGetRequest.PARAM_PROPERTIES);
@@ -98,7 +100,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonChanges;
 	}
 

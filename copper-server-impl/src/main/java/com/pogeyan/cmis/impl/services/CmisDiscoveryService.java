@@ -52,9 +52,10 @@ import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
+import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
-import com.pogeyan.cmis.api.utils.TracingMessage;
+import com.pogeyan.cmis.api.utils.TracingWriter;
 
 public class CmisDiscoveryService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisDiscoveryService.class);
@@ -73,11 +74,10 @@ public class CmisDiscoveryService {
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingMessage.message(String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()),
+						TracingErrorMessage.message(TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span),
 								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
-				throw new CmisInvalidArgumentException(
-						String.format(ErrorMessages.TOKEN_VALUE_NULL, span.getTraceId()));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisInvalidArgumentException(TracingWriter.log(ErrorMessages.TOKEN_VALUE_NULL, span));
 			}
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 
@@ -155,7 +155,7 @@ public class CmisDiscoveryService {
 			objList.setNumItems(BigInteger.valueOf(childrenCount));
 			objList.setHasMoreItems(childrenCount > maxItemsInt);
 			LOG.debug("getContentChanges result data count: {}", objList != null ? objList.getNumItems() : objList);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return objList;
 		}
 
@@ -180,7 +180,7 @@ public class CmisDiscoveryService {
 				props = result;
 			} else {
 				props = CmisObjectService.Impl.compileProperties(repositoryId, object, filterCollection, objectInfo,
-						userObject);
+						userObject, null, null);
 			}
 
 			odImpl.setProperties(props);
