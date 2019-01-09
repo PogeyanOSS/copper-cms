@@ -2035,7 +2035,7 @@ public class CmisObjectService {
 						userObject == null ? null : userObject.getUserDN(), token, p._1(), custom, policies, addACEs,
 						p._2(), parentData.getId().toString());
 				if (contentStream != null) {
-					p = resolvePathForObject(parentData, contentStream.getFileName());
+					// p = resolvePathForObject(parentData, contentStream.getFileName());
 					// getting path name again
 					baseObject = objectDAO.createObjectFacade(docName, BaseTypeId.CMIS_DOCUMENT, typeId, repositoryId,
 							secondaryObjectTypeIds,
@@ -4221,7 +4221,6 @@ public class CmisObjectService {
 		 * Checks and compiles a property set that can be written to disc.
 		 */
 
-		@SuppressWarnings("null")
 		private static PropertiesImpl compileWriteProperties(String repositoryId, TypeDefinition type,
 				IUserObject userObject, Properties properties, IBaseObject data, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
