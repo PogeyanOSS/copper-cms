@@ -610,7 +610,7 @@ public class CustomSecondaryTypeIdWithVersioningTest extends AbstractSessionTest
 			return result3;
 		case DATETIME:
 			PropertyDateTimeDefinitionImpl result4 = new PropertyDateTimeDefinitionImpl();
-			setOtherProperties(result4, propertyType);
+			setOtherProperties1(result4, propertyType);
 			return result4;
 		case DECIMAL:
 			PropertyDecimalDefinitionImpl result5 = new PropertyDecimalDefinitionImpl();
@@ -618,7 +618,7 @@ public class CustomSecondaryTypeIdWithVersioningTest extends AbstractSessionTest
 			return result5;
 		case HTML:
 			PropertyHtmlDefinitionImpl result6 = new PropertyHtmlDefinitionImpl();
-			setOtherProperties(result6, propertyType);
+			setOtherProperties1(result6, propertyType);
 			return result6;
 		case URI:
 			PropertyUriDefinitionImpl result7 = new PropertyUriDefinitionImpl();
