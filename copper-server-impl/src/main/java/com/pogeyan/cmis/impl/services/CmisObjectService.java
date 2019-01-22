@@ -1680,7 +1680,8 @@ public class CmisObjectService {
 					"CmisObjectService::createFolderObject", null);
 			Tuple2<String, String> p = resolvePathForObject(parentData, folderName);
 
-			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
+			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeId, repositoryId,
+					typeId, userObject);
 			IBaseObject folderObject = DBUtils.BaseDAO.getByName(repositoryId, folderName,
 					parentData.getId().toString(), typeId);
 			if (folderObject != null) {
@@ -1725,7 +1726,7 @@ public class CmisObjectService {
 		}
 
 		private static Map<String, Object> readCustomPropetiesData(Map<String, PropertyData<?>> properties,
-				String repositoryId, String typeId, IUserObject userObject) {
+				List<String> secondaryObjectTypeIds, String repositoryId, String typeId, IUserObject userObject) {
 			Map<String, Object> custom = new HashMap<String, Object>();
 			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject, null,
 					null);
@@ -1735,6 +1736,21 @@ public class CmisObjectService {
 				if (valueName.getValues().size() == 0) {
 					continue;
 				}
+				Boolean isOpenChoice = null;
+				if (type.getPropertyDefinitions().get(valueName.getId()) == null) {
+					// check for secondaryTypeIds's
+					if (secondaryObjectTypeIds != null) {
+						isOpenChoice = secondaryObjectTypeIds.stream()
+								.map(id -> CmisTypeServices.Impl.getTypeDefinition(repositoryId, id, null, userObject,
+										null, null))
+								.filter(secType -> secType.getPropertyDefinitions().get(valueName.getId()) != null)
+								.map(secType -> secType.getPropertyDefinitions().get(valueName.getId()).isOpenChoice())
+								.findFirst().orElse(null);
+					}
+				} else {
+					isOpenChoice = type.getPropertyDefinitions().get(valueName.getId()).isOpenChoice();
+				}
+
 				if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("GregorianCalendar")) {
 					if (valueName.getValues().size() == 1) {
 						GregorianCalendar value = convertInstanceOfObject(valueName.getFirstValue(),
@@ -1752,6 +1768,19 @@ public class CmisObjectService {
 					}
 
 				} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigInteger")) {
+					if (isOpenChoice != null && isOpenChoice == false) {
+						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices()
+								.stream().flatMap(a -> a.getValue().stream()).filter(b -> b != null)
+								.map(c -> new BigInteger(c.toString())).collect(Collectors.toList());
+
+						valueName.getValues().stream()
+								.filter(value -> choiceValues.size() > 0
+										&& !choiceValues.contains(convertInstanceOfObject(value, BigInteger.class)))
+								.findFirst().ifPresent(a -> {
+									throw new IllegalArgumentException(
+											"wrong choice for propertyType:" + valueName.getId());
+								});
+					}
 					if (valueName.getValues().size() == 1) {
 						BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
 								BigInteger.class);
@@ -1780,6 +1809,31 @@ public class CmisObjectService {
 						custom.put(valueName.getId(), valueList);
 					}
 
+				} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("Boolean")) {
+					if (isOpenChoice != null && isOpenChoice == false) {
+						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices()
+								.stream().flatMap(a -> a.getValue().stream()).collect(Collectors.toList());
+						valueName.getValues().stream()
+								.filter(value -> choiceValues.size() > 0
+										&& !choiceValues.contains(convertInstanceOfObject(value, Boolean.class)))
+								.findFirst().ifPresent(a -> {
+									throw new IllegalArgumentException(
+											"wrong choice for propertyType:" + valueName.getId());
+								});
+					}
+
+					if (valueName.getValues().size() == 1) {
+						Boolean valueBoolean = convertInstanceOfObject(valueName.getFirstValue(), Boolean.class);
+						custom.put(valueName.getId(), valueBoolean);
+					} else {
+						valueName.getValues().forEach(v -> {
+							Boolean valueBoolean = convertInstanceOfObject(v, Boolean.class);
+							ArrayList<Boolean> valueList = new ArrayList<>();
+							valueList.add(valueBoolean.booleanValue());
+						});
+						custom.put(valueName.getId(), valueName.getValues());
+					}
+
 				} else if (type.getPropertyDefinitions().get(valueName.getId()) != null && type.getPropertyDefinitions()
 						.get(valueName.getId()).getPropertyType().equals(PropertyType.HTML)) {
 					if (valueName.getValues().size() == 1) {
@@ -1796,6 +1850,17 @@ public class CmisObjectService {
 					}
 
 				} else {
+					if (isOpenChoice != null && isOpenChoice == false) {
+						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices()
+								.stream().flatMap(a -> a.getValue().stream()).collect(Collectors.toList());
+						valueName.getValues().stream()
+								.filter(value -> choiceValues.size() > 0
+										&& !choiceValues.contains(convertInstanceOfObject(value, String.class)))
+								.findFirst().ifPresent(a -> {
+									throw new IllegalArgumentException(
+											"wrong choice for propertyType:" + valueName.getId());
+								});
+					}
 					if (valueName.getValues().size() == 1)
 						custom.put(valueName.getId(), valueName.getFirstValue());
 					else {
@@ -2019,7 +2084,8 @@ public class CmisObjectService {
 					MBaseObjectDAO.class);
 			String versionSeriesId = Helpers.getObjectId();
 			String versionReferenceId = Helpers.getObjectId();
-			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
+			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeIds, repositoryId,
+					typeId, userObject);
 			IBaseObject baseObject = null;
 			Tuple2<String, String> p = null;
 			IDocumentObject document = DBUtils.DocumentDAO.getDocumentByName(repositoryId, docName,
@@ -2434,7 +2500,8 @@ public class CmisObjectService {
 					"CmisObjectService::createItemObject", null);
 			Tuple2<String, String> p = resolvePathForObject(parentData, itemName);
 
-			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
+			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeIds, repositoryId,
+					typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IBaseObject itemObject = DBUtils.BaseDAO.getByName(repositoryId, itemName, parentData.getId().toString(),
@@ -2735,7 +2802,8 @@ public class CmisObjectService {
 				ISpan parentSpan) throws CmisObjectNotFoundException, IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisNavigationService::createRelationshipObject", null);
-			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
+			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeId, repositoryId,
+					typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -3033,7 +3101,8 @@ public class CmisObjectService {
 			// 0) folder id
 			Tuple2<String, String> p = resolvePathForObject(parentData, policyName);
 
-			Map<String, Object> custom = readCustomPropetiesData(properties, repositoryId, typeId, userObject);
+			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeIds, repositoryId,
+					typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IBaseObject policyObject = DBUtils.BaseDAO.getByName(repositoryId, policyName,
