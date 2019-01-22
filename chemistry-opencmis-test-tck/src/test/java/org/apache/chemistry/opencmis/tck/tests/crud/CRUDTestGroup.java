@@ -56,5 +56,6 @@ public class CRUDTestGroup extends AbstractSessionTestGroup {
 		addTest(new AsyncCreateAndDeleteDocumentTest());
 		addTest(new AsyncCreateAndDeleteFolderTest());
 		addTest(new VirtualFolderLocalStorageTest());
+		addTest(new CreateDocWithFileName());
 	}
 }

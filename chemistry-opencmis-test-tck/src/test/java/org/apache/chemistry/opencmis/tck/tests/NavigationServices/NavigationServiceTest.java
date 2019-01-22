@@ -300,6 +300,39 @@ public class NavigationServiceTest extends AbstractSessionTest {
 		addResult(assertEquals(Long.valueOf(0), getChildren18.getTotalNumItems(), null,
 				createResult(FAILURE, "Total numItems must be 0")));
 
+		// startsWith
+		OperationContext context19 = new OperationContextImpl();
+		context19.setFilterString("tck:string, startswith (tck:string::'A')");
+		ItemIterable<CmisObject> getChildren19 = testFolder.getChildren(context19);
+		addResult(assertEquals(Long.valueOf(1), getChildren19.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 1")));
+
+		// contains
+		OperationContext context20 = new OperationContextImpl();
+		context20.setFilterString("tck:string, contains (tck:string::'ABC')");
+		ItemIterable<CmisObject> getChildren20 = testFolder.getChildren(context20);
+		addResult(assertEquals(Long.valueOf(1), getChildren20.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 1")));
+
+		// endsWith
+		OperationContext context21 = new OperationContextImpl();
+		context21.setFilterString("tck:string, endswith (tck:string::'I')");
+		ItemIterable<CmisObject> getChildren21 = testFolder.getChildren(context21);
+		addResult(assertEquals(Long.valueOf(1), getChildren21.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 1")));
+
+		// fetch given properties
+		OperationContext context22 = new OperationContextImpl();
+		context22.setFilterString("tck:string,tck:integer,tck:boolean");
+		ItemIterable<CmisObject> getChildren22 = testFolder.getChildren(context22);
+		getChildren22.iterator().forEachRemaining(child -> {
+			addResult(assertEquals(Long.valueOf(3), child.getProperties().stream()
+					.filter(a -> !(a.getId().equals(PropertyIds.BASE_TYPE_ID)
+							|| a.getId().equals(PropertyIds.OBJECT_TYPE_ID) || a.getId().equals(PropertyIds.OBJECT_ID)))
+					.count(), null, createResult(FAILURE, "Total properties must be 3")));
+
+		});
+
 		addResult(createInfoResult("Navigation Service with filter queries Testing Done"));
 	}
 
