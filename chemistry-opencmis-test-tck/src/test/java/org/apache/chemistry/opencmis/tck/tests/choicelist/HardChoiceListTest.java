@@ -466,7 +466,7 @@ public class HardChoiceListTest extends AbstractSessionTest {
 			// create the item
 			result = parent.createItem(properties, null, null, null, SELECT_ALL_NO_CACHE_OC);
 		} catch (CmisBaseException e) {
-			addResult(createResult(INFO, "Item could not be created! Exception: " + e.getMessage(), e, true));
+			addResult(createResult(FAILURE, "Item could not be created! Exception: " + e.getMessage(), e, true));
 			return null;
 		}
 
