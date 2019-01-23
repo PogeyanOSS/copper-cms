@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -203,8 +204,8 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Gets the all descendants containees of a folder and all of their children to
-		 * a specified depth
+		 * Gets the all descendants containees of a folder and all of their
+		 * children to a specified depth
 		 */
 		public static List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
@@ -217,8 +218,9 @@ public class CmisNavigationService {
 			if (depth == null) {
 				levels = 2; // one of the recommended defaults (should it be
 			} else if (depth.intValue() == 0) {
-				LOG.error("getDescendants a zero depth is not allowed for getDescendants: {}, repository: {}, TraceId: {}", folderId,
-						repositoryId, span != null ? span.getTraceId() : null);
+				LOG.error(
+						"getDescendants a zero depth is not allowed for getDescendants: {}, repository: {}, TraceId: {}",
+						folderId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ZERO_DEPTH), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
@@ -477,12 +479,17 @@ public class CmisNavigationService {
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
 			List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
 					folderId.toString(), 0, 0, null, typeId);
+			List<String> targetIds = source.stream()
+					.map(relId -> relId.getProperties().get(PropertyIds.TARGET_ID).toString())
+					.collect(Collectors.toList());
+			Map<String, IBaseObject> targetObjs = DBUtils.BaseDAO
+					.getObjectsByIds(repositoryId, targetIds, 0, 0, null, typeId).stream()
+					.collect(Collectors.toMap(t -> t.getId(), t -> t));
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			source.forEach(relId -> {
 				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
-				IBaseObject targetObject = DBUtils.BaseDAO.getByObjectId(repositoryId,
-						relId.getProperties().get("cmis:targetId").toString(), null, relId.getTypeId());
+				IBaseObject targetObject = targetObjs.get(relId.getProperties().get(PropertyIds.TARGET_ID).toString());
 				Set<String> filterCollection = Helpers.splitFilter(filter);
 				String name = targetObject.getName();
 				name = name + "," + relId.getProperties().get("relation_name").toString();
@@ -567,7 +574,8 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Gets the set of descendant folder objects contained in the specified folder
+		 * Gets the set of descendant folder objects contained in the specified
+		 * folder
 		 */
 		public static List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId,
 				BigInteger depth, String filter, Boolean includeAllowableActions,
@@ -603,7 +611,8 @@ public class CmisNavigationService {
 		}
 
 		/**
-		 * Return the folder tree as a list in the format of ObjectInFolderContainer.
+		 * Return the folder tree as a list in the format of
+		 * ObjectInFolderContainer.
 		 */
 		private static List<ObjectInFolderContainer> getFolderTreeIntern(String repositoryId, String folderId,
 				String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
