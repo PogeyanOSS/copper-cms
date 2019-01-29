@@ -81,7 +81,6 @@ public class DBUtils {
 			return null;
 		}
 
-		@SuppressWarnings("serial")
 		public static List<? extends IBaseObject> getObjectsByIds(String repositoryId, List<String> objectIds,
 				int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)

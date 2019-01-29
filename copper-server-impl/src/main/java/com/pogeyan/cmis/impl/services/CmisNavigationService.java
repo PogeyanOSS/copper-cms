@@ -853,6 +853,46 @@ public class CmisNavigationService {
 				return com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy);
 			}
 		}
+
+		/**
+		 * Method to gets all objects in list.
+		 */
+		public static ObjectInFolderList getAllObjects(String repositoryId, IUserObject userObject,
+				List<String> objectIds, String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getAllObjects", null);
+
+			ObjectInFolderList res = getAllObjectsIntern(repositoryId, userObject, objectIds, tracingId, span);
+			if (res != null) {
+				LOG.debug("getAllObjects result, numItems: {}", res.getNumItems());
+			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			return res;
+		}
+
+		private static ObjectInFolderList getAllObjectsIntern(String repositoryId, IUserObject userObject,
+				List<String> objectIds, String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisNavigationService::getAllObjectsIntern", null);
+			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
+			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
+			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
+			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
+			List<? extends IDocumentObject> children = new ArrayList<>();
+			children = navigationMorphiaDAO.getObjects(objectIds, null, principalIds, true, repositoryId, null);
+			for (IDocumentObject child : children) {
+				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
+				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child, null, false,
+						true, true, null, null, null, userObject, tracingId, span);
+				oifd.setObject(objectData);
+				folderList.add(oifd);
+			}
+			result.setObjects(folderList);
+			result.setNumItems(BigInteger.valueOf(Integer.valueOf(children.size()).longValue()));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			return result;
+		}
 	}
 
 }

@@ -33,14 +33,18 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.BaseClusterActor;
 import com.pogeyan.cmis.api.BaseRequest;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.auth.IUserGroupObject;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
+import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
@@ -86,6 +90,10 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		this.registerMessageHandle("checkedout", QueryGetRequest.class, (t, b) -> CompletableFuture.supplyAsync(
 				() -> CmisBaseResponse.fromWithTryCatch(() -> this.getCheckedOutDocs((QueryGetRequest) t))));
+
+		this.registerMessageHandle("getAllObjects", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> this.getAllObjects((PostRequest) t, (HashMap<String, Object>) b))));
 	}
 
 	private JSONObject getChildren(QueryGetRequest request, HashMap<String, Object> baggage)
@@ -371,4 +379,52 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		return jsonDocs;
 	}
 
+	@SuppressWarnings("unchecked")
+	private JSONObject getAllObjects(PostRequest request, HashMap<String, Object> baggage) {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"NavigationActor::getAllObjects", null);
+
+		String permission = request.getUserObject().getPermission();
+		IUserGroupObject[] groupsId = request.getUserObject().getGroups();
+		if (!Helpers.getGroupPermission(permission, groupsId)) {
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+		}
+
+		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
+		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+		String ids = request.getRequestBody();
+		JSONParser parser = new JSONParser();
+		org.json.simple.JSONObject json = null;
+		try {
+			json = (org.json.simple.JSONObject) parser.parse(ids);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		List<String> idsList = (List<String>) json.get("ids");
+		LOG.info("Method name: {}, fetching all objects, repositoryId: {}, idList: {}", "getAllObjects", request.getRepositoryId(),idsList);
+		ObjectInFolderList children = CmisNavigationService.Impl.getAllObjects(request.getRepositoryId(),
+				request.getUserObject(), idsList, tracingId, span);
+
+		if (children == null) {
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span));
+		}
+
+		JSONObject jsonChildren = JSONConverter.convert(children, CmisTypeCacheService.get(request.getRepositoryId()),
+				succinct, dateTimeFormat);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+		return jsonChildren;
+	}
 }
