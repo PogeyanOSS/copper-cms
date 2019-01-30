@@ -18,6 +18,7 @@ package com.pogeyan.cmis.actors;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -33,8 +34,9 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParseException;
+import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParser;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -380,7 +382,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	@SuppressWarnings("unchecked")
-	private JSONObject getAllObjects(PostRequest request, HashMap<String, Object> baggage) {
+	private JSONObject getAllObjects(PostRequest request, HashMap<String, Object> baggage)
+			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -400,19 +403,33 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		String ids = request.getRequestBody();
 		JSONParser parser = new JSONParser();
-		org.json.simple.JSONObject json = null;
+		Object json = null;
 		try {
-			json = (org.json.simple.JSONObject) parser.parse(ids);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			json = parser.parse(request.getRequestBody());
+		} catch (JSONParseException e) {
+			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
+					? span.getTraceId() : null);
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter
+							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
+							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 		}
-		List<String> idsList = (List<String>) json.get("ids");
-		LOG.info("Method name: {}, fetching all objects, repositoryId: {}, idList: {}", "getAllObjects", request.getRepositoryId(),idsList);
+		if (!(json instanceof Map)) {
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter
+							.log(String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span),
+							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisInvalidArgumentException(
+					TracingWriter.log(String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span));
+		}
+		Map<String, List<String>> jMap = (Map<String, List<String>>) json;
+		LOG.info("Method name: {}, fetching all objects, repositoryId: {}, idList: {}", "getAllObjects",
+				request.getRepositoryId(), jMap.get("ids"));
 		ObjectInFolderList children = CmisNavigationService.Impl.getAllObjects(request.getRepositoryId(),
-				request.getUserObject(), idsList, tracingId, span);
+				request.getUserObject(), jMap.get("ids"), tracingId, span);
 
 		if (children == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
