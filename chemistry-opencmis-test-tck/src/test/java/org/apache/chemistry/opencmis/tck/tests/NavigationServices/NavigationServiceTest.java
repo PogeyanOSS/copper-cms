@@ -1,6 +1,7 @@
 package org.apache.chemistry.opencmis.tck.tests.NavigationServices;
 
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.FAILURE;
+import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.INFO;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.SKIPPED;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.UNEXPECTED_EXCEPTION;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.WARNING;
@@ -8,11 +9,14 @@ import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.WARNING;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Folder;
@@ -20,6 +24,7 @@ import org.apache.chemistry.opencmis.client.api.Item;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
 import org.apache.chemistry.opencmis.client.api.ObjectType;
 import org.apache.chemistry.opencmis.client.api.OperationContext;
+import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.runtime.OperationContextImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -47,6 +52,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringDefi
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyUriDefinitionImpl;
 import org.apache.chemistry.opencmis.tck.CmisTestResult;
 import org.apache.chemistry.opencmis.tck.impl.AbstractSessionTest;
+import org.apache.chemistry.opencmis.tck.impl.CmisTestResultImpl;
 import org.apache.chemistry.opencmis.tck.runner.AbstractRunner;
 
 public class NavigationServiceTest extends AbstractSessionTest {
@@ -325,14 +331,18 @@ public class NavigationServiceTest extends AbstractSessionTest {
 		OperationContext context22 = new OperationContextImpl();
 		context22.setFilterString("tck:string,tck:integer,tck:boolean");
 		ItemIterable<CmisObject> getChildren22 = testFolder.getChildren(context22);
-		getChildren22.iterator().forEachRemaining(child -> {
-			addResult(assertEquals(Long.valueOf(3), child.getProperties().stream()
-					.filter(a -> !(a.getId().equals(PropertyIds.BASE_TYPE_ID)
-							|| a.getId().equals(PropertyIds.OBJECT_TYPE_ID) || a.getId().equals(PropertyIds.OBJECT_ID)))
-					.count(), null, createResult(FAILURE, "Total properties must be 3")));
-
-		});
-
+		// int k = 0;
+		int count = 1;
+		int k = 0;
+		for (CmisObject child : getChildren22) {
+			String s = child.getProperties().get(k).getId();
+			if (!(s.equals(PropertyIds.BASE_TYPE_ID) || s.equals(PropertyIds.OBJECT_TYPE_ID)
+					|| s.equals(PropertyIds.OBJECT_ID))) {
+				count++;
+			}
+			k++;
+		}
+		addResult(assertEquals(3, count, null, createResult(FAILURE, "Total properties is 3")));
 		addResult(createInfoResult("Navigation Service with filter queries Testing Done"));
 	}
 
