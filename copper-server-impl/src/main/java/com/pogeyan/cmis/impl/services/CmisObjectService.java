@@ -1775,12 +1775,14 @@ public class CmisObjectService {
 
 				} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigInteger")) {
 					if (isOpenChoice != null && isOpenChoice == false) {
-						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices()
-								.stream().flatMap(a -> a.getValue().stream()).filter(b -> b != null)
-								.map(c -> new BigInteger(c.toString())).collect(Collectors.toList());
+						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices() != null
+								? type.getPropertyDefinitions().get(valueName.getId()).getChoices().stream()
+										.flatMap(a -> a.getValue().stream()).filter(b -> b != null)
+										.map(c -> new BigInteger(c.toString())).collect(Collectors.toList())
+								: null;
 
 						valueName.getValues().stream()
-								.filter(value -> choiceValues.size() > 0
+								.filter(value -> choiceValues != null && choiceValues.size() > 0
 										&& !choiceValues.contains(convertInstanceOfObject(value, BigInteger.class)))
 								.findFirst().ifPresent(a -> {
 									throw new IllegalArgumentException(
@@ -1817,10 +1819,12 @@ public class CmisObjectService {
 
 				} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("Boolean")) {
 					if (isOpenChoice != null && isOpenChoice == false) {
-						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices()
-								.stream().flatMap(a -> a.getValue().stream()).collect(Collectors.toList());
+						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices() != null
+								? type.getPropertyDefinitions().get(valueName.getId()).getChoices().stream()
+										.flatMap(a -> a.getValue().stream()).collect(Collectors.toList())
+								: null;
 						valueName.getValues().stream()
-								.filter(value -> choiceValues.size() > 0
+								.filter(value -> choiceValues != null && choiceValues.size() > 0
 										&& !choiceValues.contains(convertInstanceOfObject(value, Boolean.class)))
 								.findFirst().ifPresent(a -> {
 									throw new IllegalArgumentException(
@@ -1854,13 +1858,14 @@ public class CmisObjectService {
 						});
 						custom.put(valueName.getId(), valueList);
 					}
-
 				} else {
 					if (isOpenChoice != null && isOpenChoice == false) {
-						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices()
-								.stream().flatMap(a -> a.getValue().stream()).collect(Collectors.toList());
+						List<?> choiceValues = type.getPropertyDefinitions().get(valueName.getId()).getChoices() != null
+								? type.getPropertyDefinitions().get(valueName.getId()).getChoices().stream()
+										.flatMap(a -> a.getValue().stream()).collect(Collectors.toList())
+								: null;
 						valueName.getValues().stream()
-								.filter(value -> choiceValues.size() > 0
+								.filter(value -> choiceValues != null && choiceValues.size() > 0
 										&& !choiceValues.contains(convertInstanceOfObject(value, String.class)))
 								.findFirst().ifPresent(a -> {
 									throw new IllegalArgumentException(

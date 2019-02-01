@@ -47,4 +47,7 @@ public interface MBaseObjectDAO {
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
 			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
 			String parentId);
+
+	public List<? extends IBaseObject> getObjects(List<String> objectIds, boolean includePagination, int maxItems,
+			int skipCount, String[] mappedColumns, String typeId);
 }

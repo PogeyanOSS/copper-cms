@@ -30,4 +30,7 @@ public interface MNavigationDocServiceDAO {
 	 * 
 	 */
 	public List<? extends IDocumentObject> getFolderTreeIds(String path, String[] principalIds, boolean aclPropagation);
+
+	List<? extends IDocumentObject> getObjects(List<String> objectIds, String[] mappedColumns, String[] principalIds,
+			boolean aclPropagation, String repositoryId, String typeId);
 }
