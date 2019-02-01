@@ -107,6 +107,24 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
+	public List<MBaseObject> getObjects(List<String> objectIds, boolean includePagination, int maxItems, int skipCount,
+			String[] mappedColumns, String typeId) {
+		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
+				.notEqual(TokenChangeType.DELETED.value());
+		query = query.field("id").in(objectIds);
+		if (includePagination) {
+			if (maxItems > 0) {
+				query = query.offset(skipCount).limit(maxItems);
+			}
+		}
+		if (mappedColumns != null && mappedColumns.length > 0) {
+			query = query.retrievedFields(true, mappedColumns);
+		}
+		query.or(getAclCriteria(query));
+		return query.asList();
+	}
+
+	@Override
 	public void commit(IBaseObject entity, String typeId) {
 		this.save((MBaseObject) entity);
 	}

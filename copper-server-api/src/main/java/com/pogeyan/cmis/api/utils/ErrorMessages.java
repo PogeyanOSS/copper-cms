@@ -24,6 +24,7 @@ public class ErrorMessages {
 	public static String TYPE_DEFINITION_MISSING = "%s, Type definition missing";
 	public static String JSON_ERROR = "JSON Parser error: %s";
 	public static String INVALID_TYPE_DEFINITION = "%s, Invalid type definition";
+	public static String INVALID_REQUEST_BODY = "%s, Invalid request body";
 	public static String MONGO_OBJECT_NULL = "MongoObject should not be null";
 	public static String TYPE_MUST_BE_SET = "Type must be set";
 	public static String NOT_VALID_ID = "Type must have a valid id";
