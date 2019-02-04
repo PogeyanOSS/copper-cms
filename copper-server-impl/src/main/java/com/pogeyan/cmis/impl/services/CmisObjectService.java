@@ -1370,7 +1370,6 @@ public class CmisObjectService {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
 						if (propertyType == PropertyType.INTEGER) {
-
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
@@ -1390,7 +1389,6 @@ public class CmisObjectService {
 							}
 
 						} else if (propertyType == PropertyType.ID) {
-
 							if (valueOfType instanceof String) {
 								String value = convertInstanceOfObject(valueOfType, String.class);
 								addPropertyId(repositoryId, props, typeId, filter, id, value, userObject);
@@ -1424,6 +1422,15 @@ public class CmisObjectService {
 							}
 
 						} else if (propertyType == PropertyType.DECIMAL) {
+							if (valueOfType instanceof Integer) {
+								int intValue = ((Integer) valueOfType).intValue();
+								Double valueOfType1 = new Double(intValue);
+								if (valueOfType1 instanceof Double) {
+									Double value = convertInstanceOfObject(valueOfType1, Double.class);
+									addPropertyBigDecimal(repositoryId, props, typeId, filter, id,
+											BigDecimal.valueOf(value), userObject);
+								}
+							}
 							if (valueOfType instanceof Double) {
 								Double value = convertInstanceOfObject(valueOfType, Double.class);
 								addPropertyBigDecimal(repositoryId, props, typeId, filter, id,
