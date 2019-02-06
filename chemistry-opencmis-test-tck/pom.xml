@@ -24,8 +24,9 @@
     
     <properties>
         <parentBasedir>../../</parentBasedir>
+        <aws.version>1.11.98</aws.version>
     </properties>
-    
+ 
     <build>
         <resources>
             <resource>
@@ -121,5 +122,25 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
+<!--         <dependency>
+        	<groupId>com.pogeyan.cmis</groupId>
+        	<artifactId>aws-content</artifactId>
+        	<version>1.0.0</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.pogeyan.cmis</groupId>
+        	<artifactId>tenant-repo</artifactId>
+        	<version>1.0.0</version>
+        </dependency> -->
+        <dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-core</artifactId>
+			<version>${aws.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+			<version>${aws.version}</version>
+		</dependency>
     </dependencies>
 </project>
