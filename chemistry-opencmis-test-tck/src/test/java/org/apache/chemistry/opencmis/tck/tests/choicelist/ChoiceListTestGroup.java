@@ -12,5 +12,6 @@ public class ChoiceListTestGroup extends AbstractSessionTestGroup {
 		setDescription("Choice List Test.");
 		addTest(new ChoiceListTest());
 		addTest(new HardChoiceListTest());
+		addTest(new SecondaryTypeHardChoiceTest());
 	}
 }
