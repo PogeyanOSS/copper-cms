@@ -152,10 +152,11 @@ public class HardChoiceListTest extends AbstractSessionTest {
 				}
 			}
 			addResult(createResult(INFO, "Item created, with hardchoice values", false));
-
+			createItemtWithEmptyProp(session, testFolder, "itemWithChoiceListEmpty", newType.getId());
 			createItemtWithWrongStringProp(session, testFolder, "itemWithChoiceList1", newType.getId());
 			createItemtWithWrongIntProp(session, testFolder, "itemWithChoiceList2", newType.getId());
 			createItemtWithWrongBoolProp(session, testFolder, "itemWithChoiceList3", newType.getId());
+
 		} finally {
 			// delete the folder
 			deleteTestFolder();
@@ -499,6 +500,38 @@ public class HardChoiceListTest extends AbstractSessionTest {
 		}
 
 		return result;
+	}
+
+	protected void createItemtWithEmptyProp(Session session, Folder parent, String name, String objectTypeId) {
+
+		ItemTypeDefinition itemType = (ItemTypeDefinition) session.getTypeDefinition(objectTypeId);
+		// create
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(PropertyIds.NAME, name);
+		properties.put(PropertyIds.OBJECT_TYPE_ID, objectTypeId);
+		for (Map.Entry<String, PropertyDefinition<?>> propDef : itemType.getPropertyDefinitions().entrySet()) {
+			if (propDef.getValue().getChoices().size() > 0) {
+				if (propDef.getValue().getPropertyType().equals(PropertyType.BOOLEAN)) {
+					List<Boolean> booleanList = new ArrayList<Boolean>();
+					properties.put(propDef.getValue().getId(), booleanList);
+				} else if (propDef.getValue().getPropertyType().equals(PropertyType.STRING)) {
+					List<String> stringList = new ArrayList<String>();
+					properties.put(propDef.getValue().getId(), stringList);
+				} else if (propDef.getValue().getPropertyType().equals(PropertyType.INTEGER)) {
+					List<BigInteger> intList = new ArrayList<BigInteger>();
+					properties.put(propDef.getValue().getId(), intList);
+				}
+
+			}
+			properties.putAll(setOtherCustomProperties(propDef, properties));
+		}
+		try {
+			// create the item
+			Item result = parent.createItem(properties, null, null, null, SELECT_ALL_NO_CACHE_OC);
+			addResult(createResult(INFO, "Item with name " + result.getName() + " got created.", false));
+		} catch (Exception e) {
+			addResult(createResult(FAILURE, "Item could not be created, since we passed empty choice Values", false));
+		}
 	}
 
 	protected void createItemtWithWrongStringProp(Session session, Folder parent, String name, String objectTypeId) {
