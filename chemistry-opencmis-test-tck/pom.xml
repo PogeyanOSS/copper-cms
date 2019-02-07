@@ -138,4 +138,5 @@
 			<version>${aws.version}</version>
 		</dependency>
 	</dependencies>
+	
 </project>
