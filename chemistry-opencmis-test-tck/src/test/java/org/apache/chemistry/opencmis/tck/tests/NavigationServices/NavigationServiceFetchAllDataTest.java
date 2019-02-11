@@ -44,7 +44,7 @@ public class NavigationServiceFetchAllDataTest extends AbstractSessionTest {
 	public void run(Session session) {
 		CmisTestResult f = null;
 
-		int numOfDocuments = 2;
+		int numOfDocuments = 50;
 
 		// create a test folder
 		Folder testFolder = createTestFolder(session);
