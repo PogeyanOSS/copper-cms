@@ -1507,7 +1507,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject, null, ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -1920,7 +1920,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addACEs, removeACEs, userObject == null ? null : userObject, null, ObjectFlowType.CREATED);
+					addACEs, removeACEs, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addACEs);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -2214,7 +2214,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject, null, ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -2403,7 +2403,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject, null, ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -2590,7 +2590,7 @@ public class CmisObjectService {
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject, null, ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			List<String> secondaryObjectTypeIds = null;
 			TypeValidator.validateRequiredSystemProperties(properties);
 
@@ -2986,7 +2986,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject, null, ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -3207,7 +3207,7 @@ public class CmisObjectService {
 			String id = objectId.getValue().trim();
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, id, properties, null, acl, null,
-					userObject == null ? null : userObject, null, ObjectFlowType.UPDATED);
+					userObject, null, ObjectFlowType.UPDATED);
 			if (properties == null) {
 				LOG.error("Method name: {}, no properties given for object id: {}, repositoryId: {}, TraceId: {}",
 						"updateProperties", id, repositoryId, span != null ? span.getTraceId() : null);
@@ -3701,7 +3701,7 @@ public class CmisObjectService {
 					"CmisObjectService::deleteObject", null);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, objectId, null, null, null, null,
-					userObject == null ? null : userObject, allVersions, ObjectFlowType.DELETED);
+					userObject, allVersions, ObjectFlowType.DELETED);
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MDocumentObjectDAO docMorphiaDAO = null;
@@ -3872,7 +3872,7 @@ public class CmisObjectService {
 					"CmisObjectService::deleteTree", null);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, null, null, null, null,
-					userObject == null ? null : userObject, allVers, ObjectFlowType.DELETED);
+					userObject, allVers, ObjectFlowType.DELETED);
 			// boolean allVersions = (null == allVers ? true : allVers);
 			UnfileObject unfileObjects = (null == unfile ? UnfileObject.DELETE : unfile);
 			// boolean continueOnFailure = (null == continueOnFail ? false :
@@ -5124,7 +5124,7 @@ public class CmisObjectService {
 					boolean resultFlow = false;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.beforeCreation(repositoryId, objectId, properties, policies,
-								addAces, removeAces, userObject, DatabaseServiceFactory.getInstance(repositoryId));
+								addAces, removeAces, userObject);
 					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.beforeUpdate(repositoryId, objectId, properties, addAces,
 								userObject.getUserDN());

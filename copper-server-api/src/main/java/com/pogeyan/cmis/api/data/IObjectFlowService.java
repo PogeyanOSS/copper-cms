@@ -14,7 +14,7 @@ public interface IObjectFlowService {
 	public void setObjectFlowStoreSettings(IObjectFlowStoreSetting dbSettings) throws InvalidTargetObjectTypeException;
 
 	public boolean beforeCreation(String repositoryId, String objectId, Properties properties, List<String> policies,
-			Acl addAces, Acl removeAces, IUserObject userObject, IDBClientFactory DatabaseServiceFactory);
+			Acl addAces, Acl removeAces, IUserObject userObject);
 
 	public boolean beforeUpdate(String repositoryId, String objectId, Properties properties, Acl acl, String userName);
 
