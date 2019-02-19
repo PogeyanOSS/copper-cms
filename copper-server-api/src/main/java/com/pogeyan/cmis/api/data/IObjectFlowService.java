@@ -8,11 +8,13 @@ import javax.management.modelmbean.InvalidTargetObjectTypeException;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 
+import com.pogeyan.cmis.api.auth.IUserObject;
+
 public interface IObjectFlowService {
 	public void setObjectFlowStoreSettings(IObjectFlowStoreSetting dbSettings) throws InvalidTargetObjectTypeException;
 
 	public boolean beforeCreation(String repositoryId, String objectId, Properties properties, List<String> policies,
-			Acl addAces, Acl removeAces, String userName);
+			Acl addAces, Acl removeAces, IUserObject userObject, IDBClientFactory DatabaseServiceFactory);
 
 	public boolean beforeUpdate(String repositoryId, String objectId, Properties properties, Acl acl, String userName);
 
