@@ -217,13 +217,13 @@ public class CmisPropertyConverter {
 			switch (propDef.getPropertyType()) {
 			case STRING:
 				PropertyStringDefinition strPropDef = (PropertyStringDefinition) propDef;
-				strValues.forEach(strVal -> {
+				for (String strVal : strValues) {
 					if (strPropDef.getMaxLength() != null
 							&& strVal.length() > strPropDef.getMaxLength().intValueExact()) {
 						throw new CmisConstraintException(propDef.getId() + " value size is greater than "
 								+ strPropDef.getMaxLength().toString());
 					}
-				});
+				}
 				propertyData = new PropertyStringImpl(propDef.getId(), strValues);
 				break;
 			case ID:
