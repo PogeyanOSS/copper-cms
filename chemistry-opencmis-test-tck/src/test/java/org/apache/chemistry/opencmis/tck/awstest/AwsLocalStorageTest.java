@@ -112,7 +112,7 @@ public class AwsLocalStorageTest extends AbstractSessionTest {
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> createAWSStorageObject(Session session1, ObjectType newType) {
-		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> map = new HashMap<String, Object>();
 		String envVariable = System.getenv("CMIS_REPO_JSON_LOCATION");
 		if (envVariable == null) {
 			addResult(createResult(FAILURE, "set the environment variables of CMIS_REPO_JSON_LOCATION"));
@@ -128,7 +128,7 @@ public class AwsLocalStorageTest extends AbstractSessionTest {
 			addResult(createResult(FAILURE, "JSONParseException while parsing the json"));
 		}
 
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, String> parameters = new HashMap<String, String>();
 		JSONArray repoArray = (JSONArray) obj;
 		for (Object object : repoArray) {
 			JSONObject jsonObject = (JSONObject) object;

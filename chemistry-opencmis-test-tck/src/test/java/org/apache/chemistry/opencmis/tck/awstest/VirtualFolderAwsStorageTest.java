@@ -122,7 +122,7 @@ public class VirtualFolderAwsStorageTest extends AbstractSessionTest {
 		if (envVariable == null) {
 			addResult(createResult(FAILURE, "set the environment variables of CMIS_REPO_JSON_LOCATION"));
 		}
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, String> parameters = new HashMap<String, String>();
 		Object obj = new JSONParser().parse(new FileReader(envVariable));
 		JSONArray repoArray = (JSONArray) obj;
 		for (Object object : repoArray) {
