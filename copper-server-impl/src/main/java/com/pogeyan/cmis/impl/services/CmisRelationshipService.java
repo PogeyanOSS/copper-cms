@@ -56,9 +56,10 @@ public class CmisRelationshipService {
 				throws CmisObjectNotFoundException, MongoException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisRelationshipService::getobjectRelationships", null);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject so = null;
 			try {
-				so = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+				so = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
 						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);

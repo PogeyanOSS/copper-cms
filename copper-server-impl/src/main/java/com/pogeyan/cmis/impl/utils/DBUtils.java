@@ -36,6 +36,7 @@ import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
+import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 
@@ -62,8 +63,8 @@ public class DBUtils {
 
 	public static class BaseDAO {
 		@SuppressWarnings("serial")
-		public static IBaseObject getByObjectId(String repositoryId, String objectId, String[] mappedColumns,
-				String typeId) {
+		public static IBaseObject getByObjectId(String repositoryId, String[] principalIds, String objectId,
+				String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -72,8 +73,9 @@ public class DBUtils {
 					put(Variables.REPOID, repositoryId);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0,
-					mappedColumns, typeId);
+
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, principalIds, true,
+					false, 0, 0, mappedColumns, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -85,7 +87,7 @@ public class DBUtils {
 				int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			return objectMorphiaDAO.getObjects(objectIds, true, maxItems, skipCount, mappedColumns, typeId);
+			return objectMorphiaDAO.getObjects(objectIds, null, true, true, maxItems, skipCount, mappedColumns, typeId);
 		}
 
 		@SuppressWarnings("serial")
@@ -101,8 +103,8 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null,
-					typeId);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, false, 0, 0,
+					null, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -121,7 +123,8 @@ public class DBUtils {
 				}
 			};
 
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, false, 0, 0,
+					null, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -140,11 +143,11 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, false, 0, 0, null, typeId);
 		}
 
 		@SuppressWarnings("serial")
-		public static IBaseObject getByPath(String repositoryId, String path, String typeId) {
+		public static IBaseObject getByPath(String repositoryId, String[] principalIds, String path, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -152,8 +155,8 @@ public class DBUtils {
 					put(Variables.PATH, path);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null,
-					typeId);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, principalIds, true,
+					false, 0, 0, null, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -171,8 +174,8 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null,
-					typeId);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, false, 0, 0,
+					null, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -339,7 +342,7 @@ public class DBUtils {
 					put(Variables.BASEID, "CMIS:FOLDER");
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, false, 0, 0, null, typeId);
 		}
 
 		@SuppressWarnings("serial")
@@ -354,7 +357,7 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, targetId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, false, 0, 0, null, targetId);
 		}
 
 		@SuppressWarnings("serial")
@@ -368,7 +371,8 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, true, maxItems, skipCount, mappedColumns,
+					typeId);
 		}
 
 		@SuppressWarnings("serial")
@@ -381,7 +385,8 @@ public class DBUtils {
 					put("properties.cmis:targetId", targetId);
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, true, maxItems, skipCount, mappedColumns,
+					typeId);
 		}
 	}
 

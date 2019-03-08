@@ -186,10 +186,11 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = t.getObjectId();
 		String typeId = t.getParameter("typeId");
-		boolean acessPermission = false;
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), objectId, null, typeId);
-		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
-		if (data != null && !data.getName().equals(ROOT) && acessPermission == false) {
+//		boolean acessPermission = false;
+		String[] principalIds = Helpers.getPrincipalIds(t.getUserObject());
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, objectId, null, typeId);
+//		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
+		if (data == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
 							TracingWriter.log(String.format(ErrorMessages.ACCESS_DENIED, t.getUserName()), span),
@@ -295,7 +296,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting allowable actions using this id: {}, repositoryId: {}",
 				"getAllowableActions", t.getObjectId(), t.getRepositoryId());
 		AllowableActions allowableActions = CmisObjectService.Impl.getAllowableActions(t.getRepositoryId(), null,
-				t.getObjectId(), t.getUserObject().getUserDN(), t.getTypeId(), tracingId, span);
+				t.getObjectId(), t.getUserObject(), t.getTypeId(), tracingId, span);
 		JSONObject resultAllowableActions = JSONConverter.convert(allowableActions);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return resultAllowableActions;
@@ -745,9 +746,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), objectId, null,
+		String[] principalIds = Helpers.getPrincipalIds(request.getUserObject());
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), principalIds, objectId, null,
 				request.getTypeId());
-		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), objectId,
+		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), null,objectId,
 				request.getTypeId());
 		String changeToken = request.getParameter(QueryGetRequest.CONTROL_CHANGE_TOKEN);
 		String token = request.getParameter(QueryGetRequest.PARAM_TOKEN);
