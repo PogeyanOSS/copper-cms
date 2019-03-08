@@ -66,8 +66,9 @@ public class ErrorMessages {
 	public static String WRONG_SOURCEID = "Wrong sourceId,SourceObject should not be null";
 	public static String WRONG_TARGETID = "Wrong sourceId,TargetObject should not be null";
 	public static String IMPOSSIBLE_CREATE_FOLDER = "Impossible to create folder properties";
-	public static String SOURCETABLE_NOT_PRESENT = "SourceTable  not present in relationShipObject";
-	public static String TARGETTABLE_NOT_PRESENT = "TargetTable  not present in relationShipObject";
+	public static String RELATIONMD_NOT_PRESENT = "Relationmd not present";
+	public static String SOURCETABLE_NOT_PRESENT = "SourceTable not present in relationShipObject";
+	public static String TARGETTABLE_NOT_PRESENT = "TargetTable not present in relationShipObject";
 	public static String WRONG_RELATIONSHIP_OBJECT = "Wrong relationShipDocumentObject";
 	public static String CANNOT_CREATE_POLICY = "Cannot create a policy without a name";
 	public static String CANNOT_CREATE_POLICY_WITH_NON_FOLDER = "Cannot create a policy, with a non-folder type: %s";
