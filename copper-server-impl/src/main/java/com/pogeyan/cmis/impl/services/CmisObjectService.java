@@ -3736,7 +3736,8 @@ public class CmisObjectService {
 						MDocumentObjectDAO.class);
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, null, objectId, null, typeId);
+				String[] principalIds = Helpers.getPrincipalIds(userObject);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -3911,7 +3912,7 @@ public class CmisObjectService {
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
 
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, null, folderId, null, typeId);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, folderId, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("deleteTree object not found: {}, repositoryId: {}, TraceId: {}", folderId, repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -3990,7 +3991,7 @@ public class CmisObjectService {
 			for (IBaseObject child : children) {
 				baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(), false, token, child.getTypeId());
 
-				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, null, child.getId(), null,
+				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, child.getId(), null,
 						child.getTypeId());
 				if (childCheck != null) {
 					failedToDeleteIds.add(child.getId().toString());
