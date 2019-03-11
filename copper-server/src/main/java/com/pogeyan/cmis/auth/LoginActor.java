@@ -29,12 +29,9 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.auth.LoginRequestObject;
-import com.pogeyan.cmis.api.data.IDBClientFactory;
-import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.messages.LoginRequest;
 import com.pogeyan.cmis.api.messages.LoginResponse;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
-import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
 
 public class LoginActor extends BaseClusterActor<BaseRequest, BaseResponse> {
@@ -61,8 +58,7 @@ public class LoginActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			if (authService != null) {
 				LoginRequestObject loginObject = new LoginRequestObject(t.getHeaders().get("authorization"),
 						t.getRepositoryId());
-				IUserObject result = authService.authenticate(loginObject,
-						DatabaseServiceFactory.getInstance(t.getRepositoryId()));
+				IUserObject result = authService.authenticate(loginObject);
 				response.setSuccessfulLogin(result != null);
 				response.setLoginDetails(result);
 			} else {

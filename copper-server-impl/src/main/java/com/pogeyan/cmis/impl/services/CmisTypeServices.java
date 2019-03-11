@@ -802,6 +802,7 @@ public class CmisTypeServices {
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId, userObject, type,
 					TypePermissionType.DELETE);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			if (permission) {
 				TypeDefinition object = null;
 
@@ -832,9 +833,9 @@ public class CmisTypeServices {
 				// MongoStorageDocument.createStorageService(parameters,
 				// repositoryId, type);
 				// localService.deleteFolder(parameters, repositoryId, type);
-				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, "/" + type, type);
+				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, "/" + type, type);
 				if (folderObject != null) {
-					baseMorphiaDAO.delete(repositoryId, folderObject.getId(), true, null, type);
+					baseMorphiaDAO.delete(repositoryId, principalIds, folderObject.getId(), true, null, type);
 				}
 				typeManagerDAO.delete(type);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);

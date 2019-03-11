@@ -30,7 +30,6 @@ import com.pogeyan.cmis.api.auth.IAuthRequestObject;
 import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.api.auth.IAuthStoreSettings;
 import com.pogeyan.cmis.api.auth.IUserObject;
-import com.pogeyan.cmis.api.data.IDBClientFactory;
 
 public class LocalAuthService implements IAuthService {
 	private static String USERNAME = "USERNAME";
@@ -47,7 +46,7 @@ public class LocalAuthService implements IAuthService {
 	}
 
 	@Override
-	public IUserObject authenticate(IAuthRequestObject loginRequest, IDBClientFactory databaseServiceFactory)
+	public IUserObject authenticate(IAuthRequestObject loginRequest)
 			throws InvalidObjectException, CmisPermissionDeniedException {
 		if (loginRequest.getAuthorization() != null) {
 			String authHeader = loginRequest.getAuthorization();

@@ -34,7 +34,6 @@ import com.pogeyan.cmis.api.auth.IAuthRequestObject;
 import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.api.auth.IAuthStoreSettings;
 import com.pogeyan.cmis.api.auth.IUserObject;
-import com.pogeyan.cmis.api.data.IDBClientFactory;
 import com.pogeyan.cmis.ldap.LDAPUtils;
 import com.pogeyan.cmis.ldap.model.LDAPLogin;
 import com.pogeyan.cmis.ldap.model.LoginProperties;
@@ -47,7 +46,7 @@ public class LDAPAuthService implements IAuthService {
 	private static String PASSWORD = "PASSWORD";
 
 	@Override
-	public IUserObject authenticate(IAuthRequestObject loginRequest, IDBClientFactory databaseServiceFactory)
+	public IUserObject authenticate(IAuthRequestObject loginRequest)
 			throws InvalidObjectException, CmisPermissionDeniedException {
 		if (loginRequest.getAuthorization() != null) {
 			String authHeader = loginRequest.getAuthorization();
