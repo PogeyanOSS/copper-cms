@@ -29,7 +29,10 @@ import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyIntegerDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyStringDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.DateTimeHelper;
@@ -216,6 +219,14 @@ public class CmisPropertyConverter {
 			PropertyData<?> propertyData = null;
 			switch (propDef.getPropertyType()) {
 			case STRING:
+				PropertyStringDefinition strPropDef = (PropertyStringDefinition) propDef;
+				for (String strVal : strValues) {
+					if (strPropDef.getMaxLength() != null
+							&& strVal.length() > strPropDef.getMaxLength().intValueExact()) {
+						throw new CmisConstraintException(propDef.getId() + " value size is greater than "
+								+ strPropDef.getMaxLength().toString());
+					}
+				}
 				propertyData = new PropertyStringImpl(propDef.getId(), strValues);
 				break;
 			case ID:
@@ -229,10 +240,18 @@ public class CmisPropertyConverter {
 				propertyData = new PropertyBooleanImpl(propDef.getId(), boolValues);
 				break;
 			case INTEGER:
+				PropertyIntegerDefinition intPropDef = (PropertyIntegerDefinition) propDef;
 				List<BigInteger> intValues = new ArrayList<BigInteger>(strValues.size());
 				try {
 					for (String s : strValues) {
-						intValues.add(new BigInteger(s));
+						BigInteger bigint = new BigInteger(s);
+						if ((intPropDef.getMinValue() != null && bigint.compareTo(intPropDef.getMinValue()) < 0)
+								|| (intPropDef.getMaxValue() != null
+										&& bigint.compareTo(intPropDef.getMaxValue()) > 0)) {
+							throw new CmisConstraintException(propDef.getId() + " value is not in range ["
+									+ intPropDef.getMinValue() + "-" + intPropDef.getMaxValue() + "]");
+						}
+						intValues.add(bigint);
 					}
 				} catch (NumberFormatException e) {
 					throw new CmisInvalidArgumentException(propDef.getId() + " value is not an integer value!", e);

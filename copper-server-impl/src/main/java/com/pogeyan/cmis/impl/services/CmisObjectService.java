@@ -2883,8 +2883,21 @@ public class CmisObjectService {
 					"CmisObjectService::validateRelationshipDocuments", null);
 			LOG.debug("ValidateRelationships documents for source: {}, target: {}", sourceTypeId, targetTypeId);
 
-			Map<String, Object> relationProps = DBUtils.BaseDAO.getByName(repositoryId, relationName, null, typeId)
-					.getProperties();
+			Map<String, Object> relationProps = DBUtils.BaseDAO.getByName(repositoryId, relationName, null,
+					typeId) != null
+							? DBUtils.BaseDAO.getByName(repositoryId, relationName, null, typeId).getProperties()
+							: null;
+			if (relationProps == null) {
+				LOG.error("Relation_md object not present with name: {}, repositoryId: {}, TraceId: {}", relationName,
+						repositoryId, span != null ? span.getTraceId() : null);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.RELATIONMD_NOT_PRESENT), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new IllegalArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.RELATIONMD_NOT_PRESENT), span));
+			}
 			String sourceTable = relationProps.get("source_table").toString();
 			if (sourceTable == null) {
 				LOG.error("SourceTable  not present in relationship object: {}, repositoryId: {}, TraceId: {}",
