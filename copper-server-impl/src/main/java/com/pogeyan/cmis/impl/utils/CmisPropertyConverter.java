@@ -51,6 +51,9 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.IObjectFlowService;
+import com.pogeyan.cmis.api.data.common.ObjectFlowType;
+import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class CmisPropertyConverter {
@@ -93,6 +96,7 @@ public class CmisPropertyConverter {
 
 			// create properties
 			PropertiesImpl result = new PropertiesImpl();
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			for (Map.Entry<String, List<String>> property : properties.entrySet()) {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null) {
@@ -103,7 +107,8 @@ public class CmisPropertyConverter {
 					throw new CmisInvalidArgumentException(property.getKey() + " is unknown!");
 				}
 
-				result.addProperty(createPropertyData(propDef, property.getValue()));
+				result.addProperty(createPropertyData(objectTypeIdsValues.get(0), propDef, property.getValue(),
+						repositoryId, objectFlowService));
 			}
 
 			return result;
@@ -160,6 +165,7 @@ public class CmisPropertyConverter {
 
 			// create properties
 			PropertiesImpl result = new PropertiesImpl();
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			for (Map.Entry<String, List<String>> property : properties.entrySet()) {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null && objectIds != null) {
@@ -191,7 +197,8 @@ public class CmisPropertyConverter {
 					throw new CmisInvalidArgumentException(property.getKey() + " is unknown!");
 				}
 
-				result.addProperty(createPropertyData(propDef, property.getValue()));
+				result.addProperty(
+						createPropertyData(typeId, propDef, property.getValue(), repositoryId, objectFlowService));
 			}
 
 			LOG.debug("createUpdateProperties on objectIds: {} are : resultProperties{}", objectIds,
@@ -201,8 +208,8 @@ public class CmisPropertyConverter {
 		}
 
 		@SuppressWarnings("unchecked")
-		private static PropertyData<?> createPropertyData(PropertyDefinition<?> propDef, Object value) {
-
+		private static PropertyData<?> createPropertyData(String typeId, PropertyDefinition<?> propDef, Object value,
+				String repositoryId, IObjectFlowService objectFlowService) {
 			List<String> strValues;
 			if (value == null) {
 				strValues = Collections.emptyList();
@@ -211,6 +218,7 @@ public class CmisPropertyConverter {
 				strValues.add((String) value);
 			} else {
 				strValues = (List<String>) value;
+				strValues = new ArrayList<>(strValues);
 			}
 
 			PropertyData<?> propertyData = null;
@@ -224,6 +232,8 @@ public class CmisPropertyConverter {
 								+ strPropDef.getMaxLength().toString());
 					}
 				}
+				invokeEncryptBeforeCreate(objectFlowService, repositoryId, ObjectFlowType.ENCRYPT, typeId,
+						propDef.getId(), strValues);
 				propertyData = new PropertyStringImpl(propDef.getId(), strValues);
 				break;
 			case ID:
@@ -337,6 +347,28 @@ public class CmisPropertyConverter {
 				throw new CmisObjectNotFoundException("Object must not be null!");
 			}
 			return data.getTypeId();
+		}
+	}
+
+	private static void invokeEncryptBeforeCreate(IObjectFlowService objectFlowService, String repositoryId,
+			ObjectFlowType invokeMethod, String typeId, String propId, List<String> strValues) {
+		if (objectFlowService != null) {
+			try {
+				LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
+				boolean resultFlow = false;
+				if (ObjectFlowType.ENCRYPT.equals(invokeMethod)) {
+					resultFlow = objectFlowService.beforeEncrypt(repositoryId, typeId, propId, strValues);
+				}
+				if (!resultFlow) {
+					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
+					throw new IllegalArgumentException(
+							"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
+				}
+			} catch (Exception ex) {
+				LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
+						invokeMethod, ex.getMessage());
+				throw new IllegalArgumentException(ex.getMessage());
+			}
 		}
 	}
 }
