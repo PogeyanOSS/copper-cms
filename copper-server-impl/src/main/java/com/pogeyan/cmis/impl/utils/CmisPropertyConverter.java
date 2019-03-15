@@ -222,91 +222,95 @@ public class CmisPropertyConverter {
 			}
 
 			PropertyData<?> propertyData = null;
-			switch (propDef.getPropertyType()) {
-			case STRING:
-				PropertyStringDefinition strPropDef = (PropertyStringDefinition) propDef;
-				for (String strVal : strValues) {
-					if (strPropDef.getMaxLength() != null
-							&& strVal.length() > strPropDef.getMaxLength().intValueExact()) {
-						throw new CmisConstraintException(propDef.getId() + " value size is greater than "
-								+ strPropDef.getMaxLength().toString());
-					}
-				}
-				invokeEncryptBeforeCreate(objectFlowService, repositoryId, ObjectFlowType.ENCRYPT, typeId,
-						propDef.getId(), strValues);
+			boolean result = invokeEncryptBeforeCreate(objectFlowService, repositoryId, ObjectFlowType.ENCRYPT, typeId,
+					propDef.getId(), strValues);
+			if (result) {
 				propertyData = new PropertyStringImpl(propDef.getId(), strValues);
-				break;
-			case ID:
-				propertyData = new PropertyIdImpl(propDef.getId(), strValues);
-				break;
-			case BOOLEAN:
-				List<Boolean> boolValues = new ArrayList<Boolean>(strValues.size());
-				for (String s : strValues) {
-					boolValues.add(Boolean.valueOf(s));
-				}
-				propertyData = new PropertyBooleanImpl(propDef.getId(), boolValues);
-				break;
-			case INTEGER:
-				PropertyIntegerDefinition intPropDef = (PropertyIntegerDefinition) propDef;
-				List<BigInteger> intValues = new ArrayList<BigInteger>(strValues.size());
-				try {
-					for (String s : strValues) {
-						BigInteger bigint = new BigInteger(s);
-						if ((intPropDef.getMinValue() != null && bigint.compareTo(intPropDef.getMinValue()) < 0)
-								|| (intPropDef.getMaxValue() != null
-										&& bigint.compareTo(intPropDef.getMaxValue()) > 0)) {
-							throw new CmisConstraintException(propDef.getId() + " value is not in range ["
-									+ intPropDef.getMinValue() + "-" + intPropDef.getMaxValue() + "]");
+			} else {
+				switch (propDef.getPropertyType()) {
+				case STRING:
+					PropertyStringDefinition strPropDef = (PropertyStringDefinition) propDef;
+					for (String strVal : strValues) {
+						if (strPropDef.getMaxLength() != null
+								&& strVal.length() > strPropDef.getMaxLength().intValueExact()) {
+							throw new CmisConstraintException(propDef.getId() + " value size is greater than "
+									+ strPropDef.getMaxLength().toString());
 						}
-						intValues.add(bigint);
 					}
-				} catch (NumberFormatException e) {
-					throw new CmisInvalidArgumentException(propDef.getId() + " value is not an integer value!", e);
-				}
-				propertyData = new PropertyIntegerImpl(propDef.getId(), intValues);
-				break;
-			case DECIMAL:
-				List<BigDecimal> decValues = new ArrayList<BigDecimal>(strValues.size());
-				try {
+					propertyData = new PropertyStringImpl(propDef.getId(), strValues);
+					break;
+				case ID:
+					propertyData = new PropertyIdImpl(propDef.getId(), strValues);
+					break;
+				case BOOLEAN:
+					List<Boolean> boolValues = new ArrayList<Boolean>(strValues.size());
 					for (String s : strValues) {
-						decValues.add(new BigDecimal(s));
+						boolValues.add(Boolean.valueOf(s));
 					}
-				} catch (NumberFormatException e) {
-					throw new CmisInvalidArgumentException(propDef.getId() + " value is not an integer value!", e);
-				}
-				propertyData = new PropertyDecimalImpl(propDef.getId(), decValues);
-				break;
-			case DATETIME:
-				List<GregorianCalendar> calValues = new ArrayList<GregorianCalendar>(strValues.size());
-				for (String s : strValues) {
-					GregorianCalendar cal;
+					propertyData = new PropertyBooleanImpl(propDef.getId(), boolValues);
+					break;
+				case INTEGER:
+					PropertyIntegerDefinition intPropDef = (PropertyIntegerDefinition) propDef;
+					List<BigInteger> intValues = new ArrayList<BigInteger>(strValues.size());
 					try {
-						long timestamp = Long.parseLong(s);
-						cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-						cal.setTimeInMillis(timestamp);
+						for (String s : strValues) {
+							BigInteger bigint = new BigInteger(s);
+							if ((intPropDef.getMinValue() != null && bigint.compareTo(intPropDef.getMinValue()) < 0)
+									|| (intPropDef.getMaxValue() != null
+											&& bigint.compareTo(intPropDef.getMaxValue()) > 0)) {
+								throw new CmisConstraintException(propDef.getId() + " value is not in range ["
+										+ intPropDef.getMinValue() + "-" + intPropDef.getMaxValue() + "]");
+							}
+							intValues.add(bigint);
+						}
 					} catch (NumberFormatException e) {
-						cal = DateTimeHelper.parseXmlDateTime(s);
+						throw new CmisInvalidArgumentException(propDef.getId() + " value is not an integer value!", e);
+					}
+					propertyData = new PropertyIntegerImpl(propDef.getId(), intValues);
+					break;
+				case DECIMAL:
+					List<BigDecimal> decValues = new ArrayList<BigDecimal>(strValues.size());
+					try {
+						for (String s : strValues) {
+							decValues.add(new BigDecimal(s));
+						}
+					} catch (NumberFormatException e) {
+						throw new CmisInvalidArgumentException(propDef.getId() + " value is not an integer value!", e);
+					}
+					propertyData = new PropertyDecimalImpl(propDef.getId(), decValues);
+					break;
+				case DATETIME:
+					List<GregorianCalendar> calValues = new ArrayList<GregorianCalendar>(strValues.size());
+					for (String s : strValues) {
+						GregorianCalendar cal;
+						try {
+							long timestamp = Long.parseLong(s);
+							cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+							cal.setTimeInMillis(timestamp);
+						} catch (NumberFormatException e) {
+							cal = DateTimeHelper.parseXmlDateTime(s);
+						}
+
+						if (cal == null) {
+							throw new CmisInvalidArgumentException(
+									propDef.getId() + " value is not an datetime value!");
+						}
+
+						calValues.add(cal);
 					}
 
-					if (cal == null) {
-						throw new CmisInvalidArgumentException(propDef.getId() + " value is not an datetime value!");
-					}
-
-					calValues.add(cal);
+					propertyData = new PropertyDateTimeImpl(propDef.getId(), calValues);
+					break;
+				case HTML:
+					propertyData = new PropertyHtmlImpl(propDef.getId(), strValues);
+					break;
+				case URI:
+					propertyData = new PropertyUriImpl(propDef.getId(), strValues);
+					break;
+				default:
+					assert false;
 				}
-
-				propertyData = new PropertyDateTimeImpl(propDef.getId(), calValues);
-				break;
-			case HTML:
-				propertyData = new PropertyHtmlImpl(propDef.getId(), strValues);
-				break;
-			case URI:
-				propertyData = new PropertyUriImpl(propDef.getId(), strValues);
-				break;
-			default:
-				assert false;
 			}
-
 			return propertyData;
 		}
 
@@ -350,19 +354,14 @@ public class CmisPropertyConverter {
 		}
 	}
 
-	private static void invokeEncryptBeforeCreate(IObjectFlowService objectFlowService, String repositoryId,
+	private static boolean invokeEncryptBeforeCreate(IObjectFlowService objectFlowService, String repositoryId,
 			ObjectFlowType invokeMethod, String typeId, String propId, List<String> strValues) {
+		boolean resultFlow = false;
 		if (objectFlowService != null) {
 			try {
 				LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
-				boolean resultFlow = false;
 				if (ObjectFlowType.ENCRYPT.equals(invokeMethod)) {
 					resultFlow = objectFlowService.beforeEncrypt(repositoryId, typeId, propId, strValues);
-				}
-				if (!resultFlow) {
-					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
-					throw new IllegalArgumentException(
-							"Operation failed with ObjectFlowService for InvokeMethod: " + invokeMethod);
 				}
 			} catch (Exception ex) {
 				LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
@@ -370,5 +369,6 @@ public class CmisPropertyConverter {
 				throw new IllegalArgumentException(ex.getMessage());
 			}
 		}
+		return resultFlow;
 	}
 }

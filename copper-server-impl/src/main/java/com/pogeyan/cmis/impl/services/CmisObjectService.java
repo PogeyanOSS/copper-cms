@@ -1370,6 +1370,8 @@ public class CmisObjectService {
 					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
+						valueOfType = invokeDecryptAfterCreate(objectFlowService, repositoryId, ObjectFlowType.ENCRYPT,
+								typeId.getId(), id, valueOfType, propertyType);
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -1377,7 +1379,7 @@ public class CmisObjectService {
 										BigInteger.valueOf(valueBigInteger), userObject);
 							} else if (valueOfType instanceof List<?>) {
 								List<BigInteger> value = convertInstanceOfObject(valueOfType, List.class);
-								addPropertyString(repositoryId, props, typeId, filter, id, value, userObject);
+								addPropertyBigInteger(repositoryId, props, typeId, filter, id, value, userObject);
 							}
 
 						} else if (propertyType == PropertyType.BOOLEAN) {
@@ -1423,15 +1425,6 @@ public class CmisObjectService {
 							}
 
 						} else if (propertyType == PropertyType.DECIMAL) {
-							if (valueOfType instanceof Integer) {
-								int intValue = ((Integer) valueOfType).intValue();
-								Double valueOfType1 = new Double(intValue);
-								if (valueOfType1 instanceof Double) {
-									Double value = convertInstanceOfObject(valueOfType1, Double.class);
-									addPropertyBigDecimal(repositoryId, props, typeId, filter, id,
-											BigDecimal.valueOf(value), userObject);
-								}
-							}
 							if (valueOfType instanceof Double) {
 								Double value = convertInstanceOfObject(valueOfType, Double.class);
 								addPropertyBigDecimal(repositoryId, props, typeId, filter, id,
@@ -1456,8 +1449,6 @@ public class CmisObjectService {
 							}
 
 						} else if (propertyType == PropertyType.STRING) {
-							valueOfType = invokeDecryptAfterCreate(objectFlowService, repositoryId,
-									ObjectFlowType.ENCRYPT, typeId.getId(), id, valueOfType);
 							if (valueOfType instanceof String) {
 								String value = convertInstanceOfObject(valueOfType, String.class);
 								addPropertyString(repositoryId, props, typeId, filter, id, value, userObject);
@@ -1478,6 +1469,53 @@ public class CmisObjectService {
 					}
 				}
 			}
+		}
+
+		@SuppressWarnings("unchecked")
+		private static Object convertDecryptProperties(Object valueOfType, PropertyType propertyType) {
+
+			if (propertyType == PropertyType.INTEGER) {
+				if (valueOfType instanceof String) {
+					valueOfType = Integer.valueOf((String) valueOfType);
+				} else if (valueOfType instanceof List<?>) {
+					List<Integer> values = ((ArrayList<String>) valueOfType).stream()
+							.map(v -> Integer.valueOf((String) v)).collect(Collectors.toList());
+					valueOfType = values;
+				}
+			} else if (propertyType == PropertyType.BOOLEAN) {
+				if (valueOfType instanceof String) {
+					valueOfType = Boolean.valueOf((String) valueOfType);
+				} else if (valueOfType instanceof List<?>) {
+					List<Boolean> values = ((ArrayList<String>) valueOfType).stream()
+							.map(v -> Boolean.valueOf((String) v)).collect(Collectors.toList());
+					valueOfType = values;
+				}
+			} else if (propertyType == PropertyType.DATETIME) {
+				if (valueOfType instanceof String) {
+					GregorianCalendar gc = new GregorianCalendar();
+					gc.setTimeInMillis(Long.valueOf((String) valueOfType));
+					valueOfType = gc;
+				} else if (valueOfType instanceof List<?>) {
+					List<GregorianCalendar> calenderList = new ArrayList<>();
+					((ArrayList<String>) valueOfType).forEach(v -> {
+						GregorianCalendar lastModifiedCalender = new GregorianCalendar();
+						lastModifiedCalender.setTimeInMillis(Long.valueOf((String) v));
+						calenderList.add(lastModifiedCalender);
+					});
+				}
+			} else if (propertyType == PropertyType.DECIMAL) {
+				if (valueOfType instanceof Integer) {
+					int intValue = ((Integer) valueOfType).intValue();
+					valueOfType = new Double(intValue);
+				} else if (valueOfType instanceof String) {
+					valueOfType = Double.valueOf((String) valueOfType);
+				} else if (valueOfType instanceof List<?>) {
+					List<Double> values = ((ArrayList<String>) valueOfType).stream()
+							.map(v -> Double.valueOf((String) v)).collect(Collectors.toList());
+					valueOfType = values;
+				}
+			}
+			return valueOfType;
 		}
 
 		/**
@@ -2416,7 +2454,6 @@ public class CmisObjectService {
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
 					removeAces);
-			// Properties propertiesNew = properties;
 
 			List<String> secondaryObjectTypeIds = null;
 			PropertyData<?> pdType = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
@@ -5181,7 +5218,8 @@ public class CmisObjectService {
 		}
 
 		private static Object invokeDecryptAfterCreate(IObjectFlowService objectFlowService, String repositoryId,
-				ObjectFlowType invokeMethod, String typeId, String propId, Object propValue) {
+				ObjectFlowType invokeMethod, String typeId, String propId, Object propValue,
+				PropertyType propertyType) {
 			if (objectFlowService != null) {
 				try {
 					LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
@@ -5194,6 +5232,7 @@ public class CmisObjectService {
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
+			propValue = convertDecryptProperties(propValue, propertyType);
 			return propValue;
 		}
 
