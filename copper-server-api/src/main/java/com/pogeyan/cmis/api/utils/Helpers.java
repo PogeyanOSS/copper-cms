@@ -252,7 +252,7 @@ public class Helpers {
 
 	public static String[] getPrincipalIds(IUserObject userObject) {
 		List<String> principalIds = Stream.of(userObject.getGroups())
-				.map(t -> t.getGroupDN().contains("::") == true ? t.getGroupDN().split("::")[1] : t.getGroupDN())
+				.map(t ->  t.getGroupDN())
 				.collect(Collectors.<String>toList());
 		principalIds.add(userObject.getUserDN());
 		return principalIds.toArray(new String[principalIds.size()]);
