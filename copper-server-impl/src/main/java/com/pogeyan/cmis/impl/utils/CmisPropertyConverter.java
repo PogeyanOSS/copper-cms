@@ -51,9 +51,9 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
-import com.pogeyan.cmis.api.data.IObjectFlowService;
-import com.pogeyan.cmis.api.data.common.ObjectFlowType;
-import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
+import com.pogeyan.cmis.api.data.IObjectEncryptService;
+import com.pogeyan.cmis.api.data.common.EncryptType;
+import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class CmisPropertyConverter {
@@ -96,7 +96,7 @@ public class CmisPropertyConverter {
 
 			// create properties
 			PropertiesImpl result = new PropertiesImpl();
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			for (Map.Entry<String, List<String>> property : properties.entrySet()) {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null) {
@@ -108,7 +108,7 @@ public class CmisPropertyConverter {
 				}
 
 				result.addProperty(createPropertyData(objectTypeIdsValues.get(0), propDef, property.getValue(),
-						repositoryId, objectFlowService));
+						repositoryId, encryptService));
 			}
 
 			return result;
@@ -165,7 +165,7 @@ public class CmisPropertyConverter {
 
 			// create properties
 			PropertiesImpl result = new PropertiesImpl();
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			for (Map.Entry<String, List<String>> property : properties.entrySet()) {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null && objectIds != null) {
@@ -198,7 +198,7 @@ public class CmisPropertyConverter {
 				}
 
 				result.addProperty(
-						createPropertyData(typeId, propDef, property.getValue(), repositoryId, objectFlowService));
+						createPropertyData(typeId, propDef, property.getValue(), repositoryId, encryptService));
 			}
 
 			LOG.debug("createUpdateProperties on objectIds: {} are : resultProperties{}", objectIds,
@@ -209,7 +209,7 @@ public class CmisPropertyConverter {
 
 		@SuppressWarnings("unchecked")
 		private static PropertyData<?> createPropertyData(String typeId, PropertyDefinition<?> propDef, Object value,
-				String repositoryId, IObjectFlowService objectFlowService) {
+				String repositoryId, IObjectEncryptService encryptService) {
 			List<String> strValues;
 			if (value == null) {
 				strValues = Collections.emptyList();
@@ -222,7 +222,7 @@ public class CmisPropertyConverter {
 			}
 
 			PropertyData<?> propertyData = null;
-			boolean result = invokeEncryptBeforeCreate(objectFlowService, repositoryId, ObjectFlowType.ENCRYPT, typeId,
+			boolean result = invokeEncryptBeforeCreate(encryptService, repositoryId, EncryptType.ENCRYPT, typeId,
 					propDef.getId(), strValues);
 			if (result) {
 				propertyData = new PropertyStringImpl(propDef.getId(), strValues);
@@ -354,13 +354,13 @@ public class CmisPropertyConverter {
 		}
 	}
 
-	private static boolean invokeEncryptBeforeCreate(IObjectFlowService objectFlowService, String repositoryId,
-			ObjectFlowType invokeMethod, String typeId, String propId, List<String> strValues) {
+	private static boolean invokeEncryptBeforeCreate(IObjectEncryptService objectFlowService, String repositoryId,
+			EncryptType invokeMethod, String typeId, String propId, List<String> strValues) {
 		boolean resultFlow = false;
 		if (objectFlowService != null) {
 			try {
 				LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
-				if (ObjectFlowType.ENCRYPT.equals(invokeMethod)) {
+				if (EncryptType.ENCRYPT.equals(invokeMethod)) {
 					resultFlow = objectFlowService.beforeEncrypt(repositoryId, typeId, propId, strValues);
 				}
 			} catch (Exception ex) {

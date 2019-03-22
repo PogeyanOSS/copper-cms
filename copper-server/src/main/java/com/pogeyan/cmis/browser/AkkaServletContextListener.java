@@ -48,6 +48,7 @@ import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 import com.pogeyan.cmis.api.data.IDBClientFactory;
+import com.pogeyan.cmis.api.data.IObjectEncryptFactory;
 import com.pogeyan.cmis.api.data.IObjectFlowFactory;
 import com.pogeyan.cmis.api.data.ITracingService;
 import com.pogeyan.cmis.api.data.ITypePermissionFactory;
@@ -59,6 +60,7 @@ import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
@@ -80,6 +82,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_ACTOR_CLASS = "actorManagerClass";
 	private static final String PROPERTY_CACHE_PROVIDER_CLASS = "cacheProviderManagerClass";
 	private static final String PROPERTY_OBJECT_FLOW_CLASS = "objectFlowManagerClass";
+	private static final String PROPERTY_ENCRYPTION_CLASS = "encryptionManagerClass";
 	private static final String PROPERTY_TYPE_PERMISSION_CLASS = "typePermissionManagerClass";
 	private static final String DEFAULT_TYPE_PERMISSION_CLASS = "com.pogeyan.cmis.impl.TypePermission.DefaultTypePermissionServiceFlowFactory";
 	private static final String PROPERTY_INTERVAL_TIME = "intervalTime";
@@ -231,6 +234,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		String externalActorClassName = props.getProperty(PROPERTY_ACTOR_CLASS);
 		String ObjectFlowServiceClass = props.getProperty(PROPERTY_OBJECT_FLOW_CLASS);
+		String encryptionServiceClass = props.getProperty(PROPERTY_ENCRYPTION_CLASS);
 
 		String typePermissionServiceClass = props.getProperty(PROPERTY_TYPE_PERMISSION_CLASS);
 		if (typePermissionServiceClass == null) {
@@ -243,13 +247,13 @@ public class AkkaServletContextListener implements ServletContextListener {
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, intevalTime);
 		if (mainCLassInitialize) {
+			boolean encryptServicePermission = encryptionServiceClass != null
+					? initializeEncryptionFactory(encryptionServiceClass) : true;
 			boolean checkObjectServicePermission = ObjectFlowServiceClass != null
-					? ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass)
-					: true;
-			if (checkObjectServicePermission) {
+					? ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass) : true;
+			if (checkObjectServicePermission && encryptServicePermission) {
 				return true;
 			}
-
 		}
 		return false;
 	}
@@ -264,8 +268,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
 						checkExternalActor = externalActorClassName != null
-								? externalActorFactoryClassinitializeExtensions(externalActorClassName)
-								: true;
+								? externalActorFactoryClassinitializeExtensions(externalActorClassName) : true;
 					}
 				}
 			}
@@ -350,7 +353,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 			return false;
 		}
 		return true;
-
 	}
 
 	private static void typePermissionFlowFactoryClassinitializeExtensions(String typePermissionServiceClassName) {
@@ -406,4 +408,17 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 	}
 
+	private static boolean initializeEncryptionFactory(String encryptionServiceClassName) {
+		try {
+			LOG.info("Initialized Encryption Services Factory Class: {}", encryptionServiceClassName);
+			Class<?> encryptionServiceClassFactory = Class.forName(encryptionServiceClassName);
+			IObjectEncryptFactory encryptActorFactory = (IObjectEncryptFactory) encryptionServiceClassFactory
+					.newInstance();
+			EncryptionFactory.setEncryptFactory(encryptActorFactory);
+		} catch (Exception e) {
+			LOG.error("Could not create a encryption services factory instance: {}", e);
+			return false;
+		}
+		return true;
+	}
 }

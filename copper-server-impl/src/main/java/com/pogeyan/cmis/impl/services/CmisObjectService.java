@@ -90,11 +90,13 @@ import com.pogeyan.cmis.api.CustomTypeId;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.IObjectEncryptService;
 import com.pogeyan.cmis.api.data.IObjectFlowService;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.EncryptType;
 import com.pogeyan.cmis.api.data.common.ObjectFlowType;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
@@ -111,6 +113,7 @@ import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
@@ -1362,7 +1365,7 @@ public class CmisObjectService {
 				}
 			});
 
-			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
@@ -1370,7 +1373,7 @@ public class CmisObjectService {
 					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
-						valueOfType = invokeDecryptAfterCreate(objectFlowService, repositoryId, ObjectFlowType.ENCRYPT,
+						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
 								typeId.getId(), id, valueOfType, propertyType);
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
@@ -5217,13 +5220,12 @@ public class CmisObjectService {
 			}
 		}
 
-		private static Object invokeDecryptAfterCreate(IObjectFlowService objectFlowService, String repositoryId,
-				ObjectFlowType invokeMethod, String typeId, String propId, Object propValue,
-				PropertyType propertyType) {
+		private static Object invokeDecryptAfterCreate(IObjectEncryptService objectFlowService, String repositoryId,
+				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType) {
 			if (objectFlowService != null) {
 				try {
 					LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
-					if (ObjectFlowType.ENCRYPT.equals(invokeMethod)) {
+					if (EncryptType.DECRYPT.equals(invokeMethod)) {
 						propValue = objectFlowService.afterEncrypt(repositoryId, typeId, propId, propValue);
 					}
 				} catch (Exception ex) {

@@ -23,8 +23,4 @@ public interface IObjectFlowService {
 	public void afterUpdate(IBaseObject resultData, Map<String, Object> updateValues);
 
 	public void afterDeletion(IBaseObject resultData);
-
-	public boolean beforeEncrypt(String repositoryId, String typeId, String propId, List<String> properties);
-
-	public Object afterEncrypt(String repositoryId, String typeId, String propId, Object propValue);
 }
