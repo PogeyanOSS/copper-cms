@@ -16,6 +16,7 @@
 package com.pogeyan.cmis.actors;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -403,33 +404,49 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		JSONParser parser = new JSONParser();
-		Object json = null;
-		try {
-			json = parser.parse(request.getRequestBody());
-		} catch (JSONParseException e) {
-			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId() : null);
-			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(TracingWriter
-							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
-							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+		List<String> objectIds = new ArrayList<>();
+		if (request.getPropertyData() != null) {
+			objectIds = request.getPropertyData().get("ids");
+		} else {
+			JSONParser parser = new JSONParser();
+			Object json = null;
+			try {
+				json = parser.parse(request.getRequestBody());
+			} catch (JSONParseException e) {
+				LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
+						? span.getTraceId() : null);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
+								ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			}
+			if (!(json instanceof Map)) {
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span),
+								ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisInvalidArgumentException(TracingWriter
+						.log(String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span));
+			}
+			Map<String, List<String>> jMap = (Map<String, List<String>>) json;
+			objectIds = jMap.get("ids");
 		}
-		if (!(json instanceof Map)) {
+		LOG.info("Method name: {}, fetching all objects, repositoryId: {}, idList: {}", "getAllObjects",
+				request.getRepositoryId(), objectIds);
+		if (objectIds == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(TracingWriter
-							.log(String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.INVALID_EXCEPTION), span),
 							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisInvalidArgumentException(
-					TracingWriter.log(String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span));
+					TracingWriter.log(String.format(ErrorMessages.INVALID_EXCEPTION), span));
 		}
-		Map<String, List<String>> jMap = (Map<String, List<String>>) json;
-		LOG.info("Method name: {}, fetching all objects, repositoryId: {}, idList: {}", "getAllObjects",
-				request.getRepositoryId(), jMap.get("ids"));
 		ObjectInFolderList children = CmisNavigationService.Impl.getAllObjects(request.getRepositoryId(),
-				request.getUserObject(), jMap.get("ids"), tracingId, span);
+				request.getUserObject(), objectIds, tracingId, span);
 
 		if (children == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
