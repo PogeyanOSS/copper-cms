@@ -80,7 +80,6 @@ import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(ObjectActor.class);
-	private static final String ROOT = "@ROOT@";
 
 	@Override
 	public String getName() {
@@ -186,18 +185,16 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = t.getObjectId();
 		String typeId = t.getParameter("typeId");
-//		boolean acessPermission = false;
 		String[] principalIds = Helpers.getPrincipalIds(t.getUserObject());
 		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, objectId, null, typeId);
-//		acessPermission = CmisObjectService.Impl.getAclAccess(t.getRepositoryId(), data, t.getUserObject());
 		if (data == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.ACCESS_DENIED, t.getUserName()), span),
+							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisObjectNotFoundException(
-					TracingWriter.log(String.format(ErrorMessages.ACCESS_DENIED, t.getUserName()), span));
+					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span));
 		}
 
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
@@ -749,7 +746,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String[] principalIds = Helpers.getPrincipalIds(request.getUserObject());
 		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), principalIds, objectId, null,
 				request.getTypeId());
-		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), null,objectId,
+		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), null, objectId,
 				request.getTypeId());
 		String changeToken = request.getParameter(QueryGetRequest.CONTROL_CHANGE_TOKEN);
 		String token = request.getParameter(QueryGetRequest.PARAM_TOKEN);

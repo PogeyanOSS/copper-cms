@@ -16,13 +16,11 @@
 package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -91,8 +89,8 @@ public class CmisAclServices {
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclRemove);
-			String[] principalIds = Helpers.getPrincipalIds(user);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
+//			String[] principalIds = Helpers.getPrincipalIds(user);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, null, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
 						repositoryId, span);

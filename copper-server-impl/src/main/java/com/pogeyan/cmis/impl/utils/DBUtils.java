@@ -103,7 +103,7 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, false, 0, 0,
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, false, false, 0, 0,
 					null, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
