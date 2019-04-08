@@ -59,7 +59,7 @@ public class CmisRelationshipService {
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject so = null;
 			try {
-				so = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
+				so = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
 						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
@@ -97,17 +97,17 @@ public class CmisRelationshipService {
 			List<ObjectData> odList = null;
 			List<? extends IBaseObject> totalSize = null;
 			if (relationshipDirection == RelationshipDirection.SOURCE) {
-				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
+				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), true, -1,
 						-1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.SOURCE, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.TARGET) {
-				totalSize = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId, so.getId().toString(), -1,
+				totalSize = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId, so.getId().toString(), true, -1,
 						-1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.TARGET, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.EITHER) {
-				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), -1,
+				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), true, -1,
 						-1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.BOTH, so, userObject, maxItemsInt, skipCountInt, filterArray);

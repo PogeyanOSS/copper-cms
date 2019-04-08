@@ -186,7 +186,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = t.getObjectId();
 		String typeId = t.getParameter("typeId");
 		String[] principalIds = Helpers.getPrincipalIds(t.getUserObject());
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, objectId, null, typeId);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, true, objectId, null, typeId);
 		if (data == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
@@ -744,7 +744,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = request.getObjectId();
 		String[] principalIds = Helpers.getPrincipalIds(request.getUserObject());
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), principalIds, objectId, null,
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), principalIds, true, objectId, null,
 				request.getTypeId());
 		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), null, objectId,
 				request.getTypeId());

@@ -60,7 +60,7 @@ public class CmisAclServices {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::getAcl", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId,
 						repositoryId, span);
@@ -89,8 +89,8 @@ public class CmisAclServices {
 			List<String> id = new ArrayList<String>();
 			Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclRemove);
-//			String[] principalIds = Helpers.getPrincipalIds(user);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, null, objectId, null, typeId);
+			String[] principalIds = Helpers.getPrincipalIds(user);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
 						repositoryId, span);
@@ -122,7 +122,7 @@ public class CmisAclServices {
 				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
 				break;
 			}
-			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, null, objectId, null,
+			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null,
 					data.getTypeId());
 
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);

@@ -833,7 +833,7 @@ public class CmisTypeServices {
 				// MongoStorageDocument.createStorageService(parameters,
 				// repositoryId, type);
 				// localService.deleteFolder(parameters, repositoryId, type);
-				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, "/" + type, type);
+				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, true, "/" + type, type);
 				if (folderObject != null) {
 					baseMorphiaDAO.delete(repositoryId, principalIds, folderObject.getId(), true, null, type);
 				}

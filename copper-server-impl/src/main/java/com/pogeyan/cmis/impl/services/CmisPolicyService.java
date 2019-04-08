@@ -56,7 +56,7 @@ public class CmisPolicyService {
 				principalIds = null;
 			}
 
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAppliedPolicies",
@@ -72,7 +72,7 @@ public class CmisPolicyService {
 			List<String> polIds = data.getPolicies();
 			if (null != polIds && polIds.size() > 0) {
 				for (String polId : polIds) {
-					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, polId, null,
+					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, polId, null,
 							data.getTypeId());
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
 							false, true, null, null, IncludeRelationships.NONE, userObject, tracingId, span);
@@ -97,7 +97,7 @@ public class CmisPolicyService {
 					"CmisPolicyService::removePolicy", null);
 			List<String> polIds = null;
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "removePolicy",
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
@@ -140,7 +140,7 @@ public class CmisPolicyService {
 					"CmisPolicyService::applyPolicy", null);
 			List<String> polIds = null;
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, objectId, null, typeId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyPolicy",
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
@@ -152,7 +152,7 @@ public class CmisPolicyService {
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
-			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, policyId, null, data.getTypeId());
+			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, policyId, null, data.getTypeId());
 			if (policy == null) {
 				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy", policyId,
 						repositoryId, span != null ? span.getTraceId() : null);

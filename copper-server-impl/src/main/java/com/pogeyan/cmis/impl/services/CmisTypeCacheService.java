@@ -54,7 +54,7 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public TypeDefinition getTypeDefinitionForObject(String objectId) {
-		IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, null, objectId, null, null);
+		IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, null, false, objectId, null, null);
 		if (object != null) {
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
 					Arrays.asList(object.getTypeId()), null);

@@ -175,8 +175,8 @@ public class CmisVersioningServices {
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
 			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
-			latestVersionDocument = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, docObj.getId(), null,
-					data.getTypeId());
+			latestVersionDocument = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, docObj.getId(),
+					null, data.getTypeId());
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, latestVersionDocument,
 					filterCollection, true, false, true, null, null, null, userObject, tracingId, span);
 			if (objectData != null) {

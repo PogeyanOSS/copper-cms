@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.pogeyan.cmis.acl.content.HierarchyActor;
 import com.pogeyan.cmis.actors.AclActor;
 import com.pogeyan.cmis.actors.DiscoveryActor;
 import com.pogeyan.cmis.actors.NavigationActor;
@@ -93,6 +94,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
 	private static final String PROPERTY_DB_CLIENT_FACTORY = "cbmClientFactory";
 	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
+	private static final String PROPERTY_HIERARCHY_ACTOR = "hierarchyManagerClass";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 
@@ -123,7 +125,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		LOG.info("Initializing service factory instances");
 		try {
-			boolean factory = createServiceFactory(sce, configFilename);
+			boolean factory = createServiceFactory(sce, system, configFilename);
 			if (!factory) {
 				throw new IllegalArgumentException("Repository manager class not initilaized");
 			}
@@ -151,7 +153,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 		system.terminate();
 	}
 
-	private boolean createServiceFactory(ServletContextEvent sce, String fileName) throws FileNotFoundException {
+	private boolean createServiceFactory(ServletContextEvent sce, ActorSystem system, String fileName)
+			throws FileNotFoundException {
 		// load properties
 		InputStream stream = null;
 		try {
@@ -239,6 +242,11 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass);
 		initializeTracingApiServiceFactory(traceApiClass);
+
+		String hierarchyActorClass = props.getProperty(PROPERTY_HIERARCHY_ACTOR);
+		if (hierarchyActorClass != null) {
+			system.actorOf(Props.create(HierarchyActor.class), "hierarchyActor");
+		}
 
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, intevalTime);
