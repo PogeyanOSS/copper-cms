@@ -258,7 +258,7 @@ public class ServletHelpers {
 
 		postRequest.setParameterMap(HttpUtils.getParameterMap(request));
 		postRequest.setBaseUrl((String) request.getAttribute(BrowserConstants.BASE_URL_ATTRIBUTE));
-		postRequest.setScheme(request.getScheme());
+		postRequest.setScheme(request.isSecure() ? BrowserConstants.HTTPS : BrowserConstants.HTTP);
 		postRequest.setServerName(request.getServerName());
 		postRequest.setServerPort(request.getServerPort());
 		postRequest.setContextPath(request.getContextPath());
@@ -309,7 +309,7 @@ public class ServletHelpers {
 		QueryGetRequest queryRequest = new QueryGetRequest();
 		queryRequest.setParameterMap(HttpUtils.getParameterMap(request));
 		queryRequest.setBaseUrl((String) request.getAttribute(BrowserConstants.BASE_URL_ATTRIBUTE));
-		queryRequest.setScheme(request.getScheme());
+		queryRequest.setScheme(request.isSecure() ? BrowserConstants.HTTPS : BrowserConstants.HTTP);
 		queryRequest.setServerName(request.getServerName());
 		queryRequest.setServerPort(request.getServerPort());
 		queryRequest.setContextPath(request.getContextPath());

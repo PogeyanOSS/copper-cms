@@ -34,4 +34,6 @@ public class BrowserConstants {
 	public static final String SELECTOR_OBJECT = "object";
 	public static final String TRACINGID = "TracingId";
 	public static final String PARENT_SPAN = "ParentSpan";
+	public static final String HTTPS = "https";
+	public static final String HTTP = "http";
 }
