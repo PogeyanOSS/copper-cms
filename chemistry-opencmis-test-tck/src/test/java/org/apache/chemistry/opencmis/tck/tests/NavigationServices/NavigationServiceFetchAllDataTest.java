@@ -8,8 +8,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
@@ -62,7 +60,14 @@ public class NavigationServiceFetchAllDataTest extends AbstractSessionTest {
 				String repoId = session.getRepositoryInfo().getId();
 				JSONObject data = fetchAllObjectsData(repoId, docIds);
 				Map<String, ArrayList<Object>> relMap = formRawData(session, (ArrayList<Object>) data.get("objects"));
-				boolean isAllPresent = docIds.stream().anyMatch(id -> relMap.containsKey(id));
+				boolean isAllPresent = false;
+				for (Object id : docIds) {
+					if (relMap.containsKey(id)) {
+						isAllPresent = true;
+					} else {
+						isAllPresent = false;
+					}
+				}
 				f = createResult(FAILURE, "All ids not present!");
 				addResult(assertEquals(true, isAllPresent, null, f));
 				f = createResult(FAILURE,
@@ -87,7 +92,7 @@ public class NavigationServiceFetchAllDataTest extends AbstractSessionTest {
 
 		Map<String, ArrayList<Object>> relMap = new LinkedHashMap<String, ArrayList<Object>>();
 		if (relationData != null) {
-			relationData.forEach(relObj -> {
+			for (Object relObj : relationData) {
 				LinkedHashMap<Object, Object> relObjMap = (LinkedHashMap<Object, Object>) relObj;
 				LinkedHashMap<Object, Object> object1 = (LinkedHashMap<Object, Object>) relObjMap.get("object");
 				LinkedHashMap<Object, Object> succintProps = (LinkedHashMap<Object, Object>) object1
@@ -96,7 +101,7 @@ public class NavigationServiceFetchAllDataTest extends AbstractSessionTest {
 				ArrayList<Object> value = new ArrayList<Object>();
 				value.add(succintProps);
 				relMap.put(id, value);
-			});
+			}
 		}
 		return relMap;
 

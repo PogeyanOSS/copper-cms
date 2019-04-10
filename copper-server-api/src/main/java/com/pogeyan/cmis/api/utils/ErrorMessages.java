@@ -2,6 +2,7 @@ package com.pogeyan.cmis.api.utils;
 
 public class ErrorMessages {
 
+	
 	public static String NOT_SUPPORTED_EXCEPTION = "CmisNotSupportedException";
 	public static String UPDATE_EXCEPTION = "CmisUpdateConflictException";
 	public static String MONGO_EXCEPTION = "mongoException";
@@ -17,6 +18,7 @@ public class ErrorMessages {
 	public static String RELATIONSHIP_NULL = "Relationships are null";
 	public static String EXCEPTION = "exception: %s";
 	public static String OBJECT_NULL = "Object is null";
+	public static String OBJECT_NULL_OR_ACCESS_DENIED = "Object is null or, %s doesnt have valid access permission to access this object";
 	public static String POLICY_NOT_APPLIED = "Policy id: %s, cannot be removed because it is not applied to object: %s";
 	public static String UNKNOWN_POLICY_ID = "Unknown policy id: %s";
 	public static String POLICY_NOT_ADDED = "Policy id: %s, cannot be added because it is already applied to object: %s";
@@ -64,7 +66,7 @@ public class ErrorMessages {
 	public static String TYPEID_MUST_USE_BASE_TYPE = "TypeId must use cmis base type: %s";
 	public static String CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE = "Cannot create a relationship, with a non-relationship type";
 	public static String WRONG_SOURCEID = "Wrong sourceId,SourceObject should not be null";
-	public static String WRONG_TARGETID = "Wrong sourceId,TargetObject should not be null";
+	public static String WRONG_TARGETID = "Wrong targetId,TargetObject should not be null";
 	public static String IMPOSSIBLE_CREATE_FOLDER = "Impossible to create folder properties";
 	public static String RELATIONMD_NOT_PRESENT = "Relationmd not present";
 	public static String SOURCETABLE_NOT_PRESENT = "SourceTable not present in relationShipObject";

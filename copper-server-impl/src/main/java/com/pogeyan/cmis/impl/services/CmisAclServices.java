@@ -90,7 +90,7 @@ public class CmisAclServices {
 			Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
 			Acl removeAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclRemove);
 			String[] principalIds = Helpers.getPrincipalIds(user);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
 						repositoryId, span);

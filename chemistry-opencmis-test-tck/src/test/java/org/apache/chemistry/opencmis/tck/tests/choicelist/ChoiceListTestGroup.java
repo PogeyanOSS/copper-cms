@@ -13,5 +13,6 @@ public class ChoiceListTestGroup extends AbstractSessionTestGroup {
 		addTest(new ChoiceListTest());
 		addTest(new HardChoiceListTest());
 		addTest(new SecondaryTypeHardChoiceTest());
+		addTest(new MinMaxvaluesTest());
 	}
 }

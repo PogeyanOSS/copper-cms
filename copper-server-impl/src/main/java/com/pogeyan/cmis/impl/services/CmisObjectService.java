@@ -2745,16 +2745,12 @@ public class CmisObjectService {
 			// validate ACL
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			String sourceTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, sourceId, null,
-					typeId) != null
-							? DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, sourceId, null, typeId)
-									.getTypeId()
-							: null;
-			String targetTypeId = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, targetId, null,
-					typeId) != null
-							? DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, targetId, null, typeId)
-									.getTypeId()
-							: null;
+			IBaseObject sourceObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, sourceId, null,
+					typeId);
+			IBaseObject targetObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, targetId, null,
+					typeId);
+			String sourceTypeId = sourceObj != null ? sourceObj.getTypeId() : null;
+			String targetTypeId = targetObj != null ? targetObj.getTypeId() : null;
 			if (sourceTypeId == null) {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
 						"wrong sourceId,SourceObject should not be null", repositoryId,
@@ -2886,10 +2882,8 @@ public class CmisObjectService {
 					"CmisObjectService::validateRelationshipDocuments", null);
 			LOG.debug("ValidateRelationships documents for source: {}, target: {}", sourceTypeId, targetTypeId);
 
-			Map<String, Object> relationProps = DBUtils.BaseDAO.getByName(repositoryId, relationName, false, null,
-					typeId) != null
-							? DBUtils.BaseDAO.getByName(repositoryId, relationName, false, null, typeId).getProperties()
-							: null;
+			IBaseObject relMdObj = DBUtils.BaseDAO.getByName(repositoryId, relationName, false, null, typeId);
+			Map<String, Object> relationProps = relMdObj != null ? relMdObj.getProperties() : null;
 			if (relationProps == null) {
 				LOG.error("Relation_md object not present with name: {}, repositoryId: {}, TraceId: {}", relationName,
 						repositoryId, span != null ? span.getTraceId() : null);
