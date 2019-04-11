@@ -2745,9 +2745,9 @@ public class CmisObjectService {
 			// validate ACL
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject sourceObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, sourceId, null,
+			IBaseObject sourceObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, sourceId, null,
 					typeId);
-			IBaseObject targetObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, targetId, null,
+			IBaseObject targetObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, targetId, null,
 					typeId);
 			String sourceTypeId = sourceObj != null ? sourceObj.getTypeId() : null;
 			String targetTypeId = targetObj != null ? targetObj.getTypeId() : null;
