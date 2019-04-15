@@ -3709,7 +3709,7 @@ public class CmisObjectService {
 		/**
 		 * delete the object.
 		 */
-		public static void deleteObject(String repositoryId, String objectId, Boolean allVersions,
+		public static void deleteObject(String repositoryId, String objectId, Boolean allVersions, Boolean forceDelete,
 				IUserObject userObject, String typeId, String tracingId, ISpan parentSpan)
 				throws CmisObjectNotFoundException, CmisNotSupportedException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -3765,7 +3765,7 @@ public class CmisObjectService {
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
 			deleteObjectChildrens(repositoryId, data, baseMorphiaDAO, docMorphiaDAO, navigationMorphiaDAO, localService,
-					userObject, allVersions, typeId, tracingId, span);
+					userObject, allVersions, forceDelete, typeId, tracingId, span);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 
@@ -3774,8 +3774,8 @@ public class CmisObjectService {
 		 */
 		public static void deleteObjectChildrens(String repositoryId, IBaseObject data, MBaseObjectDAO baseMorphiaDAO,
 				MDocumentObjectDAO docMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO,
-				IStorageService localService, IUserObject userObject, Boolean allVersions, String typeId,
-				String tracingId, ISpan parentSpan) {
+				IStorageService localService, IUserObject userObject, Boolean allVersions, Boolean forceDelete,
+				String typeId, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteObjectChildrens", null);
 			if (data == null) {
@@ -3817,10 +3817,12 @@ public class CmisObjectService {
 
 						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
-					baseMorphiaDAO.delete(repositoryId, child.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, child.getId(), forceDelete == null ? false : forceDelete, token,
+							typeId);
 				}
 				localService.deleteFolder(data.getPath());
-				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, data.getId(), forceDelete == null ? false : forceDelete, token,
+						typeId);
 
 				LOG.info("ObjectId: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 
@@ -3844,7 +3846,8 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, data.getId(), forceDelete == null ? false : forceDelete, token,
+							typeId);
 					LOG.info("Object: {}, with baseType:{} is deleted", data.getId(), data.getBaseId());
 				}
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
@@ -3864,13 +3867,15 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(repositoryId, document.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, document.getId(), forceDelete == null ? false : forceDelete,
+							token, typeId);
 					LOG.info("Object: {}, with baseType: {}, document: {} deleted", data.getId(), data.getBaseId(),
 							document.getId());
 
 				}
 			} else {
-				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, data.getId(), forceDelete == null ? false : forceDelete, token,
+						typeId);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -3880,8 +3885,8 @@ public class CmisObjectService {
 		 * deleteTree from a set of properties.
 		 */
 		public static FailedToDeleteData deleteTree(String repositoryId, String folderId, Boolean allVers,
-				UnfileObject unfile, Boolean continueOnFail, IUserObject userObject, String typeId, String tracingId,
-				ISpan parentSpan) throws CmisObjectNotFoundException, CmisInvalidArgumentException,
+				Boolean forceDelete, UnfileObject unfile, Boolean continueOnFail, IUserObject userObject, String typeId,
+				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException, CmisInvalidArgumentException,
 				CmisNotSupportedException, CmisStorageException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteTree", null);
@@ -3977,7 +3982,8 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			// TODO: optimize here
 			for (IBaseObject child : children) {
-				baseMorphiaDAO.delete(repositoryId, child.getId(), false, token, child.getTypeId());
+				baseMorphiaDAO.delete(repositoryId, child.getId(), forceDelete == null ? false : forceDelete, token,
+						child.getTypeId());
 				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, child.getId(), null,
 						child.getTypeId());
 				if (childCheck != null) {
@@ -3989,7 +3995,8 @@ public class CmisObjectService {
 			// IStorageService localService =
 			// MongoStorageDocument.createStorageService(parameters);
 			// localService.deleteFolder(data.getPath());
-			baseMorphiaDAO.delete(repositoryId, folderId, false, token, data.getTypeId());
+			baseMorphiaDAO.delete(repositoryId, folderId, forceDelete == null ? false : forceDelete, token,
+					data.getTypeId());
 			IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, data.getTypeId());
 			if (parentCheck != null) {
 				failedToDeleteIds.add(folderId.toString());
