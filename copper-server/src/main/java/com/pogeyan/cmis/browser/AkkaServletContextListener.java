@@ -320,8 +320,11 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
 			Class<?> c = Class.forName(cacheProviderFactoryClassName);
 			ICacheProvider cacheProviderFactory = (ICacheProvider) c.newInstance();
+			ICacheProvider UserCacheProviderFactory = (ICacheProvider) c.newInstance();
 			CacheProviderServiceFactory.addTypeCacheService(cacheProviderFactory);
+			CacheProviderServiceFactory.addUserCacheService(UserCacheProviderFactory);
 			cacheProviderFactory.init(intervalTime);
+			UserCacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;

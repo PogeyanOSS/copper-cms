@@ -1,0 +1,19 @@
+{
+    "id": "fv:item",
+    "localName": "localName",
+    "localNamespace": "localNameSpace",
+    "displayName": "fv:item",
+    "queryName": "fv:item",
+    "description": "fv:item",
+    "baseId": "cmis:item",
+    "parentId": "cmis:item",
+    "fileable": true,
+    "queryable": true,
+    "fulltextIndexed": true,
+    "controllablePolicy": true,
+    "controllableACL": true,
+    "typeMutability": {
+        "canCreate": true,
+        "canUpdate": true
+    }
+}

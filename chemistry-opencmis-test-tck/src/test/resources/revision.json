@@ -1,0 +1,73 @@
+{
+    "id": "cmis:revision",
+    "isVersion": false,
+    "contentStream": "NOTALLOWED",
+    "localName": "cmis:revision",
+    "localNamespace": "cmis:revision",
+    "displayName": "cmis:revision",
+    "queryName": "cmis:revision",
+    "description": "MdHash RevisionID",
+    "baseId": "cmis:secondary",
+    "parentId": "cmis:secondary",
+    "isEnabled": true,
+    "isQueryable": false,
+    "isFulltextIndexed": false,
+    "isIncludedInSupertypeQuery": false,
+    "typeMutability": {
+        "canCreate": true,
+        "canUpdate": false,
+        "canDelete": true
+    },
+    "propertyDefinitions": {
+        "revisionId": {
+            "id": "revisionId",
+            "localName": "localName",
+            "localNamespace": "localNamespace",
+            "queryName": "revisionId",
+            "description": "revisionId",
+            "propertyType": "string",
+            "cardinality": "multi",
+            "updatability": "readwrite"
+        },
+        "conflictRelationId": {
+            "id": "conflictRelationId",
+            "localName": "localName",
+            "localNamespace": "localNamespace",
+            "queryName": "conflictRelationId",
+            "description": "conflictRelationId",
+            "propertyType": "string",
+            "cardinality": "multi",
+            "updatability": "readwrite"
+        },
+        "includeForReplication": {
+            "id": "includeForReplication",
+            "localName": "localName",
+            "localNamespace": "localNamespace",
+            "queryName": "includeForReplication",
+            "description": "includeForReplication",
+            "propertyType": "boolean",
+            "cardinality": "single",
+            "updatability": "readwrite"
+        },
+        "conflictMainId": {
+            "id": "conflictMainId",
+            "localName": "localName",
+            "localNamespace": "localNamespace",
+            "queryName": "conflictMainId",
+            "description": "conflictMainId",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite"
+        },
+        "hasAttachments": {
+            "id": "hasAttachments",
+            "localName": "localName",
+            "localNamespace": "localNamespace",
+            "queryName": "hasAttachments",
+            "description": "hasAttachments",
+            "propertyType": "boolean",
+            "cardinality": "single",
+            "updatability": "readwrite"
+        }
+    }
+}

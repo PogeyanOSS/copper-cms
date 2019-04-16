@@ -1,0 +1,136 @@
+{
+    "id": "fv:party",
+    "versionId": "a25418ff-6b68-4a53-b498-cd982492a6c4",
+    "localName": "localName",
+    "localNamespace": "localNameSpace",
+    "displayName": "fv:party",
+    "queryName": "fv:party",
+    "description": "Party",
+    "baseId": "cmis:item",
+    "parentId": "fv:item",
+    "fileable": true,
+    "queryable": true,
+    "fulltextIndexed": true,
+    "controllablePolicy": true,
+    "controllableACL": true,
+    "typeMutability": {
+        "canCreate": true,
+        "canUpdate": true
+    },
+    "propertyDefinitions": {
+        "fv:partyId": {
+            "id": "fv:party",
+            "displayName": "Party Id",
+            "queryName": "partyId",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true
+        },
+        "fv:partyName": {
+            "id": "fv:partyName",
+            "displayName": "Party Name",
+            "queryName": "fv:partyName",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true,
+            "maxLength": 50
+        },
+        "fv:salutation": {
+            "id": "fv:salutation",
+            "displayName": "Salutation",
+            "queryName": "fv:salutation",
+            "propertyType": "string",
+            "cardinality": "multi",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true,
+            "choice": [
+                {
+                    "displayName": "Salutation",
+                    "value": [
+                        "Mr",
+                        "Ms"
+                    ]
+                }
+            ]
+        },
+        "fv:party_firstName": {
+            "id": "fv:party_firstName",
+            "displayName": "First Name",
+            "queryName": "fv:party_firstName",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true,
+            "maxLength": 50
+        },
+        "fv:party_lastName": {
+            "id": "fv:party_lastName",
+            "displayName": "Last Name",
+            "queryName": "fv:party_lastName",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true,
+            "maxLength": 50
+        },
+        "fv:party_email": {
+            "id": "fv:party_email",
+            "displayName": "Email Address",
+            "queryName": "fv:party_email",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true,
+            "maxLength": 150
+        },
+        "fv:party_office_phone": {
+            "id": "fv:party_office_phone",
+            "displayName": "Office Phone",
+            "queryName": "fv:party_office_phone",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true,
+            "maxLength": 14
+        },
+        "fv:party_cell_phone": {
+            "id": "fv:party_cell_phone",
+            "displayName": "Cell Phone",
+            "queryName": "fv:party_cell_phone",
+            "propertyType": "string",
+            "cardinality": "single",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true,
+            "maxLength": 10
+        },
+        "fv:partyType": {
+            "id": "fv:partyType",
+            "displayName": "partyType",
+            "queryName": "fv:partyType",
+            "propertyType": "string",
+            "cardinality": "multi",
+            "updatability": "readwrite",
+            "required": true,
+            "queryable": true,
+            "orderable": true
+        }
+    }
+}
