@@ -139,7 +139,7 @@ public class CmisObjectService {
 			try {
 				MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MBaseObjectDAO.class);
-				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId, typeId);
+				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId, typeId, false);
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
 					addRootFolder(repositoryId);
@@ -205,7 +205,7 @@ public class CmisObjectService {
 				throw new CmisInvalidArgumentException(
 						TracingWriter.log(String.format(ErrorMessages.OBJECT_ID_NULL), span));
 			}
-
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			String[] filterArray = null;
 			// split filter
 			Set<String> filterCollection = splitFilter(filter);
@@ -216,7 +216,8 @@ public class CmisObjectService {
 			IBaseObject data = null;
 			try {
 				if (baseTypeId == null || baseTypeId != BaseTypeId.CMIS_DOCUMENT) {
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, filterArray, typeId);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, filterArray,
+							typeId);
 				} else {
 					data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 				}
@@ -334,7 +335,8 @@ public class CmisObjectService {
 
 			IBaseObject data = null;
 			try {
-				data = DBUtils.BaseDAO.getByPath(repositoryId, path, typeId);
+				String[] principalIds = Helpers.getPrincipalIds(userObject);
+				data = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, true, path, typeId);
 			} catch (Exception e) {
 				LOG.error("getObjectByPath Exception: {}, repository: {}, TraceId: {}", ExceptionUtils.getStackTrace(e),
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -388,7 +390,7 @@ public class CmisObjectService {
 
 			if (includeAllowableActions) {
 				AllowableActions action = getAllowableActions(repositoryId, data, null,
-						userObject == null ? null : userObject.getUserDN(), data.getTypeId(), tracingId, span);
+						userObject == null ? null : userObject, data.getTypeId(), tracingId, span);
 				result.setAllowableActions(action);
 			}
 
@@ -897,12 +899,14 @@ public class CmisObjectService {
 		}
 
 		public static AllowableActions getAllowableActions(String repositoryId, IBaseObject data, String objectId,
-				String userName, String typeId, String tracingId, ISpan parentSpan) {
+				IUserObject userObject, String typeId, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::getAllowableActions", null);
+
 			if (data == null && objectId != null) {
 				try {
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+					String[] principalIds = Helpers.getPrincipalIds(userObject);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 				} catch (Exception e) {
 					LOG.error("getAllowableActions Exception: {}, repository: {}, TraceId: {}",
 							ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
@@ -938,7 +942,7 @@ public class CmisObjectService {
 						TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
 			}
 
-			AllowableActions allowableActions = fillAllowableActions(repositoryId, data, userName);
+			AllowableActions allowableActions = fillAllowableActions(repositoryId, data, userObject.getUserDN());
 			if (allowableActions != null) {
 				LOG.debug("Allowable actions on objectId: {}, are : {}", objectId,
 						allowableActions.getAllowableActions());
@@ -1114,7 +1118,7 @@ public class CmisObjectService {
 					"CmisObjectService::getRenditions", null);
 			if (data == null && objectId != null) {
 				try {
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, null, true, objectId, null, typeId);
 				} catch (Exception e) {
 					LOG.error("getRenditions Exception: {}, repositoryId: {}, TraceId: {}",
 							ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
@@ -1186,18 +1190,20 @@ public class CmisObjectService {
 
 			if (includeRelationships == IncludeRelationships.SOURCE) {
 				List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
-						spo.getId().toString(), maxItems, skipCount, mappedColumns, spo.getTypeId());
+						spo.getId().toString(), false, maxItems, skipCount, mappedColumns, spo.getTypeId());
 				return getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, source);
 			} else if (includeRelationships == IncludeRelationships.TARGET) {
 				List<? extends IBaseObject> target = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId,
-						spo.getId().toString(), maxItems, skipCount, mappedColumns, spo.getTypeId());
+						spo.getId().toString(), false, maxItems, skipCount, mappedColumns, spo.getTypeId());
 				return getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, target);
 			} else if (includeRelationships == IncludeRelationships.BOTH) {
 				List<ObjectData> sourceTarget = new ArrayList<>();
 				List<? extends IBaseObject> sourceObject = DBUtils.RelationshipDAO.getRelationshipBySourceId(
-						repositoryId, spo.getId().toString(), maxItems, skipCount, mappedColumns, spo.getTypeId());
+						repositoryId, spo.getId().toString(), false, maxItems, skipCount, mappedColumns,
+						spo.getTypeId());
 				List<? extends IBaseObject> targetObject = DBUtils.RelationshipDAO.getRelationshipByTargetId(
-						repositoryId, spo.getId().toString(), maxItems, skipCount, mappedColumns, spo.getTypeId());
+						repositoryId, spo.getId().toString(), false, maxItems, skipCount, mappedColumns,
+						spo.getTypeId());
 				List<ObjectData> source = getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
 						sourceObject);
 				List<ObjectData> taregt = getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
@@ -1286,7 +1292,7 @@ public class CmisObjectService {
 			}
 			IBaseObject data = null;
 			try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, null, false, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("getObjectById Exception: {}, repositoryId: {}", ExceptionUtils.getStackTrace(e),
 						repositoryId);
@@ -1507,8 +1513,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
-					ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -1581,13 +1586,13 @@ public class CmisObjectService {
 				throw new CmisInvalidArgumentException(String.format(TracingWriter.log(
 						String.format(ErrorMessages.CANNOT_CREATE_FOLDER_WITH_NON_FOLDER, typeDef.getId()), span)));
 			}
-
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} else {
-				parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
+				parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 			}
 
 			if (parent == null) {
@@ -1630,7 +1635,7 @@ public class CmisObjectService {
 						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
 					}
 				} catch (IOException e) {
-					objectMorphiaDAO.delete(repositoryId, folderId, true, null, typeId);
+					objectMorphiaDAO.delete(repositoryId, principalIds, folderId, true, null, typeId);
 					LOG.error(
 							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}, TraceId: {}",
 							"cmisObjectService", "createFolderIntern", repositoryId, e,
@@ -1661,7 +1666,7 @@ public class CmisObjectService {
 					tracingId, span);
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
-			IBaseObject parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
+			IBaseObject parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String folderName = (String) pd.getFirstValue();
 			AccessControlListImplExt aclImp = (AccessControlListImplExt) CmisUtils.Object
@@ -1693,7 +1698,7 @@ public class CmisObjectService {
 
 			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeId, repositoryId,
 					typeId, userObject);
-			IBaseObject folderObject = DBUtils.BaseDAO.getByName(repositoryId, folderName,
+			IBaseObject folderObject = DBUtils.BaseDAO.getByName(repositoryId, folderName, false,
 					parentData.getId().toString(), typeId);
 			if (folderObject != null) {
 				LOG.error("createFolderObject already present FolderObject:{}, repositoryId: {}, TraceId: {}",
@@ -1921,8 +1926,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addACEs, removeACEs, userObject == null ? null : userObject.getUserDN(), null,
-					ObjectFlowType.CREATED);
+					addACEs, removeACEs, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addACEs);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -2010,20 +2014,20 @@ public class CmisObjectService {
 				throw new CmisInvalidArgumentException(
 						TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_DOCUMENT_TYPE), span));
 			}
-
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			// compile the properties
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
 			// String name = getStringProperty(properties, PropertyIds.NAME);
 			IBaseObject parent = null;
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null, typeId);
+				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 			if (parent == null) {
@@ -2216,8 +2220,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
-					ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -2304,17 +2307,17 @@ public class CmisObjectService {
 			// compile the properties
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
-
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			// String name = getStringProperty(properties, PropertyIds.NAME);
 			IBaseObject parent = null;
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null, typeId);
+				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 
@@ -2406,8 +2409,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
-					ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -2481,14 +2483,15 @@ public class CmisObjectService {
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
 			IBaseObject parent = null;
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_ITEM.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null, typeId);
+				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 			if (parent != null) {
@@ -2523,8 +2526,8 @@ public class CmisObjectService {
 					typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			IBaseObject itemObject = DBUtils.BaseDAO.getByName(repositoryId, itemName, parentData.getId().toString(),
-					typeId);
+			IBaseObject itemObject = DBUtils.BaseDAO.getByName(repositoryId, itemName, false,
+					parentData.getId().toString(), typeId);
 			if (itemObject != null) {
 				LOG.error("createItemObject object id already present: {}, repositoryId: {}, TraceId: {}",
 						itemObject.getId(), repositoryId, span != null ? span.getTraceId() : null);
@@ -2594,8 +2597,7 @@ public class CmisObjectService {
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
-					ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			List<String> secondaryObjectTypeIds = null;
 			TypeValidator.validateRequiredSystemProperties(properties);
 
@@ -2742,9 +2744,11 @@ public class CmisObjectService {
 			}
 			// validate ACL
 			// TypeValidator.validateAcl(typeDef, aclAdd, aclRemove);
-
-			IBaseObject sourceObj = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceId, null, typeId);
-			IBaseObject targetObj = DBUtils.BaseDAO.getByObjectId(repositoryId, targetId, null, typeId);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
+			IBaseObject sourceObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, sourceId, null,
+					typeId);
+			IBaseObject targetObj = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, targetId, null,
+					typeId);
 			String sourceTypeId = sourceObj != null ? sourceObj.getTypeId() : null;
 			String targetTypeId = targetObj != null ? targetObj.getTypeId() : null;
 			if (sourceTypeId == null) {
@@ -2793,13 +2797,13 @@ public class CmisObjectService {
 			String objectTypeId = (String) pdType.getFirstValue();
 
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_RELATIONSHIP.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null, typeId);
+				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 
@@ -2844,8 +2848,9 @@ public class CmisObjectService {
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.IMPOSSIBLE_CREATE_FOLDER), span));
 			}
-
-			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, result.getId(), null, typeId);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
+			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, result.getId(),
+					null, typeId);
 			if (itemObject != null) {
 				LOG.error("Relationship object already present: {}, repositoryId: {}, TraceId: {}", itemObject.getId(),
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -2877,7 +2882,7 @@ public class CmisObjectService {
 					"CmisObjectService::validateRelationshipDocuments", null);
 			LOG.debug("ValidateRelationships documents for source: {}, target: {}", sourceTypeId, targetTypeId);
 
-			IBaseObject relMdObj = DBUtils.BaseDAO.getByName(repositoryId, relationName, null, typeId);
+			IBaseObject relMdObj = DBUtils.BaseDAO.getByName(repositoryId, relationName, false, null, typeId);
 			Map<String, Object> relationProps = relMdObj != null ? relMdObj.getProperties() : null;
 			if (relationProps == null) {
 				LOG.error("Relation_md object not present with name: {}, repositoryId: {}, TraceId: {}", relationName,
@@ -3000,8 +3005,7 @@ public class CmisObjectService {
 			}
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, properties, policies,
-					addAces, removeAces, userObject == null ? null : userObject.getUserDN(), null,
-					ObjectFlowType.CREATED);
+					addAces, removeAces, userObject, null, ObjectFlowType.CREATED);
 			AccessControlListImplExt aclAdd = TypeValidators.impl
 					.expandAclMakros(userObject == null ? null : userObject.getUserDN(), addAces);
 			Acl aclRemove = TypeValidators.impl.expandAclMakros(userObject == null ? null : userObject.getUserDN(),
@@ -3075,21 +3079,21 @@ public class CmisObjectService {
 			}
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
-
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject parent = null;
 			if (folderId != null) {
 				folderId = folderId.equals("@ROOT@") ? folderId = objectTypeId : folderId;
 				if (folderId.matches("-?[0-9a-fA-F]+")) {
-					parent = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+					parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 				} else {
-					parent = DBUtils.BaseDAO.getByName(repositoryId, folderId, null, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, folderId, false, null, typeId);
 				}
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_POLICY.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, null, typeId);
+				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", null, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 			if (parent == null) {
@@ -3133,7 +3137,7 @@ public class CmisObjectService {
 					typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			IBaseObject policyObject = DBUtils.BaseDAO.getByName(repositoryId, policyName,
+			IBaseObject policyObject = DBUtils.BaseDAO.getByName(repositoryId, policyName, false,
 					parentData.getId().toString(), typeId);
 			if (policyObject != null) {
 				LOG.error("createPolicyObject policy Object already present: {}, repositoryId: {}, TraceId: {}",
@@ -3222,7 +3226,7 @@ public class CmisObjectService {
 			String id = objectId.getValue().trim();
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, id, properties, null, acl, null,
-					userObject == null ? null : userObject.getUserDN(), null, ObjectFlowType.UPDATED);
+					userObject, null, ObjectFlowType.UPDATED);
 			if (properties == null) {
 				LOG.error("Method name: {}, no properties given for object id: {}, repositoryId: {}, TraceId: {}",
 						"updateProperties", id, repositoryId, span != null ? span.getTraceId() : null);
@@ -3242,7 +3246,8 @@ public class CmisObjectService {
 						MBaseObjectDAO.class);
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null, typeId);
+				String[] principalIds = Helpers.getPrincipalIds(userObject);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, id, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("updateProperties unknown object: {}, repositoryId: {}, TraceId: {}", objectId, repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -3716,7 +3721,7 @@ public class CmisObjectService {
 					"CmisObjectService::deleteObject", null);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, objectId, null, null, null, null,
-					userObject == null ? null : userObject.getUserDN(), allVersions, ObjectFlowType.DELETED);
+					userObject, allVersions, ObjectFlowType.DELETED);
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MDocumentObjectDAO docMorphiaDAO = null;
@@ -3728,7 +3733,8 @@ public class CmisObjectService {
 						MDocumentObjectDAO.class);
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+				String[] principalIds = Helpers.getPrincipalIds(userObject);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -3778,6 +3784,7 @@ public class CmisObjectService {
 				String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteObjectChildrens", null);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			if (data == null) {
 				LOG.error("deleteObjectChildrens object not found! in repositoryId: {}, TraceId: {}", repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -3817,10 +3824,10 @@ public class CmisObjectService {
 
 						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
-					baseMorphiaDAO.delete(repositoryId, child.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(), false, token, typeId);
 				}
 				localService.deleteFolder(data.getPath());
-				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(), false, token, typeId);
 
 				LOG.info("ObjectId: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 
@@ -3844,7 +3851,7 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(), false, token, typeId);
 					LOG.info("Object: {}, with baseType:{} is deleted", data.getId(), data.getBaseId());
 				}
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
@@ -3864,13 +3871,13 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(repositoryId, document.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, principalIds, document.getId(), false, token, typeId);
 					LOG.info("Object: {}, with baseType: {}, document: {} deleted", data.getId(), data.getBaseId(),
 							document.getId());
 
 				}
 			} else {
-				baseMorphiaDAO.delete(repositoryId, data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(), false, token, typeId);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -3887,11 +3894,12 @@ public class CmisObjectService {
 					"CmisObjectService::deleteTree", null);
 			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, null, null, null, null,
-					userObject == null ? null : userObject.getUserDN(), allVers, ObjectFlowType.DELETED);
+					userObject, allVers, ObjectFlowType.DELETED);
 			// boolean allVersions = (null == allVers ? true : allVers);
 			UnfileObject unfileObjects = (null == unfile ? UnfileObject.DELETE : unfile);
 			// boolean continueOnFailure = (null == continueOnFail ? false :
 			// continueOnFail);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = null;
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MNavigationServiceDAO navigationMorphiaDAO = null;
@@ -3900,7 +3908,8 @@ public class CmisObjectService {
 						MBaseObjectDAO.class);
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, typeId);
+
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("deleteTree object not found: {}, repositoryId: {}, TraceId: {}", folderId, repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -3977,9 +3986,10 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 			// TODO: optimize here
 			for (IBaseObject child : children) {
-				baseMorphiaDAO.delete(repositoryId, child.getId(), false, token, child.getTypeId());
-				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, child.getId(), null,
-						child.getTypeId());
+				baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(), false, token, child.getTypeId());
+
+				IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, child.getId(),
+						null, child.getTypeId());
 				if (childCheck != null) {
 					failedToDeleteIds.add(child.getId().toString());
 				}
@@ -3989,8 +3999,9 @@ public class CmisObjectService {
 			// IStorageService localService =
 			// MongoStorageDocument.createStorageService(parameters);
 			// localService.deleteFolder(data.getPath());
-			baseMorphiaDAO.delete(repositoryId, folderId, false, token, data.getTypeId());
-			IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, folderId, null, data.getTypeId());
+			baseMorphiaDAO.delete(repositoryId, principalIds, folderId, false, token, data.getTypeId());
+			IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, null, false, folderId, null,
+					data.getTypeId());
 			if (parentCheck != null) {
 				failedToDeleteIds.add(folderId.toString());
 			}
@@ -4013,6 +4024,7 @@ public class CmisObjectService {
 			MBaseObjectDAO baseMorphiaDAO = null;
 			MNavigationDocServiceDAO navigationMorphiaDAO = null;
 			MDocumentObjectDAO documentMorphiaDAO = null;
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			try {
 				baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MBaseObjectDAO.class);
@@ -4021,7 +4033,7 @@ public class CmisObjectService {
 				documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MDocumentObjectDAO.class);
 				String id = objectId.getValue();
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, id, null, typeId);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, id, null, typeId);
 			} catch (MongoException e) {
 				LOG.error("moveObject object not found:{}, repositoryId: {}, TraceId: {}", objectId.getValue(),
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -4055,7 +4067,8 @@ public class CmisObjectService {
 				throw new CmisNotSupportedException(
 						TracingWriter.log(String.format(ErrorMessages.NO_MOVE_OPERATION), span));
 			}
-			IBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, targetFolderId, null, data.getTypeId());
+			IBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, targetFolderId, null,
+					data.getTypeId());
 			if (null == soTarget) {
 				LOG.error("moveObject unknown target folder: {}, repositoryId: {}, TraceId: {}", targetFolderId,
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -4080,7 +4093,8 @@ public class CmisObjectService {
 			}
 			Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 			IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-			IBaseObject soSource = DBUtils.BaseDAO.getByObjectId(repositoryId, sourceFolderId, null, data.getTypeId());
+			IBaseObject soSource = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, sourceFolderId, null,
+					data.getTypeId());
 			if (null == soSource) {
 				LOG.error("moveObject unknown source folder: {}, repositoryId: {}, TraceId: {}", sourceFolderId,
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -4895,6 +4909,7 @@ public class CmisObjectService {
 
 		public static boolean getAclAccess(String repositoryId, IBaseObject data, IUserObject userObject) {
 			boolean acessPermission = false;
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			if (data != null && !data.getName().equals("@ROOT@")) {
 				LOG.debug("getAclAccess for object: {}, repository: {}", data.getId().toString(), repositoryId);
 
@@ -4904,8 +4919,9 @@ public class CmisObjectService {
 				} else {
 
 					String[] queryResult = data.getInternalPath().split(",");
-					List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
-							.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null, data.getTypeId()))
+					List<IBaseObject> folderChildren = Stream
+							.of(queryResult).filter(t -> !t.isEmpty()).map(t -> DBUtils.BaseDAO
+									.getByObjectId(repositoryId, principalIds, true, t, null, data.getTypeId()))
 							.collect(Collectors.<IBaseObject>toList());
 					List<AccessControlListImplExt> mAcl = null;
 					if (folderChildren.size() == 1) {
@@ -4917,9 +4933,11 @@ public class CmisObjectService {
 					}
 
 					String[] getPrincipalIds = Helpers.getPrincipalIds(userObject);
+
 					List<List<Ace>> parentAce = mAcl.stream().filter(t -> t.getAces() != null && t.getAces().size() > 0)
 							.map(t -> t.getAces()).collect(Collectors.toList());
 					parentAce.add(data.getAcl().getAces());
+
 					// for (MAclImpl acl : mAcl) {
 					// List<Ace> listAce = acl.getAces().stream().filter(t ->
 					// Arrays.stream(getPrincipalIds).parallel()
@@ -4957,7 +4975,8 @@ public class CmisObjectService {
 		}
 
 		private static void validateAcl(String repositoryId, Acl removeAces, String objectId, IBaseObject object) {
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, object.getTypeId());
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, null, false, objectId, null,
+					object.getTypeId());
 			LOG.info("RemoveAcl: {}, for object: {}", removeAces, objectId);
 			if (data.getAcl() != null) {
 				if (removeAces != null) {
@@ -4983,10 +5002,10 @@ public class CmisObjectService {
 		private static List<? extends IBaseObject> getDescendants(String repository, String path, String dataPath,
 				AccessControlListImplExt dataAcl, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject,
 				String typeId) {
-
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
-					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, t, null, typeId))
+					.map(t -> DBUtils.BaseDAO.getByObjectId(repository, principalIds, true, t, null, typeId))
 					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
@@ -4999,7 +5018,7 @@ public class CmisObjectService {
 			}
 
 			List<? extends IBaseObject> children = new ArrayList<>();
-			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
+
 			boolean objectOnly = true;
 			for (AccessControlListImplExt acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
@@ -5029,10 +5048,10 @@ public class CmisObjectService {
 		private static List<? extends IDocumentObject> getChildrens(String repositoryId, String path, String dataPath,
 				AccessControlListImplExt dataAcl, MNavigationDocServiceDAO navigationMorphiaDAO, IUserObject userObject,
 				String typeId) {
-
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			String[] queryResult = dataPath.split(",");
 			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
-					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, t, null, typeId))
+					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, t, null, typeId))
 					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
@@ -5045,7 +5064,6 @@ public class CmisObjectService {
 			}
 
 			List<? extends IDocumentObject> children = new ArrayList<>();
-			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			boolean objectOnly = true;
 			for (AccessControlListImplExt acl : mAcl) {
 				if (acl.getAclPropagation().equalsIgnoreCase("REPOSITORYDETERMINED")
@@ -5129,7 +5147,7 @@ public class CmisObjectService {
 
 		private static void invokeObjectFlowServiceBeforeCreate(IObjectFlowService objectFlowService,
 				String repositoryId, String objectId, Properties properties, List<String> policies, Acl addAces,
-				Acl removeAces, String userName, Boolean allVers, ObjectFlowType invokeMethod) {
+				Acl removeAces, IUserObject userObject, Boolean allVers, ObjectFlowType invokeMethod) {
 			if (objectFlowService != null) {
 				try {
 					LOG.info("invokeObjectFlowServiceBeforeCreate for objectId: {}, InvokeMethod: {}" + objectId,
@@ -5137,12 +5155,13 @@ public class CmisObjectService {
 					boolean resultFlow = false;
 					if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.beforeCreation(repositoryId, objectId, properties, policies,
-								addAces, removeAces, userName);
+								addAces, removeAces, userObject);
 					} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
 						resultFlow = objectFlowService.beforeUpdate(repositoryId, objectId, properties, addAces,
-								userName);
+								userObject.getUserDN());
 					} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
-						resultFlow = objectFlowService.beforeDeletion(repositoryId, objectId, allVers, userName);
+						resultFlow = objectFlowService.beforeDeletion(repositoryId, objectId, allVers,
+								userObject.getUserDN());
 					}
 					if (!resultFlow) {
 						LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);

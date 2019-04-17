@@ -42,6 +42,7 @@ import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
+import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.utils.DBUtils;
@@ -58,14 +59,14 @@ public class CmisAclServices {
 				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::getAcl", null);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId,
 						repositoryId, span);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -81,21 +82,21 @@ public class CmisAclServices {
 
 		public static Acl applyAcl(String repositoryId, String objectId, Acl aclAdd, Acl aclRemove,
 				AclPropagation aclPropagation, ExtensionsData extension, ObjectInfoHandler objectInfos,
-				CapabilityAcl capability, String userName, String typeId, String tracingId, ISpan parentSpan)
+				CapabilityAcl capability, IUserObject user, String typeId, String tracingId, ISpan parentSpan)
 				throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::applyAcl", null);
 			List<String> id = new ArrayList<String>();
-			Acl addAces = TypeValidators.impl.expandAclMakros(userName, aclAdd);
-			Acl removeAces = TypeValidators.impl.expandAclMakros(userName, aclRemove);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+			Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
+			Acl removeAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclRemove);
+			String[] principalIds = Helpers.getPrincipalIds(user);
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
 						repositoryId, span);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -121,7 +122,8 @@ public class CmisAclServices {
 				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
 				break;
 			}
-			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, data.getTypeId());
+			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null,
+					data.getTypeId());
 
 			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);

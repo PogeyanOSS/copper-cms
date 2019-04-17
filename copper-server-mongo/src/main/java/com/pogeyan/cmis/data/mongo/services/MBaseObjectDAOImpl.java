@@ -17,10 +17,12 @@ package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.commons.lang3.ArrayUtils;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Criteria;
@@ -43,10 +45,11 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void delete(String repositoryId, String objectId, boolean forceDelete, TokenImpl token, String typeId) {
+	public void delete(String repositoryId, String[] principalIds, String objectId, boolean forceDelete,
+			TokenImpl token, String typeId) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
-		query.or(getAclCriteria(query));
+		query.or(getAclCriteria(principalIds, query));
 		if (forceDelete) {
 			this.deleteByQuery(query);
 		} else {
@@ -87,8 +90,8 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public List<MBaseObject> filter(Map<String, Object> fieldNames, boolean includePagination, int maxItems,
-			int skipCount, String[] mappedColumns, String typeId) {
+	public List<MBaseObject> filter(Map<String, Object> fieldNames, String[] principalIds, boolean aclPropagation,
+			boolean includePagination, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		for (Map.Entry<String, Object> entry : fieldNames.entrySet()) {
@@ -102,13 +105,17 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 		if (mappedColumns != null && mappedColumns.length > 0) {
 			query = query.retrievedFields(true, mappedColumns);
 		}
-		query.or(getAclCriteria(query));
-		return query.asList();
+		if (aclPropagation) {
+			query.or(getAclCriteria(principalIds, query));
+			return query.asList();
+		} else {
+			return query.asList();
+		}
 	}
 
 	@Override
-	public List<MBaseObject> getObjects(List<String> objectIds, boolean includePagination, int maxItems, int skipCount,
-			String[] mappedColumns, String typeId) {
+	public List<MBaseObject> getObjects(List<String> objectIds, String[] principalIds, boolean aclPropagation,
+			boolean includePagination, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
 				.notEqual(TokenChangeType.DELETED.value());
 		query = query.field("id").in(objectIds);
@@ -120,8 +127,12 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 		if (mappedColumns != null && mappedColumns.length > 0) {
 			query = query.retrievedFields(true, mappedColumns);
 		}
-		query.or(getAclCriteria(query));
-		return query.asList();
+		if (aclPropagation) {
+			query.or(getAclCriteria(principalIds, query));
+			return query.asList();
+		} else {
+			return query.asList();
+		}
 	}
 
 	@Override
@@ -137,11 +148,22 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 				modifiedBy, token, internalPath, properties, policies, acl, path, parentId);
 	}
 
-	private Criteria[] getAclCriteria(Query<MBaseObject> query) {
+	private Criteria[] getAclCriteria(String[] principalIds, Query<MBaseObject> query) {
+
+		Criteria[] checkAcl = new Criteria[] {};
+		if (principalIds != null) {
+			checkAcl = Stream.of(principalIds)
+					.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
+					.toArray(s -> new Criteria[s]);
+
+		} else {
+			checkAcl = new Criteria[] {
+					query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.OBJECTONLY.toString()),
+					query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.PROPAGATE.toString()) };
+		}
 		Criteria[] checkAclRepo = new Criteria[] {
-				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()),
-				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.OBJECTONLY.toString()),
-				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.PROPAGATE.toString()) };
-		return checkAclRepo;
+				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()) };
+		Criteria[] result = ArrayUtils.addAll(checkAclRepo, checkAcl);
+		return result;
 	}
 }

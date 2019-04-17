@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.MongoException;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.services.CmisTypeServices;
 
 public class CmisPropertyConverter {
@@ -112,6 +113,7 @@ public class CmisPropertyConverter {
 		public static Properties createUpdateProperties(Map<String, List<String>> propertiesdata, String typeId,
 				List<String> secondaryTypeIds, List<String> objectIds, String repositoryId, IBaseObject data,
 				IUserObject userObject) {
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			List<TypeDefinition> secondaryTypes = new ArrayList<>();
 			List<TypeDefinition> objectType = new ArrayList<>();
 			List<TypeDefinition> innerObjectType = new ArrayList<>();
@@ -164,7 +166,8 @@ public class CmisPropertyConverter {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null && objectIds != null) {
 					for (String objectId : objectIds) {
-						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId,
+								null, typeId);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
 								object.getTypeId(), null, userObject, null, null);
 						innerObjectType.add(typeDef);
@@ -322,13 +325,14 @@ public class CmisPropertyConverter {
 			return null;
 		}
 
-		public static String getTypeIdForObject(String repositoryId, String objectId, String typeId) {
+		public static String getTypeIdForObject(String repositoryId, String[] principalIds, String objectId,
+				String typeId) {
 			if (objectId == null) {
 				throw new CmisInvalidArgumentException("Object Id must be set.");
 			}
 			IBaseObject data = null;
 			try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, objectId, null, typeId);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			} catch (Exception e) {
 				throw new MongoException(e.toString());
 			}

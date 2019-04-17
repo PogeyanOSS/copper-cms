@@ -82,8 +82,8 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, apply acl for object using this id: {}, repositoryId: {}, addAcl: {}, removeAcl: {}",
 				"applyACL", objectId, t.getRepositoryId(), t.getAddAcl(), t.getRemoveAcl());
 		Acl objectAcl = CmisAclServices.Impl.applyAcl(t.getRepositoryId(), objectId, t.getAddAcl(), t.getRemoveAcl(),
-				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject().getUserDN(),
-				t.getTypeId(), tracingId, span);
+				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject(), t.getTypeId(),
+				tracingId, span);
 		if (objectAcl == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span),
