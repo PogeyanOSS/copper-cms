@@ -126,8 +126,8 @@ public class PolicyActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
 		LOG.info("Method name: {}, apply policy using this id: {}, repositoryId: {}, policyId: {}", "applyPolicy",
 				objectId, request.getRepositoryId(), request.getPolicyId());
-		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(),request.getUserObject(), request.getPolicyId(), objectId,
-				request.getTypeId(), tracingId, span);
+		CmisPolicyService.Impl.applyPolicy(request.getRepositoryId(), request.getUserObject(), request.getPolicyId(),
+				objectId, request.getTypeId(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), objectId,

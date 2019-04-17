@@ -137,7 +137,8 @@ public class CmisTypeServices {
 				}
 
 			} catch (MongoException e) {
-				LOG.error("MongoObject shouldnot be null: {}, repository: {}, TraceId: {}", e, repositoryId, span != null ? span.getTraceId() : null);
+				LOG.error("MongoObject shouldnot be null: {}, repository: {}, TraceId: {}", e, repositoryId,
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.MONGO_OBJECT_NULL), span),
@@ -528,7 +529,8 @@ public class CmisTypeServices {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisTypeService::createType", null);
 			if (type == null) {
-				LOG.error("Type must be set! in repository: {}, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
+				LOG.error("Type must be set! in repository: {}, TraceId: {}", repositoryId,
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
@@ -550,7 +552,8 @@ public class CmisTypeServices {
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				TypeDefinition object = null;
 				if (type.getId() == null || type.getId().trim().length() == 0) {
-					LOG.error("Type must have a valid id! in repository: {}, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
+					LOG.error("Type must have a valid id! in repository: {}, TraceId: {}", repositoryId,
+							span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span),
@@ -560,7 +563,8 @@ public class CmisTypeServices {
 							TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span));
 				}
 				if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
-					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
+					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId,
+							span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span),
@@ -680,7 +684,8 @@ public class CmisTypeServices {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisTypeService::updateType", null);
 			if (type == null) {
-				LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
+				LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId,
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
@@ -699,7 +704,8 @@ public class CmisTypeServices {
 				TypeDefinition object = null;
 
 				if (type.getId() == null || type.getId().trim().length() == 0) {
-					LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
+					LOG.error("Type must be set! in repository: {} , TraceId: {}", repositoryId,
+							span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span),
@@ -709,7 +715,8 @@ public class CmisTypeServices {
 							TracingWriter.log(String.format(ErrorMessages.NOT_VALID_ID), span));
 				}
 				if (type.getParentTypeId() == null || type.getParentTypeId().trim().length() == 0) {
-					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId, span != null ? span.getTraceId() : null);
+					LOG.error("Type must have a valid parent id! in repository: {}, TraceId: {}", repositoryId,
+							span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span),
@@ -727,7 +734,8 @@ public class CmisTypeServices {
 					object = tyeDef.get(0);
 				}
 				if (object == null) {
-					LOG.error(type.getId() + ": {}, repository: {}", " is unknown", repositoryId, ", TraceId: ", span != null ? span.getTraceId() : null);
+					LOG.error(type.getId() + ": {}, repository: {}", " is unknown", repositoryId, ", TraceId: ",
+							span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, type.getId()), span),
@@ -789,7 +797,8 @@ public class CmisTypeServices {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisTypeService::deleteType", null);
 			if (type == null) {
-				LOG.error("Type is not available to delete: {}, repository: {}, TraceId: {}", type, repositoryId, span != null ? span.getTraceId() : null);
+				LOG.error("Type is not available to delete: {}, repository: {}, TraceId: {}", type, repositoryId,
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
 								TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
@@ -818,7 +827,8 @@ public class CmisTypeServices {
 				}
 
 				if (object == null) {
-					LOG.error(type + ": {}, repository: {}", " Unknown TypeId", repositoryId, "TraceId: ", span != null ? span.getTraceId() : null);
+					LOG.error(type + ": {}, repository: {}", " Unknown TypeId", repositoryId, "TraceId: ",
+							span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
 									TracingWriter.log(String.format(ErrorMessages.TYPE_MUST_BE_SET), span),
@@ -833,7 +843,8 @@ public class CmisTypeServices {
 				// MongoStorageDocument.createStorageService(parameters,
 				// repositoryId, type);
 				// localService.deleteFolder(parameters, repositoryId, type);
-				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, true, "/" + type, type);
+				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, true, "/" + type,
+						type);
 				if (folderObject != null) {
 					baseMorphiaDAO.delete(repositoryId, principalIds, folderObject.getId(), true, null, type);
 				}
@@ -1018,8 +1029,8 @@ public class CmisTypeServices {
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 				return typeDefinitionContainer.getTypeDefinition();
 			} else {
-				LOG.error("gettingAllTypeDefinition unknown typeId: {}, repository: {}, TraceId: {}", typeDefinition.getId(),
-						repositoryId, span != null ? span.getTraceId() : null);
+				LOG.error("gettingAllTypeDefinition unknown typeId: {}, repository: {}, TraceId: {}",
+						typeDefinition.getId(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.UNKNOWN_TYPE_ID, typeDefinition.getId()), span),

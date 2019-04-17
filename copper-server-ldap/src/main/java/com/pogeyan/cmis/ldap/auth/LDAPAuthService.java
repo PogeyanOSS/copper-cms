@@ -68,8 +68,8 @@ public class LDAPAuthService implements IAuthService {
 	}
 
 	/**
-	 * fetch repository MRepository based on RepositoryId from CallContext and
-	 * Takes user and password from the CallContext and checks them.
+	 * fetch repository MRepository based on RepositoryId from CallContext and Takes
+	 * user and password from the CallContext and checks them.
 	 */
 	private LDAPLogin authenticateInternal(String repositoryId, String userName, String password)
 			throws CmisPermissionDeniedException {

@@ -367,8 +367,8 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipBySourceId(String repositoryId, String sourceId, boolean aclPropagation,
-				int maxItems, int skipCount, String[] mappedColumns, String typeId) {
+		public static List<? extends IBaseObject> getRelationshipBySourceId(String repositoryId, String sourceId,
+				boolean aclPropagation, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -377,13 +377,13 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, true, maxItems, skipCount, mappedColumns,
-					typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, true, maxItems, skipCount,
+					mappedColumns, typeId);
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipByTargetId(String repositoryId, String targetId, boolean aclPropagation,
-				int maxItems, int skipCount, String[] mappedColumns, String typeId) {
+		public static List<? extends IBaseObject> getRelationshipByTargetId(String repositoryId, String targetId,
+				boolean aclPropagation, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -391,8 +391,8 @@ public class DBUtils {
 					put("properties.cmis:targetId", targetId);
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, true, maxItems, skipCount, mappedColumns,
-					typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, true, maxItems, skipCount,
+					mappedColumns, typeId);
 		}
 	}
 

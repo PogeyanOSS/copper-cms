@@ -25,6 +25,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.connection.Stream;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
@@ -49,13 +50,7 @@ public class CmisPolicyService {
 				throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::getAppliedPolicies", null);
-			String[] principalIds;
-			if (userObject != null) {
-				principalIds = Helpers.getPrincipalIds(userObject);
-			} else {
-				principalIds = null;
-			}
-
+			String[] principalIds = userObject != null ? Helpers.getPrincipalIds(userObject) : null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
@@ -134,8 +129,9 @@ public class CmisPolicyService {
 		/**
 		 * applyPolicy() method for an object.
 		 */
-		public static void applyPolicy(String repositoryId,IUserObject userObject, String policyId, String objectId, String typeId,
-				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException, CmisInvalidArgumentException {
+		public static void applyPolicy(String repositoryId, IUserObject userObject, String policyId, String objectId,
+				String typeId, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException, CmisInvalidArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::applyPolicy", null);
 			List<String> polIds = null;
@@ -152,7 +148,8 @@ public class CmisPolicyService {
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
-			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, policyId, null, data.getTypeId());
+			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, policyId, null,
+					data.getTypeId());
 			if (policy == null) {
 				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy", policyId,
 						repositoryId, span != null ? span.getTraceId() : null);

@@ -31,16 +31,19 @@ public interface MBaseObjectDAO {
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(String repositoryId, String[] principalIds, String objectId, boolean forceDelete, TokenImpl token, String typeId);
+	public void delete(String repositoryId, String[] principalIds, String objectId, boolean forceDelete,
+			TokenImpl token, String typeId);
 
 	/**
 	 * Update Folder type objectIds for an object.
-	 * @return 
+	 * 
+	 * @return
 	 */
 	public void update(String repositoryId, String objectId, Map<String, Object> updateProps, String typeId);
 
-	public List<? extends IBaseObject> filter(Map<String, Object> fieldNames, String[] principalIds,boolean aclPropagation,
-			boolean includePagination, int maxItems, int skipCount, String[] mappedColumns, String typeId);
+	public List<? extends IBaseObject> filter(Map<String, Object> fieldNames, String[] principalIds,
+			boolean aclPropagation, boolean includePagination, int maxItems, int skipCount, String[] mappedColumns,
+			String typeId);
 
 	public void commit(IBaseObject entity, String typeId);
 

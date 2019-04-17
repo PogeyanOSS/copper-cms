@@ -62,23 +62,23 @@ public class CmisRelationshipService {
 				so = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
-						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
+						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId,
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(TracingWriter
-								.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span),
 								ErrorMessages.MONGO_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new MongoException(
-						TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span));
+				throw new MongoException(TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span));
 			}
 
 			if (so == null) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, {}, repositoryid: {}, traceId: {}",
-						"getObjectRelationships", "Unknown object id", objectId, repositoryId, span != null ? span.getTraceId() : null);
+						"getObjectRelationships", "Unknown object id", objectId, repositoryId,
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -97,18 +97,18 @@ public class CmisRelationshipService {
 			List<ObjectData> odList = null;
 			List<? extends IBaseObject> totalSize = null;
 			if (relationshipDirection == RelationshipDirection.SOURCE) {
-				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), true, -1,
-						-1, null, typeId);
+				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), true,
+						-1, -1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.SOURCE, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.TARGET) {
-				totalSize = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId, so.getId().toString(), true, -1,
-						-1, null, typeId);
+				totalSize = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId, so.getId().toString(), true,
+						-1, -1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.TARGET, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			} else if (relationshipDirection == RelationshipDirection.EITHER) {
-				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), true, -1,
-						-1, null, typeId);
+				totalSize = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId, so.getId().toString(), true,
+						-1, -1, null, typeId);
 				odList = CmisObjectService.Impl.getRelationships(repositoryId, includeAllowableActions,
 						IncludeRelationships.BOTH, so, userObject, maxItemsInt, skipCountInt, filterArray);
 			}

@@ -31,16 +31,16 @@ public interface MDocumentObjectDAO {
 			TokenImpl token);
 
 	/**
-	 * update MDocumentObject with multiple field with in single query depending
-	 * on ObjectId
+	 * update MDocumentObject with multiple field with in single query depending on
+	 * ObjectId
 	 */
 	public void update(String objectId, Map<String, Object> updateProps);
 
 	/**
 	 * get checked out documents.
 	 */
-	public List<? extends IDocumentObject> getCheckOutDocs(String folderId, String[] principalIds, boolean aclPropagation,
-			int maxItems, int skipCount, String orderBy);
+	public List<? extends IDocumentObject> getCheckOutDocs(String folderId, String[] principalIds,
+			boolean aclPropagation, int maxItems, int skipCount, String orderBy);
 
 	/**
 	 * get checked out documents size.
@@ -50,11 +50,11 @@ public interface MDocumentObjectDAO {
 	public List<? extends IDocumentObject> filter(Map<String, Object> fieldNames, String[] mappedColumns);
 
 	public void commit(IDocumentObject entity);
-	
-	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion, Boolean isMajorVersion,
-			Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel, String versionSeriesId,
-			String versionReferenceId, Boolean isVersionSeriesCheckedOut, String versionSeriesCheckedOutBy,
-			String versionSeriesCheckedOutId, String checkinComment, Long contentStreamLength,
-			String contentStreamMimeType, String contentStreamFileName, String contentStreamId,
-			String previousVersionObjectId);
+
+	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion,
+			Boolean isMajorVersion, Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel,
+			String versionSeriesId, String versionReferenceId, Boolean isVersionSeriesCheckedOut,
+			String versionSeriesCheckedOutBy, String versionSeriesCheckedOutId, String checkinComment,
+			Long contentStreamLength, String contentStreamMimeType, String contentStreamFileName,
+			String contentStreamId, String previousVersionObjectId);
 }

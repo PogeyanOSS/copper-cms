@@ -716,9 +716,11 @@ public class CmisNavigationService {
 								includeRelationships, userObject, tracingId, span);
 						ObjectParentDataImpl parent = new ObjectParentDataImpl();
 						parent.setObject(objectData);
-						parent.setRelativePathSegment(i == 1 ? data.getName()
-								: DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, queryResult[i], null,
-										data.getTypeId()).getName() + "/" + data.getName());
+						parent.setRelativePathSegment(
+								i == 1 ? data.getName()
+										: DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true,
+												queryResult[i], null, data.getTypeId()).getName() + "/"
+												+ data.getName());
 						i--;
 						objectParent.add(parent);
 					}
@@ -763,7 +765,8 @@ public class CmisNavigationService {
 						orderBy);
 				documentCount = documentMorphiaDAO.getCheckOutDocsSize(folderId, principalIds, true);
 			} else {
-				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
+				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null,
+						typeId);
 				if (data == null) {
 					LOG.error("getCheckedOutIntern unknown object id: {}, repository: {}", folderId, repositoryId);
 					throw new CmisObjectNotFoundException("Unknown object id: " + folderId);

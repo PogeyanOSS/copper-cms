@@ -251,8 +251,7 @@ public class Helpers {
 	}
 
 	public static String[] getPrincipalIds(IUserObject userObject) {
-		List<String> principalIds = Stream.of(userObject.getGroups())
-				.map(t ->  t.getGroupDN())
+		List<String> principalIds = Stream.of(userObject.getGroups()).map(t -> t.getGroupDN())
 				.collect(Collectors.<String>toList());
 		principalIds.add(userObject.getUserDN());
 		return principalIds.toArray(new String[principalIds.size()]);

@@ -186,15 +186,17 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = t.getObjectId();
 		String typeId = t.getParameter("typeId");
 		String[] principalIds = Helpers.getPrincipalIds(t.getUserObject());
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, true, objectId, null, typeId);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, true, objectId, null,
+				typeId);
 		if (data == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span),
+							TracingWriter.log(
+									String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisObjectNotFoundException(
-					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span));
+			throw new CmisObjectNotFoundException(TracingWriter
+					.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span));
 		}
 
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
