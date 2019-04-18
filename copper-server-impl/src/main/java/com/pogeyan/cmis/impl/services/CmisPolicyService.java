@@ -52,13 +52,7 @@ public class CmisPolicyService {
 				throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::getAppliedPolicies", null);
-			String[] principalIds;
-			if (userObject != null) {
-				principalIds = Helpers.getPrincipalIds(userObject);
-			} else {
-				principalIds = null;
-			}
-
+			String[] principalIds = userObject != null ? Helpers.getPrincipalIds(userObject) : null;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {

@@ -160,7 +160,7 @@ public class MongoClientFactory implements IDBClientFactory {
 			List<String> properties = getClientProperties(dataBaseName);
 			int port = Integer.valueOf(properties.get(1));
 
-			String[] columnsToIndex = new String[] { "name", "path", "acl"};
+			String[] columnsToIndex = new String[] { "name", "path", "acl" };
 			Map<Object, Object> indexIds = new HashMap<>();
 			Stream<String> indexId = Arrays.stream(columnsToIndex);
 			indexId.forEach(x -> indexIds.put(x, 1));

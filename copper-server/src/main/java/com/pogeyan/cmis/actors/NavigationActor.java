@@ -409,7 +409,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			json = parser.parse(request.getRequestBody());
 		} catch (JSONParseException e) {
 			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId() : null);
+					? span.getTraceId()
+					: null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),

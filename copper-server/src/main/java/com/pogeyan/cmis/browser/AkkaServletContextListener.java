@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.pogeyan.cmis.acl.content.HierarchyActor;
 import com.pogeyan.cmis.actors.AclActor;
 import com.pogeyan.cmis.actors.DiscoveryActor;
 import com.pogeyan.cmis.actors.NavigationActor;
@@ -94,7 +93,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
 	private static final String PROPERTY_DB_CLIENT_FACTORY = "cbmClientFactory";
 	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
-	private static final String PROPERTY_HIERARCHY_ACTOR = "hierarchyManagerClass";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 
@@ -243,11 +241,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 		typePermissionFlowFactoryClassinitializeExtensions(typePermissionServiceClass);
 		initializeTracingApiServiceFactory(traceApiClass);
 
-		String hierarchyActorClass = props.getProperty(PROPERTY_HIERARCHY_ACTOR);
-		if (hierarchyActorClass != null) {
-			system.actorOf(Props.create(HierarchyActor.class), "hierarchyActor");
-		}
-
 		boolean mainCLassInitialize = initializeExtensions(DEFAULT_CLASS, repoStoreClassName, authStoreClassName,
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, intevalTime);
 		if (mainCLassInitialize) {
@@ -320,8 +313,11 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
 			Class<?> c = Class.forName(cacheProviderFactoryClassName);
 			ICacheProvider cacheProviderFactory = (ICacheProvider) c.newInstance();
+			ICacheProvider UserCacheProviderFactory = (ICacheProvider) c.newInstance();
 			CacheProviderServiceFactory.addTypeCacheService(cacheProviderFactory);
+			CacheProviderServiceFactory.addUserCacheService(UserCacheProviderFactory);
 			cacheProviderFactory.init(intervalTime);
+			UserCacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;
@@ -339,7 +335,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 				externalActorClassMap.put(externalActorFactory.getActorClass(), externalActorFactory.getServiceURL());
 			}
 		} catch (Exception e) {
-			LOG.error("Could not create a authentication services factory instance: {}", e);
+			LOG.error("Could not create a externalActorFactoryClass services factory instance: {}", e);
 			return false;
 		}
 		return true;

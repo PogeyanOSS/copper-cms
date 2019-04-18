@@ -166,8 +166,8 @@ public class CmisPropertyConverter {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null && objectIds != null) {
 					for (String objectId : objectIds) {
-						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null,
-								typeId);
+						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId,
+								null, typeId);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
 								object.getTypeId(), null, userObject, null, null);
 						innerObjectType.add(typeDef);
