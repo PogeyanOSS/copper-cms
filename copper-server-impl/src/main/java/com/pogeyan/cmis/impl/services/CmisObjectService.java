@@ -3300,49 +3300,35 @@ public class CmisObjectService {
 		public static List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(String repositoryId,
 				List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties,
 				List<String> addSecondaryTypeIds, List<String> removeSecondaryTypeIds, ObjectInfoHandler objectInfos,
-				IUserObject userObject, String typeId, String tracingId, ISpan parentSpan) {
+				IUserObject userObject, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::bulkUpdateProperties", null);
-			ITypePermissionService typePermissionFlow = TypeServiceFactory
-					.createTypePermissionFlowService(repositoryId);
-			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.UPDATE);
-			if (permission) {
-				List<BulkUpdateObjectIdAndChangeToken> result = new ArrayList<BulkUpdateObjectIdAndChangeToken>();
-				for (BulkUpdateObjectIdAndChangeToken obj : objectIdAndChangeToken) {
-					Holder<String> objId = new Holder<String>(obj.getId());
-					Holder<String> changeToken = new Holder<String>(obj.getChangeToken());
-					try {
-						updateProperties(repositoryId, objId, changeToken, properties, null, objectInfos, userObject,
-								typeId, tracingId, span);
-						result.add(new BulkUpdateObjectIdAndChangeTokenImpl(obj.getId(), changeToken.getValue()));
-					} catch (Exception e) {
-						LOG.error(
-								"updating properties in bulk upadate failed for object: {}, {}, repositoryId: {}, TraceId: {}",
-								obj.getId(), e, repositoryId, span != null ? span.getTraceId() : null);
-						TracingApiServiceFactory.getApiService().updateSpan(span,
-								TracingErrorMessage.message(
-										TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
-										ErrorMessages.EXCEPTION, repositoryId, true));
-						TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-					}
+			List<BulkUpdateObjectIdAndChangeToken> result = new ArrayList<BulkUpdateObjectIdAndChangeToken>();
+			for (BulkUpdateObjectIdAndChangeToken obj : objectIdAndChangeToken) {
+				Holder<String> objId = new Holder<String>(obj.getId());
+				Holder<String> changeToken = new Holder<String>(obj.getChangeToken());
+				try {
+					String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(repositoryId, null, obj.getId(),
+							null);
+					updateProperties(repositoryId, objId, changeToken, properties, null, objectInfos, userObject,
+							typeId, tracingId, span);
+					result.add(new BulkUpdateObjectIdAndChangeTokenImpl(obj.getId(), changeToken.getValue()));
+				} catch (Exception e) {
+					LOG.error(
+							"updating properties in bulk upadate failed for object: {}, {}, repositoryId: {}, TraceId: {}",
+							obj.getId(), e, repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
+									ErrorMessages.EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				}
-				if (result != null) {
-					LOG.debug("updating properties in bulk upadate success object count: {}", result.size());
-				}
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-				return result;
-			} else {
-				LOG.error("Update type permission denied for this user: {}, repository: {}, TraceId: {}",
-						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(TracingWriter.log(
-								String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
-						.log(String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
+			if (result != null) {
+				LOG.debug("updating properties in bulk upadate success object count: {}", result.size());
+			}
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			return result;
 		}
 
 		/**
@@ -3946,49 +3932,48 @@ public class CmisObjectService {
 				throws CmisObjectNotFoundException, CmisNotSupportedException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteObject", null);
-				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
-				invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, objectId, null, null, null, null,
-						userObject, allVersions, ObjectFlowType.DELETED);
-				IBaseObject data = null;
-				MBaseObjectDAO baseMorphiaDAO = null;
-				MDocumentObjectDAO docMorphiaDAO = null;
-				MNavigationServiceDAO navigationMorphiaDAO = null;
-				try {
-					baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-							MBaseObjectDAO.class);
-					docMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-							MDocumentObjectDAO.class);
-					navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-							.getObjectService(repositoryId, MNavigationServiceDAO.class);
-					String[] principalIds = Helpers.getPrincipalIds(userObject);
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
-				} catch (MongoException e) {
-					LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId,
-							span != null ? span.getTraceId() : null);
-					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingErrorMessage.message(
-									TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span),
-									ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
-					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-					throw new CmisUpdateConflictException(
-							TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span));
-				}
-				if (data == null) {
-					LOG.error("deleteObject Object id: {}, null in : {} repository!, TraceId: {}", objectId,
-							repositoryId, span != null ? span.getTraceId() : null);
-					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingErrorMessage.message(
-									TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
-									ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-					throw new CmisObjectNotFoundException(
-							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
-				}
-				ITypePermissionService typePermissionFlow = TypeServiceFactory
-						.createTypePermissionFlowService(repositoryId);
-				boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-						data.getTypeId(), TypePermissionType.DELETE);
-				if (permission) {
+			IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
+			invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, objectId, null, null, null, null,
+					userObject, allVersions, ObjectFlowType.DELETED);
+			IBaseObject data = null;
+			MBaseObjectDAO baseMorphiaDAO = null;
+			MDocumentObjectDAO docMorphiaDAO = null;
+			MNavigationServiceDAO navigationMorphiaDAO = null;
+			try {
+				baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+						MBaseObjectDAO.class);
+				docMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+						MDocumentObjectDAO.class);
+				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+						MNavigationServiceDAO.class);
+				String[] principalIds = Helpers.getPrincipalIds(userObject);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+			} catch (MongoException e) {
+				LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId,
+						span != null ? span.getTraceId() : null);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span),
+								ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisUpdateConflictException(
+						TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_FOUND), span));
+			}
+			if (data == null) {
+				LOG.error("deleteObject Object id: {}, null in : {} repository!, TraceId: {}", objectId, repositoryId,
+						span != null ? span.getTraceId() : null);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span),
+								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisObjectNotFoundException(
+						TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL), span));
+			}
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
+					data.getTypeId(), TypePermissionType.DELETE);
+			if (permission) {
 				if (data.getName().equalsIgnoreCase("@ROOT@")) {
 					LOG.error("deleteObject failed: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.",
 							repositoryId, span != null ? span.getTraceId() : null);

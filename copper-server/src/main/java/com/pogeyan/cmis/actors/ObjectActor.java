@@ -711,7 +711,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"bulkUpdateProperties", objectIdAndChangeToken, request.getRepositoryId());
 		List<BulkUpdateObjectIdAndChangeToken> result = CmisObjectService.Impl.bulkUpdateProperties(
 				request.getRepositoryId(), objectIdAndChangeToken, properties, addSecondaryTypes, removeSecondaryTypes,
-				null, request.getUserObject(), request.getTypeId(), tracingId, span);
+				null, request.getUserObject(), tracingId, span);
 
 		// return result
 		JSONArray jsonList = new JSONArray();
