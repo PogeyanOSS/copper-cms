@@ -28,12 +28,15 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TypePermissionType;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
+import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
@@ -95,7 +98,6 @@ public class CmisPolicyService {
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::removePolicy", null);
-			List<String> polIds = null;
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			if (data == null) {
@@ -109,36 +111,54 @@ public class CmisPolicyService {
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
-			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
-			polIds = data.getPolicies();
-			if (null == polIds || !(polIds.contains(policyId))) {
-				LOG.error(
-						"Method name: {}, policyId: {}, cannot be removed because it is not applied to object: {}, repository: {}, TraceId: {}",
-						"removePolicy", policyId, objectId, repositoryId, span != null ? span.getTraceId() : null);
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
+					data.getTypeId(), TypePermissionType.READ);
+			if (permission) {
+				List<String> polIds = null;
+				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
+				polIds = data.getPolicies();
+				if (null == polIds || !(polIds.contains(policyId))) {
+					LOG.error(
+							"Method name: {}, policyId: {}, cannot be removed because it is not applied to object: {}, repository: {}, TraceId: {}",
+							"removePolicy", policyId, objectId, repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(
+											String.format(ErrorMessages.POLICY_NOT_APPLIED, policyId, objectId), span),
+									ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisInvalidArgumentException(TracingWriter
+							.log(String.format(ErrorMessages.POLICY_NOT_APPLIED, policyId, objectId), span));
+				}
+				polIds.remove(policyId);
+				DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token, typeId);
+				if (polIds != null) {
+					LOG.debug("PolicyObject after removing policyids are: {}", polIds);
+				}
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			} else {
+				LOG.error("read type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
-								.log(String.format(ErrorMessages.POLICY_NOT_APPLIED, policyId, objectId), span),
-								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+								.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisInvalidArgumentException(
-						TracingWriter.log(String.format(ErrorMessages.POLICY_NOT_APPLIED, policyId, objectId), span));
+				throw new IllegalArgumentException(TracingWriter
+						.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
-			polIds.remove(policyId);
-			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token, typeId);
-			if (polIds != null) {
-				LOG.debug("PolicyObject after removing policyids are: {}", polIds);
-			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 
 		/**
 		 * applyPolicy() method for an object.
 		 */
-		public static void applyPolicy(String repositoryId,IUserObject userObject, String policyId, String objectId, String typeId,
-				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException, CmisInvalidArgumentException {
+		public static void applyPolicy(String repositoryId, IUserObject userObject, String policyId, String objectId,
+				String typeId, String tracingId, ISpan parentSpan)
+				throws CmisObjectNotFoundException, CmisInvalidArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::applyPolicy", null);
-			List<String> polIds = null;
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
 			if (data == null) {
@@ -152,41 +172,59 @@ public class CmisPolicyService {
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
-			IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, policyId, null, data.getTypeId());
-			if (policy == null) {
-				LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy", policyId,
-						repositoryId, span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_POLICY_ID, policyId), span),
-								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisObjectNotFoundException(
-						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_POLICY_ID, policyId), span));
-			}
-			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
-			polIds = data.getPolicies();
-			if (null != polIds && polIds.contains(policyId)) {
-				LOG.error(
-						"Method name: {}, policyId: {}, cannot be added because it is already applied to object: {}, repository: {}, TraceId:{}",
-						"applyPolicy", policyId, objectId, repositoryId, span != null ? span.getTraceId() : null);
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
+					data.getTypeId(), TypePermissionType.READ);
+			if (permission) {
+				List<String> polIds = null;
+				IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, policyId, null,
+						data.getTypeId());
+				if (policy == null) {
+					LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy",
+							policyId, repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_POLICY_ID, policyId), span),
+									ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisObjectNotFoundException(
+							TracingWriter.log(String.format(ErrorMessages.UNKNOWN_POLICY_ID, policyId), span));
+				}
+				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
+				polIds = data.getPolicies();
+				if (null != polIds && polIds.contains(policyId)) {
+					LOG.error(
+							"Method name: {}, policyId: {}, cannot be added because it is already applied to object: {}, repository: {}, TraceId:{}",
+							"applyPolicy", policyId, objectId, repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(TracingWriter
+									.log(String.format(ErrorMessages.POLICY_NOT_ADDED, policyId, objectId), span),
+									ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisInvalidArgumentException(
+							TracingWriter.log(String.format(ErrorMessages.POLICY_NOT_ADDED, policyId, objectId), span));
+				}
+				if (polIds == null) {
+					polIds = new ArrayList<String>();
+				}
+				polIds.add(policyId);
+				DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token, typeId);
+				if (polIds != null) {
+					LOG.debug("PolicyObject after adding policyids are: {}", polIds);
+				}
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			} else {
+				LOG.error("read type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
-								.log(String.format(ErrorMessages.POLICY_NOT_ADDED, policyId, objectId), span),
-								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+								.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisInvalidArgumentException(
-						TracingWriter.log(String.format(ErrorMessages.POLICY_NOT_ADDED, policyId, objectId), span));
+				throw new IllegalArgumentException(TracingWriter
+						.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
-			if (polIds == null) {
-				polIds = new ArrayList<String>();
-			}
-			polIds.add(policyId);
-			DBUtils.BaseDAO.updatePolicy(repositoryId, polIds, objectId, token, typeId);
-			if (polIds != null) {
-				LOG.debug("PolicyObject after adding policyids are: {}", polIds);
-			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 	}
 }

@@ -186,15 +186,17 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String objectId = t.getObjectId();
 		String typeId = t.getParameter("typeId");
 		String[] principalIds = Helpers.getPrincipalIds(t.getUserObject());
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, true, objectId, null, typeId);
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, true, objectId, null,
+				typeId);
 		if (data == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span),
+							TracingWriter.log(
+									String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span),
 							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisObjectNotFoundException(
-					TracingWriter.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span));
+			throw new CmisObjectNotFoundException(TracingWriter
+					.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span));
 		}
 
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
@@ -819,7 +821,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting content stream using this id: {}, repositoryId: {}, offset: {}, length: {}",
 				"getContentStream", objectId, request.getRepositoryId(), offset, length);
 		ContentStream content = CmisObjectService.Impl.getContentStream(request.getRepositoryId(), objectId, streamId,
-				offset, length, tracingId, span);
+				offset, length, request.getUserObject(), tracingId, span);
 		PostFileResponse fileResponse = new PostFileResponse();
 		fileResponse.setDownload(download);
 		fileResponse.setOffset(offset);
@@ -833,19 +835,20 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		 * if (content == null || content.getStream() == null) { throw new
 		 * CmisRuntimeException("Content stream is null!"); }
 		 * 
-		 * String contentType = content.getMimeType(); if (contentType == null) {
-		 * contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
+		 * String contentType = content.getMimeType(); if (contentType == null)
+		 * { contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
 		 * 
-		 * String contentFilename = content.getFileName(); if (contentFilename == null)
-		 * { contentFilename = "content"; }
+		 * String contentFilename = content.getFileName(); if (contentFilename
+		 * == null) { contentFilename = "content"; }
 		 * 
-		 * // send content InputStream in = content.getStream(); OutputStream out =
-		 * null; try { out = new FileOutputStream(content.getFileName());
-		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); } catch
-		 * (Exception e) { LOG.error("writeContent exception: {}, {}", e.getMessage(),
-		 * ExceptionUtils.getStackTrace(e)); throw new
-		 * IllegalArgumentException("Could not write content: " + e.getMessage(), e); }
-		 * finally { IOUtils.closeQuietly(out); IOUtils.closeQuietly(in); } return null;
+		 * // send content InputStream in = content.getStream(); OutputStream
+		 * out = null; try { out = new FileOutputStream(content.getFileName());
+		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); }
+		 * catch (Exception e) { LOG.error("writeContent exception: {}, {}",
+		 * e.getMessage(), ExceptionUtils.getStackTrace(e)); throw new
+		 * IllegalArgumentException("Could not write content: " +
+		 * e.getMessage(), e); } finally { IOUtils.closeQuietly(out);
+		 * IOUtils.closeQuietly(in); } return null;
 		 */
 
 	}
@@ -876,10 +879,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Holder<String> changeTokenHolder = (changeToken == null ? null : new Holder<String>(changeToken));
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, null, tracingId, span);
+					changeTokenHolder, null, request.getUserObject(), tracingId, span);
 		} else {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, request.getContentStream(), tracingId, span);
+					changeTokenHolder, request.getContentStream(), request.getUserObject(), tracingId, span);
 		}
 
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
@@ -929,10 +932,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"appendContentStream", objectId, request.getRepositoryId(), isLastChunk);
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					null, isLastChunk, tracingId, span);
+					null, isLastChunk, request.getUserObject(), tracingId, span);
 		} else {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					request.getContentStream(), isLastChunk, tracingId, span);
+					request.getContentStream(), isLastChunk, request.getUserObject(), tracingId, span);
 		}
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
@@ -982,7 +985,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, deleting content stream for this id: {}, repositoryId: {}", "deleteContentStream",
 				objectId, request.getRepositoryId());
 		CmisObjectService.Impl.deleteContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-				tracingId, span);
+				request.getUserObject(), tracingId, span);
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
@@ -1063,7 +1066,6 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return null;
-
 	}
 
 	private static JSONObject moveObject(PostRequest request, HashMap<String, Object> baggage)

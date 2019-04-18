@@ -28,8 +28,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.stream.Stream;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -251,8 +251,7 @@ public class Helpers {
 	}
 
 	public static String[] getPrincipalIds(IUserObject userObject) {
-		List<String> principalIds = Stream.of(userObject.getGroups())
-				.map(t ->  t.getGroupDN())
+		List<String> principalIds = Stream.of(userObject.getGroups()).map(t -> t.getGroupDN())
 				.collect(Collectors.<String>toList());
 		principalIds.add(userObject.getUserDN());
 		return principalIds.toArray(new String[principalIds.size()]);
@@ -393,8 +392,8 @@ public class Helpers {
 
 	/**
 	 * Splits a filter statement into a collection of properties. If
-	 * <code>filter</code> is <code>null</code>, empty or one of the properties is
-	 * '*' , an empty collection will be returned.
+	 * <code>filter</code> is <code>null</code>, empty or one of the properties
+	 * is '*' , an empty collection will be returned.
 	 */
 	public static Set<String> splitFilter(String filter) {
 		if (filter == null) {
@@ -439,7 +438,8 @@ public class Helpers {
 	public static Boolean isSystemUser(IUserObject role) {
 		if (role != null) {
 			for (IUserGroupObject userobject : role.getGroups()) {
-				if (userobject.getGroupDN().equals("system")) {
+				if (System.getenv("SYSTEM_USER") != null
+						&& System.getenv("SYSTEM_USER").equals(userobject.getGroupDN())) {
 					return true;
 				}
 			}

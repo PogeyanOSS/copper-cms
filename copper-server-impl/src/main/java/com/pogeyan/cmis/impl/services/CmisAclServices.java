@@ -38,13 +38,16 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
+import com.pogeyan.cmis.api.data.common.TypePermissionType;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
+import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -86,48 +89,66 @@ public class CmisAclServices {
 				throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::applyAcl", null);
-			List<String> id = new ArrayList<String>();
-			Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
-			Acl removeAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclRemove);
-			String[] principalIds = Helpers.getPrincipalIds(user);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null, typeId);
-			if (data == null) {
-				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl", objectId,
-						repositoryId, span);
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, user, typeId,
+					TypePermissionType.SHARE);
+			if (permission) {
+				List<String> id = new ArrayList<String>();
+				Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
+				Acl removeAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclRemove);
+				String[] principalIds = Helpers.getPrincipalIds(user);
+				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null,
+						typeId);
+				if (data == null) {
+					LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl",
+							objectId, repositoryId, span);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
+									ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisObjectNotFoundException(
+							TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
+				}
+				Long modifiedTime = System.currentTimeMillis();
+				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
+				switch (aclPropagation) {
+				case REPOSITORYDETERMINED: {
+					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+							tracingId, span);
+					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
+					break;
+				}
+				case OBJECTONLY:
+					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+							tracingId, span);
+					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
+					break;
+				case PROPAGATE:
+					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
+							tracingId, span);
+					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
+					break;
+				}
+				IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null,
+						data.getTypeId());
+
+				LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+				return newData.getAcl();
+			} else {
+				LOG.error("Share type permission denied for this user: {}, repository: {}, TraceId: {}",
+						user.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
-								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
+								TracingWriter.log(
+										String.format(ErrorMessages.SHARE_PERMISSION_DENIED, user.getUserDN()), span),
+								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisObjectNotFoundException(
-						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
+				throw new IllegalArgumentException(TracingWriter
+						.log(String.format(ErrorMessages.SHARE_PERMISSION_DENIED, user.getUserDN()), span));
 			}
-			Long modifiedTime = System.currentTimeMillis();
-			TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, modifiedTime);
-			switch (aclPropagation) {
-			case REPOSITORYDETERMINED: {
-				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-						tracingId, span);
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
-				break;
-			}
-			case OBJECTONLY:
-				AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-						tracingId, span);
-				DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
-				break;
-			case PROPAGATE:
-				AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-						tracingId, span);
-				DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
-				break;
-			}
-			IBaseObject newData = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null,
-					data.getTypeId());
-
-			LOG.debug("After applyAcl new aces: {}", newData != null ? newData.getAcl() : null);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-			return newData.getAcl();
 		}
 
 		private static AccessControlListImplExt validateAcl(Acl addAces, Acl removeAces, IBaseObject object,

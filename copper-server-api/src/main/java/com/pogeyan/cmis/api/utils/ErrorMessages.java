@@ -2,7 +2,6 @@ package com.pogeyan.cmis.api.utils;
 
 public class ErrorMessages {
 
-	
 	public static String NOT_SUPPORTED_EXCEPTION = "CmisNotSupportedException";
 	public static String UPDATE_EXCEPTION = "CmisUpdateConflictException";
 	public static String MONGO_EXCEPTION = "mongoException";
@@ -32,9 +31,11 @@ public class ErrorMessages {
 	public static String NOT_VALID_ID = "Type must have a valid id";
 	public static String PARENT_NOT_VALID = "Type must have a valid parent id";
 	public static String TYPE_ID_PRESENT = "%s, id already present";
-	public static String CREATE_PERMISSION_DENIED = "Create type permission denied for this userId: %s";
 	public static String UNKNOWN_TYPE_ID = "Unknown TypeId: %s";
+	public static String CREATE_PERMISSION_DENIED = "create type permission denied for this userId: %s";
+	public static String READ_PERMISSION_DENIED = "read type permission denied for this userId: %s";
 	public static String UPDATE_PERMISSION_DENIED = "update type permission denied for this userId: %s";
+	public static String SHARE_PERMISSION_DENIED = "share type permission denied for this userId: %s";
 	public static String DELETE_PERMISSION_DENIED = "delete type permission denied for this userId: %s";
 	public static String ZERO_DEPTH = "A zero depth is not allowed for getDescendants";
 	public static String CANNOT_GET_PARENT = "Cannot get parent of a root folder";

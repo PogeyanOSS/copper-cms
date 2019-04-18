@@ -97,12 +97,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -118,12 +117,10 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
 		}
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
@@ -143,12 +140,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		// get parameters
 		String objectId = request.getObjectId();
@@ -161,16 +157,17 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		/*
 		 * Map<String, List<String>> listProperties = request.getPropertyData();
 		 * Map<String, Object> properties = new HashMap<String, Object>(); if
-		 * (listProperties != null) { for (Map.Entry<String, List<String>> entry :
-		 * listProperties.entrySet()) { if (entry.getValue() == null ||
+		 * (listProperties != null) { for (Map.Entry<String, List<String>> entry
+		 * : listProperties.entrySet()) { if (entry.getValue() == null ||
 		 * StringUtils.isBlank(entry.getValue().get(0))) { continue; } else {
 		 * properties.put(entry.getKey(), entry.getValue()); } } }
 		 */
 		/*
 		 * if (listProperties != null) { properties =
-		 * listProperties.entrySet().stream().collect(Collectors.toMap(p -> p.getKey(),
-		 * p -> p.getValue() != null||!StringUtils.isBlank(p.getValue().get(0)) ?
-		 * p.getValue().get(0) :null)); }
+		 * listProperties.entrySet().stream().collect(Collectors.toMap(p ->
+		 * p.getKey(), p -> p.getValue() !=
+		 * null||!StringUtils.isBlank(p.getValue().get(0)) ? p.getValue().get(0)
+		 * :null)); }
 		 */
 		LOG.info(
 				"Method name: {}, checkIn the document using this ids: {}, repositoryId: {}, version: {}, checkinComment: {}",
@@ -184,12 +181,10 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
 		}
 		// return object
 		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
@@ -208,12 +203,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "post")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
@@ -221,19 +215,17 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, cancel checkout the document using this ids: {}, repositoryId: {}", "cancelCheckOut",
 				objectId, request.getRepositoryId());
 		String docId = CmisVersioningServices.Impl.cancelCheckOut(request.getRepositoryId(), objectId, null,
-				request.getUserName(), tracingId, span);
+				request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), docId,
 				request.getUserObject(), BaseTypeId.CMIS_DOCUMENT, request.getTypeId());
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
 		}
 
 		// return object
@@ -241,7 +233,6 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
-
 	}
 
 	private JSONArray getAllVersions(QueryGetRequest request, HashMap<String, Object> baggage)
@@ -254,12 +245,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -274,12 +264,10 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				versionSeriesId, filter, includeAllowableActions, null, null, request.getUserObject(), tracingId, span);
 		if (versions == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.VERSION_NULL), span),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.VERSION_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.VERSION_NULL), span));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.VERSION_NULL), span));
 		}
 		JSONArray allVersions = new JSONArray();
 		for (ObjectData version1 : versions) {
@@ -300,12 +288,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		boolean majorVersion = request.getBooleanParameter(QueryGetRequest.PARAM_MAJOR, false);
@@ -331,8 +318,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 							TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_PRESENT), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_PRESENT), span));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.OBJECT_NOT_PRESENT), span));
 		}
 		JSONObject jsonObject = JSONConverter.convert(object, null, JSONConverter.PropertyMode.OBJECT, succinct,
 				dateTimeFormat);
@@ -351,12 +337,11 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -372,12 +357,10 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		if (properties == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span));
 		}
 		JSONObject jsonObject = JSONConverter.convert(properties, objectId, null, JSONConverter.PropertyMode.OBJECT,
 				succinct, dateTimeFormat);

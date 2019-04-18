@@ -2,7 +2,8 @@ package com.pogeyan.cmis.api.data.common;
 
 public enum TypePermissionType {
 
-	READ("read"), WRITE("write"), DELETE("delete");
+	CREATE("create"), READ("read"), UPDATE("update"), DELETE("delete"), SHARE("share"), VIEW_ONLY("viewonly"), APPROVE(
+			"approve");
 
 	private final String value;
 
