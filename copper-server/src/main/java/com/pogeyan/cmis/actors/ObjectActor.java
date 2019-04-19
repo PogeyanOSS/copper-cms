@@ -1024,10 +1024,11 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = request.getObjectId();
 		Boolean allVersions = request.getBooleanParameter(QueryGetRequest.PARAM_ALL_VERSIONS);
+		Boolean forceDelete = request.getBooleanParameter(QueryGetRequest.PARAM_FORCE_DELETE);
 		LOG.info("Method name: {}, delete the  object for this id: {}, repositoryId: {}, allVersions: {}",
 				"deleteObject", objectId, request.getRepositoryId(), allVersions);
-		CmisObjectService.Impl.deleteObject(request.getRepositoryId(), objectId, allVersions, request.getUserObject(),
-				typeId, tracingId, span);
+		CmisObjectService.Impl.deleteObject(request.getRepositoryId(), objectId, allVersions, forceDelete,
+				request.getUserObject(), typeId, tracingId, span);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return null;
 
@@ -1054,11 +1055,13 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Boolean allVersions = request.getBooleanParameter(QueryGetRequest.PARAM_ALL_VERSIONS);
 		UnfileObject unfileObjects = request.getEnumParameter(QueryGetRequest.PARAM_UNFILE_OBJECTS, UnfileObject.class);
 		Boolean continueOnFailure = request.getBooleanParameter(QueryGetRequest.PARAM_CONTINUE_ON_FAILURE);
+		Boolean forceDelete = request.getBooleanParameter(QueryGetRequest.PARAM_FORCE_DELETE);
 		LOG.info(
 				"Method name: {}, deleting the  object tree for this id: {}, repositoryId: {}, allVersions: {}, unfileObjects: {}, continueOnFailure: {}",
 				"deleteTree", objectId, request.getRepositoryId(), allVersions, unfileObjects, continueOnFailure);
 		FailedToDeleteData ftd = CmisObjectService.Impl.deleteTree(request.getRepositoryId(), objectId, allVersions,
-				unfileObjects, continueOnFailure, request.getUserObject(), request.getTypeId(), tracingId, span);
+				forceDelete, unfileObjects, continueOnFailure, request.getUserObject(), request.getTypeId(), tracingId,
+				span);
 		if (ftd != null && CmisPropertyConverter.Impl.isNotEmpty(ftd.getIds())) {
 			JSONObject JSONObject = JSONConverter.convert(ftd);
 			return JSONObject;

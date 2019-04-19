@@ -182,6 +182,7 @@ public class QueryGetRequest extends CmisBaseRequest {
 	public static final String PARAM_CONTINUE_ON_FAILURE = "continueOnFailure";
 	public static final String PARAM_DEPTH = "depth";
 	public static final String PARAM_DOWNLOAD = "download";
+	public static final String PARAM_FORCE_DELETE = "forceDelete";
 	public static final String PARAM_FILTER = "filter";
 	public static final String PARAM_SUCCINCT = "succinct";
 	public static final String PARAM_DATETIME_FORMAT = "dateTimeFormat";
