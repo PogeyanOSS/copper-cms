@@ -3248,9 +3248,8 @@ public class CmisObjectService {
 				Acl aclRemove, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createPolicyObject", null);
-			// 0) folder id
+			
 			Tuple2<String, String> p = resolvePathForObject(parentData, policyName);
-
 			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeIds, repositoryId,
 					typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
