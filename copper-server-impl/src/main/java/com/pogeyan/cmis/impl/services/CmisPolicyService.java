@@ -32,6 +32,7 @@ import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -138,9 +139,9 @@ public class CmisPolicyService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -214,9 +215,9 @@ public class CmisPolicyService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}

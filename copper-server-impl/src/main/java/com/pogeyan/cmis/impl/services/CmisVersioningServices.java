@@ -52,6 +52,7 @@ import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MimeUtils;
@@ -289,9 +290,9 @@ public class CmisVersioningServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -354,9 +355,9 @@ public class CmisVersioningServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -547,9 +548,9 @@ public class CmisVersioningServices {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}

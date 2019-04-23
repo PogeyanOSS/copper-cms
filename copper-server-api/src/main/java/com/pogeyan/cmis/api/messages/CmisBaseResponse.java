@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.pogeyan.cmis.api.BaseResponse;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 
 public class CmisBaseResponse extends BaseResponse {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisBaseResponse.class);
@@ -58,6 +59,7 @@ public class CmisBaseResponse extends BaseResponse {
 	public static final int CmisVersioningExceptionCode = 409;
 	public static final int CmisTooManyRequestsExceptionCode = 429;
 	public static final int CmisServiceUnavailableExceptionCode = 503;
+	public static final int CmisRoleValidationExceptionCode = 406;
 	private Object cmisData;
 
 	public static CmisBaseResponse fromWithTryCatch(Supplier<Object> fn) {
@@ -116,6 +118,9 @@ public class CmisBaseResponse extends BaseResponse {
 				r = setCmisResponse(ex.getMessage(), CmisServiceUnavailableExceptionCode);
 				return r;
 			} else if (ex instanceof UncheckedExecutionException) {
+				r = setCmisResponse(ex.getMessage(), CmisServiceUnavailableExceptionCode);
+				return r;
+			} else if (ex instanceof CmisRoleValidationException) {
 				r = setCmisResponse(ex.getMessage(), CmisServiceUnavailableExceptionCode);
 				return r;
 			} else {

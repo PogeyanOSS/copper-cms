@@ -106,6 +106,7 @@ import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
@@ -280,8 +281,8 @@ public class CmisObjectService {
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			TypeDefinition type = CmisTypeServices.Impl
-					.getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId, userObject, typeId).get(0);
+			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinitionWithTypePermission(typePermissionFlow,
+					repositoryId, userObject, typeId, null, null).get(0);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
@@ -1243,31 +1244,31 @@ public class CmisObjectService {
 			Map<String, IBaseObject> result = new HashMap<>();
 			Map<String, Object> custom = relationshipIds;
 			custom = custom.entrySet().stream()
-					.filter(map -> (!(map.getKey().equalsIgnoreCase("cmis:name")
-							|| map.getKey().equalsIgnoreCase("cmis:lastModifiedBy")
-							|| map.getKey().equalsIgnoreCase("cmis:objectTypeId")
-							|| map.getKey().equalsIgnoreCase("cmis:createdBy")
-							|| map.getKey().equalsIgnoreCase("cmis:path")
-							|| map.getKey().equalsIgnoreCase("cmis:description")
-							|| map.getKey().equalsIgnoreCase("cmis:changeToken")
-							|| map.getKey().equalsIgnoreCase("cmis:allowedChildObjectTypeIds")
-							|| map.getKey().equalsIgnoreCase("cmis:parentId")
-							|| map.getKey().equalsIgnoreCase("cmis:baseTypeId")
-							|| map.getKey().equalsIgnoreCase("cmis:objectId")
-							|| map.getKey().equalsIgnoreCase("cmis:lastModificationDate")
-							|| map.getKey().equalsIgnoreCase("cmis:creationDate")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamLength")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamFileName")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamMimeType")
-							|| map.getKey().equalsIgnoreCase("cmis:checkinComment")
-							|| map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutBy")
-							|| map.getKey().equalsIgnoreCase("cmis:versionLabel")
-							|| map.getKey().equalsIgnoreCase("cmis:isMajorVersion")
-							|| map.getKey().equalsIgnoreCase("cmis:isLatestVersion")
-							|| map.getKey().equalsIgnoreCase("cmis:contentStreamId")
-							|| map.getKey().equalsIgnoreCase("cmis:versionSeriesCheckedOutId")
-							|| map.getKey().equalsIgnoreCase("cmis:versionSeriesId")
-							|| map.getKey().equalsIgnoreCase("cmis:isImmutable"))))
+					.filter(map -> (!(map.getKey().equalsIgnoreCase(PropertyIds.NAME)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.LAST_MODIFIED_BY)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.OBJECT_TYPE_ID)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CREATED_BY)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.PATH)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.DESCRIPTION)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CHANGE_TOKEN)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.PARENT_ID)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.BASE_TYPE_ID)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.OBJECT_ID)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.LAST_MODIFICATION_DATE)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CREATION_DATE)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CONTENT_STREAM_LENGTH)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CONTENT_STREAM_FILE_NAME)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CONTENT_STREAM_MIME_TYPE)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CHECKIN_COMMENT)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_SERIES_CHECKED_OUT_BY)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_LABEL)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.IS_MAJOR_VERSION)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.IS_LATEST_VERSION)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.CONTENT_STREAM_ID)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_SERIES_CHECKED_OUT_ID)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_SERIES_ID)
+							|| map.getKey().equalsIgnoreCase(PropertyIds.IS_IMMUTABLE))))
 					.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 			Set<Map.Entry<String, Object>> data = custom.entrySet();
 			for (Map.Entry<String, Object> propertiesValues : data) {
@@ -1510,9 +1511,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -1939,9 +1940,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -2427,9 +2428,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -2458,9 +2459,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -2660,9 +2661,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -3105,9 +3106,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -3248,7 +3249,7 @@ public class CmisObjectService {
 				Acl aclRemove, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createPolicyObject", null);
-			
+
 			Tuple2<String, String> p = resolvePathForObject(parentData, policyName);
 			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeIds, repositoryId,
 					typeId, userObject);
@@ -3564,9 +3565,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -3637,7 +3638,6 @@ public class CmisObjectService {
 
 			}
 			return root;
-
 		}
 
 		/**
@@ -3702,9 +3702,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
 								.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 
@@ -3782,9 +3782,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -3850,9 +3850,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -3916,9 +3916,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -3926,7 +3926,7 @@ public class CmisObjectService {
 		/**
 		 * delete the object.
 		 */
-		public static void deleteObject(String repositoryId, String objectId, Boolean allVersions,
+		public static void deleteObject(String repositoryId, String objectId, Boolean allVersions, Boolean forceDelete,
 				IUserObject userObject, String typeId, String tracingId, ISpan parentSpan)
 				throws CmisObjectNotFoundException, CmisNotSupportedException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -3988,7 +3988,7 @@ public class CmisObjectService {
 				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
 				deleteObjectChildrens(repositoryId, data, baseMorphiaDAO, docMorphiaDAO, navigationMorphiaDAO,
-						localService, userObject, allVersions, typeId, tracingId, span);
+						localService, userObject, allVersions, forceDelete, typeId, tracingId, span);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			} else {
 				LOG.error("Delete type permission denied for this user: {}, repository: {}, TraceId: {}",
@@ -3996,9 +3996,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -4008,8 +4008,8 @@ public class CmisObjectService {
 		 */
 		public static void deleteObjectChildrens(String repositoryId, IBaseObject data, MBaseObjectDAO baseMorphiaDAO,
 				MDocumentObjectDAO docMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO,
-				IStorageService localService, IUserObject userObject, Boolean allVersions, String typeId,
-				String tracingId, ISpan parentSpan) {
+				IStorageService localService, IUserObject userObject, Boolean allVersions, Boolean forceDelete,
+				String typeId, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteObjectChildrens", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
@@ -4052,10 +4052,12 @@ public class CmisObjectService {
 
 						invokeObjectFlowServiceAfterCreate(objectFlowService, doc, ObjectFlowType.DELETED, null);
 					}
-					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(),
+							forceDelete == null ? false : forceDelete, token, typeId);
 				}
 				localService.deleteFolder(data.getPath());
-				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
+						forceDelete == null ? false : forceDelete, token, typeId);
 
 				LOG.info("ObjectId: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 
@@ -4079,7 +4081,8 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
+							forceDelete == null ? false : forceDelete, token, typeId);
 					LOG.info("Object: {}, with baseType:{} is deleted", data.getId(), data.getBaseId());
 				}
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
@@ -4099,13 +4102,15 @@ public class CmisObjectService {
 							// failed!");
 						}
 					}
-					baseMorphiaDAO.delete(repositoryId, principalIds, document.getId(), false, token, typeId);
+					baseMorphiaDAO.delete(repositoryId, principalIds, document.getId(),
+							forceDelete == null ? false : forceDelete, token, typeId);
 					LOG.info("Object: {}, with baseType: {}, document: {} deleted", data.getId(), data.getBaseId(),
 							document.getId());
 
 				}
 			} else {
-				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(), false, token, typeId);
+				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
+						forceDelete == null ? false : forceDelete, token, typeId);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -4115,8 +4120,8 @@ public class CmisObjectService {
 		 * deleteTree from a set of properties.
 		 */
 		public static FailedToDeleteData deleteTree(String repositoryId, String folderId, Boolean allVers,
-				UnfileObject unfile, Boolean continueOnFail, IUserObject userObject, String typeId, String tracingId,
-				ISpan parentSpan) throws CmisObjectNotFoundException, CmisInvalidArgumentException,
+				Boolean forceDelete, UnfileObject unfile, Boolean continueOnFail, IUserObject userObject, String typeId,
+				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException, CmisInvalidArgumentException,
 				CmisNotSupportedException, CmisStorageException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteTree", null);
@@ -4219,20 +4224,20 @@ public class CmisObjectService {
 				TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 				// TODO: optimize here
 				for (IBaseObject child : children) {
-					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(), false, token, child.getTypeId());
-
+					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(),
+							forceDelete == null ? false : forceDelete, token, child.getTypeId());
 					IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true,
 							child.getId(), null, child.getTypeId());
 					if (childCheck != null) {
 						failedToDeleteIds.add(child.getId().toString());
 					}
 				}
-
 				// TODO: optimize here
 				// IStorageService localService =
 				// MongoStorageDocument.createStorageService(parameters);
 				// localService.deleteFolder(data.getPath());
-				baseMorphiaDAO.delete(repositoryId, principalIds, folderId, false, token, data.getTypeId());
+				baseMorphiaDAO.delete(repositoryId, principalIds, folderId, forceDelete == null ? false : forceDelete,
+						token, data.getTypeId());
 				IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, null, false, folderId, null,
 						data.getTypeId());
 				if (parentCheck != null) {
@@ -4248,9 +4253,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.DELETE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}
@@ -4518,9 +4523,9 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter.log(
 								String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.UPDATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 		}

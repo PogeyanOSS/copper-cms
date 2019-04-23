@@ -9,6 +9,7 @@ public class ErrorMessages {
 	public static String INVALID_EXCEPTION = "CmisInvalidArgumentException";
 	public static String RUNTIME_EXCEPTION = "CmisRuntimeException";
 	public static String ILLEGAL_EXCEPTION = "IllegalArgumentException";
+	public static String ROLE_EXCEPTION = "CmisRoleValidationException";
 	public static String BASE_EXCEPTION = "exception";
 	public static String UNKNOWN_OBJECT = "Unknown object id: %s";
 	public static String NOT_AUTHORISED = "%s is not authorized to applyAcl";

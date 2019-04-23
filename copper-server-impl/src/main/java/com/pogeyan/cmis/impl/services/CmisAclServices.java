@@ -43,6 +43,7 @@ import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -144,9 +145,9 @@ public class CmisAclServices {
 						TracingErrorMessage.message(
 								TracingWriter.log(
 										String.format(ErrorMessages.SHARE_PERMISSION_DENIED, user.getUserDN()), span),
-								ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new IllegalArgumentException(TracingWriter
+				throw new CmisRoleValidationException(TracingWriter
 						.log(String.format(ErrorMessages.SHARE_PERMISSION_DENIED, user.getUserDN()), span));
 			}
 		}

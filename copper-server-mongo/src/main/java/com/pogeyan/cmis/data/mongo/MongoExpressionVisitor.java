@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.mongodb.morphia.query.Criteria;
@@ -176,8 +177,12 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 
 	public Object getPropertyValue(String propId, String value) {
 		if (this.typeManager != null) {
+			if (propId.equals("cmis:changeType")) {
+				return Integer.parseInt(value);
+			}
 			Map<String, PropertyDefinition<?>> prop = this.typeManager.getAllPropertyById(propId, null);
 			if (prop != null) {
+
 				try {
 					PropertyDefinition<?> propDef = prop.get(propId);
 					if (propDef != null) {
@@ -278,35 +283,41 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 	}
 
 	private static String getQueryName(String name) {
-		if (name.equalsIgnoreCase("cmis:path") || name.equalsIgnoreCase("cmis:description")
-				|| name.equalsIgnoreCase("cmis:parentId") || name.equalsIgnoreCase("cmis:contentStreamLength")
-				|| name.equalsIgnoreCase("cmis:contentStreamFileName")
-				|| name.equalsIgnoreCase("cmis:contentStreamMimeType") || name.equalsIgnoreCase("cmis:checkinComment")
-				|| name.equalsIgnoreCase("cmis:versionLabel") || name.equalsIgnoreCase("cmis:isMajorVersion")
-				|| name.equalsIgnoreCase("cmis:isLatestVersion") || name.equalsIgnoreCase("cmis:isLatestMajorVersion")
-				|| name.equalsIgnoreCase("cmis:name") || name.equalsIgnoreCase("cmis:isPrivateWorkingCopy")
-				|| name.equalsIgnoreCase("cmis:createdBy") || name.equalsIgnoreCase("cmis:contentStreamId")
-				|| name.equalsIgnoreCase("cmis:versionSeriesCheckedOutId")
-				|| name.equalsIgnoreCase("cmis:versionSeriesId")
-				|| name.equalsIgnoreCase("cmis:isVersionSeriesCheckedOut") || name.equalsIgnoreCase("cmis:isImmutable")
-				|| name.equalsIgnoreCase("cmis:modifiedBy")
-				|| name.equalsIgnoreCase("cmis:versionSeriesCheckedOutBy")) {
+		if (name.equalsIgnoreCase(PropertyIds.PATH) || name.equalsIgnoreCase(PropertyIds.DESCRIPTION)
+				|| name.equalsIgnoreCase(PropertyIds.PARENT_ID)
+				|| name.equalsIgnoreCase(PropertyIds.CONTENT_STREAM_LENGTH)
+				|| name.equalsIgnoreCase(PropertyIds.CONTENT_STREAM_FILE_NAME)
+				|| name.equalsIgnoreCase(PropertyIds.CONTENT_STREAM_MIME_TYPE)
+				|| name.equalsIgnoreCase(PropertyIds.CHECKIN_COMMENT)
+				|| name.equalsIgnoreCase(PropertyIds.VERSION_LABEL)
+				|| name.equalsIgnoreCase(PropertyIds.IS_MAJOR_VERSION)
+				|| name.equalsIgnoreCase(PropertyIds.IS_LATEST_VERSION)
+				|| name.equalsIgnoreCase(PropertyIds.IS_LATEST_MAJOR_VERSION) || name.equalsIgnoreCase(PropertyIds.NAME)
+				|| name.equalsIgnoreCase(PropertyIds.IS_PRIVATE_WORKING_COPY)
+				|| name.equalsIgnoreCase(PropertyIds.CREATED_BY) || name.equalsIgnoreCase(PropertyIds.CONTENT_STREAM_ID)
+				|| name.equalsIgnoreCase(PropertyIds.VERSION_SERIES_CHECKED_OUT_ID)
+				|| name.equalsIgnoreCase(PropertyIds.VERSION_SERIES_ID)
+				|| name.equalsIgnoreCase(PropertyIds.IS_VERSION_SERIES_CHECKED_OUT)
+				|| name.equalsIgnoreCase(PropertyIds.IS_IMMUTABLE) || name.equalsIgnoreCase("cmis:modifiedBy")
+				|| name.equalsIgnoreCase(PropertyIds.VERSION_SERIES_CHECKED_OUT_BY)) {
 			return getFieldName(name);
-		} else if (name.equalsIgnoreCase("cmis:objectId")) {
+		} else if (name.equalsIgnoreCase(PropertyIds.OBJECT_ID)) {
 			return "id";
-		} else if (name.equalsIgnoreCase("cmis:secondaryObjectTypeIds")) {
+		} else if (name.equalsIgnoreCase(PropertyIds.SECONDARY_OBJECT_TYPE_IDS)) {
 			return "secondaryTypeIds";
-		} else if (name.equalsIgnoreCase("cmis:objectTypeId")) {
+		} else if (name.equalsIgnoreCase(PropertyIds.OBJECT_TYPE_ID)) {
 			return "typeId";
-		} else if (name.equalsIgnoreCase("cmis:lastModifiedBy")) {
+		} else if (name.equalsIgnoreCase(PropertyIds.LAST_MODIFIED_BY)) {
 			return "modifiedBy";
-		} else if (name.equalsIgnoreCase("cmis:creationDate")) {
+		} else if (name.equalsIgnoreCase(PropertyIds.CREATION_DATE)) {
 			return "createdAt";
-		} else if (name.equalsIgnoreCase("cmis:changeToken")) {
+		} else if (name.equalsIgnoreCase(PropertyIds.CHANGE_TOKEN)) {
 			return "token";
-		} else if (name.equalsIgnoreCase("cmis:lastModificationDate")) {
+		} else if (name.equalsIgnoreCase("cmis:changeType")) {
+			return "token.changeType";
+		} else if (name.equalsIgnoreCase(PropertyIds.LAST_MODIFICATION_DATE)) {
 			return "modifiedAt";
-		} else if (name.equalsIgnoreCase("cmis:baseTypeId")) {
+		} else if (name.equalsIgnoreCase(PropertyIds.BASE_TYPE_ID)) {
 			return "baseId";
 		} else if (name.equalsIgnoreCase("id")) {
 			return "id";
