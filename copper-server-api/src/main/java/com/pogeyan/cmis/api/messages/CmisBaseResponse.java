@@ -121,7 +121,7 @@ public class CmisBaseResponse extends BaseResponse {
 				r = setCmisResponse(ex.getMessage(), CmisServiceUnavailableExceptionCode);
 				return r;
 			} else if (ex instanceof CmisRoleValidationException) {
-				r = setCmisResponse(ex.getMessage(), CmisServiceUnavailableExceptionCode);
+				r = setCmisResponse(ex.getMessage(), CmisRoleValidationExceptionCode);
 				return r;
 			} else {
 				r = setCmisResponse(ex.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex),

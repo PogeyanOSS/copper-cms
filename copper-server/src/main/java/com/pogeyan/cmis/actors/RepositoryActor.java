@@ -75,6 +75,7 @@ import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -131,7 +132,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getRepositoryInfo(QueryGetRequest t, HashMap<String, Object> baggage)
-			throws CmisRuntimeException {
+			throws CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -168,7 +169,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getRepositories(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws MongoException, CmisRuntimeException {
+			throws MongoException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -211,7 +212,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getTypeDefinition(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisRuntimeException, IllegalArgumentException {
+			throws CmisRuntimeException, IllegalArgumentException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -240,7 +241,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getTypeChildren(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws IllegalArgumentException, CmisRuntimeException {
+			throws IllegalArgumentException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -273,7 +274,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONArray getTypeDescendants(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException {
+			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException,
+			CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -316,8 +318,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	}
 
-	private JSONObject createType(PostRequest request, HashMap<String, Object> baggage)
-			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException {
+	private JSONObject createType(PostRequest request, HashMap<String, Object> baggage) throws IllegalArgumentException,
+			CmisInvalidArgumentException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -353,8 +355,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
 			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId()
-					: null);
+					? span.getTraceId() : null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
@@ -385,7 +386,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject updateType(PostRequest request, HashMap<String, Object> baggage)
-			throws CmisInvalidArgumentException, IllegalArgumentException, CmisRuntimeException {
+			throws CmisInvalidArgumentException, IllegalArgumentException, CmisRuntimeException,
+			CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -421,8 +423,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
 			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId()
-					: null);
+					? span.getTraceId() : null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
@@ -453,7 +454,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject deleteType(PostRequest request, HashMap<String, Object> baggage)
-			throws IllegalArgumentException, CmisRuntimeException {
+			throws IllegalArgumentException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -485,8 +486,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MBaseObjectDAO.class);
 		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null
-				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime()
-				: null);
+				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime() : null);
 		// repository info
 		RepositoryInfoImpl repoInfo = new RepositoryInfoImpl();
 		repoInfo.setId(repositoryId == null ? "repository" : repositoryId);

@@ -42,6 +42,7 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -88,7 +89,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	private JSONObject checkOut(PostRequest request, HashMap<String, Object> baggage)
 			throws CmisObjectNotFoundException, CmisUpdateConflictException, CmisNotSupportedException,
-			CmisInvalidArgumentException, CmisRuntimeException {
+			CmisInvalidArgumentException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "ObjectActor::checkOut",
@@ -131,7 +132,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject checkIn(PostRequest request, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "ObjectActor::checkIn",
@@ -194,7 +195,8 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject cancelCheckOut(PostRequest request, HashMap<String, Object> baggage)
-			throws CmisUpdateConflictException, CmisUpdateConflictException, CmisRuntimeException {
+			throws CmisUpdateConflictException, CmisUpdateConflictException, CmisRuntimeException,
+			CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -236,7 +238,8 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONArray getAllVersions(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisUpdateConflictException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisUpdateConflictException, CmisRuntimeException,
+			CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -279,7 +282,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getObjectOfLatestVersion(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -328,7 +331,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getPropertiesOfLatestVersion(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,

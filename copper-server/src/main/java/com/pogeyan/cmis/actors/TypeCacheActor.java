@@ -15,6 +15,7 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
@@ -35,7 +36,7 @@ public class TypeCacheActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 	}
 
 	private JSONObject clearCache(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
