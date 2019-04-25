@@ -35,6 +35,7 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -62,7 +63,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 	}
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisRuntimeException {
+			throws CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -103,7 +104,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		return jsonChanges;
 	}
 
-	private JSONObject getQuery(QueryGetRequest t) throws CmisRuntimeException {
+	private JSONObject getQuery(QueryGetRequest t) throws CmisRuntimeException, CmisRoleValidationException {
 		return null;
 	}
 

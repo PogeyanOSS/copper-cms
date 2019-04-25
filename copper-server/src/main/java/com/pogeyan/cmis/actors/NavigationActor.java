@@ -48,6 +48,7 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -99,7 +100,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getChildren(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -151,7 +152,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONArray getDescendants(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisInvalidArgumentException, CmisRuntimeException {
+			throws CmisInvalidArgumentException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -204,7 +205,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONArray getFolderTree(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisInvalidArgumentException, CmisRuntimeException {
+			throws CmisInvalidArgumentException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -257,7 +258,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getParent(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisInvalidArgumentException, CmisRuntimeException {
+			throws CmisInvalidArgumentException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -296,7 +297,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	}
 
-	private JSONArray getParents(QueryGetRequest request, HashMap<String, Object> baggage) throws CmisRuntimeException {
+	private JSONArray getParents(QueryGetRequest request, HashMap<String, Object> baggage)
+			throws CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -347,7 +349,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 	}
 
 	private JSONObject getCheckedOutDocs(QueryGetRequest request)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String permission = request.getUserObject().getPermission();
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			throw new CmisRuntimeException(request.getUserName() + " is not authorized to applyAcl.");
@@ -383,7 +385,8 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	@SuppressWarnings("unchecked")
 	private JSONObject getAllObjects(PostRequest request, HashMap<String, Object> baggage)
-			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException {
+			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException,
+			CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -409,8 +412,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			json = parser.parse(request.getRequestBody());
 		} catch (JSONParseException e) {
 			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId()
-					: null);
+					? span.getTraceId() : null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),

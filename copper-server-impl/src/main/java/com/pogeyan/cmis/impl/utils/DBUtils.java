@@ -36,7 +36,6 @@ import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
-import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 

@@ -18,6 +18,7 @@ package com.pogeyan.cmis.impl.services;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,13 +48,16 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 
@@ -108,47 +112,60 @@ public class CmisDiscoveryService {
 				childrenCount = discoveryObjectMorphiaDAO.getLatestTokenChildrenSize(
 						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter), typeManagerDAO,
 						includeAcl, principalIds);
+				ITypePermissionService typePermissionFlow = TypeServiceFactory
+						.createTypePermissionFlowService(repositoryId);
 				for (IBaseObject object : latestChangesObjects) {
 					if (object != null) {
-						ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
-								includeProperties, includePolicyIds, includeAcl, userObject);
-						lod.add(odImpl);
-						// Acl Check for propagate or object only
+						boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId,
+								userObject, object.getTypeId(),
+								EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.READ), true);
+						if (permission) {
+							ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
+									includeProperties, includePolicyIds, includeAcl, userObject);
+							lod.add(odImpl);
+							// Acl Check for propagate or object only
 
-						// if (includeAcl) {
-						// List<AccessControlListImplExt> mAcl =
-						// CmisNavigationService.Impl.getParentAcl(repositoryId,
-						// object.getInternalPath(), object.getAcl());
-						// boolean objectOnly = true;
-						// for (AccessControlListImplExt acl : mAcl) {
-						// if (acl != null) {
-						// if (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE")) {
-						// List<Ace> listAce = getListAce(acl, principalIds);
-						// if (listAce.size() >= 1) {
-						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
-						// filterCollection, includeProperties, includePolicyIds, includeAcl);
-						// lod.add(odImpl);
-						// objectOnly = false;
-						// break;
-						// }
-						// }
-						// }
-						// }
-						//
-						// if (objectOnly) {
-						// List<Ace> listAce = getListAce(object.getAcl(), principalIds);
-						// if (listAce.size() >= 1) {
-						// ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object,
-						// filterCollection,
-						// includeProperties, includePolicyIds, includeAcl);
-						// lod.add(odImpl);
-						// }
-						// }
-						// } else {
-						// }
+							// if (includeAcl) {
+							// List<AccessControlListImplExt> mAcl =
+							// CmisNavigationService.Impl.getParentAcl(repositoryId,
+							// object.getInternalPath(), object.getAcl());
+							// boolean objectOnly = true;
+							// for (AccessControlListImplExt acl : mAcl) {
+							// if (acl != null) {
+							// if
+							// (acl.getAclPropagation().equalsIgnoreCase("PROPAGATE"))
+							// {
+							// List<Ace> listAce = getListAce(acl,
+							// principalIds);
+							// if (listAce.size() >= 1) {
+							// ObjectDataImpl odImpl =
+							// getObjectDataImpl(repositoryId, object,
+							// filterCollection, includeProperties,
+							// includePolicyIds, includeAcl);
+							// lod.add(odImpl);
+							// objectOnly = false;
+							// break;
+							// }
+							// }
+							// }
+							// }
+							//
+							// if (objectOnly) {
+							// List<Ace> listAce = getListAce(object.getAcl(),
+							// principalIds);
+							// if (listAce.size() >= 1) {
+							// ObjectDataImpl odImpl =
+							// getObjectDataImpl(repositoryId, object,
+							// filterCollection,
+							// includeProperties, includePolicyIds, includeAcl);
+							// lod.add(odImpl);
+							// }
+							// }
+							// } else {
+							// }
+						}
 					}
 				}
-
 			}
 
 			objList.setObjects(lod);
@@ -210,8 +227,8 @@ public class CmisDiscoveryService {
 
 		/**
 		 * Splits a filter statement into a collection of properties. If
-		 * <code>filter</code> is <code>null</code>, empty or one of the properties is
-		 * '*' , an empty collection will be returned.
+		 * <code>filter</code> is <code>null</code>, empty or one of the
+		 * properties is '*' , an empty collection will be returned.
 		 */
 		private static Set<String> splitFilter(String filter) {
 			if (filter == null) {
