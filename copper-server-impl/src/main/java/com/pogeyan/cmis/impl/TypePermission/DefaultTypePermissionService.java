@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
-import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 
 public class DefaultTypePermissionService implements ITypePermissionService {
 	@SuppressWarnings("unused")
@@ -33,7 +33,7 @@ public class DefaultTypePermissionService implements ITypePermissionService {
 
 	@Override
 	public Boolean checkPermissionAccess(String repositoryId, IUserObject role, String typeId,
-			TypePermissionType permissionAccess) {
+			PermissionType permissionAccess) {
 		if (typeId != null) {
 			return true;
 		}

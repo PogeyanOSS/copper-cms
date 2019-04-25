@@ -18,6 +18,7 @@ package com.pogeyan.cmis.impl.services;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,7 +50,7 @@ import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
-import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
@@ -115,11 +116,10 @@ public class CmisDiscoveryService {
 						.createTypePermissionFlowService(repositoryId);
 				for (IBaseObject object : latestChangesObjects) {
 					if (object != null) {
-						boolean readPermission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId,
-								userObject, object.getTypeId(), TypePermissionType.READ);
-						boolean viewPermission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId,
-								userObject, object.getTypeId(), TypePermissionType.VIEW_ONLY);
-						if (readPermission || viewPermission) {
+						boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId,
+								userObject, object.getTypeId(),
+								EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.READ), true);
+						if (permission) {
 							ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
 									includeProperties, includePolicyIds, includeAcl, userObject);
 							lod.add(odImpl);

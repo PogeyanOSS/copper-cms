@@ -16,6 +16,7 @@
 package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -31,7 +32,7 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
@@ -109,7 +110,7 @@ public class CmisPolicyService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), TypePermissionType.UPDATE);
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
 			if (permission) {
 				List<String> polIds = null;
 				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
@@ -170,7 +171,7 @@ public class CmisPolicyService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), TypePermissionType.UPDATE);
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
 			if (permission) {
 				List<String> polIds = null;
 				IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, policyId, null,

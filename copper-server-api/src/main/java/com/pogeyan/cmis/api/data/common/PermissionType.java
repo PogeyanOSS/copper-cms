@@ -1,13 +1,13 @@
 package com.pogeyan.cmis.api.data.common;
 
-public enum TypePermissionType {
+public enum PermissionType {
 
 	CREATE("create"), READ("read"), UPDATE("update"), DELETE("delete"), SHARE("share"), VIEW_ONLY("viewonly"), APPROVE(
 			"approve");
 
 	private final String value;
 
-	TypePermissionType(String v) {
+	PermissionType(String v) {
 		value = v;
 	}
 
@@ -15,8 +15,8 @@ public enum TypePermissionType {
 		return value;
 	}
 
-	public static TypePermissionType fromValue(String v) {
-		for (TypePermissionType c : TypePermissionType.values()) {
+	public static PermissionType fromValue(String v) {
+		for (PermissionType c : PermissionType.values()) {
 			if (c.value.equals(v)) {
 				return c;
 			}

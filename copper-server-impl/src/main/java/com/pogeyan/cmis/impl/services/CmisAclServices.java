@@ -17,6 +17,7 @@ package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -42,7 +43,7 @@ import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
@@ -93,7 +94,7 @@ public class CmisAclServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, user, typeId,
-					TypePermissionType.SHARE);
+					EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.SHARE), false);
 			if (permission) {
 				List<String> id = new ArrayList<String>();
 				Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);

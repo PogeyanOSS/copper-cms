@@ -17,6 +17,7 @@ package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
@@ -213,7 +214,7 @@ public class CmisVersioningServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), TypePermissionType.CREATE);
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
 			if (permission) {
 				if (data.getIsVersionSeriesCheckedOut()) {
 					LOG.error("checkOut document: {} is already checked out, repositoryid: {}, TraceId: {}",
@@ -320,7 +321,7 @@ public class CmisVersioningServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), TypePermissionType.CREATE);
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
 			if (permission) {
 				if (data.getIsPrivateWorkingCopy() == false) {
 					LOG.error("cancelCheckOut pwc: {}, is not private working copy in repositoryid: {}, TraceId: {}",
@@ -385,7 +386,7 @@ public class CmisVersioningServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), TypePermissionType.CREATE);
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
 			if (permission) {
 				if (data.getVersionSeriesId() == null) {
 					LOG.error("checkIn document is not versionable: {}, repositoryid: {}, TraceId: {}", objectId,

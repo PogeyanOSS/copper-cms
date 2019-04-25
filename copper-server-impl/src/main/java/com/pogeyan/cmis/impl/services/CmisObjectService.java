@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,7 +99,7 @@ import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.ObjectFlowType;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import com.pogeyan.cmis.api.data.common.TypePermissionType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
@@ -281,8 +282,8 @@ public class CmisObjectService {
 			}
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
-			TypeDefinition type = CmisTypeServices.Impl.getTypeDefinitionWithTypePermission(typePermissionFlow,
-					repositoryId, userObject, typeId, null, null).get(0);
+			TypeDefinition type = CmisTypeServices.Impl
+					.getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId, userObject, typeId).get(0);
 			IBaseObject data = null;
 			try {
 				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
@@ -1499,7 +1500,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.CREATE);
+					typeId, EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
 				IBaseObject folder = createFolderIntern(repositoryId, folderId, properties, typeId, policies, addAces,
 						removeAces, userObject, tracingId, span);
@@ -1928,7 +1929,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.CREATE);
+					typeId, EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
 				IDocumentObject so = createDocumentIntern(repositoryId, properties, typeId, folderId, contentStream,
 						versioningState, policies, addAces, removeAces, userObject, tracingId, span);
@@ -2256,7 +2257,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					doc.getTypeId(), TypePermissionType.CREATE);
+					doc.getTypeId(), EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
 				if (addAces != null && removeAces != null) {
 					LOG.debug("Adding aces: {}, removing aces: {}", addAces.getAces(), removeAces.getAces());
@@ -2447,7 +2448,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.CREATE);
+					typeId, EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
 				IBaseObject so = createItemIntern(repositoryId, properties, typeId, folderId, policies, addAces,
 						removeAces, userObject, tracingId, span);
@@ -2649,7 +2650,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.CREATE);
+					typeId, EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
 				IBaseObject so = createRelationshipIntern(repositoryId, folderId, properties, typeId, policies, addAces,
 						removeAces, userObject, tracingId, span);
@@ -3094,7 +3095,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.CREATE);
+					typeId, EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
 				IBaseObject policy = createPolicyIntern(repositoryId, properties, typeId, folderId, policies, addAces,
 						removeAces, userObject, tracingId, span);
@@ -3344,7 +3345,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.UPDATE);
+					typeId, EnumSet.of(PermissionType.UPDATE), false);
 			if (permission) {
 				Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 				Map<String, Object> objectFlowUpdateContentProps = new HashMap<String, Object>();
@@ -3653,7 +3654,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					docDetails.getTypeId(), TypePermissionType.READ);
+					docDetails.getTypeId(), EnumSet.of(PermissionType.READ), false);
 			if (permission) {
 				try {
 					Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -3725,7 +3726,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					object.getTypeId(), TypePermissionType.UPDATE);
+					object.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
 			if (permission) {
 				MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MDocumentObjectDAO.class);
@@ -3803,7 +3804,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					docDetails.getTypeId(), TypePermissionType.UPDATE);
+					docDetails.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
 			if (permission) {
 				Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -3870,7 +3871,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					docDetails.getTypeId(), TypePermissionType.DELETE);
+					docDetails.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
 			if (permission) {
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 				MDocumentObjectDAO docorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -3971,7 +3972,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), TypePermissionType.DELETE);
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
 			if (permission) {
 				if (data.getName().equalsIgnoreCase("@ROOT@")) {
 					LOG.error("deleteObject failed: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.",
@@ -4128,7 +4129,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.DELETE);
+					typeId, EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
 			if (permission) {
 				IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(repositoryId);
 				invokeObjectFlowServiceBeforeCreate(objectFlowService, repositoryId, folderId, null, null, null, null,
@@ -4272,7 +4273,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, TypePermissionType.UPDATE);
+					typeId, EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
 			if (permission) {
 				IBaseObject data = null;
 				MBaseObjectDAO baseMorphiaDAO = null;
