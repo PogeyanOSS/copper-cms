@@ -115,9 +115,11 @@ public class CmisDiscoveryService {
 						.createTypePermissionFlowService(repositoryId);
 				for (IBaseObject object : latestChangesObjects) {
 					if (object != null) {
-						boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId,
+						boolean readPermission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId,
 								userObject, object.getTypeId(), TypePermissionType.READ);
-						if (permission) {
+						boolean viewPermission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId,
+								userObject, object.getTypeId(), TypePermissionType.VIEW_ONLY);
+						if (readPermission || viewPermission) {
 							ObjectDataImpl odImpl = getObjectDataImpl(repositoryId, object, filterCollection,
 									includeProperties, includePolicyIds, includeAcl, userObject);
 							lod.add(odImpl);

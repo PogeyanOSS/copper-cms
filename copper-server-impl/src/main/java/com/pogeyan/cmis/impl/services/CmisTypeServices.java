@@ -1913,7 +1913,9 @@ public class CmisTypeServices {
 					"CmisTypeServices", "getTypeDefinitionWithTypePermission", repositoryId, typePermissionFlow, typeId,
 					role);
 			List<? extends TypeDefinition> typeDef = null;
-			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
+			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)
+					|| typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId,
+							TypePermissionType.VIEW_ONLY)) {
 				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
 					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
 					if (fieldsAcess != null) {
@@ -1942,7 +1944,9 @@ public class CmisTypeServices {
 					"CmisTypeServices", "getDocumentDefinitionWithTypePermission", repositoryId, typePermissionFlow,
 					role);
 			DocumentTypeDefinition docType = null;
-			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)) {
+			if (typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId, TypePermissionType.READ)
+					|| typePermissionFlow.checkPermissionAccess(repositoryId, role, typeId,
+							TypePermissionType.VIEW_ONLY)) {
 				if (typePermissionFlow.checkTypeAccess(repositoryId, role, typeId)) {
 					List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, typeId);
 					if (fieldsAcess != null) {
@@ -1962,8 +1966,9 @@ public class CmisTypeServices {
 			List<? extends TypeDefinition> typeDef = null;
 			List<TypeDefinition> typeSecDef = new ArrayList<>();
 			for (Object id : typeId) {
-				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(),
-						TypePermissionType.READ)) {
+				if (typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(), TypePermissionType.READ)
+						|| typePermissionFlow.checkPermissionAccess(repositoryId, role, id.toString(),
+								TypePermissionType.VIEW_ONLY)) {
 					if (typePermissionFlow.checkTypeAccess(repositoryId, role, id.toString())) {
 						List<String> fieldsAcess = typePermissionFlow.getFieldAccess(repositoryId, role, id.toString());
 						if (fieldsAcess != null) {
