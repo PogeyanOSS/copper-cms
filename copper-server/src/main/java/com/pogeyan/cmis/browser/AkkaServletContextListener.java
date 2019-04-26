@@ -126,7 +126,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		LOG.info("Initializing service factory instances");
 		try {
-			boolean factory = createServiceFactory(sce, system, configFilename);
+			boolean factory = createServiceFactory(sce, configFilename);
 			if (!factory) {
 				throw new IllegalArgumentException("Repository manager class not initilaized");
 			}
@@ -154,8 +154,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		system.terminate();
 	}
 
-	private boolean createServiceFactory(ServletContextEvent sce, ActorSystem system, String fileName)
-			throws FileNotFoundException {
+	private boolean createServiceFactory(ServletContextEvent sce, String fileName) throws FileNotFoundException {
 		// load properties
 		InputStream stream = null;
 		try {
