@@ -12,5 +12,5 @@ public interface IObjectEncryptService {
 
 	public Object decrypt(String repositoryId, String typeId, String propId, Object propValue);
 
-	public boolean checkProp(String repositoryId, String typeId, String propId);
+	public boolean shouldEncrypt(String repositoryId, String typeId, String propId);
 }

@@ -5494,7 +5494,7 @@ public class CmisObjectService {
 				try {
 					if (EncryptType.DECRYPT.equals(invokeMethod)) {
 						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
-						if (objectFlowService.checkProp(repositoryId, typeId, propId)) {
+						if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId)) {
 							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue);
 							propValue = convertDecryptProperties(propValue, propertyType);
 						}
