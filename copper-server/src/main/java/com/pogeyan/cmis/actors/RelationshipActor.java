@@ -36,6 +36,7 @@ import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -60,7 +61,7 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 	}
 
 	private JSONObject getRelationships(QueryGetRequest request, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, MongoException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, MongoException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -69,12 +70,11 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 		if (!Helpers.checkingUserPremission(permission, "get")) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()),
-									span),
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter
-					.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
 		String objectId = request.getObjectId();
 		Boolean includeSubRelationshipTypes = request.getBooleanParameter(QueryGetRequest.PARAM_SUB_RELATIONSHIP_TYPES);
@@ -98,12 +98,10 @@ public class RelationshipActor extends BaseClusterActor<BaseRequest, BaseRespons
 
 		if (relationships == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.RELATIONSHIP_NULL), span),
+					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.RELATIONSHIP_NULL), span),
 							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.RELATIONSHIP_NULL), span));
+			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.RELATIONSHIP_NULL), span));
 		}
 
 		JSONObject jsonChildren = JSONConverter.convert(relationships, null, JSONConverter.PropertyMode.OBJECT,

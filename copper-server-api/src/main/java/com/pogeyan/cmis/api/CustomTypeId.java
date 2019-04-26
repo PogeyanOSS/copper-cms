@@ -2,11 +2,11 @@ package com.pogeyan.cmis.api;
 
 public enum CustomTypeId {
 
-	CMIS_EXT_RELATIONMD("cmis_ext:relationmd"), //
+	CMIS_EXT_RELATIONMD("cmis_ext:relationmd"),
 
-	CMIS_EXT_RELATIONSHIP("cmis_ext:relationship"), //
+	CMIS_EXT_RELATIONSHIP("cmis_ext:relationship"),
 
-	CMIS_EXT_CONFIG("cmis_ext:config"); //
+	CMIS_EXT_CONFIG("cmis_ext:config");
 
 	private final String value;
 

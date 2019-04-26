@@ -30,11 +30,11 @@ public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectI
 	}
 
 	/*
-	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt,
-	 * startswith, endswith. example filter:
+	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt, startswith,
+	 * endswith. example filter:
 	 * "properties.orderId eq 100 and name eq pogeyan or startswith (name::'a')"
-	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to
-	 * get all properties data in that object
+	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to get
+	 * all properties data in that object
 	 * "properties.isRead eq false and typeId ne cmis:folder"
 	 * "properties.orderId gt 100 properties.purchaseOrder ge 100"
 	 * "startswith (name::'a') and properties.orderId lt 100"
@@ -47,14 +47,14 @@ public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectI
 	 * .lang.String, java.lang.String[], boolean, int, int, java.lang.String,
 	 * java.lang.String[], java.lang.String)
 	 * 
-	 * **Input Format** Double type properties.dummy eq 1528589317128l + d here
-	 * if we pass double append d in the last place of value.
+	 * **Input Format** Double type properties.dummy eq 1528589317128l + d here if
+	 * we pass double append d in the last place of value.
 	 * 
 	 * Long type properties.dummy eq 1528589317128l + l here if we pass double
 	 * append l in the last place of value.
 	 * 
-	 * Decimal type properties.dummy eq 1528589317128l + m here if we pass
-	 * double append m in the last place of value.
+	 * Decimal type properties.dummy eq 1528589317128l + m here if we pass double
+	 * append m in the last place of value.
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
@@ -131,11 +131,11 @@ public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectI
 	}
 
 	/*
-	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt,
-	 * startswith, endswith. example filter:
+	 * (non-Javadoc) filterExpression supports eq, ne, ge, gt, le, lt, startswith,
+	 * endswith. example filter:
 	 * "properties.orderId eq 100 and name eq pogeyan or startswith (name::'a')"
-	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to
-	 * get all properties data in that object
+	 * "*,modifiedAt le 123456789 and typeId eq cmis:folder" -->* represents to get
+	 * all properties data in that object
 	 * "properties.isRead eq false and typeId ne cmis:folder"
 	 * "properties.orderId gt 100 properties.purchaseOrder ge 100"
 	 * "startswith (name::'a') and properties.orderId lt 100"
@@ -143,8 +143,7 @@ public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectI
 	 * 
 	 * example order: "name asc, repositoryId", "name desc"
 	 * 
-	 * @see
-	 * com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getDescendants(
+	 * @see com.pogeyan.cmis.api.data.services.MNavigationServiceDAO#getDescendants(
 	 * java .lang.String, java.lang.String[], boolean,java.lang.String[],
 	 * java.lang.String)
 	 */
@@ -194,7 +193,7 @@ public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectI
 
 	private Criteria[] getAclCriteria(String[] principalIds, Query<MDocumentObject> query) {
 		Criteria[] checkAcl = Stream.of(principalIds)
-				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
+				.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
 				.toArray(s -> new Criteria[s]);
 		Criteria[] checkAclRepo = new Criteria[] {
 				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()) };

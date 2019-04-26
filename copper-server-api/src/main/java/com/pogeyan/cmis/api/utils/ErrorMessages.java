@@ -9,6 +9,7 @@ public class ErrorMessages {
 	public static String INVALID_EXCEPTION = "CmisInvalidArgumentException";
 	public static String RUNTIME_EXCEPTION = "CmisRuntimeException";
 	public static String ILLEGAL_EXCEPTION = "IllegalArgumentException";
+	public static String ROLE_EXCEPTION = "CmisRoleValidationException";
 	public static String BASE_EXCEPTION = "exception";
 	public static String UNKNOWN_OBJECT = "Unknown object id: %s";
 	public static String NOT_AUTHORISED = "%s is not authorized to applyAcl";
@@ -17,6 +18,7 @@ public class ErrorMessages {
 	public static String RELATIONSHIP_NULL = "Relationships are null";
 	public static String EXCEPTION = "exception: %s";
 	public static String OBJECT_NULL = "Object is null";
+	public static String OBJECT_NULL_OR_ACCESS_DENIED = "Object is null or, %s doesnt have valid access permission to access this object";
 	public static String POLICY_NOT_APPLIED = "Policy id: %s, cannot be removed because it is not applied to object: %s";
 	public static String UNKNOWN_POLICY_ID = "Unknown policy id: %s";
 	public static String POLICY_NOT_ADDED = "Policy id: %s, cannot be added because it is already applied to object: %s";
@@ -30,9 +32,11 @@ public class ErrorMessages {
 	public static String NOT_VALID_ID = "Type must have a valid id";
 	public static String PARENT_NOT_VALID = "Type must have a valid parent id";
 	public static String TYPE_ID_PRESENT = "%s, id already present";
-	public static String CREATE_PERMISSION_DENIED = "Create type permission denied for this userId: %s";
 	public static String UNKNOWN_TYPE_ID = "Unknown TypeId: %s";
+	public static String CREATE_PERMISSION_DENIED = "create type permission denied for this userId: %s";
+	public static String READ_PERMISSION_DENIED = "read type permission denied for this userId: %s";
 	public static String UPDATE_PERMISSION_DENIED = "update type permission denied for this userId: %s";
+	public static String SHARE_PERMISSION_DENIED = "share type permission denied for this userId: %s";
 	public static String DELETE_PERMISSION_DENIED = "delete type permission denied for this userId: %s";
 	public static String ZERO_DEPTH = "A zero depth is not allowed for getDescendants";
 	public static String CANNOT_GET_PARENT = "Cannot get parent of a root folder";
@@ -64,7 +68,7 @@ public class ErrorMessages {
 	public static String TYPEID_MUST_USE_BASE_TYPE = "TypeId must use cmis base type: %s";
 	public static String CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE = "Cannot create a relationship, with a non-relationship type";
 	public static String WRONG_SOURCEID = "Wrong sourceId,SourceObject should not be null";
-	public static String WRONG_TARGETID = "Wrong sourceId,TargetObject should not be null";
+	public static String WRONG_TARGETID = "Wrong targetId,TargetObject should not be null";
 	public static String IMPOSSIBLE_CREATE_FOLDER = "Impossible to create folder properties";
 	public static String RELATIONMD_NOT_PRESENT = "Relationmd not present";
 	public static String SOURCETABLE_NOT_PRESENT = "SourceTable not present in relationShipObject";

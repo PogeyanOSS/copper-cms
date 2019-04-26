@@ -17,6 +17,7 @@ package com.pogeyan.cmis.impl.services;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +41,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.ISpan;
+import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MimeUtils;
@@ -53,13 +61,10 @@ import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
+import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
 import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
-import com.pogeyan.cmis.api.data.IDocumentObject;
-import com.pogeyan.cmis.api.data.ISpan;
-import com.pogeyan.cmis.api.auth.IUserObject;
-import com.pogeyan.cmis.api.data.IBaseObject;
 
 public class CmisVersioningServices {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisVersioningServices.class);
@@ -79,8 +84,7 @@ public class CmisVersioningServices {
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -123,8 +127,7 @@ public class CmisVersioningServices {
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -139,8 +142,7 @@ public class CmisVersioningServices {
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.ERROR_IN_VERSION, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.ERROR_IN_VERSION, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -163,11 +165,11 @@ public class CmisVersioningServices {
 			IDocumentObject data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object Id: {}, repositoryid: {}, TraceId: {}",
-						"getPropertiesOfLatestVersion", objectId, repositoryId, span != null ? span.getTraceId() : null);
+						"getPropertiesOfLatestVersion", objectId, repositoryId,
+						span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
@@ -175,9 +177,11 @@ public class CmisVersioningServices {
 			}
 
 			String versionReferenceId = data.getVersionReferenceId();
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
 			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
-			latestVersionDocument = DBUtils.BaseDAO.getByObjectId(repositoryId, docObj.getId(), null, data.getTypeId());
+			latestVersionDocument = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, docObj.getId(),
+					null, data.getTypeId());
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, latestVersionDocument,
 					filterCollection, true, false, true, null, null, null, userObject, tracingId, span);
 			if (objectData != null) {
@@ -201,85 +205,101 @@ public class CmisVersioningServices {
 						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
+			if (permission) {
+				if (data.getIsVersionSeriesCheckedOut()) {
+					LOG.error("checkOut document: {} is already checked out, repositoryid: {}, TraceId: {}",
+							objectId.getValue(), repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.ALREADY_CHECKEDOUT), span),
+									ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisUpdateConflictException(
+							TracingWriter.log(String.format(ErrorMessages.ALREADY_CHECKEDOUT), span));
+				}
 
-			if (data.getIsVersionSeriesCheckedOut()) {
-				LOG.error("checkOut document: {} is already checked out, repositoryid: {}, TraceId: {}",
-						objectId.getValue(), repositoryId, span != null ? span.getTraceId() : null);
+				if (data.getIsLatestVersion() == false) {
+					LOG.error("checkOut only latest version can able to check out in repositoryid: {}, TraceId: {}",
+							repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.CANNOT_CHECKOUT), span),
+									ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisUpdateConflictException(
+							TracingWriter.log(String.format(ErrorMessages.CANNOT_CHECKOUT), span));
+				}
+
+				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null,
+						userObject, tracingId, span);
+
+				if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.DOCUMENTS_CHECKOUT), span),
+									ErrorMessages.NOT_SUPPORTED_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisNotSupportedException(
+							TracingWriter.log(String.format(ErrorMessages.DOCUMENTS_CHECKOUT), span));
+				}
+
+				/*
+				 * AllowableActionsImpl allowableActions = new
+				 * AllowableActionsImpl(); allowableActions
+				 * =(AllowableActionsImpl)allowableActions.getAllowableActions()
+				 * ; if (((Set<Action>)allowableActions).contains(Action.
+				 * CAN_CHECK_OUT)) { LOG.info("Versionable"); } else { throw new
+				 * CmisNotSupportedException(
+				 * "only versionable document can be checked out"); }
+				 */
+
+				MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
+						.getObjectService(repositoryId, MBaseObjectDAO.class);
+				TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
+				IBaseObject baseObject = baseObjectDAO.createObjectFacade(data.getName() + "-pwc",
+						BaseTypeId.CMIS_DOCUMENT, data.getTypeId(), repositoryId, data.getSecondaryTypeIds(), "",
+						userObject.getUserDN(), userObject.getUserDN(), token, data.getInternalPath(),
+						data.getProperties(), data.getPolicies(), data.getAcl(), data.getPath(), data.getParentId());
+				IDocumentObject documentObject = documentObjectDAO.createObjectFacade(baseObject, false, false, false,
+						false, true, data.getVersionLabel(), data.getVersionSeriesId(), data.getVersionReferenceId(),
+						true, userObject.getUserDN(), baseObject.getId(), "Commit Document",
+						data.getContentStreamLength(), data.getContentStreamMimeType(), data.getContentStreamFileName(),
+						null, objectId.getValue());
+				documentObjectDAO.commit(documentObject);
+				Map<String, Object> updateProps = new HashMap<String, Object>();
+				updateProps.put("isVersionSeriesCheckedOut", true);
+				updateProps.put("versionSeriesCheckedOutId", documentObject.getId().toString());
+				updateProps.put("versionSeriesCheckedOutBy", userObject.getUserDN());
+				documentObjectDAO.update(objectId.getValue(), updateProps);
+				LOG.info("Successfully checkout PWC for this document : {}",
+						documentObject != null ? documentObject.getId() : null);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+				return documentObject.getId();
+			} else {
+				LOG.error("Create type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.ALREADY_CHECKEDOUT), span),
-								ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisUpdateConflictException(
-						TracingWriter.log(String.format(ErrorMessages.ALREADY_CHECKEDOUT), span));
+				throw new CmisRoleValidationException(TracingWriter
+						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
-
-			if (data.getIsLatestVersion() == false) {
-				LOG.error("checkOut only latest version can able to check out in repositoryid: {}, TraceId: {}",
-						repositoryId, span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.CANNOT_CHECKOUT), span),
-								ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisUpdateConflictException(
-						TracingWriter.log(String.format(ErrorMessages.CANNOT_CHECKOUT), span));
-			}
-
-			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, data.getTypeId(), null,
-					userObject, tracingId, span);
-
-			if (!typeDef.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.DOCUMENTS_CHECKOUT), span),
-								ErrorMessages.NOT_SUPPORTED_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisNotSupportedException(
-						TracingWriter.log(String.format(ErrorMessages.DOCUMENTS_CHECKOUT), span));
-			}
-
-			/*
-			 * AllowableActionsImpl allowableActions = new AllowableActionsImpl();
-			 * allowableActions
-			 * =(AllowableActionsImpl)allowableActions.getAllowableActions(); if
-			 * (((Set<Action>)allowableActions).contains(Action.CAN_CHECK_OUT)) {
-			 * LOG.info("Versionable"); } else { throw new CmisNotSupportedException(
-			 * "only versionable document can be checked out"); }
-			 */
-
-			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
-			IBaseObject baseObject = baseObjectDAO.createObjectFacade(data.getName() + "-pwc", BaseTypeId.CMIS_DOCUMENT,
-					data.getTypeId(), repositoryId, data.getSecondaryTypeIds(), "", userObject.getUserDN(),
-					userObject.getUserDN(), token, data.getInternalPath(), data.getProperties(), data.getPolicies(),
-					data.getAcl(), data.getPath(), data.getParentId());
-			IDocumentObject documentObject = documentObjectDAO.createObjectFacade(baseObject, false, false, false,
-					false, true, data.getVersionLabel(), data.getVersionSeriesId(), data.getVersionReferenceId(), true,
-					userObject.getUserDN(), baseObject.getId(), "Commit Document", data.getContentStreamLength(),
-					data.getContentStreamMimeType(), data.getContentStreamFileName(), null, objectId.getValue());
-			documentObjectDAO.commit(documentObject);
-			Map<String, Object> updateProps = new HashMap<String, Object>();
-			updateProps.put("isVersionSeriesCheckedOut", true);
-			updateProps.put("versionSeriesCheckedOutId", documentObject.getId().toString());
-			updateProps.put("versionSeriesCheckedOutBy", userObject.getUserDN());
-			documentObjectDAO.update(objectId.getValue(), updateProps);
-			LOG.info("Successfully checkout PWC for this document : {}",
-					documentObject != null ? documentObject.getId() : null);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-			return documentObject.getId();
 		}
 
 		public static String cancelCheckOut(String repositoryId, String objectId, ExtensionsData extension,
-				String userName, String tracingId, ISpan parentSpan)
+				IUserObject userObject, String tracingId, ISpan parentSpan)
 				throws CmisUpdateConflictException, CmisUpdateConflictException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisVersioningServices::cancelCheckOut", null);
@@ -292,40 +312,55 @@ public class CmisVersioningServices {
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
+			if (permission) {
+				if (data.getIsPrivateWorkingCopy() == false) {
+					LOG.error("cancelCheckOut pwc: {}, is not private working copy in repositoryid: {}, TraceId: {}",
+							objectId, repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.OBJECTID_NOT_PRIVATE_COPY), span),
+									ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisUpdateConflictException(
+							TracingWriter.log(String.format(ErrorMessages.OBJECTID_NOT_PRIVATE_COPY), span));
+				}
 
-			if (data.getIsPrivateWorkingCopy() == false) {
-				LOG.error("cancelCheckOut pwc: {}, is not private working copy in repositoryid: {}, TraceId: {}",
-						objectId, repositoryId, span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-						TracingWriter.log(String.format(ErrorMessages.OBJECTID_NOT_PRIVATE_COPY), span),
-						ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+				IDocumentObject document = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+						data.getPreviousVersionObjectId(), null);
+				TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
+				documentMorphiaDAO.delete(objectId, null, false, false, deleteToken);
+				Map<String, Object> updateProps = new HashMap<String, Object>();
+				updateProps.put("isVersionSeriesCheckedOut", false);
+				documentMorphiaDAO.update(document.getId(), updateProps);
+				List<String> removeFields = new ArrayList<>();
+				removeFields.add("versionSeriesCheckedOutBy");
+				removeFields.add("versionSeriesCheckedOutId");
+				TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
+				documentMorphiaDAO.delete(document.getId(), removeFields, false, true, updateToken);
+				LOG.info("Cancel checkout for this document :{} done", document != null ? document.getId() : null);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+				return document.getId();
+			} else {
+				LOG.error("Create type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisUpdateConflictException(
-						TracingWriter.log(String.format(ErrorMessages.OBJECTID_NOT_PRIVATE_COPY), span));
+				throw new CmisRoleValidationException(TracingWriter
+						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
-
-			IDocumentObject document = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-					data.getPreviousVersionObjectId(), null);
-			TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
-			documentMorphiaDAO.delete(objectId, null, false, false, deleteToken);
-			Map<String, Object> updateProps = new HashMap<String, Object>();
-			updateProps.put("isVersionSeriesCheckedOut", false);
-			documentMorphiaDAO.update(document.getId(), updateProps);
-			List<String> removeFields = new ArrayList<>();
-			removeFields.add("versionSeriesCheckedOutBy");
-			removeFields.add("versionSeriesCheckedOutId");
-			TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
-			documentMorphiaDAO.delete(document.getId(), removeFields, false, true, updateToken);
-			LOG.info("Cancel checkout for this document :{} done", document != null ? document.getId() : null);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-			return document.getId();
 		}
 
 		public static String checkIn(String repositoryId, Map<String, List<String>> listProperties,
@@ -342,167 +377,183 @@ public class CmisVersioningServices {
 						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
-								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId),
-										span),
+								TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span),
 								ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisObjectNotFoundException(
 						TracingWriter.log(String.format(ErrorMessages.UNKNOWN_OBJECT, objectId), span));
 			}
-
-			if (data.getVersionSeriesId() == null) {
-				LOG.error("checkIn document is not versionable: {}, repositoryid: {}, TraceId: {}", objectId,
-						repositoryId, span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService().updateSpan(span, TracingErrorMessage.message(
-						TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NOT_VERSIONABLE), span),
-						ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
-				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				throw new CmisUpdateConflictException(
-						TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NOT_VERSIONABLE), span));
-			}
-			Map<String, Object> properties = new HashMap<String, Object>();
-			if (listProperties != null) {
-				for (Map.Entry<String, List<String>> entry : listProperties.entrySet()) {
-					if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().get(0))) {
-						continue;
-					} else {
-						properties.put(entry.getKey(), entry.getValue());
-					}
+			ITypePermissionService typePermissionFlow = TypeServiceFactory
+					.createTypePermissionFlowService(repositoryId);
+			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
+					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
+			if (permission) {
+				if (data.getVersionSeriesId() == null) {
+					LOG.error("checkIn document is not versionable: {}, repositoryid: {}, TraceId: {}", objectId,
+							repositoryId, span != null ? span.getTraceId() : null);
+					TracingApiServiceFactory.getApiService().updateSpan(span,
+							TracingErrorMessage.message(
+									TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NOT_VERSIONABLE), span),
+									ErrorMessages.UPDATE_EXCEPTION, repositoryId, true));
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					throw new CmisUpdateConflictException(
+							TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NOT_VERSIONABLE), span));
 				}
-			}
-
-			IDocumentObject documentObject = null;
-			checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
-			if (data.getProperties() != null) {
-				properties.putAll(data.getProperties());
-				properties.remove(PropertyIds.VERSION_LABEL);
-				properties.replace(PropertyIds.LAST_MODIFIED_BY, userName);
-			}
-
-			IDocumentObject documentdata = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
-					data.getPreviousVersionObjectId(), null);
-			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
-			MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			IBaseObject baseObject = baseObjectDAO.createObjectFacade(documentdata.getName(), BaseTypeId.CMIS_DOCUMENT,
-					documentdata.getTypeId(), repositoryId, documentdata.getSecondaryTypeIds(), "",
-					documentdata.getCreatedBy(), userName, token, data.getInternalPath(), properties,
-					documentdata.getPolicies(), documentdata.getAcl(), data.getPath(), data.getParentId());
-			String versionSeriesId = Helpers.getObjectId();
-			if (data.getIsVersionSeriesCheckedOut()) {
-				if (data.getIsPrivateWorkingCopy()) {
-					if (majorParam) {
-						String versionLable = data.getVersionLabel();
-						String[] versionLabelArray = versionLable.split("\\.");
-						Double versionLabelMajor = Double.parseDouble(versionLabelArray[0]);
-						versionLabelMajor = versionLabelMajor + 1;
-						if (contentStreamParam == null) {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true,
-									false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
-									data.getVersionReferenceId(), false, null, null, checkinComment,
-									data.getContentStreamLength(), data.getContentStreamMimeType(),
-									data.getContentStreamFileName(), data.getContentStreamId(),
-									data.getPreviousVersionObjectId());
+				Map<String, Object> properties = new HashMap<String, Object>();
+				if (listProperties != null) {
+					for (Map.Entry<String, List<String>> entry : listProperties.entrySet()) {
+						if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().get(0))) {
+							continue;
 						} else {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true, true,
-									false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
-									data.getVersionReferenceId(), false, null, null, checkinComment,
-									contentStreamParam.getLength(), contentStreamParam.getMimeType(),
-									contentStreamParam.getFileName(), data.getContentStreamId(),
-									data.getPreviousVersionObjectId());
-						}
-
-					}
-
-					else {
-						String versionLabel = data.getVersionLabel();
-						String[] versionLabelArray = versionLabel.split("\\.");
-						Integer versionLabelMinor = Integer.parseInt(versionLabelArray[1]);
-						versionLabelMinor = versionLabelMinor + 2;
-						String verLabelMinorString = String.valueOf(versionLabelMinor);
-						verLabelMinorString = versionLabelArray[0] + "." + versionLabelMinor;
-						if (contentStreamParam == null) {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false, false,
-									false, String.valueOf(verLabelMinorString), versionSeriesId.toString(),
-									data.getVersionReferenceId(), false, null, null, checkinComment,
-									data.getContentStreamLength(), data.getContentStreamMimeType(),
-									data.getContentStreamFileName(), data.getContentStreamId(),
-									data.getPreviousVersionObjectId());
-						} else {
-							documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false, false,
-									false, verLabelMinorString, versionSeriesId.toString(),
-									data.getVersionReferenceId(), false, null, null, checkinComment,
-									contentStreamParam.getLength(), contentStreamParam.getMimeType(),
-									contentStreamParam.getFileName(), data.getContentStreamId(),
-									data.getPreviousVersionObjectId());
+							properties.put(entry.getKey(), entry.getValue());
 						}
 					}
-
-					documentObjectDAO.commit(documentObject);
-					Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
-							data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId, data,
-							userObject);
-					if (updateProperties != null) {
-						CmisObjectService.Impl.updateProperties(repositoryId,
-								new Holder<String>(documentObject.getId()), null, updateProperties, null, null,
-								userObject, data.getTypeId(), tracingId, span);
-					}
-					LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
 				}
-			}
-			if (contentStreamParam != null && contentStreamParam.getStream() != null) {
-				String fileName;
-				if (documentObject.getContentStreamFileName().contains(".")) {
-					String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
-					String type = MimeUtils.checkFileExtension(fileNames[1]);
-					if (type != null) {
-						fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "."
-								+ fileNames[1];
+
+				IDocumentObject documentObject = null;
+				checkinComment = StringUtils.isBlank(checkinComment) ? "CheckIn Document" : checkinComment;
+				if (data.getProperties() != null) {
+					properties.putAll(data.getProperties());
+					properties.remove(PropertyIds.VERSION_LABEL);
+					properties.replace(PropertyIds.LAST_MODIFIED_BY, userName);
+				}
+
+				IDocumentObject documentdata = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId,
+						data.getPreviousVersionObjectId(), null);
+				TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
+				MBaseObjectDAO baseObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
+						.getObjectService(repositoryId, MBaseObjectDAO.class);
+				IBaseObject baseObject = baseObjectDAO.createObjectFacade(documentdata.getName(),
+						BaseTypeId.CMIS_DOCUMENT, documentdata.getTypeId(), repositoryId,
+						documentdata.getSecondaryTypeIds(), "", documentdata.getCreatedBy(), userName, token,
+						data.getInternalPath(), properties, documentdata.getPolicies(), documentdata.getAcl(),
+						data.getPath(), data.getParentId());
+				String versionSeriesId = Helpers.getObjectId();
+				if (data.getIsVersionSeriesCheckedOut()) {
+					if (data.getIsPrivateWorkingCopy()) {
+						if (majorParam) {
+							String versionLable = data.getVersionLabel();
+							String[] versionLabelArray = versionLable.split("\\.");
+							Double versionLabelMajor = Double.parseDouble(versionLabelArray[0]);
+							versionLabelMajor = versionLabelMajor + 1;
+							if (contentStreamParam == null) {
+								documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true,
+										true, false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
+										data.getVersionReferenceId(), false, null, null, checkinComment,
+										data.getContentStreamLength(), data.getContentStreamMimeType(),
+										data.getContentStreamFileName(), data.getContentStreamId(),
+										data.getPreviousVersionObjectId());
+							} else {
+								documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, true,
+										true, false, String.valueOf(versionLabelMajor), versionSeriesId.toString(),
+										data.getVersionReferenceId(), false, null, null, checkinComment,
+										contentStreamParam.getLength(), contentStreamParam.getMimeType(),
+										contentStreamParam.getFileName(), data.getContentStreamId(),
+										data.getPreviousVersionObjectId());
+							}
+
+						}
+
+						else {
+							String versionLabel = data.getVersionLabel();
+							String[] versionLabelArray = versionLabel.split("\\.");
+							Integer versionLabelMinor = Integer.parseInt(versionLabelArray[1]);
+							versionLabelMinor = versionLabelMinor + 2;
+							String verLabelMinorString = String.valueOf(versionLabelMinor);
+							verLabelMinorString = versionLabelArray[0] + "." + versionLabelMinor;
+							if (contentStreamParam == null) {
+								documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false,
+										false, false, String.valueOf(verLabelMinorString), versionSeriesId.toString(),
+										data.getVersionReferenceId(), false, null, null, checkinComment,
+										data.getContentStreamLength(), data.getContentStreamMimeType(),
+										data.getContentStreamFileName(), data.getContentStreamId(),
+										data.getPreviousVersionObjectId());
+							} else {
+								documentObject = documentObjectDAO.createObjectFacade(baseObject, false, true, false,
+										false, false, verLabelMinorString, versionSeriesId.toString(),
+										data.getVersionReferenceId(), false, null, null, checkinComment,
+										contentStreamParam.getLength(), contentStreamParam.getMimeType(),
+										contentStreamParam.getFileName(), data.getContentStreamId(),
+										data.getPreviousVersionObjectId());
+							}
+						}
+
+						documentObjectDAO.commit(documentObject);
+						Properties updateProperties = CmisPropertyConverter.Impl.createUpdateProperties(listProperties,
+								data.getTypeId(), null, Collections.singletonList(objectId.toString()), repositoryId,
+								data, userObject);
+						if (updateProperties != null) {
+							CmisObjectService.Impl.updateProperties(repositoryId,
+									new Holder<String>(documentObject.getId()), null, updateProperties, null, null,
+									userObject, data.getTypeId(), tracingId, span);
+						}
+						LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
+					}
+				}
+				if (contentStreamParam != null && contentStreamParam.getStream() != null) {
+					String fileName;
+					if (documentObject.getContentStreamFileName().contains(".")) {
+						String[] fileNames = documentObject.getContentStreamFileName().split("\\.(?=[^\\.]+$)");
+						String type = MimeUtils.checkFileExtension(fileNames[1]);
+						if (type != null) {
+							fileName = fileNames[0] + documentObject.getVersionLabel().replace(".", "_") + "."
+									+ fileNames[1];
+						} else {
+							fileName = documentObject.getContentStreamFileName()
+									+ documentObject.getVersionLabel().replace(".", "_");
+						}
+
 					} else {
 						fileName = documentObject.getContentStreamFileName()
 								+ documentObject.getVersionLabel().replace(".", "_");
 					}
+					Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
+					IStorageService localService = StorageServiceFactory.createStorageService(parameters);
+					Map<String, Object> updatecontentProps = new HashMap<String, Object>();
+					try {
+						ContentStream versionCustomContentStream = new ContentStreamImpl(fileName,
+								contentStreamParam.getBigLength(), documentObject.getContentStreamMimeType(),
+								contentStreamParam.getStream());
+						localService.writeContent(documentObject.getId().toString(), fileName, documentObject.getPath(),
+								versionCustomContentStream);
+					} catch (Exception e) {
+						LOG.error("checkIn file creation exception:  {}, repositoryid: {}, TraceId: {}", e,
+								repositoryId, span != null ? span.getTraceId() : null);
+						TracingApiServiceFactory.getApiService().updateSpan(span,
+								TracingErrorMessage.message(
+										TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
+										ErrorMessages.BASE_EXCEPTION, repositoryId, true));
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+					}
+					updatecontentProps.put("contentStreamLength", contentStreamParam.getLength());
+					updatecontentProps.put("contentStreamFileName", fileName);
+					documentObjectDAO.update(documentObject.getId(), updatecontentProps);
 
-				} else {
-					fileName = documentObject.getContentStreamFileName()
-							+ documentObject.getVersionLabel().replace(".", "_");
 				}
-				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
-				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-				Map<String, Object> updatecontentProps = new HashMap<String, Object>();
-				try {
-					ContentStream versionCustomContentStream = new ContentStreamImpl(fileName,
-							contentStreamParam.getBigLength(), documentObject.getContentStreamMimeType(),
-							contentStreamParam.getStream());
-					localService.writeContent(documentObject.getId().toString(), fileName, documentObject.getPath(),
-							versionCustomContentStream);
-				} catch (Exception e) {
-					LOG.error("checkIn file creation exception:  {}, repositoryid: {}, TraceId: {}", e, repositoryId,
-							span != null ? span.getTraceId() : null);
-					TracingApiServiceFactory.getApiService().updateSpan(span,
-							TracingErrorMessage.message(
-									TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
-									ErrorMessages.BASE_EXCEPTION, repositoryId, true));
-					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-				}
-				updatecontentProps.put("contentStreamLength", contentStreamParam.getLength());
-				updatecontentProps.put("contentStreamFileName", fileName);
-				documentObjectDAO.update(documentObject.getId(), updatecontentProps);
 
+				Map<String, Object> updateProps = new HashMap<String, Object>();
+				updateProps.put("isLatestVersion", false);
+				updateProps.put("isLatestMajorVersion", false);
+				updateProps.put("isVersionSeriesCheckedOut", false);
+				updateProps.put("versionSeriesCheckedOutId", "");
+				updateProps.put("versionSeriesCheckedOutBy", "");
+				documentObjectDAO.update(documentdata.getId(), updateProps);
+				TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
+				documentObjectDAO.delete(objectId.getValue(), null, true, false, deleteToken);
+				LOG.info("checkIn PWC done for: {}", objectId);
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+				return documentObject.getId();
+			} else {
+				LOG.error("Create type permission denied for this user: {}, repository: {}, TraceId: {}",
+						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span),
+								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisRoleValidationException(TracingWriter
+						.log(String.format(ErrorMessages.CREATE_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
-
-			Map<String, Object> updateProps = new HashMap<String, Object>();
-			updateProps.put("isLatestVersion", false);
-			updateProps.put("isLatestMajorVersion", false);
-			updateProps.put("isVersionSeriesCheckedOut", false);
-			updateProps.put("versionSeriesCheckedOutId", "");
-			updateProps.put("versionSeriesCheckedOutBy", "");
-			documentObjectDAO.update(documentdata.getId(), updateProps);
-			TokenImpl deleteToken = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
-			documentObjectDAO.delete(objectId.getValue(), null, true, false, deleteToken);
-			LOG.info("checkIn PWC done for: {}", objectId);
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-			return documentObject.getId();
 		}
 	}
 }

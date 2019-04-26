@@ -62,8 +62,8 @@ public class DBUtils {
 
 	public static class BaseDAO {
 		@SuppressWarnings("serial")
-		public static IBaseObject getByObjectId(String repositoryId, String objectId, String[] mappedColumns,
-				String typeId) {
+		public static IBaseObject getByObjectId(String repositoryId, String[] principalIds, boolean aclPropagation,
+				String objectId, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -72,8 +72,9 @@ public class DBUtils {
 					put(Variables.REPOID, repositoryId);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0,
-					mappedColumns, typeId);
+
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, principalIds,
+					aclPropagation, false, 0, 0, mappedColumns, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -82,14 +83,16 @@ public class DBUtils {
 		}
 
 		public static List<? extends IBaseObject> getObjectsByIds(String repositoryId, List<String> objectIds,
-				int maxItems, int skipCount, String[] mappedColumns, String typeId) {
+				boolean aclPropagation, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			return objectMorphiaDAO.getObjects(objectIds, true, maxItems, skipCount, mappedColumns, typeId);
+			return objectMorphiaDAO.getObjects(objectIds, null, aclPropagation, true, maxItems, skipCount,
+					mappedColumns, typeId);
 		}
 
 		@SuppressWarnings("serial")
-		public static IBaseObject getByName(String repositoryId, String name, String parentId, String typeId) {
+		public static IBaseObject getByName(String repositoryId, String name, boolean aclPropagation, String parentId,
+				String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -101,8 +104,8 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null,
-					typeId);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation,
+					false, 0, 0, null, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -111,7 +114,8 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static IBaseObject getByNextVersionId(String repositoryId, ObjectId previousVersionObjectId) {
+		public static IBaseObject getByNextVersionId(String repositoryId, ObjectId previousVersionObjectId,
+				boolean aclPropagation) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -121,7 +125,8 @@ public class DBUtils {
 				}
 			};
 
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, null);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation,
+					false, 0, 0, null, null);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -130,7 +135,8 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getByTypeId(String repositoryId, String typeId) {
+		public static List<? extends IBaseObject> getByTypeId(String repositoryId, String typeId,
+				boolean aclPropagation) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -140,11 +146,12 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, true, aclPropagation, 0, 0, null, typeId);
 		}
 
 		@SuppressWarnings("serial")
-		public static IBaseObject getByPath(String repositoryId, String path, String typeId) {
+		public static IBaseObject getByPath(String repositoryId, String[] principalIds, boolean aclPropagation,
+				String path, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -152,8 +159,8 @@ public class DBUtils {
 					put(Variables.PATH, path);
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null,
-					typeId);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, principalIds,
+					aclPropagation, false, 0, 0, null, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -162,7 +169,7 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static IBaseObject getRootFolder(String repositoryId, String typeId) {
+		public static IBaseObject getRootFolder(String repositoryId, String typeId, boolean aclPropagation) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -171,8 +178,8 @@ public class DBUtils {
 
 				}
 			};
-			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null,
-					typeId);
+			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation,
+					false, 0, 0, null, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}
@@ -330,7 +337,8 @@ public class DBUtils {
 
 	public static class RelationshipDAO {
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipDocuments(String repositoryId, String typeId) {
+		public static List<? extends IBaseObject> getRelationshipDocuments(String repositoryId, String typeId,
+				boolean aclPropagation) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -339,12 +347,12 @@ public class DBUtils {
 					put(Variables.BASEID, "CMIS:FOLDER");
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, false, 0, 0, null, typeId);
 		}
 
 		@SuppressWarnings("serial")
 		public static List<? extends IBaseObject> getRelationshipTargetIds(String repositoryId, String targetId,
-				String primaryKey, Object value) {
+				boolean aclPropagation, String primaryKey, Object value) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -354,12 +362,12 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, false, 0, 0, null, targetId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, false, 0, 0, null, targetId);
 		}
 
 		@SuppressWarnings("serial")
 		public static List<? extends IBaseObject> getRelationshipBySourceId(String repositoryId, String sourceId,
-				int maxItems, int skipCount, String[] mappedColumns, String typeId) {
+				boolean aclPropagation, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -368,12 +376,13 @@ public class DBUtils {
 				}
 			};
 
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, true, maxItems, skipCount,
+					mappedColumns, typeId);
 		}
 
 		@SuppressWarnings("serial")
 		public static List<? extends IBaseObject> getRelationshipByTargetId(String repositoryId, String targetId,
-				int maxItems, int skipCount, String[] mappedColumns, String typeId) {
+				boolean aclPropagation, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
@@ -381,7 +390,8 @@ public class DBUtils {
 					put("properties.cmis:targetId", targetId);
 				}
 			};
-			return objectMorphiaDAO.filter(fieldsNamesAndValues, true, maxItems, skipCount, mappedColumns, typeId);
+			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, true, maxItems, skipCount,
+					mappedColumns, typeId);
 		}
 	}
 

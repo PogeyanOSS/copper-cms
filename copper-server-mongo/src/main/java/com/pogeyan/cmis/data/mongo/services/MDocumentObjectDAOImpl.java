@@ -131,7 +131,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 
 	private Criteria[] getAclCriteria(String[] principalIds, Query<MDocumentObject> query) {
 		Criteria[] checkAcl = Stream.of(principalIds)
-				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
+				.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
 				.toArray(s -> new Criteria[s]);
 		return checkAcl;
 	}

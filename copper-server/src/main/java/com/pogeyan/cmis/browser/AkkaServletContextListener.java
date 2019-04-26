@@ -126,7 +126,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		LOG.info("Initializing service factory instances");
 		try {
-			boolean factory = createServiceFactory(sce, configFilename);
+			boolean factory = createServiceFactory(sce, system, configFilename);
 			if (!factory) {
 				throw new IllegalArgumentException("Repository manager class not initilaized");
 			}
@@ -154,7 +154,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 		system.terminate();
 	}
 
-	private boolean createServiceFactory(ServletContextEvent sce, String fileName) throws FileNotFoundException {
+	private boolean createServiceFactory(ServletContextEvent sce, ActorSystem system, String fileName)
+			throws FileNotFoundException {
 		// load properties
 		InputStream stream = null;
 		try {
@@ -315,8 +316,11 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
 			Class<?> c = Class.forName(cacheProviderFactoryClassName);
 			ICacheProvider cacheProviderFactory = (ICacheProvider) c.newInstance();
+			ICacheProvider UserCacheProviderFactory = (ICacheProvider) c.newInstance();
 			CacheProviderServiceFactory.addTypeCacheService(cacheProviderFactory);
+			CacheProviderServiceFactory.addUserCacheService(UserCacheProviderFactory);
 			cacheProviderFactory.init(intervalTime);
+			UserCacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;
@@ -334,7 +338,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 				externalActorClassMap.put(externalActorFactory.getActorClass(), externalActorFactory.getServiceURL());
 			}
 		} catch (Exception e) {
-			LOG.error("Could not create a authentication services factory instance: {}", e);
+			LOG.error("Could not create a externalActorFactoryClass services factory instance: {}", e);
 			return false;
 		}
 		return true;

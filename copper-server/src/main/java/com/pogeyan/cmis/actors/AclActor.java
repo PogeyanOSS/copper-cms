@@ -35,6 +35,7 @@ import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
@@ -62,7 +63,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	}
 
 	private JSONObject applyACL(PostRequest t, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "AclActor::applyAcl",
@@ -82,8 +83,8 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, apply acl for object using this id: {}, repositoryId: {}, addAcl: {}, removeAcl: {}",
 				"applyACL", objectId, t.getRepositoryId(), t.getAddAcl(), t.getRemoveAcl());
 		Acl objectAcl = CmisAclServices.Impl.applyAcl(t.getRepositoryId(), objectId, t.getAddAcl(), t.getRemoveAcl(),
-				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject().getUserDN(),
-				t.getTypeId(), tracingId, span);
+				AclPropagation.fromValue(aclPro), null, null, CapabilityAcl.NONE, t.getUserObject(), t.getTypeId(),
+				tracingId, span);
 		if (objectAcl == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.ACL_NULL), span),
@@ -98,7 +99,7 @@ public class AclActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	}
 
 	private JSONObject getAcl(QueryGetRequest t, HashMap<String, Object> baggage)
-			throws CmisObjectNotFoundException, CmisRuntimeException {
+			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan, "AclActor::getAcl",

@@ -198,7 +198,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 
 	private Criteria[] getAclCriteria(String[] principalIds, Query<MBaseObject> query) {
 		Criteria[] checkAcl = Stream.of(principalIds)
-				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
+				.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
 				.toArray(s -> new Criteria[s]);
 		Criteria[] checkAclRepo = new Criteria[] {
 				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()) };
