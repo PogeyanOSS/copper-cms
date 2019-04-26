@@ -365,7 +365,7 @@ public class CmisPropertyConverter {
 			try {
 				LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
 				if (EncryptType.ENCRYPT.equals(invokeMethod)) {
-					resultFlow = objectFlowService.beforeEncrypt(repositoryId, typeId, propId, strValues);
+					resultFlow = objectFlowService.encrypt(repositoryId, typeId, propId, strValues);
 				}
 			} catch (Exception ex) {
 				LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",

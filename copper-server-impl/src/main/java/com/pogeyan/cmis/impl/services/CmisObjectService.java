@@ -1392,7 +1392,6 @@ public class CmisObjectService {
 								List<BigInteger> value = convertInstanceOfObject(valueOfType, List.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id, value, userObject);
 							}
-
 						} else if (propertyType == PropertyType.BOOLEAN) {
 							if (valueOfType instanceof Boolean) {
 								Boolean booleanValue = convertInstanceOfObject(valueOfType, Boolean.class);
@@ -1401,7 +1400,6 @@ public class CmisObjectService {
 								List<Boolean> booleanValue = convertInstanceOfObject(valueOfType, List.class);
 								addPropertyBoolean(repositoryId, props, typeId, filter, id, booleanValue, userObject);
 							}
-
 						} else if (propertyType == PropertyType.ID) {
 							if (valueOfType instanceof String) {
 								String value = convertInstanceOfObject(valueOfType, String.class);
@@ -5494,9 +5492,12 @@ public class CmisObjectService {
 				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType) {
 			if (objectFlowService != null) {
 				try {
-					LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
 					if (EncryptType.DECRYPT.equals(invokeMethod)) {
-						propValue = objectFlowService.afterEncrypt(repositoryId, typeId, propId, propValue);
+						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
+						if (objectFlowService.checkProp(repositoryId, typeId, propId)) {
+							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue);
+							propValue = convertDecryptProperties(propValue, propertyType);
+						}
 					}
 				} catch (Exception ex) {
 					LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
@@ -5504,7 +5505,6 @@ public class CmisObjectService {
 					throw new IllegalArgumentException(ex.getMessage());
 				}
 			}
-			propValue = convertDecryptProperties(propValue, propertyType);
 			return propValue;
 		}
 
