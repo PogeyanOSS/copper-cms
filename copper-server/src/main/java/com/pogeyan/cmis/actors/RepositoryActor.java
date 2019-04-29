@@ -77,6 +77,7 @@ import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
+import com.pogeyan.cmis.api.utils.Globals;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
@@ -89,7 +90,6 @@ import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 
 public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(RepositoryActor.class);
-	private static final String OPENCMIS_VERSION = "1.1";
 	private static final String OPENCMIS_SERVER = "Cloud CMIS DB";
 
 	public RepositoryActor() {
@@ -500,7 +500,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		repoInfo.setLatestChangeLogToken(latestToken != null ? latestToken : "token-24");
 		repoInfo.setVendorName("Pogeyan Technologies Pvt. Ltd.");
 		repoInfo.setProductName(OPENCMIS_SERVER);
-		repoInfo.setProductVersion(OPENCMIS_VERSION);
+		repoInfo.setProductVersion(Globals.getAppVersion());
 
 		// set capabilities
 		RepositoryCapabilitiesImpl caps = new RepositoryCapabilitiesImpl();
