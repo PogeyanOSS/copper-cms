@@ -3,9 +3,9 @@
 Copper CMS project implements the (OpenCMIS specifications)[http://docs.oasis-open.org/cmis/CMIS/v1.1/CMIS-v1.1.html]. It implements the following CMIS services,
 
 1. Repository Service
-2. Navigation
-3. Object service
-4. Discovery Service- Query Method not Supported
+2. Navigation Service
+3. Object Service
+4. Discovery Service
 5. Versioning Service
 6. Relationship Service
 7. Policy Service
@@ -15,7 +15,7 @@ Copper CMS project implements the (OpenCMIS specifications)[http://docs.oasis-op
 
 > Query Service and Multi-Filing Service is not supported yet.
 
-**This is an alpha version only, production usage is at the users risk to maintain, We are still finalizing the interfaces and customization options.**
+**This is an beta version only, production usage is at the users risk to maintain, We are still finalizing the interfaces and customization options.**
 
 # Requirements
 * Java 8 SDK
@@ -186,16 +186,3 @@ Please refer to each project's style guidelines and guidelines for submitting pa
  5. Submit a **Pull request** so that we can review your changes
 
 NOTE: Be sure to merge the latest from "upstream" before making a pull request!
-
-## Adding Aws Simple Queue Service ObjectFlow
-
-* Adding objectFlow factory classpath in repository.properties file.
-* Example - objectFlowManagerClass=com.pogeyan.cmis.aws.content.AwsObjectFlowFactory
-
-## Tracing with Opencensus and Jaegar
-* Add tracingApi classpath in repository.properties file.
-* Example - tracingApiClass=com.pogeyan.cmis.impl.tracing.TracingSyncImpl
-
-## Enable CBM Adapter
-* Add cbmAdaptorClass classpath in repository.properties file.
-* Example - cbmAdaptorClass=com.pogeyan.cbm.mongo.adapter.services
