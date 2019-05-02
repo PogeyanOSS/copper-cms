@@ -4788,7 +4788,7 @@ public class CmisObjectService {
 		public static String getObjectTypeId(Properties properties, String repositoryId, String tracingId, ISpan span) {
 
 			if (properties == null || properties.getProperties() == null) {
-				LOG.error("createDocumentIntern unknown properties: {}, repositoryId: {}, TraceId: {}", properties,
+				LOG.error("getObjectTypeId unknown properties: {}, repositoryId: {}, TraceId: {}", properties,
 						repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(
