@@ -99,9 +99,9 @@ import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.EncryptType;
 import com.pogeyan.cmis.api.data.common.ObjectFlowType;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
@@ -126,6 +126,7 @@ import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.impl.utils.NameValidator;
 import com.pogeyan.cmis.impl.utils.TypeValidators;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
+
 import scala.Tuple2;
 
 public class CmisObjectService {
@@ -1537,7 +1538,7 @@ public class CmisObjectService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createFolder", null);
 
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
@@ -1719,7 +1720,7 @@ public class CmisObjectService {
 				BaseTypeId baseType, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createTypeFolder", null);
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			LOG.debug("createTypeFolder for custom type: {}", typeId);
 			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MBaseObjectDAO.class);
@@ -1966,7 +1967,7 @@ public class CmisObjectService {
 					"CmisObjectService::createDocument", null);
 			// Attach the CallContext to a thread local context that can be
 			// accessed from everywhere
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
@@ -2064,7 +2065,7 @@ public class CmisObjectService {
 						TracingWriter.log(String.format(ErrorMessages.ERROR, NameValidator.ERROR_ILLEGAL_NAME), span));
 			}
 
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MDocumentObjectDAO.class);
 
@@ -2328,7 +2329,7 @@ public class CmisObjectService {
 					getSourceProperties(pros, PropertyIds.OBJECT_TYPE_ID, doc.getTypeId());
 					properties = CmisPropertyConverter.Impl.createNewProperties(pros, repositoryId, userObject);
 				}
-				String objectTypeId = getObjectTypeId(properties);
+				String objectTypeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 				PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 				String documentName = (String) pd.getFirstValue();
 				if (null == documentName || documentName.length() == 0) {
@@ -2356,7 +2357,7 @@ public class CmisObjectService {
 					throw new CmisInvalidArgumentException(TracingWriter
 							.log(String.format(ErrorMessages.ERROR, NameValidator.ERROR_ILLEGAL_NAME), span));
 				}
-				String typeId = getObjectTypeId(properties);
+				String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 
 				TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
 						tracingId, span);
@@ -2485,7 +2486,7 @@ public class CmisObjectService {
 				ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createItem", null);
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
@@ -2563,7 +2564,7 @@ public class CmisObjectService {
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
 
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
 					tracingId, span);
 			if (typeDef == null) {
@@ -2686,7 +2687,7 @@ public class CmisObjectService {
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createRelationship", null);
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
@@ -3131,7 +3132,7 @@ public class CmisObjectService {
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createPolicy", null);
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
@@ -3209,7 +3210,7 @@ public class CmisObjectService {
 				secondaryObjectTypeIds = (List<String>) secondaryObjectType.getValues();
 			}
 
-			String typeId = getObjectTypeId(properties);
+			String typeId = getObjectTypeId(properties, repositoryId, tracingId, span);
 			TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
 					tracingId, span);
 			if (typeDef == null) {
@@ -4784,7 +4785,20 @@ public class CmisObjectService {
 		/**
 		 * Gets the type id from a set of properties.
 		 */
-		public static String getObjectTypeId(Properties properties) {
+		public static String getObjectTypeId(Properties properties, String repositoryId, String tracingId, ISpan span) {
+
+			if (properties == null || properties.getProperties() == null) {
+				LOG.error("createDocumentIntern unknown properties: {}, repositoryId: {}, TraceId: {}", properties,
+						repositoryId, span != null ? span.getTraceId() : null);
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.PROPERTIES_MUST_BE_SET), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisInvalidArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.PROPERTIES_MUST_BE_SET), span));
+			}
+
 			PropertyData<?> typeProperty = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
 			if (typeProperty != null) {
 				LOG.debug("getObjectTypeId for: {}, properties: {}", PropertyIds.OBJECT_TYPE_ID, typeProperty);
