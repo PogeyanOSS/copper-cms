@@ -203,6 +203,9 @@ public class CmisAclServices {
 			if (addAces == null && removeAces == null) {
 				aces.addAll(object.getAcl().getAces());
 			}
+
+			// the user cannot remove himself, so the user who is updating the acl is also
+			// added
 			List<String> permission = object.getAcl().getAces().stream()
 					.filter(a -> a.getPrincipalId().equals(user.getUserDN())).map(b -> b.getPermissions())
 					.collect(Collectors.toList()).get(0);
