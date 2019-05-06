@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -118,18 +119,18 @@ public class CmisAclServices {
 				switch (aclPropagation) {
 				case REPOSITORYDETERMINED: {
 					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-							tracingId, span);
+							user, tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				}
 				case OBJECTONLY:
 					AccessControlListImplExt newData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-							tracingId, span);
+							user, tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, newData, token, objectId, modifiedTime, typeId);
 					break;
 				case PROPAGATE:
 					AccessControlListImplExt aclData = validateAcl(addAces, removeAces, data, id, aclPropagation.name(),
-							tracingId, span);
+							user, tracingId, span);
 					DBUtils.BaseDAO.updateAcl(repositoryId, aclData, token, objectId, modifiedTime, typeId);
 					break;
 				}
@@ -154,7 +155,7 @@ public class CmisAclServices {
 		}
 
 		private static AccessControlListImplExt validateAcl(Acl addAces, Acl removeAces, IBaseObject object,
-				List<String> id, String aclPropagation, String tracingId, ISpan parentSpan) {
+				List<String> id, String aclPropagation, IUserObject user, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::validateAcl", null);
 			List<Ace> aces = new ArrayList<Ace>();
@@ -203,6 +204,12 @@ public class CmisAclServices {
 				aces.addAll(object.getAcl().getAces());
 			}
 
+			// the user cannot remove himself, so the user who is updating the acl is also
+			// added
+			List<String> permission = object.getAcl().getAces().stream()
+					.filter(a -> a.getPrincipalId().equals(user.getUserDN())).map(b -> b.getPermissions())
+					.collect(Collectors.toList()).get(0);
+			aces.add(new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(user.getUserDN()), permission));
 			Set<Ace> removeDuplicate = aces.stream()
 					.collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Ace::getPrincipalId))));
 			aces = new ArrayList<Ace>(removeDuplicate);
