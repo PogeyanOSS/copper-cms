@@ -16,9 +16,9 @@
 package com.pogeyan.cmis.actors;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -34,9 +34,6 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
-import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParseException;
-import org.apache.chemistry.opencmis.commons.impl.json.parser.JSONParser;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -383,68 +380,59 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		return jsonDocs;
 	}
 
-	@SuppressWarnings("unchecked")
 	private JSONObject getAllObjects(PostRequest request, HashMap<String, Object> baggage)
 			throws IllegalArgumentException, CmisInvalidArgumentException, CmisRuntimeException,
 			CmisRoleValidationException {
-		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
-		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
-		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
-				"NavigationActor::getAllObjects", null);
+		{
+			String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+			ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"NavigationActor::getAllObjects", null);
 
-		String permission = request.getUserObject().getPermission();
-		IUserGroupObject[] groupsId = request.getUserObject().getGroups();
-		if (!Helpers.getGroupPermission(permission, groupsId)) {
-			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
-							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(
-					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
-		}
+			String permission = request.getUserObject().getPermission();
+			IUserGroupObject[] groupsId = request.getUserObject().getGroups();
+			if (!Helpers.getGroupPermission(permission, groupsId)) {
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter
+								.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+								ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisRuntimeException(
+						TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+			}
 
-		boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
-		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
-		JSONParser parser = new JSONParser();
-		Object json = null;
-		try {
-			json = parser.parse(request.getRequestBody());
-		} catch (JSONParseException e) {
-			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId() : null);
-			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(TracingWriter
-							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
-							ErrorMessages.BASE_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-		}
-		if (!(json instanceof Map)) {
-			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(TracingWriter
-							.log(String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span),
-							ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisInvalidArgumentException(
-					TracingWriter.log(String.format(ErrorMessages.INVALID_REQUEST_BODY, request.getUserName()), span));
-		}
-		Map<String, List<String>> jMap = (Map<String, List<String>>) json;
-		LOG.info("Method name: {}, fetching all objects, repositoryId: {}, idList: {}", "getAllObjects",
-				request.getRepositoryId(), jMap.get("ids"));
-		ObjectInFolderList children = CmisNavigationService.Impl.getAllObjects(request.getRepositoryId(),
-				request.getUserObject(), jMap.get("ids"), tracingId, span);
+			boolean succinct = request.getBooleanParameter(QueryGetRequest.PARAM_SUCCINCT, false);
+			DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
+			List<String> objectIds = new ArrayList<>();
+			if (request.getPropertyData() != null) {
+				objectIds = request.getPropertyData().get("ids");
+			}
+			LOG.info("Method name: {}, fetching all objects, repositoryId: {}, idList: {}", "getAllObjects",
+					request.getRepositoryId(), objectIds);
+			if (objectIds == null) {
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(String.format(ErrorMessages.INVALID_EXCEPTION), span),
+								ErrorMessages.INVALID_EXCEPTION, request.getRepositoryId(), true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisInvalidArgumentException(
+						TracingWriter.log(String.format(ErrorMessages.INVALID_EXCEPTION), span));
+			}
+			ObjectInFolderList children = CmisNavigationService.Impl.getAllObjects(request.getRepositoryId(),
+					request.getUserObject(), objectIds, tracingId, span);
 
-		if (children == null) {
-			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span),
-							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span));
-		}
+			if (children == null) {
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span),
+								ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+				throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span));
+			}
 
-		JSONObject jsonChildren = JSONConverter.convert(children, CmisTypeCacheService.get(request.getRepositoryId()),
-				succinct, dateTimeFormat);
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-		return jsonChildren;
+			JSONObject jsonChildren = JSONConverter.convert(children,
+					CmisTypeCacheService.get(request.getRepositoryId()), succinct, dateTimeFormat);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			return jsonChildren;
+		}
 	}
 }
