@@ -18,8 +18,6 @@ package com.pogeyan.cmis.impl.utils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -432,15 +430,14 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("unchecked")
-		public static Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId,
+		public static PropertyDefinition<?> getAllPropertyById(String repositoryId, String propId,
 				String[] fieldAccess) {
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, null));
-			Map<String, PropertyDefinition<?>> propDef = typeDef.stream()
-					.filter(a -> a.getPropertyDefinitions().get(propId) != null)
-					.collect(Collectors.toMap(a -> propId, b -> b.getPropertyDefinitions().get(propId)));
-			if (propDef.size() > 0) {
-				return propDef;
+			TypeDefinition propDef = typeDef.stream().filter(a -> a.getPropertyDefinitions().get(propId) != null)
+					.findFirst().orElse(null);
+			if (propDef != null) {
+				return propDef.getPropertyDefinitions().get(propId);
 			} else {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);

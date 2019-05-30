@@ -77,7 +77,7 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 	}
 
 	@Override
-	public Map<String, PropertyDefinition<?>> getAllPropertyById(String propId, String[] fieldAccess) {
+	public PropertyDefinition<?> getAllPropertyById(String propId, String[] fieldAccess) {
 		Query<MTypeObject> query = null;
 		if (fieldAccess != null) {
 			if (Arrays.asList(fieldAccess).contains(propId)) {
@@ -88,7 +88,7 @@ public class MTypeManagerDAOImpl extends BasicDAO<MTypeObject, ObjectId> impleme
 		}
 
 		if (query != null && query.get() != null) {
-			return query.get().getPropertyDefinitions();
+			return query.get().getPropertyDefinitions().get(propId);
 		} else {
 			return null;
 		}

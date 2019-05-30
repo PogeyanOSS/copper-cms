@@ -63,9 +63,8 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public PropertyDefinition<?> getPropertyDefinition(String propId) {
-		Map<String, PropertyDefinition<?>> property = DBUtils.TypeServiceDAO.getAllPropertyById(this.repositoryId,
-				propId, null);
-		return property != null ? property.get(propId) : null;
+		PropertyDefinition<?> property = DBUtils.TypeServiceDAO.getAllPropertyById(this.repositoryId, propId, null);
+		return property != null ? property : null;
 	}
 
 	public static TypeCache get(String repositoryId) {
