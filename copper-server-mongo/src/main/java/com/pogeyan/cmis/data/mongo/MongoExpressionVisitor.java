@@ -2,7 +2,6 @@ package com.pogeyan.cmis.data.mongo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -180,39 +179,29 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			if (propId.equals("cmis:changeType")) {
 				return Integer.parseInt(value);
 			}
-			Map<String, PropertyDefinition<?>> prop = this.typeManager.getAllPropertyById(propId, null);
-			if (prop != null) {
-
-				try {
-					PropertyDefinition<?> propDef = prop.get(propId);
-					if (propDef != null) {
-						if (propDef.getPropertyType().equals(PropertyType.STRING)) {
-							return value;
-						} else if (propDef.getPropertyType().equals(PropertyType.BOOLEAN)) {
-							return Boolean.parseBoolean(value);
-						} else if (propDef.getPropertyType().equals(PropertyType.DECIMAL)) {
-							return Double.parseDouble(value);
-						} else if (propDef.getPropertyType().equals(PropertyType.DATETIME)) {
-							return Long.parseLong(value);
-						} else if (propDef.getPropertyType().equals(PropertyType.ID)) {
-							return value;
-						} else if (propDef.getPropertyType().equals(PropertyType.INTEGER)) {
-							return Integer.parseInt(value);
-						}
+			try {
+				PropertyDefinition<?> propDef = this.typeManager.getAllPropertyById(propId, null);
+				if (propDef != null) {
+					if (propDef.getPropertyType().equals(PropertyType.STRING)) {
+						return value;
+					} else if (propDef.getPropertyType().equals(PropertyType.BOOLEAN)) {
+						return Boolean.parseBoolean(value);
+					} else if (propDef.getPropertyType().equals(PropertyType.DECIMAL)) {
+						return Double.parseDouble(value);
+					} else if (propDef.getPropertyType().equals(PropertyType.DATETIME)) {
+						return Long.parseLong(value);
+					} else if (propDef.getPropertyType().equals(PropertyType.ID)) {
+						return value;
+					} else if (propDef.getPropertyType().equals(PropertyType.INTEGER)) {
+						return Integer.parseInt(value);
 					}
-				} catch (Exception e) {
-					LOG.error("class name:{},method name:{}, exception: {}", "MongoExpressionVisitor",
-							"getPropertyValue", e);
 				}
-
+			} catch (Exception e) {
+				LOG.error("class name:{},method name:{}, exception: {}", "MongoExpressionVisitor", "getPropertyValue",
+						e);
 			}
-		} else {
-			LOG.error("class name:{},method name:{}, exception: {}", "MongoExpressionVisitor", "getPropertyValue",
-					"typeManager instance null");
 		}
-
 		return null;
-
 	}
 
 	@Override

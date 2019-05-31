@@ -18,7 +18,6 @@ package com.pogeyan.cmis.impl.utils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -399,14 +398,14 @@ public class DBUtils {
 		@SuppressWarnings("unchecked")
 		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId,
 				String[] fieldAccess) {
-			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
 			if (typeDef == null || typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
 				if (typeId != null) {
+					MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+							.getObjectService(repositoryId, MTypeManagerDAO.class);
+					MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+							.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 					typeDef = typeManagerDAO.getById(typeId, fieldAccess);
 					typeDef.stream().forEach((k) -> {
 						if (k.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
@@ -430,11 +429,21 @@ public class DBUtils {
 
 		}
 
-		public static Map<String, PropertyDefinition<?>> getAllPropertyById(String repositoryId, String propId,
+		@SuppressWarnings("unchecked")
+		public static PropertyDefinition<?> getAllPropertyById(String repositoryId, String propId,
 				String[] fieldAccess) {
-			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
-			return typeManagerDAO.getAllPropertyById(propId, fieldAccess);
+			List<? extends TypeDefinition> typeDefList = ((List<TypeDefinition>) CacheProviderServiceFactory
+					.getTypeCacheServiceProvider().get(repositoryId, null));
+			TypeDefinition typeDef = typeDefList.stream().filter(a -> a.getPropertyDefinitions().get(propId) != null)
+					.findFirst().orElse(null);
+			if (typeDef != null) {
+				return typeDef.getPropertyDefinitions().get(propId);
+			} else {
+				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
+						.getObjectService(repositoryId, MTypeManagerDAO.class);
+				return typeManagerDAO.getAllPropertyById(propId, fieldAccess);
+			}
+
 		}
 	}
 
