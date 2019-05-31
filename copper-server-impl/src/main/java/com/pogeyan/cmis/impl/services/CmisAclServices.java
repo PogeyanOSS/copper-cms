@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -42,9 +41,9 @@ import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
+import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
-import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.uri.exception.CmisRoleValidationException;
 import com.pogeyan.cmis.api.utils.ErrorMessages;
 import com.pogeyan.cmis.api.utils.Helpers;
@@ -206,10 +205,12 @@ public class CmisAclServices {
 
 			// the user cannot remove himself, so the user who is updating the acl is also
 			// added
-			List<String> permission = object.getAcl().getAces().stream()
-					.filter(a -> a.getPrincipalId().equals(user.getUserDN())).map(b -> b.getPermissions())
-					.collect(Collectors.toList()).get(0);
-			aces.add(new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(user.getUserDN()), permission));
+			if (object.getAcl().getAces().size() > 0 && !object.getAcl().getAces().isEmpty()) {
+				List<String> permission = object.getAcl().getAces().stream()
+						.filter(a -> a.getPrincipalId().equals(user.getUserDN())).map(b -> b.getPermissions())
+						.collect(Collectors.toList()).get(0);
+				aces.add(new AccessControlEntryImpl(new AccessControlPrincipalDataImpl(user.getUserDN()), permission));
+			}
 			Set<Ace> removeDuplicate = aces.stream()
 					.collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Ace::getPrincipalId))));
 			aces = new ArrayList<Ace>(removeDuplicate);
