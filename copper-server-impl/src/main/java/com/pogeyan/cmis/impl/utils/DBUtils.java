@@ -432,12 +432,12 @@ public class DBUtils {
 		@SuppressWarnings("unchecked")
 		public static PropertyDefinition<?> getAllPropertyById(String repositoryId, String propId,
 				String[] fieldAccess) {
-			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
+			List<? extends TypeDefinition> typeDefList = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, null));
-			TypeDefinition propDef = typeDef.stream().filter(a -> a.getPropertyDefinitions().get(propId) != null)
+			TypeDefinition typeDef = typeDefList.stream().filter(a -> a.getPropertyDefinitions().get(propId) != null)
 					.findFirst().orElse(null);
-			if (propDef != null) {
-				return propDef.getPropertyDefinitions().get(propId);
+			if (typeDef != null) {
+				return typeDef.getPropertyDefinitions().get(propId);
 			} else {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
