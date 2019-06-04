@@ -11,6 +11,5 @@ public class NavigationServiceTestGroup extends AbstractSessionTestGroup {
 		setName("Navigation Service Test Group");
 		setDescription("Navigation Service Test.");
 		addTest(new NavigationServiceTest());
-		addTest(new NavigationServiceFetchAllDataTest());
 	}
 }
