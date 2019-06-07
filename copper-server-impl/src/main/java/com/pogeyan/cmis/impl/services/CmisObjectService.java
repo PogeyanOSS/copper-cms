@@ -146,11 +146,10 @@ public class CmisObjectService {
 			try {
 				MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MBaseObjectDAO.class);
-				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId, typeId, false);
+				IBaseObject rootData = getRootFolder(repositoryId, typeId);
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
 					addRootFolder(repositoryId);
-					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, "@ROOT@", rootData);
 					return rootData.getId();
 				} else {
 					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -1657,10 +1656,7 @@ public class CmisObjectService {
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} else {
-				List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
-						Arrays.asList("@ROOT@"));
-				parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
-						: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+				parent = getRootFolder(repositoryId, typeId);
 			}
 
 			if (parent == null) {
@@ -1734,10 +1730,7 @@ public class CmisObjectService {
 					tracingId, span);
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
-			List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
-					Arrays.asList("@ROOT@"));
-			IBaseObject parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
-					: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+			IBaseObject parent = getRootFolder(repositoryId, typeId);
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String folderName = (String) pd.getFirstValue();
 			AccessControlListImplExt aclImp = (AccessControlListImplExt) CmisUtils.Object
@@ -2114,10 +2107,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider()
-							.get(repositoryId, Arrays.asList("@ROOT@"));
-					parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
-							: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+					parent = getRootFolder(repositoryId, typeId);
 				}
 			}
 			if (parent == null) {
@@ -2415,10 +2405,7 @@ public class CmisObjectService {
 							: objectTypeId;
 					parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 					if (parent == null) {
-						List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider()
-								.get(repositoryId, Arrays.asList("@ROOT@"));
-						parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
-								: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+						parent = getRootFolder(repositoryId, typeId);
 					}
 				}
 
@@ -2617,10 +2604,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider()
-							.get(repositoryId, Arrays.asList("@ROOT@"));
-					parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
-							: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+					parent = getRootFolder(repositoryId, typeId);
 				}
 			}
 			if (parent != null) {
@@ -2947,10 +2931,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider()
-							.get(repositoryId, Arrays.asList("@ROOT@"));
-					parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
-							: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+					parent = getRootFolder(repositoryId, typeId);
 				}
 			}
 
@@ -3253,10 +3234,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider()
-							.get(repositoryId, Arrays.asList("@ROOT@"));
-					parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
-							: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+					parent = getRootFolder(repositoryId, typeId);
 				}
 			}
 			if (parent == null) {
@@ -5545,6 +5523,14 @@ public class CmisObjectService {
 					throw new IllegalArgumentException(e.getMessage());
 				}
 			}
+		}
+
+		public static IBaseObject getRootFolder(String repositoryId, String typeId) {
+			List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
+					Arrays.asList("@ROOT@"));
+			IBaseObject parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
+					: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+			return parent;
 		}
 
 	}
