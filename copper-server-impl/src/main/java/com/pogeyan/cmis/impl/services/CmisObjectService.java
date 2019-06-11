@@ -147,25 +147,40 @@ public class CmisObjectService {
 			try {
 				MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MBaseObjectDAO.class);
-				IBaseObject rootData = getRootFolder(repositoryId, typeId);
+				List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
+						Arrays.asList("@ROOT@"));
+				IBaseObject rootData;
+				if (cacheRootData != null) {
+					cacheRootData = cacheRootData.stream().filter(val -> val != null).collect(Collectors.toList());
+				}
+				rootData = cacheRootData != null && cacheRootData.size() > 0 ? (IBaseObject) cacheRootData.get(0)
+						: null;
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
 					addRootFolder(repositoryId);
 					return rootData.getId();
 				} else {
-					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
-					AccessControlListImplExt aclImp = new AccessControlListImplExt(new ArrayList<>(),
-							AclPropagation.REPOSITORYDETERMINED.toString(), true);
-					IBaseObject folderObject = objectDAO.createObjectFacade(CopperCmsRepository.ROOT_ID,
-							BaseTypeId.CMIS_FOLDER, "cmis:folder", repositoryId, null,
-							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, aclImp, "/",
-							null);
-					objectDAO.commit(folderObject, typeId);
-					LOG.info("Root folder created in Database: {} , repository: {} ",
-							folderObject != null ? folderObject.getId() : null, repositoryId);
-					addRootFolder(repositoryId);
-					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, "@ROOT@", folderObject);
-					return folderObject.getId();
+					rootData = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
+					if (rootData != null) {
+						LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(),
+								repositoryId);
+						addRootFolder(repositoryId);
+					} else {
+						TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
+						AccessControlListImplExt aclImp = new AccessControlListImplExt(new ArrayList<>(),
+								AclPropagation.REPOSITORYDETERMINED.toString(), true);
+						rootData = objectDAO.createObjectFacade(CopperCmsRepository.ROOT_ID,
+								BaseTypeId.CMIS_FOLDER, BaseTypeId.CMIS_FOLDER.value(), repositoryId, null,
+								"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, aclImp,
+								"/", null);
+						objectDAO.commit(rootData, typeId);
+						LOG.info("Root folder created in Database: {} , repository: {} ",
+								rootData != null ? rootData.getId() : null, repositoryId);
+						addRootFolder(repositoryId);
+					}
+					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, "@ROOT@",
+							rootData);
+					return rootData.getId();
 				}
 			} catch (MongoException e) {
 
@@ -5548,11 +5563,13 @@ public class CmisObjectService {
 		public static IBaseObject getRootFolder(String repositoryId, String typeId) {
 			List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
 					Arrays.asList("@ROOT@"));
-			IBaseObject parent = cacheRootData != null ? (IBaseObject) cacheRootData.get(0)
+			if (cacheRootData != null) {
+				cacheRootData = cacheRootData.stream().filter(val -> val != null).collect(Collectors.toList());
+			}
+			IBaseObject parent = cacheRootData != null && cacheRootData.size() > 0 ? (IBaseObject) cacheRootData.get(0)
 					: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 			return parent;
 		}
-
 	}
 
 }

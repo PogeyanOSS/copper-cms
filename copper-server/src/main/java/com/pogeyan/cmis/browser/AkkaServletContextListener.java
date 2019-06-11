@@ -250,7 +250,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			boolean encryptServicePermission = encryptionServiceClass != null
 					? initializeEncryptionFactory(encryptionServiceClass) : true;
 			boolean checkObjectServicePermission = ObjectFlowServiceClass != null
-					? ObjectFlowFactoryClassinitializeExtensions(ObjectFlowServiceClass) : true;
+					? ObjectFlowFactoryClassinitializeExtensions(sce, ObjectFlowServiceClass) : true;
 			if (checkObjectServicePermission && encryptServicePermission) {
 				return true;
 			}
@@ -344,7 +344,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	}
 
-	private static boolean ObjectFlowFactoryClassinitializeExtensions(String ObjectFlowServiceClassName) {
+	private static boolean ObjectFlowFactoryClassinitializeExtensions(ServletContextEvent sce,
+			String ObjectFlowServiceClassName) {
 		try {
 			String[] objectFlowFactoryClassNames = ObjectFlowServiceClassName.split(",");
 			for (String objectFlowFactoryClassName : objectFlowFactoryClassNames) {
@@ -354,6 +355,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 				ObjectFlowFactory.setObjectFlow(ObjectFlowActorFactory);
 				LOG.info("Initialized Object Flow Services Factory Class: {}", ObjectFlowServiceClassName);
 			}
+			ObjectFlowFactory.setSystem((ActorSystem) sce.getServletContext().getAttribute("ActorSystem"));
 		} catch (Exception e) {
 			LOG.error("Could not create a ObjectFlowFactoryClass services factory instance: {}", e);
 			return false;
