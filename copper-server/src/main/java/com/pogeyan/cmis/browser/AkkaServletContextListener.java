@@ -346,13 +346,16 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	private static boolean ObjectFlowFactoryClassinitializeExtensions(String ObjectFlowServiceClassName) {
 		try {
-			LOG.info("Initialized Object Flow Services Factory Class: {}", ObjectFlowServiceClassName);
-			Class<?> ObjectFlowServiceClassFactory = Class.forName(ObjectFlowServiceClassName);
-			IObjectFlowFactory ObjectFlowActorFactory = (IObjectFlowFactory) ObjectFlowServiceClassFactory
-					.newInstance();
-			ObjectFlowFactory.setObjectFlow(ObjectFlowActorFactory);
+			String[] objectFlowFactoryClassNames = ObjectFlowServiceClassName.split(",");
+			for (String objectFlowFactoryClassName : objectFlowFactoryClassNames) {
+				Class<?> ObjectFlowServiceClassFactory = Class.forName(objectFlowFactoryClassName);
+				IObjectFlowFactory ObjectFlowActorFactory = (IObjectFlowFactory) ObjectFlowServiceClassFactory
+						.newInstance();
+				ObjectFlowFactory.setObjectFlow(ObjectFlowActorFactory);
+				LOG.info("Initialized Object Flow Services Factory Class: {}", ObjectFlowServiceClassName);
+			}
 		} catch (Exception e) {
-			LOG.error("Could not create a authentication services factory instance: {}", e);
+			LOG.error("Could not create a ObjectFlowFactoryClass services factory instance: {}", e);
 			return false;
 		}
 		return true;
