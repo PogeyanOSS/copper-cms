@@ -160,6 +160,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		if (clientDatastore == null) {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
+			LOG.error("connectionString: {}", dataBaseName);
 			List<String> properties = getClientProperties(dataBaseName);
 			int port = Integer.valueOf(properties.get(1));
 			String[] columnsToIndex = new String[] { "name", "path", "acl" };
@@ -215,6 +216,8 @@ public class MongoClientFactory implements IDBClientFactory {
 		// List<String> properties = sProperties.stream().collect(Collectors.toList());
 		properties.add(result[1]);
 		properties.add(result[2]);
+		LOG.error("host: {}, port: {}, replica: {}, dbName: {}", properties.get(0), properties.get(1),
+				properties.get(2), properties.get(3));
 		return properties;
 	}
 
