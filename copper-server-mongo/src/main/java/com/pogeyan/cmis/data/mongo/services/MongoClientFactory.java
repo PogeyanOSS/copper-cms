@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.pogeyan.cmis.api.data.IDBClientFactory;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
@@ -142,13 +143,15 @@ public class MongoClientFactory implements IDBClientFactory {
 		String dataBaseName = repository.getDBName().get("connectionString");
 		List<String> properties = getClientProperties(dataBaseName);
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(2));
+			LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(properties.size() - 1));
 		}
+		int port = Integer.valueOf(properties.get(1));
 		Map<Object, Object> indexIds = new HashMap<>();
 		Stream<String> indexId = Arrays.stream(columnsToIndex);
 		indexId.forEach(x -> indexIds.put(x, 1));
-		MongoCollection<Document> contentMongoClient = getMongoClient(repositoryId, properties.get(0),
-				Integer.valueOf(properties.get(1))).getDatabase(properties.get(2)).getCollection("objectData");
+		MongoCollection<Document> contentMongoClient = getMongoClient(repositoryId, properties.get(0), port,
+				Boolean.valueOf(properties.get(2))).getDatabase(properties.get(properties.size() - 1))
+						.getCollection("objectData");
 		contentMongoClient.createIndex(new BasicDBObject(indexIds));
 	}
 
@@ -159,30 +162,36 @@ public class MongoClientFactory implements IDBClientFactory {
 			String dataBaseName = repository.getDBName().get("connectionString");
 			List<String> properties = getClientProperties(dataBaseName);
 			int port = Integer.valueOf(properties.get(1));
-
 			String[] columnsToIndex = new String[] { "name", "path", "acl" };
 			Map<Object, Object> indexIds = new HashMap<>();
 			Stream<String> indexId = Arrays.stream(columnsToIndex);
 			indexId.forEach(x -> indexIds.put(x, 1));
-
-			MongoClient mongoClient = getMongoClient(repositoryId, properties.get(0), port);
-			MongoCollection<Document> objectDataCollection = mongoClient.getDatabase(properties.get(2))
-					.getCollection("objectData");
+			MongoClient mongoClient = getMongoClient(repositoryId, properties.get(0), port,
+					Boolean.valueOf(properties.get(2)));
+			MongoCollection<Document> objectDataCollection = mongoClient
+					.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
 			objectDataCollection.createIndex(new BasicDBObject(indexIds));
-			clientDatastore = morphia.createDatastore(mongoClient, properties.get(2));
+			clientDatastore = morphia.createDatastore(mongoClient, properties.get(properties.size() - 1));
 			this.clientDatastores.put(repositoryId, clientDatastore);
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(2));
+				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(properties.size() - 1));
 			}
 		}
 
 		return fun.apply(clientDatastore);
 	}
 
-	private MongoClient getMongoClient(String repositoryId, String host, int port) {
+	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
 		MongoClient mClient = this.mongoClient.get(repositoryId);
 		if (mClient == null) {
-			mClient = new MongoClient(host, port);
+
+			if (replica) {
+				LOG.error("making a cluster connection for host: {}, port: {}", host, port);
+				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)));
+			} else {
+				mClient = new MongoClient(host, port);
+			}
+
 			this.mongoClient.put(repositoryId, mClient);
 		}
 		return mClient;
@@ -198,7 +207,14 @@ public class MongoClientFactory implements IDBClientFactory {
 		String[] resultHost = result[0].split(":");
 		properties.add(resultHost[0]);
 		properties.add(resultHost[1]);
+		// for (String host : resultHost) {
+		// String[] remoteHost = host.split(":");
+		// sProperties.add(remoteHost[0]);
+		// sProperties.add(remoteHost[1]);
+		// }
+		// List<String> properties = sProperties.stream().collect(Collectors.toList());
 		properties.add(result[1]);
+		properties.add(result[2]);
 		return properties;
 	}
 
