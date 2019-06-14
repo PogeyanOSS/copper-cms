@@ -160,7 +160,6 @@ public class MongoClientFactory implements IDBClientFactory {
 		if (clientDatastore == null) {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
-			LOG.error("connectionString: {}", dataBaseName);
 			List<String> properties = getClientProperties(dataBaseName);
 			int port = Integer.valueOf(properties.get(1));
 			String[] columnsToIndex = new String[] { "name", "path", "acl" };
@@ -185,14 +184,11 @@ public class MongoClientFactory implements IDBClientFactory {
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
 		MongoClient mClient = this.mongoClient.get(repositoryId);
 		if (mClient == null) {
-
 			if (replica) {
-				LOG.error("making a cluster connection for host: {}, port: {}", host, port);
 				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)));
 			} else {
 				mClient = new MongoClient(host, port);
 			}
-
 			this.mongoClient.put(repositoryId, mClient);
 		}
 		return mClient;
@@ -208,16 +204,8 @@ public class MongoClientFactory implements IDBClientFactory {
 		String[] resultHost = result[0].split(":");
 		properties.add(resultHost[0]);
 		properties.add(resultHost[1]);
-		// for (String host : resultHost) {
-		// String[] remoteHost = host.split(":");
-		// sProperties.add(remoteHost[0]);
-		// sProperties.add(remoteHost[1]);
-		// }
-		// List<String> properties = sProperties.stream().collect(Collectors.toList());
 		properties.add(result[1]);
 		properties.add(result[2]);
-		LOG.error("host: {}, port: {}, replica: {}, dbName: {}", properties.get(0), properties.get(1),
-				properties.get(2), properties.get(3));
 		return properties;
 	}
 
