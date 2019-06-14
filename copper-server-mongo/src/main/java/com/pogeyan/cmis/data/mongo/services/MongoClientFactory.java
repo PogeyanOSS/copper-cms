@@ -149,9 +149,11 @@ public class MongoClientFactory implements IDBClientFactory {
 		Map<Object, Object> indexIds = new HashMap<>();
 		Stream<String> indexId = Arrays.stream(columnsToIndex);
 		indexId.forEach(x -> indexIds.put(x, 1));
-		MongoCollection<Document> contentMongoClient = getMongoClient(repositoryId, properties.get(0), port,
-				Boolean.valueOf(properties.get(2))).getDatabase(properties.get(properties.size() - 1))
-						.getCollection("objectData");
+		MongoCollection<Document> contentMongoClient = properties.size() == 2
+				? getMongoClient(repositoryId, properties.get(0), port, false)
+						.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData")
+				: getMongoClient(repositoryId, properties.get(0), port, Boolean.valueOf(properties.get(2)))
+						.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
 		contentMongoClient.createIndex(new BasicDBObject(indexIds));
 	}
 
@@ -166,8 +168,9 @@ public class MongoClientFactory implements IDBClientFactory {
 			Map<Object, Object> indexIds = new HashMap<>();
 			Stream<String> indexId = Arrays.stream(columnsToIndex);
 			indexId.forEach(x -> indexIds.put(x, 1));
-			MongoClient mongoClient = getMongoClient(repositoryId, properties.get(0), port,
-					Boolean.valueOf(properties.get(2)));
+			MongoClient mongoClient = properties.size() == 2
+					? getMongoClient(repositoryId, properties.get(0), port, false)
+					: getMongoClient(repositoryId, properties.get(0), port, Boolean.valueOf(properties.get(2)));
 			MongoCollection<Document> objectDataCollection = mongoClient
 					.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
 			objectDataCollection.createIndex(new BasicDBObject(indexIds));
@@ -205,7 +208,9 @@ public class MongoClientFactory implements IDBClientFactory {
 		properties.add(resultHost[0]);
 		properties.add(resultHost[1]);
 		properties.add(result[1]);
-		properties.add(result[2]);
+		if (result.length == 3) {
+			properties.add(result[2]);
+		}
 		return properties;
 	}
 
