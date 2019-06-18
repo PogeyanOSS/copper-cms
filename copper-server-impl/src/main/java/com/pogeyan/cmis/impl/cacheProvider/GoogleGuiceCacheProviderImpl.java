@@ -23,8 +23,7 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 		if (typeCacheMap != null) {
 			if (key == null) {
 				if (typeCacheMap.size() > 0) {
-					return (T) typeCacheMap.asMap().entrySet().stream()
-							.filter(a -> !a.getKey().toString().equals("@ROOT@")).map(t -> t.getValue())
+					return (T) typeCacheMap.asMap().entrySet().stream().map(t -> t.getValue())
 							.collect(Collectors.toList());
 				}
 				return null;
