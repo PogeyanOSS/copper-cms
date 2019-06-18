@@ -6,7 +6,6 @@ Release Notes
 - Updating docker with latest
 
 **Issues**
-- Root folder cached
 - Type cache performance improvement on serialization
 
 ### Version 1.0.1
