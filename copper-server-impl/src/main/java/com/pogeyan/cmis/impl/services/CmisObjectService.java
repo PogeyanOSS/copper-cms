@@ -147,40 +147,25 @@ public class CmisObjectService {
 			try {
 				MBaseObjectDAO objectDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MBaseObjectDAO.class);
-				List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
-						Arrays.asList("@ROOT@"));
-				IBaseObject rootData;
-				if (cacheRootData != null) {
-					cacheRootData = cacheRootData.stream().filter(val -> val != null).collect(Collectors.toList());
-				}
-				rootData = cacheRootData != null && cacheRootData.size() > 0 ? (IBaseObject) cacheRootData.get(0)
-						: null;
+				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId, typeId, false);
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
 					addRootFolder(repositoryId);
 					return rootData.getId();
 				} else {
-					rootData = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
-					if (rootData != null) {
-						LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(),
-								repositoryId);
-						addRootFolder(repositoryId);
-					} else {
-						TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
-						AccessControlListImplExt aclImp = new AccessControlListImplExt(new ArrayList<>(),
-								AclPropagation.REPOSITORYDETERMINED.toString(), true);
-						rootData = objectDAO.createObjectFacade(CopperCmsRepository.ROOT_ID,
-								BaseTypeId.CMIS_FOLDER, BaseTypeId.CMIS_FOLDER.value(), repositoryId, null,
-								"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, aclImp,
-								"/", null);
-						objectDAO.commit(rootData, typeId);
-						LOG.info("Root folder created in Database: {} , repository: {} ",
-								rootData != null ? rootData.getId() : null, repositoryId);
-						addRootFolder(repositoryId);
-					}
-					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, "@ROOT@",
-							rootData);
-					return rootData.getId();
+					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
+					AccessControlListImplExt aclImp = new AccessControlListImplExt(new ArrayList<>(),
+							AclPropagation.REPOSITORYDETERMINED.toString(), true);
+					IBaseObject folderObject = objectDAO.createObjectFacade(CopperCmsRepository.ROOT_ID,
+							BaseTypeId.CMIS_FOLDER, "cmis:folder", repositoryId, null,
+							"Pogeyan MongoDB CMIS Repository", userName, userName, token, ",", null, null, aclImp, "/",
+							null);
+					objectDAO.commit(folderObject, typeId);
+					LOG.info("Root folder created in Database: {} , repository: {} ",
+							folderObject != null ? folderObject.getId() : null, repositoryId);
+					addRootFolder(repositoryId);
+					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, "@ROOT@", folderObject);
+					return folderObject.getId();
 				}
 			} catch (MongoException e) {
 
@@ -1671,7 +1656,7 @@ public class CmisObjectService {
 			if (folderId != null) {
 				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			} else {
-				parent = getRootFolder(repositoryId, typeId);
+				parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 			}
 
 			if (parent == null) {
@@ -1745,7 +1730,7 @@ public class CmisObjectService {
 					tracingId, span);
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
-			IBaseObject parent = getRootFolder(repositoryId, typeId);
+			IBaseObject parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 			PropertyData<?> pd = properties.getProperties().get(PropertyIds.NAME);
 			String folderName = (String) pd.getFirstValue();
 			AccessControlListImplExt aclImp = (AccessControlListImplExt) CmisUtils.Object
@@ -2122,7 +2107,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = getRootFolder(repositoryId, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 			if (parent == null) {
@@ -2419,7 +2404,7 @@ public class CmisObjectService {
 							: objectTypeId;
 					parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 					if (parent == null) {
-						parent = getRootFolder(repositoryId, typeId);
+						parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 					}
 				}
 
@@ -2617,7 +2602,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = getRootFolder(repositoryId, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 			if (parent != null) {
@@ -2964,7 +2949,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = getRootFolder(repositoryId, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 
@@ -3266,7 +3251,7 @@ public class CmisObjectService {
 						: objectTypeId;
 				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
 				if (parent == null) {
-					parent = getRootFolder(repositoryId, typeId);
+					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
 			}
 			if (parent == null) {
@@ -5559,17 +5544,5 @@ public class CmisObjectService {
 				}
 			}
 		}
-
-		public static IBaseObject getRootFolder(String repositoryId, String typeId) {
-			List<Object> cacheRootData = CacheProviderServiceFactory.getTypeCacheServiceProvider().get(repositoryId,
-					Arrays.asList("@ROOT@"));
-			if (cacheRootData != null) {
-				cacheRootData = cacheRootData.stream().filter(val -> val != null).collect(Collectors.toList());
-			}
-			IBaseObject parent = cacheRootData != null && cacheRootData.size() > 0 ? (IBaseObject) cacheRootData.get(0)
-					: DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
-			return parent;
-		}
 	}
-
 }
