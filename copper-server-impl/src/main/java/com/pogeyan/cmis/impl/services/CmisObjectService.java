@@ -164,7 +164,6 @@ public class CmisObjectService {
 					LOG.info("Root folder created in Database: {} , repository: {} ",
 							folderObject != null ? folderObject.getId() : null, repositoryId);
 					addRootFolder(repositoryId);
-					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, "@ROOT@", folderObject);
 					return folderObject.getId();
 				}
 			} catch (MongoException e) {
@@ -1993,8 +1992,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties,
@@ -2771,15 +2769,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship without a sourceId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span));
@@ -2790,15 +2784,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {},  TraceId: {}",
 						"cannot create a relationship without a sourceId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span));
@@ -2809,15 +2799,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship without a targetId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span));
@@ -2827,15 +2813,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship without a targetId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span));
@@ -2865,15 +2847,10 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship with a non-relationship type: ", typeDef.getId(), repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE),
+								span), ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE), span));
@@ -3476,7 +3453,8 @@ public class CmisObjectService {
 				updatecontentProps.put("modifiedBy", userObject == null ? null : userObject.getUserDN());
 				updatecontentProps.put("token", token);
 				String description = props.getProperties().get(PropertyIds.DESCRIPTION) != null
-						? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString() : null;
+						? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString()
+						: null;
 				if (description != null) {
 					updatecontentProps.put("description", description);
 				}
@@ -4498,7 +4476,8 @@ public class CmisObjectService {
 							} else {
 								Map<String, Object> updatePropsDoc = new HashMap<String, Object>();
 								String docName = child.getContentStreamFileName() != null
-										? child.getContentStreamFileName() : child.getName();
+										? child.getContentStreamFileName()
+										: child.getName();
 								String cmisPath = cmisUpdatePath + "/" + docName;
 								updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 								updatePropsDoc.put("path", cmisPath);
@@ -5234,9 +5213,9 @@ public class CmisObjectService {
 				} else {
 
 					String[] queryResult = data.getInternalPath().split(",");
-					List<IBaseObject> folderChildren = Stream.of(queryResult)
-							.filter(t -> !t.isEmpty()).map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId,
-									principalIds, true, t, null, data.getTypeId()))
+					List<IBaseObject> folderChildren = Stream
+							.of(queryResult).filter(t -> !t.isEmpty()).map(t -> DBUtils.BaseDAO
+									.getByObjectId(repositoryId, principalIds, true, t, null, data.getTypeId()))
 							.collect(Collectors.<IBaseObject>toList());
 					List<AccessControlListImplExt> mAcl = null;
 					if (folderChildren.size() == 1) {
@@ -5444,7 +5423,8 @@ public class CmisObjectService {
 							doc.getRepositoryId());
 					if (objectFlowService != null) {
 						LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}" + doc != null
-								? doc.getId() : null, invokeMethod);
+								? doc.getId()
+								: null, invokeMethod);
 						if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 							objectFlowService.afterCreation(doc);
 						} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
