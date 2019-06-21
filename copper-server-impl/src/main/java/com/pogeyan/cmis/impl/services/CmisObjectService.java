@@ -164,7 +164,6 @@ public class CmisObjectService {
 					LOG.info("Root folder created in Database: {} , repository: {} ",
 							folderObject != null ? folderObject.getId() : null, repositoryId);
 					addRootFolder(repositoryId);
-					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, "@ROOT@", folderObject);
 					return folderObject.getId();
 				}
 			} catch (MongoException e) {
