@@ -4141,6 +4141,7 @@ public class CmisObjectService {
 			} else {
 				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
 						forceDelete == null ? false : forceDelete, token, typeId);
+				invokeObjectFlowServiceAfterCreate(data, ObjectFlowType.DELETED, null);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
