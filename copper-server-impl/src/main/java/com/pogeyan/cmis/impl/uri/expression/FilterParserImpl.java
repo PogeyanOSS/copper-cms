@@ -526,6 +526,8 @@ public class FilterParserImpl implements FilterParser {
 		lAvailableMethods.put(MethodOperator.ENDSWITH.toUriLiteral(), new InfoMethod(MethodOperator.ENDSWITH, 2, 2));
 
 		lAvailableMethods.put(MethodOperator.INDEXOF.toUriLiteral(), new InfoMethod(MethodOperator.INDEXOF, 2, 2));
+		
+		lAvailableMethods.put(MethodOperator.EXISTS.toUriLiteral(), new InfoMethod(MethodOperator.EXISTS, 2, 2));
 
 		lAvailableMethods.put(MethodOperator.STARTSWITH.toUriLiteral(),
 				new InfoMethod(MethodOperator.STARTSWITH, 2, 2));

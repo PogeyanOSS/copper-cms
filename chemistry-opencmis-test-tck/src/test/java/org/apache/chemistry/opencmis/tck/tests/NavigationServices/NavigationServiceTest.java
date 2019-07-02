@@ -1,7 +1,6 @@
 package org.apache.chemistry.opencmis.tck.tests.NavigationServices;
 
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.FAILURE;
-import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.INFO;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.SKIPPED;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.UNEXPECTED_EXCEPTION;
 import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.WARNING;
@@ -9,14 +8,11 @@ import static org.apache.chemistry.opencmis.tck.CmisTestResultStatus.WARNING;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Folder;
@@ -24,7 +20,6 @@ import org.apache.chemistry.opencmis.client.api.Item;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
 import org.apache.chemistry.opencmis.client.api.ObjectType;
 import org.apache.chemistry.opencmis.client.api.OperationContext;
-import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.runtime.OperationContextImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -52,7 +47,6 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringDefi
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyUriDefinitionImpl;
 import org.apache.chemistry.opencmis.tck.CmisTestResult;
 import org.apache.chemistry.opencmis.tck.impl.AbstractSessionTest;
-import org.apache.chemistry.opencmis.tck.impl.CmisTestResultImpl;
 import org.apache.chemistry.opencmis.tck.runner.AbstractRunner;
 
 public class NavigationServiceTest extends AbstractSessionTest {
@@ -327,14 +321,42 @@ public class NavigationServiceTest extends AbstractSessionTest {
 		addResult(assertEquals(Long.valueOf(1), getChildren21.getTotalNumItems(), null,
 				createResult(FAILURE, "Total numItems must be 1")));
 
-		// fetch given properties
+		// exists -> tck:string exists for 5 items
 		OperationContext context22 = new OperationContextImpl();
-		context22.setFilterString("tck:string,tck:integer,tck:boolean");
+		context22.setFilterString("tck:string, exists (tck:string::'TRUE')");
 		ItemIterable<CmisObject> getChildren22 = testFolder.getChildren(context22);
+		addResult(assertEquals(Long.valueOf(5), getChildren22.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 5")));
+
+		// exists set to false -> tck:string exists for 5 items
+		OperationContext context23 = new OperationContextImpl();
+		context23.setFilterString("tck:string, exists (tck:string::'FALSE')");
+		ItemIterable<CmisObject> getChildren23 = testFolder.getChildren(context23);
+		addResult(assertEquals(Long.valueOf(0), getChildren23.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 0")));
+
+		// exists set to true -> tck:strings does not exists any any items
+		OperationContext context24 = new OperationContextImpl();
+		context24.setFilterString("tck:string, exists (tck:strings::'TRUE')");
+		ItemIterable<CmisObject> getChildren24 = testFolder.getChildren(context24);
+		addResult(assertEquals(Long.valueOf(0), getChildren24.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 0")));
+
+		// exists set to false -> tck:strings does not exists for any items
+		OperationContext context25 = new OperationContextImpl();
+		context25.setFilterString("tck:string, exists (tck:strings::'FALSE')");
+		ItemIterable<CmisObject> getChildren25 = testFolder.getChildren(context25);
+		addResult(assertEquals(Long.valueOf(5), getChildren25.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 5")));
+
+		// fetch given properties
+		OperationContext context26 = new OperationContextImpl();
+		context26.setFilterString("tck:string,tck:integer,tck:boolean");
+		ItemIterable<CmisObject> getChildren26 = testFolder.getChildren(context26);
 		// int k = 0;
 		int count = 1;
 		int k = 0;
-		for (CmisObject child : getChildren22) {
+		for (CmisObject child : getChildren26) {
 			String s = child.getProperties().get(k).getId();
 			if (!(s.equals(PropertyIds.BASE_TYPE_ID) || s.equals(PropertyIds.OBJECT_TYPE_ID)
 					|| s.equals(PropertyIds.OBJECT_ID))) {

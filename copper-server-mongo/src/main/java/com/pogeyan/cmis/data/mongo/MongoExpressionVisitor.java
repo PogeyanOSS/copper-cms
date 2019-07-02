@@ -238,6 +238,13 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 		String fieldValue = parameters.get(1).toString();
 		fieldValue = fieldValue.replaceAll("\'", "");
 		switch (method) {
+		case EXISTS:
+			if (fieldValue.equalsIgnoreCase("true")) {
+				return this.query.criteria(getQueryName(fieldOperand.getUriLiteral())).exists();
+			} else {
+				return this.query.criteria(getQueryName(fieldOperand.getUriLiteral())).doesNotExist();
+			}
+
 		case STARTSWITH:
 			Pattern sw_pattern = Pattern.compile("^" + fieldValue, Pattern.CASE_INSENSITIVE);
 			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), sw_pattern);
