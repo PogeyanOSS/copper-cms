@@ -349,14 +349,36 @@ public class NavigationServiceTest extends AbstractSessionTest {
 		addResult(assertEquals(Long.valueOf(5), getChildren25.getTotalNumItems(), null,
 				createResult(FAILURE, "Total numItems must be 5")));
 
-		// fetch given properties
+		// tck:string eq ''
 		OperationContext context26 = new OperationContextImpl();
-		context26.setFilterString("tck:string,tck:integer,tck:boolean");
+		context26.setFilterString("tck:string,tck:string eq ''");
 		ItemIterable<CmisObject> getChildren26 = testFolder.getChildren(context26);
+		addResult(assertEquals(Long.valueOf(0), getChildren26.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 0")));
+		for (CmisObject child : getChildren26) {
+			addResult(assertEquals("", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
+					createResult(FAILURE, "tck:string value should be equal to ''")));
+		}
+
+		// tck:string eq null
+		OperationContext context27 = new OperationContextImpl();
+		context27.setFilterString("tck:string,tck:string eq null");
+		ItemIterable<CmisObject> getChildren27 = testFolder.getChildren(context27);
+		addResult(assertEquals(Long.valueOf(0), getChildren27.getTotalNumItems(), null,
+				createResult(FAILURE, "Total numItems must be 0")));
+		for (CmisObject child : getChildren27) {
+			addResult(assertEquals("", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
+					createResult(FAILURE, "tck:string value should be equal to ''")));
+		}
+
+		// fetch given properties
+		OperationContext context28 = new OperationContextImpl();
+		context28.setFilterString("tck:string,tck:integer,tck:boolean");
+		ItemIterable<CmisObject> getChildren28 = testFolder.getChildren(context28);
 		// int k = 0;
 		int count = 1;
 		int k = 0;
-		for (CmisObject child : getChildren26) {
+		for (CmisObject child : getChildren28) {
 			String s = child.getProperties().get(k).getId();
 			if (!(s.equals(PropertyIds.BASE_TYPE_ID) || s.equals(PropertyIds.OBJECT_TYPE_ID)
 					|| s.equals(PropertyIds.OBJECT_ID))) {

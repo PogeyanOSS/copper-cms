@@ -85,8 +85,14 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			}
 			switch (operator) {
 			case EQ:
-				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
-						.equal(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
+				if (rightSideValue.equals("null")) {
+					return this.query.criteria(getQueryName(leftOp.getUriLiteral())).equal(null);
+				} else if (rightSideValue.isEmpty()) {
+					return this.query.criteria(getQueryName(leftOp.getUriLiteral())).equal("");
+				} else {
+					return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
+							.equal(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
+				}
 			case NE:
 				return this.query.criteria(getQueryName(leftOp.getUriLiteral()))
 						.notEqual(getPropertyValue(leftOp.getUriLiteral(), rightSideValue));
