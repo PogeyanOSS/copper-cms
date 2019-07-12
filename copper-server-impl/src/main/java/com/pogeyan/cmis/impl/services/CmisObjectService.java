@@ -134,6 +134,7 @@ import scala.Tuple2;
 public class CmisObjectService {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisObjectService.class);
 	public static String RELATION_NAME = "relation_name";
+	public static final String FV_ENCRYPT_PROPS = "fv:encryptProperties";
 
 	public static class Impl {
 
@@ -1385,7 +1386,7 @@ public class CmisObjectService {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
 						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
-								typeId.getId(), id, valueOfType, propertyType);
+								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(), data.getProperties());
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -5506,13 +5507,20 @@ public class CmisObjectService {
 		}
 
 		private static Object invokeDecryptAfterCreate(IObjectEncryptService objectFlowService, String repositoryId,
-				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType) {
+				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType, List<String> secondaryObjectTypeIdsValues, Map<String, Object> customProps) {
 			if (objectFlowService != null) {
 				try {
 					if (EncryptType.DECRYPT.equals(invokeMethod)) {
 						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
-						if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId)) {
-							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue);
+                        if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,
+								        customProps.get(FV_ENCRYPT_PROPS) != null
+										                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+										                : null)) {
+							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue,
+									        secondaryObjectTypeIdsValues,
+									        customProps.get(FV_ENCRYPT_PROPS) != null
+											                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+											                : null);
 							propValue = convertDecryptProperties(propValue, propertyType);
 						}
 					}

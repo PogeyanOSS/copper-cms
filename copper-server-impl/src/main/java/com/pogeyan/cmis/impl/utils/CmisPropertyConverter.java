@@ -109,7 +109,7 @@ public class CmisPropertyConverter {
 				}
 
 				result.addProperty(createPropertyData(objectTypeIdsValues.get(0), propDef, property.getValue(),
-						repositoryId, encryptService));
+						repositoryId, encryptService, secondaryObjectTypeIdsValues, propertiesdata));
 			}
 
 			return result;
@@ -200,8 +200,8 @@ public class CmisPropertyConverter {
 					throw new CmisInvalidArgumentException(property.getKey() + " is unknown!");
 				}
 
-				result.addProperty(
-						createPropertyData(typeId, propDef, property.getValue(), repositoryId, encryptService));
+				result.addProperty(createPropertyData(typeId, propDef, property.getValue(), repositoryId,
+						encryptService, secondaryObjectTypeIdsValues, propertiesdata));
 			}
 
 			LOG.debug("createUpdateProperties on objectIds: {} are : resultProperties{}", objectIds,
@@ -212,7 +212,8 @@ public class CmisPropertyConverter {
 
 		@SuppressWarnings("unchecked")
 		private static PropertyData<?> createPropertyData(String typeId, PropertyDefinition<?> propDef, Object value,
-				String repositoryId, IObjectEncryptService encryptService) {
+				String repositoryId, IObjectEncryptService encryptService, List<String> secondaryObjectTypeIdsValues,
+				Map<String, List<String>> propertyDataMap) {
 			List<String> strValues;
 			if (value == null) {
 				strValues = Collections.emptyList();
@@ -226,7 +227,7 @@ public class CmisPropertyConverter {
 
 			PropertyData<?> propertyData = null;
 			boolean result = invokeEncryptBeforeCreate(encryptService, repositoryId, EncryptType.ENCRYPT, typeId,
-					propDef.getId(), strValues);
+					propDef.getId(), strValues, secondaryObjectTypeIdsValues, propertyDataMap);
 			if (result) {
 				propertyData = new PropertyStringImpl(propDef.getId(), strValues);
 			} else {
@@ -359,13 +360,15 @@ public class CmisPropertyConverter {
 	}
 
 	private static boolean invokeEncryptBeforeCreate(IObjectEncryptService objectFlowService, String repositoryId,
-			EncryptType invokeMethod, String typeId, String propId, List<String> strValues) {
+			EncryptType invokeMethod, String typeId, String propId, List<String> strValues,
+			List<String> secondaryObjectTypeIdsValues, Map<String, List<String>> propertyDataMap) {
 		boolean resultFlow = false;
 		if (objectFlowService != null) {
 			try {
 				LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
 				if (EncryptType.ENCRYPT.equals(invokeMethod)) {
-					resultFlow = objectFlowService.encrypt(repositoryId, typeId, propId, strValues);
+					resultFlow = objectFlowService.encrypt(repositoryId, typeId, propId, strValues,
+							secondaryObjectTypeIdsValues, propertyDataMap);
 				}
 			} catch (Exception ex) {
 				LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}, with exception: {}",
