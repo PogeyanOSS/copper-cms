@@ -1397,6 +1397,7 @@ public class CmisObjectService {
 								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
 								data.getProperties());
 
+
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -5504,15 +5505,14 @@ public class CmisObjectService {
 					if (EncryptType.DECRYPT.equals(invokeMethod)) {
 						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
 
-						if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,
-								customProps.get(FV_ENCRYPT_PROPS) != null
-										? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
-										: null)) {
+            if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,customProps.get(FV_ENCRYPT_PROPS) != null
+										                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+										                : null)) {
 							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue,
-									secondaryObjectTypeIdsValues,
-									customProps.get(FV_ENCRYPT_PROPS) != null
-											? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
-											: null);
+									        secondaryObjectTypeIdsValues,
+									        customProps.get(FV_ENCRYPT_PROPS) != null
+											                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+											                : null);
 							propValue = convertDecryptProperties(propValue, propertyType);
 						}
 					}
