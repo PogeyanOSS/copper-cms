@@ -208,10 +208,8 @@ public class CmisAclServices {
 			// added
 			// exception for SystemAdmin as he can applyAcl for objects
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			List<String> groupDNs = Stream.of(user.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
-			if (object.getAcl().getAces().size() > 0 && !object.getAcl().getAces().isEmpty()
-					&& !groupDNs.contains(systemAdmin)) {
+			if (object.getAcl().getAces().size() > 0 && !object.getAcl().getAces().isEmpty() && !Stream
+					.of(user.getGroups()).anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin))) {
 				List<String> permission = object.getAcl().getAces().stream()
 						.filter(a -> a.getPrincipalId().equals(user.getUserDN())).map(b -> b.getPermissions())
 						.collect(Collectors.toList()).get(0);
