@@ -922,7 +922,8 @@ public class CmisObjectService {
 					String systemAdmin = System.getenv("SYSTEM_ADMIN");
 					boolean aclPropagation = Stream.of(userObject.getGroups())
 							.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null,
+							typeId);
 				} catch (Exception e) {
 					LOG.error("getAllowableActions Exception: {}, repository: {}, TraceId: {}",
 							ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
@@ -1395,6 +1396,7 @@ public class CmisObjectService {
 						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
 								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
 								data.getProperties());
+
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -5496,12 +5498,12 @@ public class CmisObjectService {
 		}
 
 		private static Object invokeDecryptAfterCreate(IObjectEncryptService objectFlowService, String repositoryId,
-				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType,
-				List<String> secondaryObjectTypeIdsValues, Map<String, Object> customProps) {
+				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType, List<String> secondaryObjectTypeIdsValues, Map<String, Object> customProps) {
 			if (objectFlowService != null) {
 				try {
 					if (EncryptType.DECRYPT.equals(invokeMethod)) {
 						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
+
 						if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,
 								customProps.get(FV_ENCRYPT_PROPS) != null
 										? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
