@@ -220,10 +220,9 @@ public class CmisObjectService {
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, baseTypeId != BaseTypeId.CMIS_DOCUMENT);
 			}
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			IBaseObject data = null;
 			try {
 				if (baseTypeId == null || baseTypeId != BaseTypeId.CMIS_DOCUMENT) {
@@ -347,7 +346,10 @@ public class CmisObjectService {
 			IBaseObject data = null;
 			try {
 				String[] principalIds = Helpers.getPrincipalIds(userObject);
-				data = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, true, path, typeId);
+				String systemAdmin = System.getenv("SYSTEM_ADMIN");
+				boolean aclPropagation = Stream.of(userObject.getGroups())
+						.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+				data = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, aclPropagation, path, typeId);
 			} catch (Exception e) {
 				LOG.error("getObjectByPath Exception: {}, repository: {}, TraceId: {}", ExceptionUtils.getStackTrace(e),
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -917,7 +919,10 @@ public class CmisObjectService {
 			if (data == null && objectId != null) {
 				try {
 					String[] principalIds = Helpers.getPrincipalIds(userObject);
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+					String systemAdmin = System.getenv("SYSTEM_ADMIN");
+					boolean aclPropagation = Stream.of(userObject.getGroups())
+							.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
 				} catch (Exception e) {
 					LOG.error("getAllowableActions Exception: {}, repository: {}, TraceId: {}",
 							ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);

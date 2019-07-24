@@ -128,10 +128,9 @@ public class CmisNavigationService {
 			if (filter != null && filterCollection != null && filterCollection.size() > 0) {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			String path = null;
 			List<? extends IDocumentObject> children = new ArrayList<>();
 			long childrenCount = 0;
@@ -315,11 +314,10 @@ public class CmisNavigationService {
 				filterArray = Helpers.getFilterArray(filterCollection, true);
 			}
 			String path = "," + folderId + ",";
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
-			List<? extends IBaseObject> children = new ArrayList<>();
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			List<? extends IBaseObject> children = new ArrayList<>();
 			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, principalIds, data.getInternalPath(),
 					data.getAcl(), typeId);
 			boolean objectOnly = true;
@@ -573,10 +571,9 @@ public class CmisNavigationService {
 					"CmisNavigationService::getFolderParentIntern", null);
 			IBaseObject folderParent = null;
 			String[] principalIds = Helpers.getPrincipalIds(user);
-			List<String> groupDNs = Stream.of(user.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(user.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
 					typeId);
 			folderParent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, data.getParentId(),
@@ -639,10 +636,9 @@ public class CmisNavigationService {
 			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
 					typeId);
 			String path = "," + folderId + ",";
@@ -719,10 +715,9 @@ public class CmisNavigationService {
 			Set<String> filterCollection = Helpers.splitFilter(filter);
 			List<ObjectParentData> objectParent = new ArrayList<ObjectParentData>();
 			IBaseObject resultData = null;
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId, MBaseObjectDAO.class);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null,
@@ -783,10 +778,9 @@ public class CmisNavigationService {
 			if (orderBy != null) {
 				orderBy = com.pogeyan.cmis.api.utils.Helpers.getQueryName(orderBy);
 			}
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			if (folderId == null) {
 				document = documentMorphiaDAO.getCheckOutDocs(folderId, principalIds, aclPropagation, maxItems,
 						skipCount, orderBy);
@@ -914,10 +908,9 @@ public class CmisNavigationService {
 					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			List<? extends IDocumentObject> children = new ArrayList<>();
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : true;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			children = navigationMorphiaDAO.getObjects(objectIds, null, principalIds, aclPropagation, repositoryId,
 					null);
 			for (IDocumentObject child : children) {
