@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -104,14 +105,17 @@ public class CmisDiscoveryService {
 				String[] orderQuery = orderBy.split(",");
 				orderBy = Arrays.stream(orderQuery).map(t -> getOrderByName(t)).collect(Collectors.joining(","));
 			}
-
+			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
+					.map(a -> a.getGroupDN()).collect(Collectors.toList());
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : includeAcl;
 			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO.getLatestChanges(
 					Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray, orderBy,
-					Helpers.splitFilterQuery(filter), typeManagerDAO, includeAcl, principalIds);
+					Helpers.splitFilterQuery(filter), typeManagerDAO, aclPropagation, principalIds);
 			if (latestChangesObjects.size() > 0) {
 				childrenCount = discoveryObjectMorphiaDAO.getLatestTokenChildrenSize(
 						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter), typeManagerDAO,
-						includeAcl, principalIds);
+						aclPropagation, principalIds);
 				ITypePermissionService typePermissionFlow = TypeServiceFactory
 						.createTypePermissionFlowService(repositoryId);
 				for (IBaseObject object : latestChangesObjects) {
@@ -227,8 +231,8 @@ public class CmisDiscoveryService {
 
 		/**
 		 * Splits a filter statement into a collection of properties. If
-		 * <code>filter</code> is <code>null</code>, empty or one of the
-		 * properties is '*' , an empty collection will be returned.
+		 * <code>filter</code> is <code>null</code>, empty or one of the properties is
+		 * '*' , an empty collection will be returned.
 		 */
 		private static Set<String> splitFilter(String filter) {
 			if (filter == null) {
