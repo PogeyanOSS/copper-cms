@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -205,7 +206,11 @@ public class CmisAclServices {
 
 			// the user cannot remove himself, so the user who is updating the acl is also
 			// added
-			if (object.getAcl().getAces().size() > 0 && !object.getAcl().getAces().isEmpty()) {
+			// exception for SystemAdmin as he can applyAcl for objects
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean isSystemAdmin = Stream.of(user.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin));
+			if (object.getAcl().getAces().size() > 0 && !object.getAcl().getAces().isEmpty() && !isSystemAdmin) {
 				List<String> permission = object.getAcl().getAces().stream()
 						.filter(a -> a.getPrincipalId().equals(user.getUserDN())).map(b -> b.getPermissions())
 						.collect(Collectors.toList()).get(0);
