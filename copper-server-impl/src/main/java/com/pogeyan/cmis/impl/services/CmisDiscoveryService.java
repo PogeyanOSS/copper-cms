@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -104,14 +105,16 @@ public class CmisDiscoveryService {
 				String[] orderQuery = orderBy.split(",");
 				orderBy = Arrays.stream(orderQuery).map(t -> getOrderByName(t)).collect(Collectors.joining(","));
 			}
-
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : includeAcl;
 			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO.getLatestChanges(
 					Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray, orderBy,
-					Helpers.splitFilterQuery(filter), typeManagerDAO, includeAcl, principalIds);
+					Helpers.splitFilterQuery(filter), typeManagerDAO, aclPropagation, principalIds);
 			if (latestChangesObjects.size() > 0) {
 				childrenCount = discoveryObjectMorphiaDAO.getLatestTokenChildrenSize(
 						Long.parseLong(changeLogToken.getValue()), Helpers.splitFilterQuery(filter), typeManagerDAO,
-						includeAcl, principalIds);
+						aclPropagation, principalIds);
 				ITypePermissionService typePermissionFlow = TypeServiceFactory
 						.createTypePermissionFlowService(repositoryId);
 				for (IBaseObject object : latestChangesObjects) {
