@@ -105,10 +105,9 @@ public class CmisDiscoveryService {
 				String[] orderQuery = orderBy.split(",");
 				orderBy = Arrays.stream(orderQuery).map(t -> getOrderByName(t)).collect(Collectors.joining(","));
 			}
-			List<String> groupDNs = Stream.of(userObject.getGroups()).filter(a -> a.getGroupDN() != null)
-					.map(a -> a.getGroupDN()).collect(Collectors.toList());
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = groupDNs.contains(systemAdmin) ? false : includeAcl;
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : includeAcl;
 			List<? extends IBaseObject> latestChangesObjects = discoveryObjectMorphiaDAO.getLatestChanges(
 					Long.parseLong(changeLogToken.getValue()), maxItemsInt, filterArray, orderBy,
 					Helpers.splitFilterQuery(filter), typeManagerDAO, aclPropagation, principalIds);
