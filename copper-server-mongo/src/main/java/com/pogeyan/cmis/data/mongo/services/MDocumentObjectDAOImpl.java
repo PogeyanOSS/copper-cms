@@ -133,26 +133,17 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	private Criteria[] getAclCriteria(String[] principalIds, Query<MDocumentObject> query) {
-		Criteria[] checkAcl = new Criteria[] {};
-		if (principalIds != null) {
+		// if principalIds contain "__" then we use startsWith else we use equals for
+		// principalId check
+		List<CriteriaContainerImpl> principalId = Stream.of(principalIds).filter(a -> a.contains("__"))
+				.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
+				.collect(Collectors.toList());
 
-			// if principalIds contain "__" then we use startsWith else we use equals for
-			// principalId check
-			List<CriteriaContainerImpl> principalId = Stream.of(principalIds).filter(a -> a.contains("__"))
-					.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
-					.collect(Collectors.toList());
+		principalId.addAll(Stream.of(principalIds).filter(a -> !a.contains("__"))
+				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
+				.collect(Collectors.toList()));
 
-			principalId.addAll(Stream.of(principalIds).filter(a -> !a.contains("__"))
-					.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
-					.collect(Collectors.toList()));
-
-			checkAcl = principalId.stream().toArray(s -> new Criteria[s]);
-
-		} else {
-			checkAcl = new Criteria[] {
-					query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.OBJECTONLY.toString()),
-					query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.PROPAGATE.toString()) };
-		}
+		Criteria[] checkAcl = principalId.stream().toArray(s -> new Criteria[s]);
 		return checkAcl;
 	}
 
