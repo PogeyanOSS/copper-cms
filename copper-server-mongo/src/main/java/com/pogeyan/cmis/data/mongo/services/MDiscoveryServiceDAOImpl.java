@@ -16,13 +16,16 @@
 package com.pogeyan.cmis.data.mongo.services;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Criteria;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
@@ -136,9 +139,17 @@ public class MDiscoveryServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> im
 	}
 
 	private Criteria[] getAclCriteria(String[] principalIds, Query<MBaseObject> query) {
-		Criteria[] checkAcl = Stream.of(principalIds)
+		// if principalIds contain "__" then we use startsWith else we use equals for
+		// principalId check
+		List<CriteriaContainerImpl> principalId = Stream.of(principalIds).filter(a -> a.contains("__"))
 				.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
-				.toArray(s -> new Criteria[s]);
+				.collect(Collectors.toList());
+
+		principalId.addAll(Stream.of(principalIds).filter(a -> !a.contains("__"))
+				.map(t -> query.criteria("acl.aces.principal.principalId").equalIgnoreCase(t))
+				.collect(Collectors.toList()));
+
+		Criteria[] checkAcl = principalId.stream().toArray(s -> new Criteria[s]);
 		return checkAcl;
 	}
 
