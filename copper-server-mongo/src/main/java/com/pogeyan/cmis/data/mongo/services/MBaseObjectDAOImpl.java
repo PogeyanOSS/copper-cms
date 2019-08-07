@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.data.mongo.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,12 +28,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Criteria;
-import org.mongodb.morphia.query.CriteriaContainer;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import com.mongodb.DBObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
@@ -156,7 +155,8 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 		Criteria[] checkAcl = new Criteria[] {};
 		if (principalIds != null) {
 
-			// if principalIds contain "__" then we use startsWith else we use equals for
+			// if principalIds contain "__" then we use startsWith else we use
+			// equals for
 			// principalId check
 			List<CriteriaContainerImpl> principalId = Stream.of(principalIds).filter(a -> a.contains("__"))
 					.map(t -> query.criteria("acl.aces.principal.principalId").startsWithIgnoreCase(t))
@@ -177,5 +177,33 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 				query.criteria("acl.aclPropagation").equalIgnoreCase(AclPropagation.REPOSITORYDETERMINED.toString()) };
 		Criteria[] result = ArrayUtils.addAll(checkAclRepo, checkAcl);
 		return result;
+	}
+
+	@Override
+	public void bulkDelete(String repositoryId, String[] principalIds, List<String> objectIds, boolean forceDelete,
+			TokenImpl token) {
+		Query<MBaseObject> query = createQuery().disableValidation().field("token.changeType")
+				.notEqual(TokenChangeType.DELETED.value());
+		query.or(getIdsCriteria(objectIds, query));
+		query.or(getAclCriteria(principalIds, query));
+		if (forceDelete) {
+			this.deleteByQuery(query);
+		} else {
+			UpdateOperations<MBaseObject> update = createUpdateOperations().disableValidation();
+			update = update.set("token", MBaseObject.convertMongoToken(token));
+			update = update.set("modifiedAt", token.getTime());
+			update = update.unset("properties");
+			update(query, update);
+		}
+	}
+
+	private Criteria[] getIdsCriteria(List<String> objectIds, Query<MBaseObject> query) {
+		Criteria[] IdsCriteria = new Criteria[] {};
+		List<CriteriaContainerImpl> Ids = new ArrayList<CriteriaContainerImpl>();
+		for (String objectId : objectIds) {
+			Ids.add(query.criteria("id").equal(objectId));
+		}
+		IdsCriteria = Ids.stream().toArray(s -> new Criteria[s]);
+		return IdsCriteria;
 	}
 }

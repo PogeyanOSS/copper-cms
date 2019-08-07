@@ -34,6 +34,9 @@ public interface MBaseObjectDAO {
 	public void delete(String repositoryId, String[] principalIds, String objectId, boolean forceDelete,
 			TokenImpl token, String typeId);
 
+	public void bulkDelete(String repositoryId, String[] principalIds, List<String> objectIds, boolean forceDelete,
+			TokenImpl token);
+
 	/**
 	 * Update Folder type objectIds for an object.
 	 * 

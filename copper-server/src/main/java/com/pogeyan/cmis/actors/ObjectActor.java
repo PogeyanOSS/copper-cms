@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.actors;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.BulkUpdateObjectId
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,6 +166,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		this.registerMessageHandle("move", PostRequest.class,
 				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
 						.fromWithTryCatch(() -> ObjectActor.moveObject((PostRequest) t, (HashMap<String, Object>) b))));
+
+		this.registerMessageHandle("bulkDelete", PostRequest.class,
+				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse
+						.fromWithTryCatch(() -> ObjectActor.bulkDelete((PostRequest) t, (HashMap<String, Object>) b))));
 
 	}
 
@@ -1112,5 +1118,42 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static JSONObject bulkDelete(PostRequest request, HashMap<String, Object> baggage)
+			throws CmisObjectNotFoundException, CmisNotSupportedException, CmisRuntimeException,
+			CmisRoleValidationException {
+		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
+		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
+		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"ObjectActor::bulkdelete", null);
+		String permission = request.getUserObject().getPermission();
+		if (!Helpers.checkingUserPremission(permission, "post")) {
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(
+							TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span),
+							ErrorMessages.RUNTIME_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisRuntimeException(
+					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
+		}
+		JSONObject requestBody = new JSONObject();
+		List<String> objectIds = new ArrayList<String>();
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			requestBody = mapper.readValue(request.getRequestBody(), JSONObject.class);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		objectIds = (List<String>) requestBody.get("ids");
+
+		Boolean allVersions = request.getBooleanParameter(QueryGetRequest.PARAM_ALL_VERSIONS);
+		Boolean forceDelete = request.getBooleanParameter(QueryGetRequest.PARAM_FORCE_DELETE);
+		CmisObjectService.Impl.bulkDelete(request.getRepositoryId(), objectIds, request.getUserObject(), allVersions,
+				forceDelete, tracingId, span);
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+		return null;
+
 	}
 }

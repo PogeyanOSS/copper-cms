@@ -5560,5 +5560,19 @@ public class CmisObjectService {
 				}
 			}
 		}
+		public static void bulkDelete(String repositoryId, List<String> objectIds, IUserObject userObject,
+				Boolean allVersions, Boolean forceDelete, String tracingId, ISpan parentSpan) {
+			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+					"CmisObjectService::bulkDelete", null);
+			MBaseObjectDAO baseMorphiaDAO = null;
+			baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
+					MBaseObjectDAO.class);
+			String[] principalIds = Helpers.getPrincipalIds(userObject);
+			TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
+			baseMorphiaDAO.bulkDelete(repositoryId, principalIds, objectIds, forceDelete == null ? false : forceDelete,
+					token);
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+		}
+
 	}
 }
