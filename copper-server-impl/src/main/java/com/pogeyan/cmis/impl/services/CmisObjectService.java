@@ -116,7 +116,6 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
-import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
@@ -5522,12 +5521,12 @@ public class CmisObjectService {
 						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
                         if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,
 								        customProps.get(FV_ENCRYPT_PROPS) != null
-										                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+										                ?  Arrays.asList(customProps.get(FV_ENCRYPT_PROPS).toString())
 										                : null)) {
 							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue,
 									        secondaryObjectTypeIdsValues,
 									        customProps.get(FV_ENCRYPT_PROPS) != null
-											                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+											                ?  Arrays.asList(customProps.get(FV_ENCRYPT_PROPS).toString())
 											                : null);
 							propValue = convertDecryptProperties(propValue, propertyType);
 						}
