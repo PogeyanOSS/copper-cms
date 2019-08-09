@@ -5522,12 +5522,12 @@ public class CmisObjectService {
 						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
                         if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,
 								        customProps.get(FV_ENCRYPT_PROPS) != null
-										                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+										                ? Arrays.asList(customProps.get(FV_ENCRYPT_PROPS).toString())
 										                : null)) {
 							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue,
 									        secondaryObjectTypeIdsValues,
 									        customProps.get(FV_ENCRYPT_PROPS) != null
-											                ? (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+											                ? Arrays.asList(customProps.get(FV_ENCRYPT_PROPS).toString())
 											                : null);
 							propValue = convertDecryptProperties(propValue, propertyType);
 						}
