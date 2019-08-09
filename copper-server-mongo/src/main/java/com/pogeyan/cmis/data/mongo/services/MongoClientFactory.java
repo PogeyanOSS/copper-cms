@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -145,13 +146,21 @@ public class MongoClientFactory implements IDBClientFactory {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(properties.size() - 1));
 		}
-		int port = Integer.valueOf(properties.get(1));
+		int port = 0;
+		if (properties.get(0).contains("mongodb://")) {
+			// port no required
+		} else {
+			port = Integer.valueOf(properties.get(1));
+		}
 		Map<Object, Object> indexIds = new HashMap<>();
 		Stream<String> indexId = Arrays.stream(columnsToIndex);
 		indexId.forEach(x -> indexIds.put(x, 1));
 		MongoCollection<Document> contentMongoClient = properties.size() == 2
-				? getMongoClient(repositoryId, properties.get(0), port, false)
-						.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData")
+				? properties.get(0).contains("mongodb://")
+						? getMongoClient(repositoryId, properties.get(0), 0, false)
+								.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData")
+						: getMongoClient(repositoryId, properties.get(0), port, false)
+								.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData")
 				: getMongoClient(repositoryId, properties.get(0), port, Boolean.valueOf(properties.get(2)))
 						.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
 		contentMongoClient.createIndex(new BasicDBObject(indexIds));
@@ -163,13 +172,21 @@ public class MongoClientFactory implements IDBClientFactory {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
 			List<String> properties = getClientProperties(dataBaseName);
-			int port = Integer.valueOf(properties.get(1));
+			int port = 0;
+			if (properties.get(0).contains("mongodb://")) {
+				// port no required
+			} else {
+				port = Integer.valueOf(properties.get(1));
+			}
+
 			String[] columnsToIndex = new String[] { "name", "path", "acl" };
 			Map<Object, Object> indexIds = new HashMap<>();
 			Stream<String> indexId = Arrays.stream(columnsToIndex);
 			indexId.forEach(x -> indexIds.put(x, 1));
 			MongoClient mongoClient = properties.size() == 2
-					? getMongoClient(repositoryId, properties.get(0), port, false)
+					? properties.get(0).contains("mongodb://")
+							? getMongoClient(repositoryId, properties.get(0), 0, false)
+							: getMongoClient(repositoryId, properties.get(0), port, false)
 					: getMongoClient(repositoryId, properties.get(0), port, Boolean.valueOf(properties.get(2)));
 			MongoCollection<Document> objectDataCollection = mongoClient
 					.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
@@ -189,6 +206,9 @@ public class MongoClientFactory implements IDBClientFactory {
 		if (mClient == null) {
 			if (replica) {
 				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)));
+			} else if (host.contains("mongodb://")) {
+				MongoClientURI uri = new MongoClientURI(host);
+				mClient = new MongoClient(uri);
 			} else {
 				mClient = new MongoClient(host, port);
 			}
@@ -204,13 +224,19 @@ public class MongoClientFactory implements IDBClientFactory {
 	private List<String> getClientProperties(String props) {
 		List<String> properties = new ArrayList<String>();
 		String[] result = props.split(";");
-		String[] resultHost = result[0].split(":");
-		properties.add(resultHost[0]);
-		properties.add(resultHost[1]);
-		properties.add(result[1]);
-		if (result.length == 3) {
-			properties.add(result[2]);
+		if (result[0].contains("mongodb://")) {
+			properties.add(result[0]);
+			properties.add(result[1]);
+		} else {
+			String[] resultHost = result[0].split(":");
+			properties.add(resultHost[0]);
+			properties.add(resultHost[1]);
+			properties.add(result[1]);
+			if (result.length == 3) {
+				properties.add(result[2]);
+			}
 		}
+
 		return properties;
 	}
 
