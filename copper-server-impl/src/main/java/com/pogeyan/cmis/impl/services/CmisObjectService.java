@@ -1439,10 +1439,12 @@ public class CmisObjectService {
 								addPropertyDateTime(repositoryId, props, typeId, filter, id, calenderList, userObject);
 							} else {
 								Long value = convertInstanceOfObject(valueOfType, Long.class);
+								if (value != null) {
 								GregorianCalendar lastModifiedCalender = new GregorianCalendar();
 								lastModifiedCalender.setTimeInMillis(value);
 								addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender,
 										userObject);
+								}
 							}
 
 						} else if (propertyType == PropertyType.DECIMAL) {
