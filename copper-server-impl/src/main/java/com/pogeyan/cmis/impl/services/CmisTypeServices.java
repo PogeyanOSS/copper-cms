@@ -585,11 +585,11 @@ public class CmisTypeServices {
 							span != null ? span.getTraceId() : null);
 					TracingApiServiceFactory.getApiService().updateSpan(span,
 							TracingErrorMessage.message(
-									TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span),
+									TracingWriter.log(String.format(ErrorMessages.TYPE_ID_PRESENT), span),
 									ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
 					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 					throw new IllegalArgumentException(
-							TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span));
+							TracingWriter.log(String.format(ErrorMessages.TYPE_ID_PRESENT), span));
 				}
 				if (type.getPropertyDefinitions() != null) {
 					Map<String, PropertyDefinition<?>> property = type.getPropertyDefinitions();
