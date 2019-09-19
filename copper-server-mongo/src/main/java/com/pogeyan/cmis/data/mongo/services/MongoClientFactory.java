@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +47,8 @@ import org.mongodb.morphia.mapping.MappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
@@ -80,10 +83,13 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
 	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
-	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
+	private static Cache<String, MongoClient> mongoClient;
 	private int maxConnectionsPerHost = 500;
 	private int threadsAllowed = 10;
 	private Morphia morphia = new Morphia();
+	static {
+		mongoClient = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build();
+	}
 
 	@SuppressWarnings("rawtypes")
 	public MongoClientFactory() {
@@ -205,7 +211,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
-		MongoClient mClient = this.mongoClient.get(repositoryId);
+		MongoClient mClient = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
 		if (mClient == null) {
 			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
 			builder.connectionsPerHost(maxConnectionsPerHost);
@@ -219,7 +225,7 @@ public class MongoClientFactory implements IDBClientFactory {
 			} else {
 				mClient = new MongoClient(new ServerAddress(host, port), options);
 			}
-			this.mongoClient.put(repositoryId, mClient);
+			MongoClientFactory.mongoClient.put(repositoryId, mClient);
 		}
 		return mClient;
 	}
