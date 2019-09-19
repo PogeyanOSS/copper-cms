@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
@@ -80,6 +81,8 @@ public class MongoClientFactory implements IDBClientFactory {
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
 	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
 	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
+	private int maxConnectionsPerHost = 500;
+	private int threadsAllowed = 10;
 	private Morphia morphia = new Morphia();
 
 	@SuppressWarnings("rawtypes")
@@ -204,13 +207,17 @@ public class MongoClientFactory implements IDBClientFactory {
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
 		MongoClient mClient = this.mongoClient.get(repositoryId);
 		if (mClient == null) {
+			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
+			builder.connectionsPerHost(maxConnectionsPerHost);
+			builder.threadsAllowedToBlockForConnectionMultiplier(threadsAllowed);
+			MongoClientOptions options = builder.build();
 			if (replica) {
-				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)));
+				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)), options);
 			} else if (host.contains("mongodb://")) {
 				MongoClientURI uri = new MongoClientURI(host);
 				mClient = new MongoClient(uri);
 			} else {
-				mClient = new MongoClient(host, port);
+				mClient = new MongoClient(new ServerAddress(host, port), options);
 			}
 			this.mongoClient.put(repositoryId, mClient);
 		}
