@@ -300,7 +300,13 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 						CmisErrorResponse res = (CmisErrorResponse) bm.getMessageAsType(CmisErrorResponse.class);
 						ServletHelpers.writeErrorInActor(res, request, response);
 					}
-					this.asyncContext.complete();
+					try {
+						 this.asyncContext.complete();
+		                } catch (IllegalStateException ex) {
+		                    // Alresady completed.
+		                    LOG.trace("Already resumed!", ex);
+		              }
+					
 					// stop actor
 					this.getContext().stop(this.getSelf());
 				}
@@ -310,7 +316,12 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				// TODO: Write proper error message with error code
 				response.getWriter().println("{}");
-				this.asyncContext.complete();
+				try {
+					 this.asyncContext.complete();
+	                } catch (IllegalStateException ex) {
+	                    // Alresady completed.
+	                    LOG.trace("Already resumed!", ex);
+	              }
 				// stop actor
 				this.getContext().stop(this.getSelf());
 			}
