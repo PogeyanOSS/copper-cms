@@ -88,7 +88,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private int threadsAllowed = 10;
 	private Morphia morphia = new Morphia();
 	static {
-		mongoClient = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build();
+		mongoClient = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.MINUTES).build();
 	}
 
 	@SuppressWarnings("rawtypes")
