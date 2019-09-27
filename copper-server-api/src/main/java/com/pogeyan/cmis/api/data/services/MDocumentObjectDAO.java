@@ -27,14 +27,14 @@ public interface MDocumentObjectDAO {
 	/**
 	 * Remove MBaseObject values depending on object
 	 */
-	public void delete(String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
-			TokenImpl token);
+	public void delete(String repositoryId, String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
+			TokenImpl token, String typeId);
 
 	/**
 	 * update MDocumentObject with multiple field with in single query depending on
 	 * ObjectId
 	 */
-	public void update(String objectId, Map<String, Object> updateProps);
+	public void update(String repositoryId, String objectId, Map<String, Object> updateProps, String typeId);
 
 	/**
 	 * get checked out documents.
@@ -49,7 +49,7 @@ public interface MDocumentObjectDAO {
 
 	public List<? extends IDocumentObject> filter(Map<String, Object> fieldNames, String[] mappedColumns);
 
-	public void commit(IDocumentObject entity);
+	public void commit(IDocumentObject entity, String typeId, String repositoryId);
 
 	public IDocumentObject createObjectFacade(IBaseObject baseObject, Boolean isImmutable, Boolean isLatestVersion,
 			Boolean isMajorVersion, Boolean isLatestMajorVersion, Boolean isPrivateWorkingCopy, String versionLabel,

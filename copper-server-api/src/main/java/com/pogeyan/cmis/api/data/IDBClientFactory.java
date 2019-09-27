@@ -18,7 +18,7 @@ package com.pogeyan.cmis.api.data;
 public interface IDBClientFactory {
 	public String getType();
 	
-	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
+	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass, String typeId);
 
 	void addIndex(String repositoryId, String[] columnsToIndex);
 }

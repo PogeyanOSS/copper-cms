@@ -151,7 +151,7 @@ public class MNavigationDocServiceImpl extends BasicDAO<MDocumentObject, ObjectI
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<MDocumentObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
+	public List<MDocumentObject> getDescendants(String repositoryId, String path, String[] principalIds, boolean aclPropagation,
 			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager) {
 		Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 		Query<MDocumentObject> query = createQuery().disableValidation().filter("internalPath =", exp)

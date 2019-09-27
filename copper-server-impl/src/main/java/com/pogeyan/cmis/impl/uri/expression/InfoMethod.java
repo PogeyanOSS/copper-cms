@@ -24,7 +24,7 @@ import com.pogeyan.cmis.api.uri.expression.MethodOperator;
  * Describes a method expression which is allowed in OData expressions
  * 
  */
-class InfoMethod {
+public class InfoMethod {
 
 	public MethodOperator method;
 	public String syntax;

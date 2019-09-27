@@ -45,7 +45,7 @@ public interface MBaseObjectDAO {
 			boolean aclPropagation, boolean includePagination, int maxItems, int skipCount, String[] mappedColumns,
 			String typeId);
 
-	public void commit(IBaseObject entity, String typeId);
+	public void commit(IBaseObject entity, String typeId, String repositoryId);
 
 	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
 			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,

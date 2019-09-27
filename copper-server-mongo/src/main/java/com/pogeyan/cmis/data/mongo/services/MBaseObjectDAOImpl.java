@@ -27,12 +27,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.mongodb.morphia.query.Criteria;
-import org.mongodb.morphia.query.CriteriaContainer;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import com.mongodb.DBObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
@@ -140,8 +138,8 @@ public class MBaseObjectDAOImpl extends BasicDAO<MBaseObject, String> implements
 	}
 
 	@Override
-	public void commit(IBaseObject entity, String typeId) {
-		this.save((MBaseObject) entity);
+	public void commit(IBaseObject entity, String typeId, String repositoryId) {
+			this.save((MBaseObject) entity);
 	}
 
 	public IBaseObject createObjectFacade(String name, BaseTypeId baseId, String typeId, String fRepositoryId,

@@ -95,6 +95,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String DEFAULT_TRACING_API_CLASS = "com.pogeyan.cmis.tracing.TracingDefaultImpl";
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
 	private static final String PROPERTY_DB_CLIENT_FACTORY = "cbmClientFactory";
+	private static final String PROPERTY_EXT_DB_CLIENT_FACTORY = "extDbClientFactory";
 	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
@@ -208,9 +209,12 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		// checking cbm adapter class is enable or not
 		String DBClientFactory = props.getProperty(PROPERTY_DB_CLIENT_FACTORY);
-		if (DBClientFactory == null) {
-			DBClientFactory = DEFAULT_DB_CLIENT_FACTORY;
+		if(props.getProperty(PROPERTY_EXT_DB_CLIENT_FACTORY) != null) {
+			DBClientFactory = props.getProperty(PROPERTY_EXT_DB_CLIENT_FACTORY);
 		}
+		else if (DBClientFactory == null) {
+			DBClientFactory = DEFAULT_DB_CLIENT_FACTORY;
+		}  
 
 		initializeDBClientServiceFactory(DBClientFactory);
 
@@ -410,9 +414,9 @@ public class AkkaServletContextListener implements ServletContextListener {
 			Class<?> DBClientServiceFactory = Class.forName(DBClientFactory);
 			IDBClientFactory apiService = (IDBClientFactory) DBClientServiceFactory.newInstance();
 			DatabaseServiceFactory.add(apiService);
-			LOG.info("Initialized CbmAdapter Services Class: {}", DBClientFactory);
+			LOG.info("Initialized MongoClientAdapter Services Class: {}", DBClientFactory);
 		} catch (Exception e) {
-			LOG.error("Could not create a CbmAdapter services factory instance: {}", e);
+			LOG.error("Could not create a MongoClientAdapter services factory instance: {}", e);
 		}
 	}
 

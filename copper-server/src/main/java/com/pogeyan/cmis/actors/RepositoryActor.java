@@ -155,7 +155,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				.getRepository(t.getRepositoryId());
 		RepositoryInfo repo = createRepositoryInfo(t.getRepositoryId(),
 				repository.getRepositoryName() == null ? "" : repository.getRepositoryName(), CmisVersion.CMIS_1_1,
-				rootId, repository.getDescription() == null ? "" : repository.getDescription());
+				rootId, repository.getDescription() == null ? "" : repository.getDescription(), t.getTypeId());
 		String repositoryUrl = HttpUtils.compileRepositoryUrl(t.getBaseUrl(), t.getScheme(), t.getServerName(),
 				t.getServerPort(), t.getContextPath(), t.getServletPath(), repo.getId()).toString();
 		String rootUrl = HttpUtils.compileRootUrl(t.getBaseUrl(), t.getScheme(), t.getServerName(), t.getServerPort(),
@@ -182,12 +182,12 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				if (respositoryList != null && !respositoryList.isEmpty()) {
 					for (IRepository repository : respositoryList) {
 						CmisTypeServices.Impl.addBaseType(repository.getRepositoryId(), request.getUserObject(),
-								tracingId, span);
+								tracingId, span, request.getTypeId());
 						String rootId = CmisObjectService.Impl.addRootFolder(repository.getRepositoryId(),
 								request.getUserName(), request.getTypeId(), tracingId, span);
 						add(createRepositoryInfo(repository.getRepositoryId(), repository.getRepositoryName(),
 								CmisVersion.CMIS_1_1, rootId,
-								repository.getDescription() == null ? "" : repository.getDescription()));
+								repository.getDescription() == null ? "" : repository.getDescription(), request.getTypeId()));
 					}
 				}
 			}
@@ -481,10 +481,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	@SuppressWarnings("serial")
 	private RepositoryInfo createRepositoryInfo(String repositoryId, String name, CmisVersion cmisVersion,
-			String rootFolderId, String description) {
+			String rootFolderId, String description, String typeId) {
 		LOG.info("createRepositoryInfo rootFolderId: {}", rootFolderId);
 		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
-				MBaseObjectDAO.class);
+				MBaseObjectDAO.class, typeId);
 		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null
 				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime() : null);
 		// repository info

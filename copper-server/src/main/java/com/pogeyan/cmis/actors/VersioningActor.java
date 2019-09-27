@@ -111,7 +111,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, checkOut the document using this ids: {}, repositoryId: {}", "checkOut", objectId,
 				request.getRepositoryId());
 		String pwcId = CmisVersioningServices.Impl.checkOut(request.getRepositoryId(), objectsId, null, null,
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getTypeId());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), pwcId,
@@ -175,7 +175,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"checkIn", objectId, request.getRepositoryId(), major, checkinComment);
 		String versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), request.getPropertyData(),
 				request.getContentStream(), objectIdHolder, major, checkinComment, null, request.getUserName(),
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getTypeId());
 		LOG.info("Method name: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), versionId,
@@ -217,7 +217,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, cancel checkout the document using this ids: {}, repositoryId: {}", "cancelCheckOut",
 				objectId, request.getRepositoryId());
 		String docId = CmisVersioningServices.Impl.cancelCheckOut(request.getRepositoryId(), objectId, null,
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getTypeId());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), docId,
@@ -264,7 +264,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"Method name: {}, getting all version objects using this id: {}, repositoryId: {}, versionSeriesId: {}, includeAllowableActions: {}",
 				"getAllVersions", objectId, request.getRepositoryId(), versionSeriesId, includeAllowableActions);
 		List<ObjectData> versions = CmisVersioningServices.Impl.getAllVersions(request.getRepositoryId(), objectId,
-				versionSeriesId, filter, includeAllowableActions, null, null, request.getUserObject(), tracingId, span);
+				versionSeriesId, filter, includeAllowableActions, null, null, request.getUserObject(), tracingId, span, request.getTypeId());
 		if (versions == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter.log(String.format(ErrorMessages.VERSION_NULL), span),
@@ -313,7 +313,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				includeAllowableActions);
 		ObjectData object = CmisVersioningServices.Impl.getObjectOfLatestVersion(request.getRepositoryId(), objectId,
 				versionSeriesId, majorVersion, filter, includeAllowableActions, renditionFilter, includePolicyIds,
-				includeAcl, null, null, request.getUserObject(), tracingId, span);
+				includeAcl, null, null, request.getUserObject(), tracingId, span, request.getTypeId());
 
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
@@ -356,7 +356,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"Method name: {}, get properties of latest version using this id: {}, repositoryId: {}, versionSeriesId: {}, majorVersion: {}",
 				"getPropertiesOfLatestVersion", objectId, request.getRepositoryId(), versionSeriesId, major);
 		Properties properties = CmisVersioningServices.Impl.getPropertiesOfLatestVersion(request.getRepositoryId(),
-				objectId, versionSeriesId, major, filter, null, request.getUserObject(), tracingId, span);
+				objectId, versionSeriesId, major, filter, null, request.getUserObject(), tracingId, span, request.getTypeId());
 
 		if (properties == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,

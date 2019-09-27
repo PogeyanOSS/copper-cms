@@ -419,7 +419,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 						TracingWriter.log(String.format(ErrorMessages.INVALID_EXCEPTION), span));
 			}
 			ObjectInFolderList children = CmisNavigationService.Impl.getAllObjects(request.getRepositoryId(),
-					request.getUserObject(), objectIds, tracingId, span);
+					request.getUserObject(), objectIds, tracingId, span, request.getTypeId());
 
 			if (children == null) {
 				TracingApiServiceFactory.getApiService().updateSpan(span,

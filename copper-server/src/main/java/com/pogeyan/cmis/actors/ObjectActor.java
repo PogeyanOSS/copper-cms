@@ -216,7 +216,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (returnVersion == ReturnVersion.LATEST || returnVersion == ReturnVersion.LASTESTMAJOR) {
 			object = CmisVersioningServices.Impl.getObjectOfLatestVersion(t.getRepositoryId(), objectId, null,
 					returnVersion == ReturnVersion.LASTESTMAJOR, filter, includeAllowableActions, null,
-					includePolicyIds, includeAcl, null, null, t.getUserObject(), tracingId, span);
+					includePolicyIds, includeAcl, null, null, t.getUserObject(), tracingId, span, typeId);
 		} else {
 			object = CmisObjectService.Impl.getObject(t.getRepositoryId(), objectId, filter, includeAllowableActions,
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null, t.getUserObject(),
@@ -473,6 +473,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		VersioningState versioningState = request.getEnumParameter(QueryGetRequest.PARAM_VERSIONIG_STATE,
 				VersioningState.class);
+		String typeId = request.getParameter("typeId");
 		// String token = request.getParameter(request.PARAM_TOKEN);
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -496,7 +497,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"createDocumentFromSource", folderId, request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createDocumentFromSource(request.getRepositoryId(), sourceId, prop,
 				folderId, versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(),
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, typeId);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -825,7 +826,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, getting content stream using this id: {}, repositoryId: {}, offset: {}, length: {}",
 				"getContentStream", objectId, request.getRepositoryId(), offset, length);
 		ContentStream content = CmisObjectService.Impl.getContentStream(request.getRepositoryId(), objectId, streamId,
-				offset, length, request.getUserObject(), tracingId, span);
+				offset, length, request.getUserObject(), tracingId, span, request.getTypeId());
 		PostFileResponse fileResponse = new PostFileResponse();
 		fileResponse.setDownload(download);
 		fileResponse.setOffset(offset);
@@ -884,10 +885,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Holder<String> changeTokenHolder = (changeToken == null ? null : new Holder<String>(changeToken));
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, null, request.getUserObject(), tracingId, span);
+					changeTokenHolder, null, request.getUserObject(), tracingId, span, request.getTypeId());
 		} else {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, request.getContentStream(), request.getUserObject(), tracingId, span);
+					changeTokenHolder, request.getContentStream(), request.getUserObject(), tracingId, span, request.getTypeId());
 		}
 
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
@@ -938,10 +939,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"appendContentStream", objectId, request.getRepositoryId(), isLastChunk);
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					null, isLastChunk, request.getUserObject(), tracingId, span);
+					null, isLastChunk, request.getUserObject(), tracingId, span, request.getTypeId());
 		} else {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					request.getContentStream(), isLastChunk, request.getUserObject(), tracingId, span);
+					request.getContentStream(), isLastChunk, request.getUserObject(), tracingId, span, request.getTypeId());
 		}
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
@@ -991,7 +992,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, deleting content stream for this id: {}, repositoryId: {}", "deleteContentStream",
 				objectId, request.getRepositoryId());
 		CmisObjectService.Impl.deleteContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getTypeId());
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());

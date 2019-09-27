@@ -105,9 +105,9 @@ public class CmisNavigationService {
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
+					.getObjectService(repositoryId, MNavigationDocServiceDAO.class, typeId);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
+					.getObjectService(repositoryId, MTypeManagerDAO.class, typeId);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			if (data == null) {
@@ -301,9 +301,9 @@ public class CmisNavigationService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisNavigationService::getDescendantsIntern", null);
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
+					.getObjectService(repositoryId, MNavigationDocServiceDAO.class, typeId);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
+					.getObjectService(repositoryId, MTypeManagerDAO.class, typeId);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			String[] filterArray = new String[] {};
@@ -330,7 +330,7 @@ public class CmisNavigationService {
 													t.getPrincipalId().toLowerCase())) == true)
 									.collect(Collectors.toList());
 							if (listAce.size() >= 1) {
-								children = navigationMorphiaDAO.getDescendants(path, principalIds, false, filterArray,
+								children = navigationMorphiaDAO.getDescendants(repositoryId, path, principalIds, false, filterArray,
 										Helpers.splitFilterQuery(filter), typeManagerDAO);
 								objectOnly = false;
 								break;
@@ -343,7 +343,7 @@ public class CmisNavigationService {
 			}
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
-				children = navigationMorphiaDAO.getDescendants(path, principalIds, aclPropagation, filterArray,
+				children = navigationMorphiaDAO.getDescendants(repositoryId, path, principalIds, aclPropagation, filterArray,
 						Helpers.splitFilterQuery(filter), typeManagerDAO);
 			}
 			List<String> listOfParentIds = new ArrayList<>();
@@ -634,7 +634,7 @@ public class CmisNavigationService {
 					"CmisNavigationService::getFolderTreeIntern", null);
 			List<ObjectInFolderContainer> folderTree = null;
 			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MNavigationServiceDAO.class);
+					.getObjectService(repositoryId, MNavigationServiceDAO.class, typeId);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
 			String path = "," + folderId + ",";
@@ -717,7 +717,7 @@ public class CmisNavigationService {
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
-			DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId, MBaseObjectDAO.class);
+			DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId, MBaseObjectDAO.class, typeId);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
 			String[] queryResult = data.getInternalPath().split(",");
@@ -767,7 +767,7 @@ public class CmisNavigationService {
 				ObjectInfoHandler objectInfos, IUserObject userObject, String typeId)
 				throws CmisObjectNotFoundException {
 			MDocumentObjectDAO documentMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MDocumentObjectDAO.class);
+					.getObjectService(repositoryId, MDocumentObjectDAO.class, typeId);
 			List<? extends IDocumentObject> document = new ArrayList<>();
 			ObjectListImpl results = new ObjectListImpl();
 			List<ObjectData> odList = new ArrayList<ObjectData>();
@@ -884,11 +884,11 @@ public class CmisNavigationService {
 		 * Method to gets all objects in list.
 		 */
 		public static ObjectInFolderList getAllObjects(String repositoryId, IUserObject userObject,
-				List<String> objectIds, String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+				List<String> objectIds, String tracingId, ISpan parentSpan, String typeId) throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisNavigationService::getAllObjects", null);
 
-			ObjectInFolderList res = getAllObjectsIntern(repositoryId, userObject, objectIds, tracingId, span);
+			ObjectInFolderList res = getAllObjectsIntern(repositoryId, userObject, objectIds, tracingId, span, typeId);
 			if (res != null) {
 				LOG.debug("getAllObjects result, numItems: {}", res.getNumItems());
 			}
@@ -897,13 +897,13 @@ public class CmisNavigationService {
 		}
 
 		private static ObjectInFolderList getAllObjectsIntern(String repositoryId, IUserObject userObject,
-				List<String> objectIds, String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException {
+				List<String> objectIds, String tracingId, ISpan parentSpan, String typeId) throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisNavigationService::getAllObjectsIntern", null);
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			MNavigationDocServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MNavigationDocServiceDAO.class);
+					.getObjectService(repositoryId, MNavigationDocServiceDAO.class, typeId);
 			String[] principalIds = com.pogeyan.cmis.api.utils.Helpers.getPrincipalIds(userObject);
 			List<? extends IDocumentObject> children = new ArrayList<>();
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");

@@ -27,7 +27,7 @@ public interface MNavigationServiceDAO {
 	 */
 	public List<? extends IBaseObject> getChildren(String path, String[] principalIds, boolean aclPropagation,
 			int maxItems, int skipCount, String orderBy, String[] mappedColumns, String filterExpression,
-			MTypeManagerDAO typeManager);
+			MTypeManagerDAO typeManager, String repositoryId);
 
 	/**
 	 * Get children size.
@@ -38,7 +38,7 @@ public interface MNavigationServiceDAO {
 	 * Returns List of MBaseObject childrens values depending on ObjectId
 	 */
 	public List<? extends IBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
-			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager);
+			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager, String repositoryId);
 
 	/**
 	 * Returns List of MBaseObject FolderTree values depending on ObjectId

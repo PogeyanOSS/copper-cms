@@ -56,7 +56,7 @@ public class MBaseObject implements IBaseObject, ISettableBaseObject {
 	private List<String> policies;
 	private MongoAclImpl acl;
 	private String parentId;
-
+	
 	private Map<String, Object> properties;
 
 	public String getRepositoryId() {

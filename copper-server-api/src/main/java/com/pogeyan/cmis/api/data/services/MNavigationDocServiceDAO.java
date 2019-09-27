@@ -22,7 +22,7 @@ public interface MNavigationDocServiceDAO {
 	/**
 	 * Returns List of MBaseObject childrens values depending on ObjectId
 	 */
-	public List<? extends IDocumentObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
+	public List<? extends IDocumentObject> getDescendants(String repositoryId, String path, String[] principalIds, boolean aclPropagation,
 			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager);
 
 	/**

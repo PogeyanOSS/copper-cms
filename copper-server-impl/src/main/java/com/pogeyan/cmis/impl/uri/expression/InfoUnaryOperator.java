@@ -24,7 +24,7 @@ import com.pogeyan.cmis.api.uri.expression.UnaryOperator;
  * Describes a unary operator which is allowed in OData expressions
  * 
  */
-class InfoUnaryOperator {
+public class InfoUnaryOperator {
 	UnaryOperator operator;
 	private String category;
 	private String syntax;

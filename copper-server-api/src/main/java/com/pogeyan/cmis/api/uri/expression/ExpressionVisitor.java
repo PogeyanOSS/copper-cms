@@ -20,6 +20,8 @@ package com.pogeyan.cmis.api.uri.expression;
 
 import java.util.List;
 
+import scala.Tuple2;
+
 /**
  * Interface {@link ExpressionVisitor} is used to traverse a $filter or $orderby expression tree.
  * Any class instance implementing this interface can be passed to the method

@@ -80,7 +80,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	@Override
 	public List<MBaseObject> getChildren(String path, String[] principalIds, boolean aclPropagation, int maxItems,
 			int skipCount, String orderBy, String[] mappedColumns, String filterExpression,
-			MTypeManagerDAO typeManager) {
+			MTypeManagerDAO typeManager, String repositoryId) {
 		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath", path)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (!StringUtils.isEmpty(orderBy)) {
@@ -159,7 +159,7 @@ public class MNavigationServiceDAOImpl extends BasicDAO<MBaseObject, ObjectId> i
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MBaseObject> getDescendants(String path, String[] principalIds, boolean aclPropagation,
-			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager) {
+			String[] mappedColumns, String filterExpression, MTypeManagerDAO typeManager, String repositoryId) {
 		Pattern exp = Pattern.compile(path, Pattern.CASE_INSENSITIVE);
 		Query<MBaseObject> query = createQuery().disableValidation().filter("internalPath =", exp)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());

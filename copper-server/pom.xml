@@ -83,7 +83,27 @@
 			<artifactId>jackson-databind</artifactId>
 			<version>2.9.7</version>
 		</dependency>
-		 <!-- <dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-core</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-logging-juli</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-jasper</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat</groupId><artifactId>tomcat-jasper</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat</groupId><artifactId>tomcat-jasper-el</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat</groupId><artifactId>tomcat-jsp-api</artifactId><version>${tomcat.version}</version></dependency> --> 
+		  <dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-core</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-logging-juli</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-jasper</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat</groupId><artifactId>tomcat-jasper</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat</groupId><artifactId>tomcat-jasper-el</artifactId><version>${tomcat.version}</version></dependency><dependency><groupId>org.apache.tomcat</groupId><artifactId>tomcat-jsp-api</artifactId><version>${tomcat.version}</version></dependency>
+		<dependency>
+			<groupId>com.pogeyan.cmis</groupId>
+			<artifactId>hierarchy-acl</artifactId>
+			<version>1.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.pogeyan.cmis</groupId>
+			<artifactId>copper-server-mongo-ext</artifactId>
+			<version>1.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.pogeyan.cmis</groupId>
+			<artifactId>cmis-analytics</artifactId>
+			<version>1.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.pogeyan.cmis</groupId>
+			<artifactId>cmis-java-lib</artifactId>
+			<version>1.0.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -134,7 +154,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- <plugin><groupId>org.apache.tomcat.maven</groupId><artifactId>tomcat7-maven-plugin</artifactId><version>2.3-SNAPSHOT</version><executions><execution><id>tomcat-war</id><goals><goal>exec-war</goal></goals><phase>package</phase><configuration><path>/</path><enableNaming>false</enableNaming><finalName>copper-${project.version}.jar</finalName><charset>utf-8</charset><attachartifactclassifier>exec-war</attachartifactclassifier><attachartifactclassifiertype>jar</attachartifactclassifiertype></configuration></execution></executions></plugin>  -->
+			<plugin><groupId>org.apache.tomcat.maven</groupId><artifactId>tomcat7-maven-plugin</artifactId><version>2.3-SNAPSHOT</version><executions><execution><id>tomcat-war</id><goals><goal>exec-war</goal></goals><phase>package</phase><configuration><path>/</path><enableNaming>false</enableNaming><finalName>copper-${project.version}.jar</finalName><charset>utf-8</charset><attachartifactclassifier>exec-war</attachartifactclassifier><attachartifactclassifiertype>jar</attachartifactclassifiertype></configuration></execution></executions></plugin> 
 		</plugins>
 	</build>
 	<pluginRepositories>

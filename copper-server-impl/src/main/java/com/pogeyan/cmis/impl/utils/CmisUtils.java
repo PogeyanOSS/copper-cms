@@ -85,13 +85,13 @@ public class CmisUtils {
 
 	public static class Rendition {
 
-		public static boolean hasRendition(IBaseObject so, String user, String repositoryId) {
+		public static boolean hasRendition(IBaseObject so, String user, String repositoryId, String typeId) {
 			IDocumentObject documentData = null;
 			if (so.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 				return true;
 			}
 			if (so.getBaseId() == BaseTypeId.CMIS_DOCUMENT) {
-				documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, so.getId(), null);
+				documentData = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, so.getId(), null, typeId);
 				if (documentData.getContentStreamLength() == null) {
 					return false;
 				}
@@ -167,7 +167,7 @@ public class CmisUtils {
 		}
 
 		public static List<RenditionData> getRenditions(String repositoryId, IBaseObject so, String renditionFilter,
-				long maxItems, long skipCount, String user) {
+				long maxItems, long skipCount, String user, String typeId) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("getRenditions data using this id:{}", so.getId());
 			}
@@ -178,7 +178,7 @@ public class CmisUtils {
 			String[] formats = renditionFilter.split(tokenizer);
 			boolean isImageRendition = CmisUtils.Rendition.testRenditionFilterForImage(formats);
 
-			if (isImageRendition && hasRendition(so, user, repositoryId)) {
+			if (isImageRendition && hasRendition(so, user, repositoryId, typeId)) {
 				String mimeType = null;
 				if (so.getBaseId() == BaseTypeId.CMIS_FOLDER) {
 					mimeType = "image/png";

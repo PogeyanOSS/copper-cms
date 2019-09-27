@@ -24,7 +24,7 @@ import com.pogeyan.cmis.api.uri.expression.BinaryOperator;
  * Describes a binary operator which is allowed in OData expressions
  * 
  */
-class InfoBinaryOperator {
+public class InfoBinaryOperator {
 	private BinaryOperator operator;
 	private String category;
 	private String syntax;

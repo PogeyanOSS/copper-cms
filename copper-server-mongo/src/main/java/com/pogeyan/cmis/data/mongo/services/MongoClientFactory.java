@@ -79,6 +79,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
 	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
+	private final Map<String, String> clientTypeIdDataSet = new HashMap<String, String>();
 	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
 	private Morphia morphia = new Morphia();
 
@@ -109,31 +110,31 @@ public class MongoClientFactory implements IDBClientFactory {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass) {
+	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass, String typeId) {
 		String className = this.objectServiceClass.get(objectServiceClass);
 		if (className.equals(MongoClientFactory.MBASEOBJECTDAOIMPL)) {
-			return (T) getContentDBMongoClient(repositoryId, (t) -> new MBaseObjectDAOImpl(MBaseObject.class, t));
+			return (T) getContentDBMongoClient(repositoryId, (t) -> new MBaseObjectDAOImpl(MBaseObject.class, t), typeId);
 		} else if (className.equals(MongoClientFactory.MDISCOVERYSERVICEDAO)) {
-			return (T) getContentDBMongoClient(repositoryId, (t) -> new MDiscoveryServiceDAOImpl(MBaseObject.class, t));
+			return (T) getContentDBMongoClient(repositoryId, (t) -> new MDiscoveryServiceDAOImpl(MBaseObject.class, t), typeId);
 		}
 		if (className.equals(MongoClientFactory.MDOCUMENTOBJECTDAO)) {
 			return (T) getContentDBMongoClient(repositoryId,
-					(t) -> new MDocumentObjectDAOImpl(MDocumentObject.class, t));
+					(t) -> new MDocumentObjectDAOImpl(MDocumentObject.class, t), typeId);
 		}
 		if (className.equals(MongoClientFactory.MNAVIGATIONSERVICEDAO)) {
 			return (T) getContentDBMongoClient(repositoryId,
-					(t) -> new MNavigationServiceDAOImpl(MBaseObject.class, t));
+					(t) -> new MNavigationServiceDAOImpl(MBaseObject.class, t), typeId);
 		}
 		if (className.equals(MongoClientFactory.MDOCUMENTTYPEMANAGERDAO)) {
 			return (T) getContentDBMongoClient(repositoryId,
-					(t) -> new MDocumentTypeManagerDAOImpl(MTypeDocumentObject.class, t));
+					(t) -> new MDocumentTypeManagerDAOImpl(MTypeDocumentObject.class, t), null);
 		}
 		if (className.equals(MongoClientFactory.MTYPEMANAGERDAO)) {
-			return (T) getContentDBMongoClient(repositoryId, (t) -> new MTypeManagerDAOImpl(MTypeObject.class, t));
+			return (T) getContentDBMongoClient(repositoryId, (t) -> new MTypeManagerDAOImpl(MTypeObject.class, t), null);
 		}
 		if (className.equals(MongoClientFactory.MNAVIGATIONDOCSERVICEDAO)) {
 			return (T) getContentDBMongoClient(repositoryId,
-					(t) -> new MNavigationDocServiceImpl(MDocumentObject.class, t));
+					(t) -> new MNavigationDocServiceImpl(MDocumentObject.class, t), typeId);
 		}
 		return null;
 	}
@@ -166,7 +167,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		contentMongoClient.createIndex(new BasicDBObject(indexIds));
 	}
 
-	public <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {
+	public <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun, String typeId) {
 		Datastore clientDatastore = this.clientDatastores.get(repositoryId);
 		if (clientDatastore == null) {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
@@ -193,15 +194,16 @@ public class MongoClientFactory implements IDBClientFactory {
 			objectDataCollection.createIndex(new BasicDBObject(indexIds));
 			clientDatastore = morphia.createDatastore(mongoClient, properties.get(properties.size() - 1));
 			this.clientDatastores.put(repositoryId, clientDatastore);
+			
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(properties.size() - 1));
 			}
 		}
-
 		return fun.apply(clientDatastore);
 	}
+	
 
-	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
+	public MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
 		MongoClient mClient = this.mongoClient.get(repositoryId);
 		if (mClient == null) {
 			if (replica) {

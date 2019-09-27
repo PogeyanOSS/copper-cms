@@ -69,13 +69,13 @@ public class CmisDiscoveryService {
 		public static ObjectList getContentChanges(String repositoryId, Holder<String> changeLogToken,
 				Boolean includeProperties, String filter, String orderBy, Boolean includePolicyIds, Boolean includeAcl,
 				BigInteger maxItems, ObjectInfoHandler objectInfos, IUserObject userObject, String tracingId,
-				ISpan parentSpan) {
+				ISpan parentSpan, String typeId) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisDiscoveryService::getContentChanges", null);
 			MDiscoveryServiceDAO discoveryObjectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MDiscoveryServiceDAO.class);
+					.getObjectService(repositoryId, MDiscoveryServiceDAO.class, typeId);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
+					.getObjectService(repositoryId, MTypeManagerDAO.class, typeId);
 			int maxItemsInt = maxItems == null ? 10 : maxItems.intValue();
 			if (changeLogToken == null || changeLogToken.getValue() == null) {
 				TracingApiServiceFactory.getApiService().updateSpan(span,
@@ -186,7 +186,7 @@ public class CmisDiscoveryService {
 			if (!includeProperties) {
 				Map<String, Object> custom = new HashMap<>();
 				custom.put("cmis:objectId", object.getId());
-				object.setProperties(null);
+//				object.setProperties(null);
 				object.setProperties(custom);
 			}
 			ObjectInfoImpl objectInfo = new ObjectInfoImpl();

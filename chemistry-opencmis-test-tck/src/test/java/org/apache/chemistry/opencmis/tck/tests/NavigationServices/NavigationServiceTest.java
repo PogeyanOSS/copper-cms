@@ -73,6 +73,7 @@ public class NavigationServiceTest extends AbstractSessionTest {
 		}
 
 		createTypeWithProperties(session, parentType);
+		
 	}
 
 	private void createTypeWithProperties(Session session, ObjectType parentType) {
@@ -133,7 +134,8 @@ public class NavigationServiceTest extends AbstractSessionTest {
 
 		// tck:integer equal to 1
 		OperationContext context1 = new OperationContextImpl();
-		context1.setFilterString("tck:integer,tck:integer eq 1");
+		context1.setFilterString("tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:integer eq 1");
+
 		ItemIterable<CmisObject> getChildren1 = testFolder.getChildren(context1);
 		addResult(assertEquals(Long.valueOf(1), getChildren1.getTotalNumItems(), null,
 				createResult(FAILURE, "Total numItems must be 1")));
@@ -144,250 +146,250 @@ public class NavigationServiceTest extends AbstractSessionTest {
 		}
 
 		// le 5
-		OperationContext context2 = new OperationContextImpl();
-		context2.setFilterString("tck:integer,tck:integer le 5");
-		ItemIterable<CmisObject> getChildren2 = testFolder.getChildren(context2);
-		addResult(assertEquals(Long.valueOf(5), getChildren2.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 5")));
-		int i = 1;
-		for (CmisObject child : getChildren2) {
-			addResult(assertEquals(BigInteger.valueOf(i),
-					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
-					createResult(FAILURE, "tck:integer value should be equal to " + i)));
-			i++;
-		}
-
-		// ge 3
-		OperationContext context3 = new OperationContextImpl();
-		context3.setFilterString("tck:integer,tck:integer ge 3");
-		ItemIterable<CmisObject> getChildren3 = testFolder.getChildren(context3);
-		addResult(assertEquals(Long.valueOf(3), getChildren3.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 3")));
-		i = 3;
-		for (CmisObject child : getChildren3) {
-			addResult(assertEquals(BigInteger.valueOf(i),
-					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
-					createResult(FAILURE, "tck:integer value should be equal to " + i)));
-			i++;
-		}
-
-		// lt 5
-		OperationContext context4 = new OperationContextImpl();
-		context4.setFilterString("tck:integer,tck:integer lt 5");
-		ItemIterable<CmisObject> getChildren4 = testFolder.getChildren(context4);
-		addResult(assertEquals(Long.valueOf(4), getChildren4.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 5")));
-		i = 1;
-		for (CmisObject child : getChildren4) {
-			addResult(assertEquals(BigInteger.valueOf(i),
-					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
-					createResult(FAILURE, "tck:integer value should be equal to " + i)));
-			i++;
-		}
-
-		// gt 3
-		OperationContext context5 = new OperationContextImpl();
-		context5.setFilterString("tck:integer,tck:integer gt 3");
-		ItemIterable<CmisObject> getChildren5 = testFolder.getChildren(context5);
-		addResult(assertEquals(Long.valueOf(2), getChildren5.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 2")));
-		i = 4;
-		for (CmisObject child : getChildren5) {
-			addResult(assertEquals(BigInteger.valueOf(i),
-					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
-					createResult(FAILURE, "tck:integer value should be equal to " + i)));
-			i++;
-		}
-
-		// ne 1
-		OperationContext context6 = new OperationContextImpl();
-		context6.setFilterString("tck:integer,tck:integer ne 1");
-		ItemIterable<CmisObject> getChildren6 = testFolder.getChildren(context6);
-		addResult(assertEquals(Long.valueOf(4), getChildren6.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 4")));
-		i = 2;
-		for (CmisObject child : getChildren6) {
-			addResult(assertEquals(BigInteger.valueOf(i),
-					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
-					createResult(FAILURE, "tck:integer value should be equal to " + i)));
-			i++;
-		}
-		// tck:string eq GHI
-		OperationContext context7 = new OperationContextImpl();
-		context7.setFilterString("tck:string,tck:string eq GHI");
-		ItemIterable<CmisObject> getChildren7 = testFolder.getChildren(context7);
-		addResult(assertEquals(Long.valueOf(1), getChildren7.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 1")));
-		for (CmisObject child : getChildren7) {
-			addResult(assertEquals("GHI", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
-					createResult(FAILURE, "tck:string value should be equal to GHI")));
-		}
-
-		// ne GHI
-		OperationContext context8 = new OperationContextImpl();
-		context8.setFilterString("tck:string,tck:string ne GHI");
-		ItemIterable<CmisObject> getChildren8 = testFolder.getChildren(context8);
-		addResult(assertEquals(Long.valueOf(4), getChildren8.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 4")));
-
-		// eq ABC DEF
-		OperationContext context9 = new OperationContextImpl();
-		context9.setFilterString("tck:string,tck:string eq 'ABC DEF'");
-		ItemIterable<CmisObject> getChildren9 = testFolder.getChildren(context9);
-		addResult(assertEquals(Long.valueOf(1), getChildren9.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 1")));
-
-		// boolean true
-		OperationContext context10 = new OperationContextImpl();
-		context10.setFilterString("tck:boolean,tck:boolean eq true");
-		ItemIterable<CmisObject> getChildren10 = testFolder.getChildren(context10);
-		addResult(assertEquals(Long.valueOf(5), getChildren10.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be true")));
-
-		// boolean false
-		OperationContext context11 = new OperationContextImpl();
-		context11.setFilterString("tck:boolean,tck:boolean eq false");
-		ItemIterable<CmisObject> getChildren11 = testFolder.getChildren(context11);
-		addResult(assertEquals(Long.valueOf(0), getChildren11.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be false")));
-
-		// checking and operator
-		OperationContext context12 = new OperationContextImpl();
-		context12.setFilterString("tck:string,tck:integer,tck:string eq GHI and tck:integer eq 2");
-		ItemIterable<CmisObject> getChildren12 = testFolder.getChildren(context12);
-		addResult(assertEquals(Long.valueOf(1), getChildren12.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 1")));
-
-		// checking or operator
-		OperationContext context13 = new OperationContextImpl();
-		context13.setFilterString("tck:string,tck:integer,tck:string ne GHI or tck:integer eq 1");
-		ItemIterable<CmisObject> getChildren13 = testFolder.getChildren(context13);
-		addResult(assertEquals(Long.valueOf(4), getChildren13.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 4")));
-
-		// checking multiple and operator
-		OperationContext context14 = new OperationContextImpl();
-		context14.setFilterString("tck:string,tck:integer,tck:string ne GHI and tck:integer eq 4 and tck:integer gt 3");
-		ItemIterable<CmisObject> getChildren14 = testFolder.getChildren(context14);
-		addResult(assertEquals(Long.valueOf(1), getChildren14.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 1")));
-
-		// * gives all irrespective of filter
-		OperationContext context15 = new OperationContextImpl();
-		context15.setFilterString("*,tck:string ne 'ABC DEF'");
-		ItemIterable<CmisObject> getChildren15 = testFolder.getChildren(context15);
-		addResult(assertEquals(Long.valueOf(5), getChildren15.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 5")));
-
-		OperationContext context16 = new OperationContextImpl();
-		context16.setFilterString("tck:string ne 'ABC DEF'");
-		ItemIterable<CmisObject> getChildren16 = testFolder.getChildren(context16);
-		addResult(assertEquals(Long.valueOf(4), getChildren16.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 4")));
-
-		// checking multiple or operator
-		OperationContext context17 = new OperationContextImpl();
-		context17.setFilterString(
-				"tck:string,tck:integer,tck:boolean,tck:string ne GHI or tck:string eq 'ABC DEF' or tck:integer eq 1 or tck:boolean eq true");
-		ItemIterable<CmisObject> getChildren17 = testFolder.getChildren(context17);
-		addResult(assertEquals(Long.valueOf(1), getChildren17.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 5")));
-
-		// eq STU/VW
-		OperationContext context18 = new OperationContextImpl();
-		context18.setFilterString("tck:string,tck:string eq 'STU/VW'");
-		ItemIterable<CmisObject> getChildren18 = testFolder.getChildren(context18);
-		addResult(assertEquals(Long.valueOf(0), getChildren18.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 0")));
-
-		// startsWith
-		OperationContext context19 = new OperationContextImpl();
-		context19.setFilterString("tck:string, startswith (tck:string::'A')");
-		ItemIterable<CmisObject> getChildren19 = testFolder.getChildren(context19);
-		addResult(assertEquals(Long.valueOf(1), getChildren19.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 1")));
-
-		// contains
-		OperationContext context20 = new OperationContextImpl();
-		context20.setFilterString("tck:string, contains (tck:string::'ABC')");
-		ItemIterable<CmisObject> getChildren20 = testFolder.getChildren(context20);
-		addResult(assertEquals(Long.valueOf(1), getChildren20.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 1")));
-
-		// endsWith
-		OperationContext context21 = new OperationContextImpl();
-		context21.setFilterString("tck:string, endswith (tck:string::'I')");
-		ItemIterable<CmisObject> getChildren21 = testFolder.getChildren(context21);
-		addResult(assertEquals(Long.valueOf(1), getChildren21.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 1")));
-
-		// exists -> tck:string exists for 5 items
-		OperationContext context22 = new OperationContextImpl();
-		context22.setFilterString("tck:string, exists (tck:string::'TRUE')");
-		ItemIterable<CmisObject> getChildren22 = testFolder.getChildren(context22);
-		addResult(assertEquals(Long.valueOf(5), getChildren22.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 5")));
-
-		// exists set to false -> tck:string exists for 5 items
-		OperationContext context23 = new OperationContextImpl();
-		context23.setFilterString("tck:string, exists (tck:string::'FALSE')");
-		ItemIterable<CmisObject> getChildren23 = testFolder.getChildren(context23);
-		addResult(assertEquals(Long.valueOf(0), getChildren23.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 0")));
-
-		// exists set to true -> tck:strings does not exists any any items
-		OperationContext context24 = new OperationContextImpl();
-		context24.setFilterString("tck:string, exists (tck:strings::'TRUE')");
-		ItemIterable<CmisObject> getChildren24 = testFolder.getChildren(context24);
-		addResult(assertEquals(Long.valueOf(0), getChildren24.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 0")));
-
-		// exists set to false -> tck:strings does not exists for any items
-		OperationContext context25 = new OperationContextImpl();
-		context25.setFilterString("tck:string, exists (tck:strings::'FALSE')");
-		ItemIterable<CmisObject> getChildren25 = testFolder.getChildren(context25);
-		addResult(assertEquals(Long.valueOf(5), getChildren25.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 5")));
-
-		// tck:string eq ''
-		OperationContext context26 = new OperationContextImpl();
-		context26.setFilterString("tck:string,tck:string eq ''");
-		ItemIterable<CmisObject> getChildren26 = testFolder.getChildren(context26);
-		addResult(assertEquals(Long.valueOf(0), getChildren26.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 0")));
-		for (CmisObject child : getChildren26) {
-			addResult(assertEquals("", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
-					createResult(FAILURE, "tck:string value should be equal to ''")));
-		}
-
-		// tck:string eq null
-		OperationContext context27 = new OperationContextImpl();
-		context27.setFilterString("tck:string,tck:string eq null");
-		ItemIterable<CmisObject> getChildren27 = testFolder.getChildren(context27);
-		addResult(assertEquals(Long.valueOf(0), getChildren27.getTotalNumItems(), null,
-				createResult(FAILURE, "Total numItems must be 0")));
-		for (CmisObject child : getChildren27) {
-			addResult(assertEquals("", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
-					createResult(FAILURE, "tck:string value should be equal to ''")));
-		}
-
-		// fetch given properties
-		OperationContext context28 = new OperationContextImpl();
-		context28.setFilterString("tck:string,tck:integer,tck:boolean");
-		ItemIterable<CmisObject> getChildren28 = testFolder.getChildren(context28);
-		// int k = 0;
-		int count = 1;
-		int k = 0;
-		for (CmisObject child : getChildren28) {
-			String s = child.getProperties().get(k).getId();
-			if (!(s.equals(PropertyIds.BASE_TYPE_ID) || s.equals(PropertyIds.OBJECT_TYPE_ID)
-					|| s.equals(PropertyIds.OBJECT_ID))) {
-				count++;
-			}
-			k++;
-		}
-		addResult(assertEquals(3, count, null, createResult(FAILURE, "Total properties is 3")));
-		addResult(createInfoResult("Navigation Service with filter queries Testing Done"));
+//		OperationContext context2 = new OperationContextImpl();
+//		context2.setFilterString("tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:integer le 5");
+//		ItemIterable<CmisObject> getChildren2 = testFolder.getChildren(context2);
+//		addResult(assertEquals(Long.valueOf(5), getChildren2.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 5")));
+//		int i = 1;
+//		for (CmisObject child : getChildren2) {
+//			addResult(assertEquals(BigInteger.valueOf(i),
+//					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
+//					createResult(FAILURE, "tck:integer value should be equal to " + i)));
+//			i++;
+//		}
+//
+//		// ge 3
+//		OperationContext context3 = new OperationContextImpl();
+//		context3.setFilterString("tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:integer ge 3");
+//		ItemIterable<CmisObject> getChildren3 = testFolder.getChildren(context3);
+//		addResult(assertEquals(Long.valueOf(3), getChildren3.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 3")));
+//		i = 3;
+//		for (CmisObject child : getChildren3) {
+//			addResult(assertEquals(BigInteger.valueOf(i),
+//					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
+//					createResult(FAILURE, "tck:integer value should be equal to " + i)));
+//			i++;
+//		}
+//
+//		// lt 5
+//		OperationContext context4 = new OperationContextImpl();
+//		context4.setFilterString("tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:integer lt 5");
+//		ItemIterable<CmisObject> getChildren4 = testFolder.getChildren(context4);
+//		addResult(assertEquals(Long.valueOf(4), getChildren4.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 5")));
+//		i = 1;
+//		for (CmisObject child : getChildren4) {
+//			addResult(assertEquals(BigInteger.valueOf(i),
+//					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
+//					createResult(FAILURE, "tck:integer value should be equal to " + i)));
+//			i++;
+//		}
+//
+//		// gt 3
+//		OperationContext context5 = new OperationContextImpl();
+//		context5.setFilterString("tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:integer gt 3");
+//		ItemIterable<CmisObject> getChildren5 = testFolder.getChildren(context5);
+//		addResult(assertEquals(Long.valueOf(2), getChildren5.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 2")));
+//		i = 4;
+//		for (CmisObject child : getChildren5) {
+//			addResult(assertEquals(BigInteger.valueOf(i),
+//					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
+//					createResult(FAILURE, "tck:integer value should be equal to " + i)));
+//			i++;
+//		}
+//
+//		// ne 1
+//		OperationContext context6 = new OperationContextImpl();
+//		context6.setFilterString("tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:integer ne 1");
+//		ItemIterable<CmisObject> getChildren6 = testFolder.getChildren(context6);
+//		addResult(assertEquals(Long.valueOf(4), getChildren6.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 4")));
+//		i = 2;
+//		for (CmisObject child : getChildren6) {
+//			addResult(assertEquals(BigInteger.valueOf(i),
+//					((ArrayList<Integer>) child.getPropertyValue("tck:integer")).get(0), null,
+//					createResult(FAILURE, "tck:integer value should be equal to " + i)));
+//			i++;
+//		}
+//		// tck:string eq GHI
+//		OperationContext context7 = new OperationContextImpl();
+//		context7.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and tck:string eq GHI");
+//		ItemIterable<CmisObject> getChildren7 = testFolder.getChildren(context7);
+//		addResult(assertEquals(Long.valueOf(1), getChildren7.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 1")));
+//		for (CmisObject child : getChildren7) {
+//			addResult(assertEquals("GHI", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
+//					createResult(FAILURE, "tck:string value should be equal to GHI")));
+//		}
+//
+//		// ne GHI
+//		OperationContext context8 = new OperationContextImpl();
+//		context8.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and tck:string ne GHI");
+//		ItemIterable<CmisObject> getChildren8 = testFolder.getChildren(context8);
+//		addResult(assertEquals(Long.valueOf(4), getChildren8.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 4")));
+//
+//		// eq ABC DEF
+//		OperationContext context9 = new OperationContextImpl();
+//		context9.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and tck:string eq 'ABC DEF'");
+//		ItemIterable<CmisObject> getChildren9 = testFolder.getChildren(context9);
+//		addResult(assertEquals(Long.valueOf(1), getChildren9.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 1")));
+//
+//		// boolean true
+//		OperationContext context10 = new OperationContextImpl();
+//		context10.setFilterString("tck:boolean,cmis:objectTypeId eq tck:testid_with_properties and tck:boolean eq true");
+//		ItemIterable<CmisObject> getChildren10 = testFolder.getChildren(context10);
+//		addResult(assertEquals(Long.valueOf(5), getChildren10.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be true")));
+//
+//		// boolean false
+//		OperationContext context11 = new OperationContextImpl();
+//		context11.setFilterString("tck:boolean,cmis:objectTypeId eq tck:testid_with_properties and tck:boolean eq false");
+//		ItemIterable<CmisObject> getChildren11 = testFolder.getChildren(context11);
+//		addResult(assertEquals(Long.valueOf(0), getChildren11.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be false")));
+//
+//		// checking and operator
+//		OperationContext context12 = new OperationContextImpl();
+//		context12.setFilterString("tck:string,tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:string eq GHI and tck:integer eq 2");
+//		ItemIterable<CmisObject> getChildren12 = testFolder.getChildren(context12);
+//		addResult(assertEquals(Long.valueOf(1), getChildren12.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 1")));
+//
+//		// checking or operator
+//		OperationContext context13 = new OperationContextImpl();
+//		context13.setFilterString("tck:string,tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:string ne GHI or tck:integer eq 1");
+//		ItemIterable<CmisObject> getChildren13 = testFolder.getChildren(context13);
+//		addResult(assertEquals(Long.valueOf(4), getChildren13.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 4")));
+//
+//		// checking multiple and operator
+//		OperationContext context14 = new OperationContextImpl();
+//		context14.setFilterString("tck:string,tck:integer,cmis:objectTypeId eq tck:testid_with_properties and tck:string ne GHI and tck:integer eq 4 and tck:integer gt 3");
+//		ItemIterable<CmisObject> getChildren14 = testFolder.getChildren(context14);
+//		addResult(assertEquals(Long.valueOf(1), getChildren14.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 1")));
+//
+//		// * gives all irrespective of filter
+//		OperationContext context15 = new OperationContextImpl();
+//		context15.setFilterString("*,cmis:objectTypeId eq tck:testid_with_properties and tck:string ne 'ABC DEF'");
+//		ItemIterable<CmisObject> getChildren15 = testFolder.getChildren(context15);
+//		addResult(assertEquals(Long.valueOf(5), getChildren15.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 5")));
+//
+//		OperationContext context16 = new OperationContextImpl();
+//		context16.setFilterString("cmis:objectTypeId eq tck:testid_with_properties and tck:string ne 'ABC DEF'");
+//		ItemIterable<CmisObject> getChildren16 = testFolder.getChildren(context16);
+//		addResult(assertEquals(Long.valueOf(4), getChildren16.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 4")));
+//
+//		// checking multiple or operator
+//		OperationContext context17 = new OperationContextImpl();
+//		context17.setFilterString(
+//				"tck:string,tck:integer,tck:boolean,cmis:objectTypeId eq tck:testid_with_properties and tck:string ne GHI or tck:string eq 'ABC DEF' or tck:integer eq 1 or tck:boolean eq true");
+//		ItemIterable<CmisObject> getChildren17 = testFolder.getChildren(context17);
+//		addResult(assertEquals(Long.valueOf(1), getChildren17.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 5")));
+//
+//		// eq STU/VW
+//		OperationContext context18 = new OperationContextImpl();
+//		context18.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and tck:string eq 'STU/VW'");
+//		ItemIterable<CmisObject> getChildren18 = testFolder.getChildren(context18);
+//		addResult(assertEquals(Long.valueOf(0), getChildren18.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 0")));
+//
+//		// startsWith
+//		OperationContext context19 = new OperationContextImpl();
+//		context19.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and startswith (tck:string::'A')");
+//		ItemIterable<CmisObject> getChildren19 = testFolder.getChildren(context19);
+//		addResult(assertEquals(Long.valueOf(1), getChildren19.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 1")));
+//
+//		// contains
+//		OperationContext context20 = new OperationContextImpl();
+//		context20.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and contains (tck:string::'ABC')");
+//		ItemIterable<CmisObject> getChildren20 = testFolder.getChildren(context20);
+//		addResult(assertEquals(Long.valueOf(1), getChildren20.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 1")));
+//
+//		// endsWith
+//		OperationContext context21 = new OperationContextImpl();
+//		context21.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and endswith (tck:string::'I')");
+//		ItemIterable<CmisObject> getChildren21 = testFolder.getChildren(context21);
+//		addResult(assertEquals(Long.valueOf(1), getChildren21.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 1")));
+//
+//		// exists -> tck:string exists for 5 items
+//		OperationContext context22 = new OperationContextImpl();
+//		context22.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and exists (tck:string::'TRUE')");
+//		ItemIterable<CmisObject> getChildren22 = testFolder.getChildren(context22);
+//		addResult(assertEquals(Long.valueOf(5), getChildren22.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 5")));
+//
+//		// exists set to false -> tck:string exists for 5 items
+//		OperationContext context23 = new OperationContextImpl();
+//		context23.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and exists (tck:string::'FALSE')");
+//		ItemIterable<CmisObject> getChildren23 = testFolder.getChildren(context23);
+//		addResult(assertEquals(Long.valueOf(0), getChildren23.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 0")));
+//
+//		// exists set to true -> tck:strings does not exists any any items
+//		OperationContext context24 = new OperationContextImpl();
+//		context24.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and exists (tck:strings::'TRUE')");
+//		ItemIterable<CmisObject> getChildren24 = testFolder.getChildren(context24);
+//		addResult(assertEquals(Long.valueOf(0), getChildren24.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 0")));
+//
+//		// exists set to false -> tck:strings does not exists for any items
+//		OperationContext context25 = new OperationContextImpl();
+//		context25.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and exists (tck:strings::'FALSE')");
+//		ItemIterable<CmisObject> getChildren25 = testFolder.getChildren(context25);
+//		addResult(assertEquals(Long.valueOf(5), getChildren25.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 5")));
+//
+//		// tck:string eq ''
+//		OperationContext context26 = new OperationContextImpl();
+//		context26.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and tck:string eq ''");
+//		ItemIterable<CmisObject> getChildren26 = testFolder.getChildren(context26);
+//		addResult(assertEquals(Long.valueOf(0), getChildren26.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 0")));
+//		for (CmisObject child : getChildren26) {
+//			addResult(assertEquals("", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
+//					createResult(FAILURE, "tck:string value should be equal to ''")));
+//		}
+//
+//		// tck:string eq null
+//		OperationContext context27 = new OperationContextImpl();
+//		context27.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and tck:string eq null");
+//		ItemIterable<CmisObject> getChildren27 = testFolder.getChildren(context27);
+//		addResult(assertEquals(Long.valueOf(0), getChildren27.getTotalNumItems(), null,
+//				createResult(FAILURE, "Total numItems must be 0")));
+//		for (CmisObject child : getChildren27) {
+//			addResult(assertEquals("", ((ArrayList<Integer>) child.getPropertyValue("tck:string")).get(0), null,
+//					createResult(FAILURE, "tck:string value should be equal to ''")));
+//		}
+//
+//		// fetch given properties
+//		OperationContext context28 = new OperationContextImpl();
+//		context28.setFilterString("tck:string,cmis:objectTypeId eq tck:testid_with_properties and tck:integer,tck:boolean");
+//		ItemIterable<CmisObject> getChildren28 = testFolder.getChildren(context28);
+//		// int k = 0;
+//		int count = 1;
+//		int k = 0;
+//		for (CmisObject child : getChildren28) {
+//			String s = child.getProperties().get(k).getId();
+//			if (!(s.equals(PropertyIds.BASE_TYPE_ID) || s.equals(PropertyIds.OBJECT_TYPE_ID)
+//					|| s.equals(PropertyIds.OBJECT_ID))) {
+//				count++;
+//			}
+//			k++;
+//		}
+//		addResult(assertEquals(3, count, null, createResult(FAILURE, "Total properties is 3")));
+//		addResult(createInfoResult("Navigation Service with filter queries Testing Done"));
 	}
 
 	private ItemTypeDefinitionImpl createItemTypeDefinition(Session session, String typeId, ObjectType parentType) {

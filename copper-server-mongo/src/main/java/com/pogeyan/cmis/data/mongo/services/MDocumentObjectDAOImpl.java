@@ -60,8 +60,8 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void delete(String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
-			TokenImpl token) {
+	public void delete(String repositoryId, String objectId, List<String> removeProps, boolean forceDelete, boolean removefields,
+			TokenImpl token, String typeId) {
 		Query<MDocumentObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
 		if (forceDelete) {
@@ -85,7 +85,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void update(String objectId, Map<String, Object> updateProps) {
+	public void update(String repositoryId, String objectId, Map<String, Object> updateProps, String typeId) {
 		UpdateOperations<MDocumentObject> update = createUpdateOperations();
 		Query<MDocumentObject> query = createQuery().disableValidation().field("id").equal(objectId)
 				.field("token.changeType").notEqual(TokenChangeType.DELETED.value());
@@ -168,7 +168,7 @@ public class MDocumentObjectDAOImpl extends BasicDAO<MDocumentObject, ObjectId> 
 	}
 
 	@Override
-	public void commit(IDocumentObject entity) {
+	public void commit(IDocumentObject entity, String typeId, String repositoryId) {
 		this.save((MDocumentObject) entity);
 	}
 

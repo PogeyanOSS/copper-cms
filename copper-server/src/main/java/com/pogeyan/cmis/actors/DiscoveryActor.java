@@ -58,7 +58,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
 						() -> this.getContentChanges((QueryGetRequest) t, (HashMap<String, Object>) b))));
 
-		this.registerMessageHandle("query", QueryGetRequest.class, (t, b) -> CompletableFuture
+		this.registerMessageHandle("dquery", QueryGetRequest.class, (t, b) -> CompletableFuture
 				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getQuery((QueryGetRequest) t))));
 	}
 
@@ -95,7 +95,7 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 				"getContentChanges", changeLogTokenHolder, request.getRepositoryId(), includeAcl, includePolicyIds);
 		ObjectList changes = CmisDiscoveryService.Impl.getContentChanges(request.getRepositoryId(),
 				changeLogTokenHolder, includeProperties, filter, orderBy, includePolicyIds, includeAcl, maxItems, null,
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getTypeId());
 
 		JSONObject jsonChanges = JSONConverter.convert(changes, CmisTypeCacheService.get(request.getRepositoryId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);

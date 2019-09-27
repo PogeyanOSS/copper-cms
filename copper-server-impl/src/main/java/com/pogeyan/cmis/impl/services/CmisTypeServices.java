@@ -89,14 +89,14 @@ public class CmisTypeServices {
 
 	public static class Impl {
 
-		public static void addBaseType(String repositoryId, IUserObject userObject, String tracingId, ISpan parentSpan)
+		public static void addBaseType(String repositoryId, IUserObject userObject, String tracingId, ISpan parentSpan, String typeId)
 				throws MongoException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisTypeServices::addBaseType", null);
 			LOG.info("addBaseType for this repo: {}", repositoryId);
 			try {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-						.getObjectService(repositoryId, MTypeManagerDAO.class);
+						.getObjectService(repositoryId, MTypeManagerDAO.class, typeId);
 				List<? extends TypeDefinition> getTypeObject = DBUtils.TypeServiceDAO.getById(repositoryId, null, null);
 				if (getTypeObject != null) {
 				} else {
@@ -105,7 +105,7 @@ public class CmisTypeServices {
 					if (typeDef != null && typeDef.size() > 0) {
 						LOG.info("BaseType already created for repository: {}", repositoryId);
 					} else {
-						List<TypeDefinition> baseType = upset(repositoryId);
+						List<TypeDefinition> baseType = upset(repositoryId, typeId);
 						for (TypeDefinition tm : baseType) {
 							typeManagerDAO.commit(tm);
 							if (tm.getId().equalsIgnoreCase(BaseTypeId.CMIS_FOLDER.value())) {
@@ -153,12 +153,12 @@ public class CmisTypeServices {
 		/**
 		 * returns the Morphia BaseTypeObject
 		 */
-		private static List<TypeDefinition> upset(String repositoryId) {
+		private static List<TypeDefinition> upset(String repositoryId, String typeId) {
 			List<TypeDefinition> typeList = new ArrayList<>();
 			TypeMutabilityImpl type = new TypeMutabilityImpl(true, true, true);
 			Map<String, PropertyDefinitionImpl<?>> folderProperty = getBaseFolderProperty();
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
+					.getObjectService(repositoryId, MTypeManagerDAO.class, typeId);
 			TypeDefinition folderType = typeManagerDAO.createObjectFacade(BaseTypeId.CMIS_FOLDER.value(),
 					BaseTypeId.CMIS_FOLDER.value(), BaseTypeId.CMIS_FOLDER.value(), BaseTypeId.CMIS_FOLDER.value(),
 					BaseTypeId.CMIS_FOLDER.value(), "Folder", BaseTypeId.CMIS_FOLDER, null, true, true, true, true,
@@ -550,7 +550,7 @@ public class CmisTypeServices {
 				List<TypeDefinition> innerChild = new ArrayList<TypeDefinition>();
 				innerChild.clear();
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-						.getObjectService(repositoryId, MTypeManagerDAO.class);
+						.getObjectService(repositoryId, MTypeManagerDAO.class, type.getId());
 				TypeDefinition object = null;
 				if (type.getId() == null || type.getId().trim().length() == 0) {
 					LOG.error("Type must have a valid id! in repository: {}, TraceId: {}", repositoryId,
@@ -727,7 +727,7 @@ public class CmisTypeServices {
 							TracingWriter.log(String.format(ErrorMessages.PARENT_NOT_VALID), span));
 				}
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-						.getObjectService(repositoryId, MTypeManagerDAO.class);
+						.getObjectService(repositoryId, MTypeManagerDAO.class, type.getId());
 
 				List<? extends TypeDefinition> tyeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 						Arrays.asList(type.getId()), null);
@@ -817,9 +817,9 @@ public class CmisTypeServices {
 				TypeDefinition object = null;
 
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-						.getObjectService(repositoryId, MTypeManagerDAO.class);
+						.getObjectService(repositoryId, MTypeManagerDAO.class, type);
 				MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-						.getObjectService(repositoryId, MBaseObjectDAO.class);
+						.getObjectService(repositoryId, MBaseObjectDAO.class, type);
 
 				List<? extends TypeDefinition> tyeDef = DBUtils.TypeServiceDAO.getById(repositoryId,
 						Arrays.asList(type), null);
@@ -936,7 +936,7 @@ public class CmisTypeServices {
 			TypeDefinitionContainerImpl typeDefinitionContainer = null;
 			List<TypeDefinition> innerChild = new ArrayList<TypeDefinition>();
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
+					.getObjectService(repositoryId, MTypeManagerDAO.class, typeDefinition.getId());
 			innerChild.clear();
 			if (typeDefinition.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 
@@ -1280,7 +1280,7 @@ public class CmisTypeServices {
 					"CmisTypeService::getTypeDescendants", null);
 			boolean inclPropDefs = includePropertyDefinitions == null ? true : includePropertyDefinitions;
 			MDocumentTypeManagerDAO docTypeMorphia = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
+					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class, typeId);
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			if (typeId != null) {
@@ -1574,7 +1574,7 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> list = getTypeProperties(object, repositoryId, innerChildObject,
 					includePropertyDefinitions, typePermissionFlow, userObject);
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MTypeManagerDAO.class);
+					.getObjectService(repositoryId, MTypeManagerDAO.class, object.getId());
 			TypeDefinition resultType = getTypeObjectInstance(object, list, typeManagerDAO);
 			return resultType;
 
