@@ -20,16 +20,18 @@ import java.io.InputStream;
 import java.io.InvalidObjectException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.transaction.InvalidTransactionException;
 
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
@@ -42,27 +44,23 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.api.Action;
 import com.pogeyan.cmis.api.BaseMessage;
-import com.pogeyan.cmis.api.GenericActor;
 import com.pogeyan.cmis.api.MessageType;
+import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.auth.LoginRequestObject;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.CmisErrorResponse;
 import com.pogeyan.cmis.api.messages.LoginRequest;
-import com.pogeyan.cmis.api.messages.LoginResponse;
 import com.pogeyan.cmis.api.messages.PostFileResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
 import com.pogeyan.cmis.browser.shared.POSTHttpServletRequestWrapper;
 import com.pogeyan.cmis.browser.shared.QueryStringHttpServletRequestWrapper;
-import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
-import java.util.Map;
-import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
-import com.pogeyan.cmis.api.auth.LoginRequestObject;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -128,7 +126,7 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 					throw new CmisNotSupportedException("Unsupported method");
 				}
 			} else {
-				try { 
+				try {
 					IUserObject loginSession = this.verifyLogin(request, pathFragments);
 					BaseMessage bm = gettingBaseMessage(method, pathFragments, loginSession, request, response);
 					if (bm != null) {
@@ -186,7 +184,8 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 		}
 	}
 
-	private IUserObject verifyLogin(HttpServletRequest request, String[] pathFragments) throws InvalidTargetObjectTypeException, InvalidObjectException {
+	private IUserObject verifyLogin(HttpServletRequest request, String[] pathFragments)
+			throws InvalidTargetObjectTypeException, InvalidObjectException {
 		LoginRequest loginRequest = new LoginRequest();
 		loginRequest.setHeaders(ServletHelpers.getHeadersInfo(request));
 		if (pathFragments.length > 0) {
@@ -249,66 +248,104 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 		public ServletActor(AsyncContext asyncContext) {
 			this.gatewayActor = this.getContext().actorSelection("/user/gateway");
 			this.asyncContext = asyncContext;
+			long timeout = 120000;
+			this.asyncContext.setTimeout(timeout);
+			this.asyncContext.addListener(new AsyncListener() {
+				@Override
+				public void onComplete(AsyncEvent event) throws IOException {
+					stopActor();
+				}
+
+				@Override
+				public void onTimeout(AsyncEvent event) throws IOException {
+					try {
+						asyncContext.complete();
+						stopActor();
+					} catch (Exception e) {
+
+					}
+				}
+
+				@Override
+				public void onError(AsyncEvent event) throws IOException {
+					try {
+						asyncContext.complete();
+						stopActor();
+					} catch (Exception e) {
+					}
+				}
+
+				@Override
+				public void onStartAsync(AsyncEvent event) throws IOException {
+				}
+			});
+
 		}
 
 		@Override
 		public void onReceive(Object message) throws Throwable {
-			if (message instanceof BaseMessage) {
-				BaseMessage bm = (BaseMessage) message;
-				if (bm.getMessageType() == MessageType.REQUEST) {
-					this.gatewayActor.tell(bm, this.getSelf());
-				} else {
-					HttpServletRequest request = (HttpServletRequest) this.asyncContext.getRequest();
-					HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
-					if (bm.getMessageType() == MessageType.RESPONSE) {
-						// check for post respose message
-						if (bm.getMessageBodyType() == PostFileResponse.class) {
-							PostFileResponse fileResponse = bm.getMessageAsType(PostFileResponse.class);
-							if (fileResponse == null) {
-								CmisBaseResponse errorMessage = CmisBaseResponse
-										.setCmisResponse("File response found NULL", 500);
-								ServletHelpers.writeErrorInActor((CmisErrorResponse) errorMessage.getCmisData(),
-										request, response);
+			try {
+				onProcess(message);
+			} catch (Exception e) {
+				LOG.error("Servlet Actor onReceive execution exception: {}, stack: {}", e.getMessage(),
+						ExceptionUtils.getStackTrace(e));
+			}
+		}
 
-								return;
-							} else if (fileResponse.getContent() != null) {
-								this.handleFileContentStream(request, response, fileResponse);
-							}
+		protected void stopActor() {
+			this.getContext().stop(this.getSelf());
+		}
 
-						} else {
-							response.setStatus(HttpServletResponse.SC_OK);
-							response.setContentType(JSON_MIME_TYPE);
-							response.setCharacterEncoding("UTF-8");
-							response.getWriter().write(bm.getMessagePlain());
-						}
+		private void onProcess(Object message) {
+			try {
+				if (message instanceof BaseMessage) {
+					BaseMessage bm = (BaseMessage) message;
+					if (bm.getMessageType() == MessageType.REQUEST) {
+						this.gatewayActor.tell(bm, this.getSelf());
 					} else {
-						CmisErrorResponse res = (CmisErrorResponse) bm.getMessageAsType(CmisErrorResponse.class);
-						ServletHelpers.writeErrorInActor(res, request, response);
+						HttpServletRequest request = (HttpServletRequest) this.asyncContext.getRequest();
+						HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
+						if (bm.getMessageType() == MessageType.RESPONSE) {
+							// check for post respose message
+							if (bm.getMessageBodyType() == PostFileResponse.class) {
+								PostFileResponse fileResponse = bm.getMessageAsType(PostFileResponse.class);
+								if (fileResponse == null) {
+									CmisBaseResponse errorMessage = CmisBaseResponse
+											.setCmisResponse("File response found NULL", 500);
+									ServletHelpers.writeErrorInActor((CmisErrorResponse) errorMessage.getCmisData(),
+											request, response);
+
+									return;
+								} else if (fileResponse.getContent() != null) {
+									this.handleFileContentStream(request, response, fileResponse);
+								}
+
+							} else {
+								response.setStatus(HttpServletResponse.SC_OK);
+								response.setContentType(JSON_MIME_TYPE);
+								response.setCharacterEncoding("UTF-8");
+								response.getWriter().write(bm.getMessagePlain());
+							}
+						} else {
+							CmisErrorResponse res = (CmisErrorResponse) bm.getMessageAsType(CmisErrorResponse.class);
+							ServletHelpers.writeErrorInActor(res, request, response);
+						}
+
+						this.asyncContext.complete();
 					}
+				} else {
+					HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+					response.getWriter().println("{}");
 					try {
 						this.asyncContext.complete();
-					}  catch (IllegalStateException ex) {
-	                    // Alresady completed.
-	                    LOG.trace("Already resumed!", ex);
+					} catch (IllegalStateException ex) {
+						LOG.trace("Already resumed!", ex);
 					}
-					// stop actor
-					this.getContext().stop(this.getSelf());
 				}
-			} else {
-				HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
-				// write error
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				// TODO: Write proper error message with error code
-				response.getWriter().println("{}");
-				try {
-					this.asyncContext.complete();
-				}  catch (IllegalStateException ex) {
-                    // Alresady completed.
-                    LOG.trace("Already resumed!", ex);
-				}
-				
-				// stop actor
-				this.getContext().stop(this.getSelf());
+			} catch (Exception e) {
+				LOG.error("Servlet Actor onProcess method exception: {}, stack: {}", e.getMessage(),
+						ExceptionUtils.getStackTrace(e));
 			}
 		}
 
