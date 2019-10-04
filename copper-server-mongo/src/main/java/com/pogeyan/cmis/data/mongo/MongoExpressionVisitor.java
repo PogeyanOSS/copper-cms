@@ -1,6 +1,7 @@
 package com.pogeyan.cmis.data.mongo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -250,7 +251,9 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 			} else {
 				return this.query.criteria(getQueryName(fieldOperand.getUriLiteral())).doesNotExist();
 			}
-
+		case IN:
+			return this.query.criteria(getQueryName(fieldOperand.getUriLiteral()))
+					.in(Arrays.asList(fieldValue.trim().split(" ")));
 		case STARTSWITH:
 			Pattern sw_pattern = Pattern.compile("^" + fieldValue, Pattern.CASE_INSENSITIVE);
 			return this.query.filter(getQueryName(fieldOperand.getUriLiteral()), sw_pattern);
