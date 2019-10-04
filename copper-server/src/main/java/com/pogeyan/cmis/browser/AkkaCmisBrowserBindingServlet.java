@@ -17,10 +17,15 @@ package com.pogeyan.cmis.browser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InvalidObjectException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
+import javax.management.modelmbean.InvalidTargetObjectTypeException;
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -39,22 +44,23 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pogeyan.cmis.api.Action;
 import com.pogeyan.cmis.api.BaseMessage;
-import com.pogeyan.cmis.api.GenericActor;
 import com.pogeyan.cmis.api.MessageType;
+import com.pogeyan.cmis.api.auth.IAuthService;
 import com.pogeyan.cmis.api.auth.IUserObject;
+import com.pogeyan.cmis.api.auth.LoginRequestObject;
 import com.pogeyan.cmis.api.messages.CmisBaseResponse;
 import com.pogeyan.cmis.api.messages.CmisErrorResponse;
 import com.pogeyan.cmis.api.messages.LoginRequest;
-import com.pogeyan.cmis.api.messages.LoginResponse;
 import com.pogeyan.cmis.api.messages.PostFileResponse;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
+import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.browser.shared.HttpUtils;
 import com.pogeyan.cmis.browser.shared.POSTHttpServletRequestWrapper;
 import com.pogeyan.cmis.browser.shared.QueryStringHttpServletRequestWrapper;
+import com.pogeyan.cmis.impl.factory.LoginAuthServiceFactory;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -105,7 +111,6 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			// split path
 			String[] pathFragments = HttpUtils.splitPath(request);
 
-			final AsyncContext ctx = request.startAsync(request, response);
 			if (Helpers.isPerfMode()) {
 				MetricsInputs.get().getCounter("counter_requests_total").inc();
 			}
@@ -114,42 +119,36 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 				BaseMessage bm = gettingBaseMessage(method, pathFragments, null, request, response);
 				if (bm != null) {
 					// create actor on-the-fly
+					final AsyncContext ctx = request.startAsync(request, response);
 					ActorRef servletActor = system.actorOf(Props.create(ServletActor.class, ctx));
 					servletActor.tell(bm, ActorRef.noSender());
 				} else {
 					throw new CmisNotSupportedException("Unsupported method");
 				}
 			} else {
-				this.verifyLogin(request, pathFragments, system, (s) -> {
-					try {
-						IUserObject loginSession = (IUserObject) s;
-						BaseMessage bm = gettingBaseMessage(method, pathFragments, loginSession, request, response);
-
-						if (bm != null) {
-							// create actor on-the-fly
-							ActorRef servletActor = system.actorOf(Props.create(ServletActor.class, ctx));
-							servletActor.tell(bm, ActorRef.noSender());
-						} else {
-							throw new CmisNotSupportedException("Unsupported method");
-						}
-					} catch (Exception e1) {
-						MetricsInputs.markBindingServletErrorMeter();
-						LOG.error("Service execution exception: {}, stack: {}", e1.getMessage(),
-								ExceptionUtils.getStackTrace(e1));
-						ServletHelpers.printError(e1, request, response);
+				try {
+					IUserObject loginSession = this.verifyLogin(request, pathFragments);
+					BaseMessage bm = gettingBaseMessage(method, pathFragments, loginSession, request, response);
+					if (bm != null) {
+						// create actor on-the-fly
+						final AsyncContext ctx = request.startAsync(request, response);
+						ActorRef servletActor = system.actorOf(Props.create(ServletActor.class, ctx));
+						servletActor.tell(bm, ActorRef.noSender());
+					} else {
+						throw new CmisNotSupportedException("Unsupported method");
 					}
-				}, (err) -> {
-					HttpServletResponse asyncResponse = (HttpServletResponse) ctx.getResponse();
-					asyncResponse.setHeader("WWW-Authenticate", "Basic realm=\"CMIS\", charset=\"UTF-8\"");
+				} catch (Exception e1) {
+					MetricsInputs.markBindingServletErrorMeter();
+					LOG.error("Service execution exception: {}, stack: {}", e1.getMessage(),
+							ExceptionUtils.getStackTrace(e1));
+					response.setHeader("WWW-Authenticate", "Basic realm=\"CMIS\", charset=\"UTF-8\"");
 					try {
-						asyncResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization Required");
-					} catch (Exception e1) {
+						response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization Required");
+					} catch (Exception e2) {
 						MetricsInputs.markBindingServletErrorMeter();
-						ServletHelpers.printError(e1, (HttpServletRequest) ctx.getRequest(), asyncResponse);
+						ServletHelpers.printError(e1, (HttpServletRequest) request, response);
 					}
-
-					ctx.complete();
-				});
+				}
 			}
 		} catch (Exception e) {
 			MetricsInputs.markBindingServletErrorMeter();
@@ -185,43 +184,28 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 		}
 	}
 
-	private void verifyLogin(HttpServletRequest request, String[] pathFragments, ActorSystem system,
-			Action<Object> onSuccess, Action<Object> onError) {
-		// forwarding callback after verifying login response object
-		Action<BaseMessage> onLoginSuccess = (t) -> {
-			LoginResponse lr = (LoginResponse) t.getMessageAsType(LoginResponse.class);
-			if (lr.isSuccessfulLogin()) {
-				// To test different users and different password on test
-				// cases require to remove cache on 1 second
-				/*
-				 * if (Helpers.isTestMode()) {
-				 * //RedissonCacheFactory.get().put("login." + userName,
-				 * lr.getLoginDetails(), 5, TimeUnit.SECONDS); } else { // set
-				 * in map cache for 30 mins expiry
-				 * //RedissonCacheFactory.get().put("login." + userName,
-				 * lr.getLoginDetails(), 30, TimeUnit.MINUTES); }
-				 */
-				onSuccess.apply(lr.getLoginDetails());
-			} else {
-				onError.apply(null);
-			}
-		};
-
-		ActorRef genericActorRef = system.actorOf(Props.create(GenericActor.class, onLoginSuccess, onError));
+	private IUserObject verifyLogin(HttpServletRequest request, String[] pathFragments)
+			throws InvalidTargetObjectTypeException, InvalidObjectException {
 		LoginRequest loginRequest = new LoginRequest();
 		loginRequest.setHeaders(ServletHelpers.getHeadersInfo(request));
 		if (pathFragments.length > 0) {
 			loginRequest.setRepositoryId(pathFragments[0]);
 		}
-		BaseMessage loginMessage = BaseMessage.create("login", "authenticate", loginRequest, ServletHelpers.getHeadersInfo(request));
-		genericActorRef.tell(loginMessage, ActorRef.noSender());
-
-		/*
-		 * String userName = callContextMap.get(BrowserConstants.USERNAME);
-		 * Object loginSession = RedissonCacheFactory.get().get("login." +
-		 * userName); if (loginSession == "") { } else {
-		 * onSuccess.apply(loginSession); }
-		 */
+		Map<String, String> loginSettings = RepositoryManagerFactory.getLoginDetails(loginRequest.getRepositoryId());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Login settings for repositoryId: {}", loginSettings.toString());
+		}
+		IAuthService authService = LoginAuthServiceFactory.createAuthService(loginSettings);
+		if (authService != null) {
+			LoginRequestObject loginObject = new LoginRequestObject(loginRequest.getHeaders().get("authorization"),
+					loginRequest.getRepositoryId());
+			IUserObject result = authService.authenticate(loginObject);
+			return result;
+		} else {
+			LOG.error("Login authenticate service not found for: {}", loginSettings.toString());
+			throw new InvalidTargetObjectTypeException(
+					"Login authenticate service not found for: " + loginSettings.toString());
+		}
 	}
 
 	private BaseMessage gettingBaseMessage(String method, String[] pathFragments, IUserObject loginSession,
@@ -264,66 +248,104 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 		public ServletActor(AsyncContext asyncContext) {
 			this.gatewayActor = this.getContext().actorSelection("/user/gateway");
 			this.asyncContext = asyncContext;
+			long timeout = 120000;
+			this.asyncContext.setTimeout(timeout);
+			this.asyncContext.addListener(new AsyncListener() {
+				@Override
+				public void onComplete(AsyncEvent event) throws IOException {
+					stopActor();
+				}
+
+				@Override
+				public void onTimeout(AsyncEvent event) throws IOException {
+					try {
+						asyncContext.complete();
+						stopActor();
+					} catch (Exception e) {
+
+					}
+				}
+
+				@Override
+				public void onError(AsyncEvent event) throws IOException {
+					try {
+						asyncContext.complete();
+						stopActor();
+					} catch (Exception e) {
+					}
+				}
+
+				@Override
+				public void onStartAsync(AsyncEvent event) throws IOException {
+				}
+			});
+
 		}
 
 		@Override
 		public void onReceive(Object message) throws Throwable {
-			if (message instanceof BaseMessage) {
-				BaseMessage bm = (BaseMessage) message;
-				if (bm.getMessageType() == MessageType.REQUEST) {
-					this.gatewayActor.tell(bm, this.getSelf());
-				} else {
-					HttpServletRequest request = (HttpServletRequest) this.asyncContext.getRequest();
-					HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
-					if (bm.getMessageType() == MessageType.RESPONSE) {
-						// check for post respose message
-						if (bm.getMessageBodyType() == PostFileResponse.class) {
-							PostFileResponse fileResponse = bm.getMessageAsType(PostFileResponse.class);
-							if (fileResponse == null) {
-								CmisBaseResponse errorMessage = CmisBaseResponse
-										.setCmisResponse("File response found NULL", 500);
-								ServletHelpers.writeErrorInActor((CmisErrorResponse) errorMessage.getCmisData(),
-										request, response);
+			try {
+				onProcess(message);
+			} catch (Exception e) {
+				LOG.error("Servlet Actor onReceive execution exception: {}, stack: {}", e.getMessage(),
+						ExceptionUtils.getStackTrace(e));
+			}
+		}
 
-								return;
-							} else if (fileResponse.getContent() != null) {
-								this.handleFileContentStream(request, response, fileResponse);
-							}
+		protected void stopActor() {
+			this.getContext().stop(this.getSelf());
+		}
 
-						} else {
-							response.setStatus(HttpServletResponse.SC_OK);
-							response.setContentType(JSON_MIME_TYPE);
-							response.setCharacterEncoding("UTF-8");
-							response.getWriter().write(bm.getMessagePlain());
-						}
+		private void onProcess(Object message) {
+			try {
+				if (message instanceof BaseMessage) {
+					BaseMessage bm = (BaseMessage) message;
+					if (bm.getMessageType() == MessageType.REQUEST) {
+						this.gatewayActor.tell(bm, this.getSelf());
 					} else {
-						CmisErrorResponse res = (CmisErrorResponse) bm.getMessageAsType(CmisErrorResponse.class);
-						ServletHelpers.writeErrorInActor(res, request, response);
+						HttpServletRequest request = (HttpServletRequest) this.asyncContext.getRequest();
+						HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
+						if (bm.getMessageType() == MessageType.RESPONSE) {
+							// check for post respose message
+							if (bm.getMessageBodyType() == PostFileResponse.class) {
+								PostFileResponse fileResponse = bm.getMessageAsType(PostFileResponse.class);
+								if (fileResponse == null) {
+									CmisBaseResponse errorMessage = CmisBaseResponse
+											.setCmisResponse("File response found NULL", 500);
+									ServletHelpers.writeErrorInActor((CmisErrorResponse) errorMessage.getCmisData(),
+											request, response);
+
+									return;
+								} else if (fileResponse.getContent() != null) {
+									this.handleFileContentStream(request, response, fileResponse);
+								}
+
+							} else {
+								response.setStatus(HttpServletResponse.SC_OK);
+								response.setContentType(JSON_MIME_TYPE);
+								response.setCharacterEncoding("UTF-8");
+								response.getWriter().write(bm.getMessagePlain());
+							}
+						} else {
+							CmisErrorResponse res = (CmisErrorResponse) bm.getMessageAsType(CmisErrorResponse.class);
+							ServletHelpers.writeErrorInActor(res, request, response);
+						}
+
+						this.asyncContext.complete();
 					}
+				} else {
+					HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+					response.getWriter().println("{}");
 					try {
-						 this.asyncContext.complete();
-		                } catch (IllegalStateException ex) {
-		                    // Alresady completed.
-		                    LOG.trace("Already resumed!", ex);
-		              }
-					
-					// stop actor
-					this.getContext().stop(this.getSelf());
+						this.asyncContext.complete();
+					} catch (IllegalStateException ex) {
+						LOG.trace("Already resumed!", ex);
+					}
 				}
-			} else {
-				HttpServletResponse response = (HttpServletResponse) this.asyncContext.getResponse();
-				// write error
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				// TODO: Write proper error message with error code
-				response.getWriter().println("{}");
-				try {
-					 this.asyncContext.complete();
-	                } catch (IllegalStateException ex) {
-	                    // Alresady completed.
-	                    LOG.trace("Already resumed!", ex);
-	              }
-				// stop actor
-				this.getContext().stop(this.getSelf());
+			} catch (Exception e) {
+				LOG.error("Servlet Actor onProcess method exception: {}, stack: {}", e.getMessage(),
+						ExceptionUtils.getStackTrace(e));
 			}
 		}
 
@@ -342,26 +364,21 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			// length == null) {
 			response.setStatus(HttpServletResponse.SC_OK);
 			/*
-			 * } else {
-			 * response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT); if
-			 * (content.getBigLength() != null &&
-			 * content.getBigLength().signum() == 1) { BigInteger firstBytePos =
-			 * (offset == null ? BigInteger.ZERO : offset); BigInteger
-			 * lastBytePos =
-			 * firstBytePos.add(content.getBigLength().subtract(BigInteger.ONE))
-			 * ;
+			 * } else { response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT); if
+			 * (content.getBigLength() != null && content.getBigLength().signum() == 1) {
+			 * BigInteger firstBytePos = (offset == null ? BigInteger.ZERO : offset);
+			 * BigInteger lastBytePos =
+			 * firstBytePos.add(content.getBigLength().subtract(BigInteger.ONE)) ;
 			 * 
-			 * response.setHeader("Content-Range", "bytes " +
-			 * firstBytePos.toString() + "-" + lastBytePos.toString() + "/*"); }
-			 * }
+			 * response.setHeader("Content-Range", "bytes " + firstBytePos.toString() + "-"
+			 * + lastBytePos.toString() + "/*"); } }
 			 */
 			// String contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM;
 			response.setContentType(fileResponse.getContent().getMimeType());
 			/*
-			 * long length = content.getLength(); if (length <=
-			 * Integer.MAX_VALUE) { response.setContentLength((int) length); }
-			 * else { response.addHeader("Content-Length",
-			 * Long.toString(length)); }
+			 * long length = content.getLength(); if (length <= Integer.MAX_VALUE) {
+			 * response.setContentLength((int) length); } else {
+			 * response.addHeader("Content-Length", Long.toString(length)); }
 			 */
 
 			String contentFilename = content.getFileName();
@@ -403,9 +420,9 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 							long start = Long.parseLong(rangeStart);
 							in.skip(start);
 						}
-//						else {
-//							response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
-//						}
+						// else {
+						// response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+						// }
 					} else {
 						response.setStatus(HttpServletResponse.SC_OK);
 					}
