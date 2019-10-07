@@ -39,6 +39,7 @@ public class MRepository implements IRepository {
 	@Embedded
 	private Map<String, String> login = new HashMap<String, String>();
 	boolean isDisabled;
+	private String tenantId;
 
 	public MRepository() {
 	}
@@ -107,4 +108,11 @@ public class MRepository implements IRepository {
 		this.description = description;
 	}
 
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
 }
