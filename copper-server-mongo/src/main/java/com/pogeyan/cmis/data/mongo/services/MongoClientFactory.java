@@ -83,13 +83,13 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
 	private final Cache<String, Datastore> clientDatastores; //= new HashMap<String, Datastore>();
-	 private static Cache<String, MongoClient> mongoClient;
+//	private static Cache<String, MongoClient> mongoClient;
 	private int maxConnectionsPerHost = 500;
 	private int threadsAllowed = 10;
-	private Morphia morphia = new Morphia();
-	static {
-		mongoClient = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
-	}
+//	private Morphia morphia = new Morphia();
+//	static {
+//		mongoClient = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
+//	}
 
 
 	@SuppressWarnings("rawtypes")
