@@ -82,8 +82,8 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MTYPEMANAGERDAO = "MTypeManagerDAO";
 	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
-	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
-	private static Cache<String, MongoClient> mongoClient;
+	private final Cache<String, Datastore> clientDatastores; //= new HashMap<String, Datastore>();
+	 private static Cache<String, MongoClient> mongoClient;
 	private int maxConnectionsPerHost = 500;
 	private int threadsAllowed = 10;
 	private Morphia morphia = new Morphia();
@@ -91,8 +91,10 @@ public class MongoClientFactory implements IDBClientFactory {
 		mongoClient = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
 	}
 
+
 	@SuppressWarnings("rawtypes")
 	public MongoClientFactory() {
+		this.clientDatastores = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
 		objectServiceClass.put(MBaseObjectDAO.class, MongoClientFactory.MBASEOBJECTDAOIMPL);
 		objectServiceClass.put(MDiscoveryServiceDAO.class, MongoClientFactory.MDISCOVERYSERVICEDAO);
 		objectServiceClass.put(MDocumentObjectDAO.class, MongoClientFactory.MDOCUMENTOBJECTDAO);
@@ -100,11 +102,6 @@ public class MongoClientFactory implements IDBClientFactory {
 		objectServiceClass.put(MDocumentTypeManagerDAO.class, MongoClientFactory.MDOCUMENTTYPEMANAGERDAO);
 		objectServiceClass.put(MTypeManagerDAO.class, MongoClientFactory.MTYPEMANAGERDAO);
 		objectServiceClass.put(MNavigationDocServiceDAO.class, MongoClientFactory.MNAVIGATIONDOCSERVICEDAO);
-		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
-		morphia.getMapper().getConverters().addConverter(new AceConverter());
-		morphia.getMapper().getConverters().addConverter(new TokenConverter());
-		morphia.getMapper().getConverters().addConverter(new ChoiceImplConverter());
-		morphia.getMapper().getConverters().addConverter(new ChoiceObjectConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -176,7 +173,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	public <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {
-		Datastore clientDatastore = this.clientDatastores.get(repositoryId);
+		Datastore clientDatastore = this.clientDatastores.getIfPresent(repositoryId);
 		if (clientDatastore == null) {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
@@ -188,18 +185,14 @@ public class MongoClientFactory implements IDBClientFactory {
 				port = Integer.valueOf(properties.get(1));
 			}
 
-			String[] columnsToIndex = new String[] { "name", "path", "acl" };
-			Map<Object, Object> indexIds = new HashMap<>();
-			Stream<String> indexId = Arrays.stream(columnsToIndex);
-			indexId.forEach(x -> indexIds.put(x, 1));
 			MongoClient mongoClient = properties.size() == 2
 					? properties.get(0).contains("mongodb://")
 							? getMongoClient(repositoryId, properties.get(0), 0, false)
 							: getMongoClient(repositoryId, properties.get(0), port, false)
 					: getMongoClient(repositoryId, properties.get(0), port, Boolean.valueOf(properties.get(2)));
-			MongoCollection<Document> objectDataCollection = mongoClient
-					.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
-			objectDataCollection.createIndex(new BasicDBObject(indexIds));
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "path" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "internalPath" });
+			Morphia morphia = this.getMorphia();
 			clientDatastore = morphia.createDatastore(mongoClient, properties.get(properties.size() - 1));
 			this.clientDatastores.put(repositoryId, clientDatastore);
 			if (LOG.isDebugEnabled()) {
@@ -210,24 +203,40 @@ public class MongoClientFactory implements IDBClientFactory {
 		return fun.apply(clientDatastore);
 	}
 
+	private MongoClient createInternalIndex(String repositoryId, MongoClient mongoClient, List<String> properties,
+			String[] columnsToIndex) {
+		Map<Object, Object> indexIds = new HashMap<>();
+		Stream<String> indexId = Arrays.stream(columnsToIndex);
+		indexId.forEach(x -> indexIds.put(x, 1));
+		MongoCollection<Document> objectDataCollection = mongoClient
+				.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
+		objectDataCollection.createIndex(new BasicDBObject(indexIds));
+		return mongoClient;
+	}
+	
+	private Morphia getMorphia() {
+		Morphia morphia = new Morphia();
+		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
+		morphia.getMapper().getConverters().addConverter(new AceConverter());
+		morphia.getMapper().getConverters().addConverter(new TokenConverter());
+		morphia.getMapper().getConverters().addConverter(new ChoiceImplConverter());
+		morphia.getMapper().getConverters().addConverter(new ChoiceObjectConverter());
+		return morphia;
+	}
+
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
-		MongoClient mClient = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
-		if (mClient == null) {
-			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
-			builder.connectionsPerHost(maxConnectionsPerHost);
-			builder.threadsAllowedToBlockForConnectionMultiplier(threadsAllowed);
-			MongoClientOptions options = builder.build();
-			if (replica) {
-				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)), options);
-			} else if (host.contains("mongodb://")) {
-				MongoClientURI uri = new MongoClientURI(host);
-				mClient = new MongoClient(uri);
-			} else {
-				mClient = new MongoClient(new ServerAddress(host, port), options);
-			}
-			MongoClientFactory.mongoClient.put(repositoryId, mClient);
+		MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
+		builder.connectionsPerHost(maxConnectionsPerHost);
+		builder.threadsAllowedToBlockForConnectionMultiplier(threadsAllowed);
+		MongoClientOptions options = builder.build();
+		if (replica) {
+			return new MongoClient(Arrays.asList(new ServerAddress(host, port)), options);
+		} else if (host.contains("mongodb://")) {
+			MongoClientURI uri = new MongoClientURI(host);
+			return new MongoClient(uri);
+		} else {
+			return new MongoClient(new ServerAddress(host, port), options);
 		}
-		return mClient;
 	}
 
 	/**
