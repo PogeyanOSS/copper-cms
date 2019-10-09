@@ -5496,7 +5496,7 @@ public class CmisObjectService {
 					IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(key,
 							doc.getRepositoryId());
 					if (objectFlowService != null) {
-						LOG.error("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}", doc != null
+						LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}", doc != null
 								? doc.getId() : null, invokeMethod);
 						if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 							objectFlowService.afterCreation(doc);
