@@ -94,7 +94,7 @@ public class MongoClientFactory implements IDBClientFactory {
 
 	@SuppressWarnings("rawtypes")
 	public MongoClientFactory() {
-		this.clientDatastores = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+		this.clientDatastores = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
 		objectServiceClass.put(MBaseObjectDAO.class, MongoClientFactory.MBASEOBJECTDAOIMPL);
 		objectServiceClass.put(MDiscoveryServiceDAO.class, MongoClientFactory.MDISCOVERYSERVICEDAO);
 		objectServiceClass.put(MDocumentObjectDAO.class, MongoClientFactory.MDOCUMENTOBJECTDAO);
