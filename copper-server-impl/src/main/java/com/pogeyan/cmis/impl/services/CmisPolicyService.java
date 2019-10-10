@@ -18,6 +18,7 @@ package com.pogeyan.cmis.impl.services;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
@@ -55,7 +56,10 @@ public class CmisPolicyService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::getAppliedPolicies", null);
 			String[] principalIds = userObject != null ? Helpers.getPrincipalIds(userObject) : null;
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
 			List<ObjectData> res = new ArrayList<ObjectData>();
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAppliedPolicies",
@@ -71,7 +75,7 @@ public class CmisPolicyService {
 			List<String> polIds = data.getPolicies();
 			if (null != polIds && polIds.size() > 0) {
 				for (String polId : polIds) {
-					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, polId, null,
+					IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, polId, null,
 							data.getTypeId());
 					ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, policy, null, false,
 							false, true, null, null, IncludeRelationships.NONE, userObject, tracingId, span);
@@ -95,7 +99,10 @@ public class CmisPolicyService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::removePolicy", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "removePolicy",
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
@@ -156,7 +163,10 @@ public class CmisPolicyService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisPolicyService::applyPolicy", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyPolicy",
 						objectId, repositoryId, span != null ? span.getTraceId() : null);
@@ -174,7 +184,7 @@ public class CmisPolicyService {
 					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
 			if (permission) {
 				List<String> polIds = null;
-				IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, policyId, null,
+				IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, policyId, null,
 						data.getTypeId());
 				if (policy == null) {
 					LOG.error("Method name: {}, Unknown policy id: {}, repository: {}, TraceId:{}", "applyPolicy",

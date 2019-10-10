@@ -18,6 +18,7 @@ package com.pogeyan.cmis.impl.services;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
@@ -57,9 +58,12 @@ public class CmisRelationshipService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisRelationshipService::getobjectRelationships", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			IBaseObject so = null;
 			try {
-				so = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+				so = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
 			} catch (Exception e) {
 				LOG.error("Method name: {}, getObjectRelationships Exception: {}, repositoryid: {}, TraceId: {}",
 						"getObjectRelationships", ExceptionUtils.getStackTrace(e), repositoryId,
