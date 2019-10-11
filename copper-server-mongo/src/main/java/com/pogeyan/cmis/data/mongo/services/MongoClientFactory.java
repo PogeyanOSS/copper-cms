@@ -82,17 +82,13 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MTYPEMANAGERDAO = "MTypeManagerDAO";
 	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
-	private final Cache<String, Datastore> clientDatastores; //= new HashMap<String, Datastore>();
-	// private static Cache<String, MongoClient> mongoClient;
+	private final Cache<String, Datastore> clientDatastores;
 	private int maxConnectionsPerHost = 500;
 	private int threadsAllowed = 10;
-//	static {
-//		mongoClient = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.MINUTES).build();
-//	}
 
-	@SuppressWarnings("rawtypes")
+
 	public MongoClientFactory() {
-		this.clientDatastores = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+		this.clientDatastores = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
 		objectServiceClass.put(MBaseObjectDAO.class, MongoClientFactory.MBASEOBJECTDAOIMPL);
 		objectServiceClass.put(MDiscoveryServiceDAO.class, MongoClientFactory.MDISCOVERYSERVICEDAO);
 		objectServiceClass.put(MDocumentObjectDAO.class, MongoClientFactory.MDOCUMENTOBJECTDAO);

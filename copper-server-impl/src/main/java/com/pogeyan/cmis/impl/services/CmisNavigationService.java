@@ -109,7 +109,10 @@ public class CmisNavigationService {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
 			if (data == null) {
 				LOG.error("getChildrenIntern unknown object id : {}, repository: {}, TraceId: {}", folderId,
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -135,9 +138,6 @@ public class CmisNavigationService {
 				String[] orderQuery = orderBy.split(",");
 				orderBy = Arrays.stream(orderQuery).map(t -> getOrderByName(t)).collect(Collectors.joining(","));
 			}
-			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = Stream.of(userObject.getGroups())
-					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			if (data.getName().equalsIgnoreCase("@ROOT@")) {
 				path = "," + data.getId() + ",";
 				children = navigationMorphiaDAO.getChildren(path, principalIds, aclPropagation, maxItems, skipCount, orderBy,
@@ -147,7 +147,7 @@ public class CmisNavigationService {
 			} else {
 				path = data.getInternalPath() + folderId + ",";
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, principalIds, data.getInternalPath(),
-						data.getAcl(), typeId);
+						data.getAcl(), typeId, aclPropagation);
 				boolean objectOnly = true;
 				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
@@ -159,10 +159,10 @@ public class CmisNavigationService {
 														t.getPrincipalId().toLowerCase())) == true)
 										.collect(Collectors.toList());
 								if (listAce.size() >= 1) {
-									children = navigationMorphiaDAO.getChildren(path, principalIds, false, maxItems,
+									children = navigationMorphiaDAO.getChildren(path, principalIds, aclPropagation, maxItems,
 											skipCount, orderBy, filterArray, Helpers.splitFilterQuery(filter),
 											typeManagerDAO, repositoryId, typeId);
-									childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, false,
+									childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, aclPropagation,
 											repositoryId, typeId, Helpers.splitFilterQuery(filter), typeManagerDAO);
 									objectOnly = false;
 									break;
@@ -235,7 +235,10 @@ public class CmisNavigationService {
 				levels = depth.intValue();
 			}
 			List<ObjectInFolderContainer> result = null;
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
 			if (data != null) {
 				if (data.getBaseId().equals(BaseTypeId.CMIS_FOLDER)) {
 					int level = 0;
@@ -305,7 +308,10 @@ public class CmisNavigationService {
 			MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MTypeManagerDAO.class);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
 			String[] filterArray = new String[] {};
 			// split filter
 			Set<String> filterCollection = Helpers.splitFilter(filter);
@@ -314,10 +320,7 @@ public class CmisNavigationService {
 			}
 			String path = "," + folderId + ",";
 			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, principalIds, data.getInternalPath(),
-					data.getAcl(), typeId);
-			String systemAdmin = System.getenv("SYSTEM_ADMIN");
-			boolean aclPropagation = Stream.of(userObject.getGroups())
-					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+					data.getAcl(), typeId, aclPropagation);
 			List<? extends IBaseObject> children = new ArrayList<>();
 			boolean objectOnly = true;
 			if (mAcl != null && mAcl.size() > 0) {
@@ -330,7 +333,7 @@ public class CmisNavigationService {
 													t.getPrincipalId().toLowerCase())) == true)
 									.collect(Collectors.toList());
 							if (listAce.size() >= 1) {
-								children = navigationMorphiaDAO.getDescendants(path, principalIds, false, filterArray,
+								children = navigationMorphiaDAO.getDescendants(path, principalIds, aclPropagation, filterArray,
 										Helpers.splitFilterQuery(filter), typeManagerDAO);
 								objectOnly = false;
 								break;
@@ -483,13 +486,16 @@ public class CmisNavigationService {
 					"CmisNavigationService::getDescendantsRelationObjects", null);
 			LOG.debug("getDescendantsRelationObjects for folder data: {}", folderId);
 			List<ObjectInFolderContainer> childrenOfFolderId = new ArrayList<ObjectInFolderContainer>();
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
-					folderId.toString(), true, 0, 0, null, typeId);
+					folderId.toString(), aclPropagation, 0, 0, null, typeId);
 			List<String> targetIds = source.stream()
 					.map(relId -> relId.getProperties().get(PropertyIds.TARGET_ID).toString())
 					.collect(Collectors.toList());
 			Map<String, IBaseObject> targetObjs = DBUtils.BaseDAO
-					.getObjectsByIds(repositoryId, targetIds, true, 0, 0, null, typeId).stream()
+					.getObjectsByIds(repositoryId, targetIds, aclPropagation, 0, 0, null, typeId).stream()
 					.collect(Collectors.toMap(t -> t.getId(), t -> t));
 			List<ObjectInFolderData> folderList = new ArrayList<ObjectInFolderData>();
 			ObjectInFolderListImpl result = new ObjectInFolderListImpl();
@@ -636,14 +642,13 @@ public class CmisNavigationService {
 			MNavigationServiceDAO navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MNavigationServiceDAO.class);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, folderId, null, typeId);
-			String path = "," + folderId + ",";
-
-			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, principalIds, data.getInternalPath(),
-					data.getAcl(), typeId);
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+			String path = "," + folderId + ",";
+			List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, principalIds, data.getInternalPath(),
+					data.getAcl(), typeId, aclPropagation);
 			List<? extends IBaseObject> children = new ArrayList<>();
 			boolean objectOnly = true;
 			if (mAcl != null && mAcl.size() > 0) {
@@ -656,7 +661,7 @@ public class CmisNavigationService {
 													t.getPrincipalId().toLowerCase())) == true)
 									.collect(Collectors.toList());
 							if (listAce.size() >= 1) {
-								children = navigationMorphiaDAO.getFolderTreeIds(path, principalIds, false);
+								children = navigationMorphiaDAO.getFolderTreeIds(path, principalIds, aclPropagation);
 								objectOnly = false;
 								break;
 							}
@@ -791,7 +796,7 @@ public class CmisNavigationService {
 					throw new CmisObjectNotFoundException("Unknown object id: " + folderId);
 				}
 				List<AccessControlListImplExt> mAcl = getParentAcl(repositoryId, principalIds, data.getInternalPath(),
-						data.getAcl(), typeId);
+						data.getAcl(), typeId, aclPropagation);
 				boolean objectOnly = true;
 				if (mAcl != null && mAcl.size() > 0) {
 					for (AccessControlListImplExt acl : mAcl) {
@@ -847,14 +852,14 @@ public class CmisNavigationService {
 		}
 
 		public static List<AccessControlListImplExt> getParentAcl(String repositoryId, String[] principalIds,
-				String dataPath, AccessControlListImplExt dataAcl, String typeId) {
+				String dataPath, AccessControlListImplExt dataAcl, String typeId, boolean aclPropagation) {
 
 			LOG.debug("getParentAcl for data path : {}", dataPath);
 			List<AccessControlListImplExt> acl = null;
 			String[] queryResult = dataPath.split(",");
 			if (queryResult.length > 0) {
 				List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
-						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, t, null, typeId))
+						.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, t, null, typeId))
 						.collect(Collectors.<IBaseObject>toList());
 				if (folderChildren.size() == 1) {
 					acl = new ArrayList<>();

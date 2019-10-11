@@ -66,7 +66,10 @@ public class CmisAclServices {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisAclService::getAcl", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagations = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagations, objectId, null, typeId);
 			if (data == null) {
 				LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "getAcl", objectId,
 						repositoryId, span);
@@ -101,7 +104,10 @@ public class CmisAclServices {
 				Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
 				Acl removeAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclRemove);
 				String[] principalIds = Helpers.getPrincipalIds(user);
-				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null,
+				String systemAdmin = System.getenv("SYSTEM_ADMIN");
+				boolean aclPropagations = Stream.of(user.getGroups())
+						.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+				IBaseObject data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagations, objectId, null,
 						typeId);
 				if (data == null) {
 					LOG.error("Method name: {}, unknown object id: {}, repository: {}, TraceId: {}", "applyAcl",

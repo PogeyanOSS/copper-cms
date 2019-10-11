@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
@@ -180,7 +181,10 @@ public class CmisVersioningServices {
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			Set<String> filterCollection = CmisObjectService.Impl.splitFilter(filter);
 			IDocumentObject docObj = DBUtils.DocumentDAO.getLatestVersion(repositoryId, versionReferenceId, major);
-			latestVersionDocument = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, docObj.getId(),
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+			latestVersionDocument = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, docObj.getId(),
 					null, data.getTypeId());
 			ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, latestVersionDocument,
 					filterCollection, true, false, true, null, null, null, userObject, tracingId, span);
