@@ -31,4 +31,6 @@ public interface IRepository {
 
 	Map<String, String> getLogin();
 
+	String getTenantId();
+
 }

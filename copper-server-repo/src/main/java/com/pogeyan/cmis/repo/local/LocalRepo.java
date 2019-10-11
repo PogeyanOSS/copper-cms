@@ -26,12 +26,12 @@ public class LocalRepo implements IRepository {
 	private String description;
 	private Map<String, String> fileDetails;
 	private Map<String, String> loginDetails;
-
+	private String tenantId;
 	public LocalRepo() {
 	}
 
 	public LocalRepo(String repositoryId, String repositoryName, Map<String, String> dBName, String description,
-			Map<String, String> fileDetails, Map<String, String> loginDetails) {
+			Map<String, String> fileDetails, Map<String, String> loginDetails, String tenantId) {
 		super();
 		this.repositoryId = repositoryId;
 		this.repositoryName = repositoryName;
@@ -39,6 +39,7 @@ public class LocalRepo implements IRepository {
 		this.description = description;
 		this.fileDetails = fileDetails;
 		this.loginDetails = loginDetails;
+		this.tenantId = tenantId;
 	}
 
 	@Override
@@ -94,4 +95,13 @@ public class LocalRepo implements IRepository {
 	public void setFileDetails(Map<String, String> fileDetails) {
 		this.fileDetails = fileDetails;
 	}
+
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
 }

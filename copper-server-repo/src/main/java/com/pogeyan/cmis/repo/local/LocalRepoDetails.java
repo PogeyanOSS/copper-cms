@@ -56,6 +56,7 @@ public class LocalRepoDetails {
 				String repositoryName = (String) jsonObject.get("repositoryName");
 				Map<String, String> DBName = (Map<String, String>) jsonObject.get("db");
 				String description = (String) jsonObject.get("description");
+				String tenantId = (String) jsonObject.get("tenantId");
 				JSONObject fileObjects = (JSONObject) jsonObject.get("file");
 				JSONArray objectFlowDetails = (JSONArray) fileObjects.get("object_flow");
 				Map<String, String> fileDetails = (Map<String, String>) jsonObject.get("file");
@@ -71,7 +72,7 @@ public class LocalRepoDetails {
 					loginRepo.put("users", loginDetails.toString());
 				}
 				LocalRepo repo = new LocalRepo(repositoryId, repositoryName, DBName, description, fileDetails,
-						loginRepo);
+						loginRepo, tenantId);
 				repoStore.put(repositoryId, repo);
 			}
 		} catch (Exception e) {
