@@ -81,4 +81,12 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			repo.remove(repositoryId);
 		}
 	}
+
+	@Override
+	public void removeByKey(String repositoryId, String key) {
+		if (repo.containsKey(repositoryId)) {
+			repo.get(repositoryId).invalidate(key);
+		}
+
+	}
 }
