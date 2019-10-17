@@ -16,4 +16,5 @@ public interface ICacheProvider {
 
 	public void init(long time);
 
+	public void removeByKey(String repositoryId, String key);
 }
