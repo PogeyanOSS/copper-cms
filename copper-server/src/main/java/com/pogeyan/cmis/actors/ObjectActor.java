@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -186,19 +187,6 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = t.getObjectId();
 		String typeId = t.getParameter("typeId");
-		String[] principalIds = Helpers.getPrincipalIds(t.getUserObject());
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(t.getRepositoryId(), principalIds, true, objectId, null,
-				typeId);
-		if (data == null) {
-			TracingApiServiceFactory.getApiService().updateSpan(span,
-					TracingErrorMessage.message(
-							TracingWriter.log(
-									String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span),
-							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, t.getRepositoryId(), true));
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
-			throw new CmisObjectNotFoundException(TracingWriter
-					.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, t.getUserName()), span));
-		}
 
 		ReturnVersion returnVersion = t.getEnumParameter(QueryGetRequest.PARAM_RETURN_VERSION, ReturnVersion.class);
 		String filter = t.getParameter(QueryGetRequest.PARAM_FILTER);
@@ -749,8 +737,20 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 		String objectId = request.getObjectId();
 		String[] principalIds = Helpers.getPrincipalIds(request.getUserObject());
-		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), principalIds, true, objectId, null,
+		String systemAdmin = System.getenv("SYSTEM_ADMIN");
+		boolean aclPropagation = Stream.of(request.getUserObject().getGroups())
+				.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
+		IBaseObject data = DBUtils.BaseDAO.getByObjectId(request.getRepositoryId(), principalIds, aclPropagation, objectId, null,
 				request.getTypeId());
+		if (data == null) {
+			TracingApiServiceFactory.getApiService().updateSpan(span,
+					TracingErrorMessage.message(TracingWriter.log(
+							String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, request.getUserName()), span),
+							ErrorMessages.OBJECT_NOT_FOUND_EXCEPTION, request.getRepositoryId(), true));
+			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+			throw new CmisObjectNotFoundException(TracingWriter
+					.log(String.format(ErrorMessages.OBJECT_NULL_OR_ACCESS_DENIED, request.getUserName()), span));
+		}
 		String typeId = CmisPropertyConverter.Impl.getTypeIdForObject(request.getRepositoryId(), null, objectId,
 				request.getTypeId());
 		String changeToken = request.getParameter(QueryGetRequest.CONTROL_CHANGE_TOKEN);
@@ -839,20 +839,19 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		 * if (content == null || content.getStream() == null) { throw new
 		 * CmisRuntimeException("Content stream is null!"); }
 		 * 
-		 * String contentType = content.getMimeType(); if (contentType == null)
-		 * { contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
+		 * String contentType = content.getMimeType(); if (contentType == null) {
+		 * contentType = QueryGetRequest.MEDIATYPE_OCTETSTREAM; }
 		 * 
-		 * String contentFilename = content.getFileName(); if (contentFilename
-		 * == null) { contentFilename = "content"; }
+		 * String contentFilename = content.getFileName(); if (contentFilename == null)
+		 * { contentFilename = "content"; }
 		 * 
-		 * // send content InputStream in = content.getStream(); OutputStream
-		 * out = null; try { out = new FileOutputStream(content.getFileName());
-		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); }
-		 * catch (Exception e) { LOG.error("writeContent exception: {}, {}",
-		 * e.getMessage(), ExceptionUtils.getStackTrace(e)); throw new
-		 * IllegalArgumentException("Could not write content: " +
-		 * e.getMessage(), e); } finally { IOUtils.closeQuietly(out);
-		 * IOUtils.closeQuietly(in); } return null;
+		 * // send content InputStream in = content.getStream(); OutputStream out =
+		 * null; try { out = new FileOutputStream(content.getFileName());
+		 * IOUtils.copy(in, out, QueryGetRequest.BUFFER_SIZE); out.flush(); } catch
+		 * (Exception e) { LOG.error("writeContent exception: {}, {}", e.getMessage(),
+		 * ExceptionUtils.getStackTrace(e)); throw new
+		 * IllegalArgumentException("Could not write content: " + e.getMessage(), e); }
+		 * finally { IOUtils.closeQuietly(out); IOUtils.closeQuietly(in); } return null;
 		 */
 
 	}

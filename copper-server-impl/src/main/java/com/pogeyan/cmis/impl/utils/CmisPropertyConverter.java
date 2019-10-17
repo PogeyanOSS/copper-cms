@@ -24,6 +24,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Properties;
@@ -164,7 +165,9 @@ public class CmisPropertyConverter {
 					}
 				}
 			}
-
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			// create properties
 			PropertiesImpl result = new PropertiesImpl();
 			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
@@ -172,7 +175,7 @@ public class CmisPropertyConverter {
 				PropertyDefinition<?> propDef = getPropertyDefinition(objectType, property.getKey());
 				if (propDef == null && objectIds != null) {
 					for (String objectId : objectIds) {
-						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId,
+						IBaseObject object = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId,
 								null, typeId);
 						TypeDefinition typeDef = CmisTypeServices.Impl.getTypeDefinition(repositoryId,
 								object.getTypeId(), null, userObject, null, null);
@@ -347,7 +350,7 @@ public class CmisPropertyConverter {
 			}
 			IBaseObject data = null;
 			try {
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, true, objectId, null, typeId);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, false, objectId, null, typeId);
 			} catch (Exception e) {
 				throw new MongoException(e.toString());
 			}
