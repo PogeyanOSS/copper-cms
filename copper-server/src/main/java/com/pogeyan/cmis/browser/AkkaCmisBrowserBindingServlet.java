@@ -128,6 +128,9 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			} else {
 				try {
 					IUserObject loginSession = this.verifyLogin(request, pathFragments);
+					if(loginSession == null) {
+						throw new CmisUnauthorizedException();
+					}
 					BaseMessage bm = gettingBaseMessage(method, pathFragments, loginSession, request, response);
 					if (bm != null) {
 						// create actor on-the-fly
