@@ -98,11 +98,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
+	static ActorServiceFactory sf;
+	static {
+		sf = new ActorServiceFactory();
+	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		ActorSystem system = ActorSystem.create("GatewaySystem");
-		sce.getServletContext().setAttribute("ActorSystem", system);
+		sce.getServletContext().setAttribute("ActorSystem", sf.system);
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
 		if (configFilename == null) {
@@ -111,18 +114,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		// DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
 
-		LOG.info("Registering actors to main actor system");
-		system.actorOf(Props.create(GatewayActor.class), "gateway");
-		system.actorOf(Props.create(LoginActor.class), "login");
-		system.actorOf(Props.create(RepositoryActor.class), "repository");
-		system.actorOf(Props.create(ObjectActor.class), "object");
-		system.actorOf(Props.create(NavigationActor.class), "navigation");
-		system.actorOf(Props.create(RelationshipActor.class), "relationships");
-		system.actorOf(Props.create(PolicyActor.class), "policy");
-		system.actorOf(Props.create(VersioningActor.class), "versioning");
-		system.actorOf(Props.create(AclActor.class), "acl");
-		system.actorOf(Props.create(DiscoveryActor.class), "discovery");
-		system.actorOf(Props.create(TypeCacheActor.class), "cache");
+		LOG.info("Registering gateway actor to main actor system");
+		sf.system.actorOf(Props.create(GatewayActor.class), "gateway");
 
 		LOG.info("Initializing service factory instances");
 		try {
@@ -134,7 +127,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.error("Service factory couldn't be created: {}", e);
 		}
 		if (externalActorClassMap != null && !externalActorClassMap.isEmpty()) {
-			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
+			externalActorClassMap.forEach((key, value) -> sf.system.actorOf(Props.create(key), value));
 		}
 
 		if (Helpers.isPerfMode()) {
@@ -248,9 +241,11 @@ public class AkkaServletContextListener implements ServletContextListener {
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, intevalTime);
 		if (mainCLassInitialize) {
 			boolean encryptServicePermission = encryptionServiceClass != null
-					? initializeEncryptionFactory(encryptionServiceClass) : true;
+					? initializeEncryptionFactory(encryptionServiceClass)
+					: true;
 			boolean checkObjectServicePermission = ObjectFlowServiceClass != null
-					? ObjectFlowFactoryClassinitializeExtensions(sce, ObjectFlowServiceClass) : true;
+					? ObjectFlowFactoryClassinitializeExtensions(sce, ObjectFlowServiceClass)
+					: true;
 			if (checkObjectServicePermission && encryptServicePermission) {
 				return true;
 			}
@@ -268,7 +263,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
 						checkExternalActor = externalActorClassName != null
-								? externalActorFactoryClassinitializeExtensions(externalActorClassName) : true;
+								? externalActorFactoryClassinitializeExtensions(externalActorClassName)
+								: true;
 					}
 				}
 			}
@@ -328,20 +324,9 @@ public class AkkaServletContextListener implements ServletContextListener {
 	}
 
 	private static boolean externalActorFactoryClassinitializeExtensions(String externalActorClassName) {
-		try {
-			String[] externalActorFactoryClassNames = externalActorClassName.split(",");
-			for (String externalActorFactoryClassName : externalActorFactoryClassNames) {
-				LOG.info("Initialized External Actor Services Factory Class: {}", externalActorFactoryClassName);
-				Class<?> externalActorClassFactory = Class.forName(externalActorFactoryClassName);
-				IActorService externalActorFactory = (IActorService) externalActorClassFactory.newInstance();
-				externalActorClassMap.put(externalActorFactory.getActorClass(), externalActorFactory.getServiceURL());
-			}
-		} catch (Exception e) {
-			LOG.error("Could not create a externalActorFactoryClass services factory instance: {}", e);
-			return false;
-		}
+		String[] externalActorFactoryClassNames = externalActorClassName.split(",");
+		sf.setExternalActors(externalActorFactoryClassNames);
 		return true;
-
 	}
 
 	private static boolean ObjectFlowFactoryClassinitializeExtensions(ServletContextEvent sce,
