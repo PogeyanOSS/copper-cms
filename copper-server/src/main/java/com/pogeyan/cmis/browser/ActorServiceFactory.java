@@ -35,6 +35,7 @@ public class ActorServiceFactory {
 	/** The constant logger */
 	private static final Logger LOG = LoggerFactory.getLogger(ActorServiceFactory.class);
 	static ActorSystem system;
+	private static ActorServiceFactory sf = null;
 	private static Map<Class<?>, String> actorClassMap = new HashMap<Class<?>, String>();
 	private static Map<ActorRef, String> serviceActorActionRefs = new HashMap<ActorRef, String>();
 	private static Map<Class<?>, String[]> actorSelectorsMap = new HashMap<Class<?>, String[]>();
@@ -59,9 +60,12 @@ public class ActorServiceFactory {
 	public static ActorSystem getSystem() {
 		return system;
 	}
-	
+
 	public static ActorServiceFactory getInstance() {
-		return new ActorServiceFactory();
+		if (sf == null) {
+			sf = new ActorServiceFactory();
+		}
+		return sf;
 	}
 
 	public static void setSystem(ActorSystem system) {
