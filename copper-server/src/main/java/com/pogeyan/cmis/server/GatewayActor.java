@@ -144,8 +144,6 @@ public class GatewayActor extends UntypedActor {
 			String[] s = terminated.getActor().path().name().split(Pattern.quote("."));
 			String terminatedActor = s[s.length - 1];
 			LOG.info("Actor terminated: {}", terminatedActor);
-//			ActorRef tActor = actorRefs.remove(terminatedActor);
-//			getContext().unwatch(tActor);
 		} else {
 			LOG.error("Unknown message received: {}", message != null ? message.toString() : "");
 			unhandled(message);
