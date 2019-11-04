@@ -21,7 +21,7 @@ public class IDiscoveryActor implements IActorService {
 	}
 
 	@Override
-	public boolean isServiceActor() {
+	public boolean isSingletonService() {
 		return false;
 	}
 

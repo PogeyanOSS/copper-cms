@@ -21,7 +21,7 @@ public class ITypeCacheActor implements IActorService {
 	}
 
 	@Override
-	public boolean isServiceActor() {
+	public boolean isSingletonService() {
 		return true;
 	}
 

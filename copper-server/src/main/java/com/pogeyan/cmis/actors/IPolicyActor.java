@@ -21,7 +21,7 @@ public class IPolicyActor implements IActorService {
 	}
 
 	@Override
-	public boolean isServiceActor() {
+	public boolean isSingletonService() {
 		return false;
 	}
 

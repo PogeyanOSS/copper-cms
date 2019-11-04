@@ -69,8 +69,8 @@ public class ActorServiceFactory {
 			try {
 				Class<?> ActorClassFactory = Class.forName(actor);
 				IActorService ActorFactory = (IActorService) ActorClassFactory.newInstance();
-				if (ActorFactory.isServiceActor()) {
-					LOG.info("initializing ServiceActor: {}", ActorFactory.getServiceURL());
+				if (ActorFactory.isSingletonService()) {
+					LOG.info("initializing SingletonServiceActor: {}", ActorFactory.getServiceURL());
 					ActorRef serviceActor = system.actorOf(Props.create(ActorFactory.getActorClass()),
 							ActorFactory.getServiceURL());
 					serviceActorSelectorRefs.put(serviceActor, ActorFactory.getMethodSelectors());

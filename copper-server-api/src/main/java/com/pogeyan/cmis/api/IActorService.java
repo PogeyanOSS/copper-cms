@@ -22,5 +22,5 @@ public interface IActorService {
 	
 	public String[] getMethodSelectors();
 	
-	public boolean isServiceActor();
+	public boolean isSingletonService();
 }
