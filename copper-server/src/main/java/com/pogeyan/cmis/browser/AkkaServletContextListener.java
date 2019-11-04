@@ -90,17 +90,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.repo.local.LocalRepoAuthFactory";
 	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.impl.storage.FileSystemStorageFactory";
 	private static final String DEFAULT_CACHE_PROVIDER_CLASS = "com.pogeyan.cmis.impl.cacheProvider.GoogleGuiceCacheProviderImpl";
-	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 	private static final String DEFAULT_TRACING_API_CLASS = "com.pogeyan.cmis.tracing.TracingDefaultImpl";
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
 	private static final String PROPERTY_DB_CLIENT_FACTORY = "cbmClientFactory";
 	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
-	static ActorServiceFactory sf;
-	static {
-		sf = new ActorServiceFactory();
-	}
+	static ActorServiceFactory sf = ActorServiceFactory.getInstance();
+
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {

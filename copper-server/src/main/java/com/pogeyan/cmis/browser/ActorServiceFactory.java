@@ -59,6 +59,10 @@ public class ActorServiceFactory {
 	public static ActorSystem getSystem() {
 		return system;
 	}
+	
+	public static ActorServiceFactory getInstance() {
+		return new ActorServiceFactory();
+	}
 
 	public static void setSystem(ActorSystem system) {
 		ActorServiceFactory.system = system;
