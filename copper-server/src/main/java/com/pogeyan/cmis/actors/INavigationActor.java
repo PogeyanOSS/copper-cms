@@ -21,4 +21,9 @@ public class INavigationActor implements IActorService {
 		return selectors;
 	}
 
+	@Override
+	public boolean isServiceActor() {
+		return false;
+	}
+
 }

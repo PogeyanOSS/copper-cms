@@ -21,4 +21,6 @@ public interface IActorService {
 	public Class<?> getActorClass() throws ClassNotFoundException;
 	
 	public String[] getMethodSelectors();
+	
+	public boolean isServiceActor();
 }

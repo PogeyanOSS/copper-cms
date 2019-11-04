@@ -20,4 +20,9 @@ public class IAclActor implements IActorService {
 		return selectors;
 	}
 
+	@Override
+	public boolean isServiceActor() {
+		return false;
+	}
+
 }

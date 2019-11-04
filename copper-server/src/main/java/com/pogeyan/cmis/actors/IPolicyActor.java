@@ -20,4 +20,9 @@ public class IPolicyActor implements IActorService {
 		return selectors;
 	}
 
+	@Override
+	public boolean isServiceActor() {
+		return false;
+	}
+
 }

@@ -20,4 +20,9 @@ public class ITypeCacheActor implements IActorService {
 		return selectors;
 	}
 
+	@Override
+	public boolean isServiceActor() {
+		return true;
+	}
+
 }

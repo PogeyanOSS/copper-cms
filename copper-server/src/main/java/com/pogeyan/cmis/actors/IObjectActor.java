@@ -23,4 +23,9 @@ public class IObjectActor implements IActorService {
 		return selectors;
 	}
 
+	@Override
+	public boolean isServiceActor() {
+		return false;
+	}
+
 }

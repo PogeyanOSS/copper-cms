@@ -36,7 +36,9 @@ public class ActorServiceFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(ActorServiceFactory.class);
 	static ActorSystem system;
 	private static Map<Class<?>, String> actorClassMap = new HashMap<Class<?>, String>();
+	private static Map<ActorRef, String> serviceActorActionRefs = new HashMap<ActorRef, String>();
 	private static Map<Class<?>, String[]> actorSelectorsMap = new HashMap<Class<?>, String[]>();
+	private static Map<ActorRef, String[]> serviceActorSelectorRefs = new HashMap<ActorRef, String[]>();
 	private static String[] IActorsServices = new String[] { "com.pogeyan.cmis.actors.IAclActor",
 			"com.pogeyan.cmis.actors.IDiscoveryActor", "com.pogeyan.cmis.actors.INavigationActor",
 			"com.pogeyan.cmis.actors.IObjectActor", "com.pogeyan.cmis.actors.IPolicyActor",
@@ -49,6 +51,7 @@ public class ActorServiceFactory {
 	}
 
 	public ActorServiceFactory() {
+		LOG.info("Storing Actor MetaData");
 		ActorServiceFactory.setSystem(ActorSystem.create("GatewaySystem"));
 		this.storeActorMetaData();
 	}
@@ -66,8 +69,17 @@ public class ActorServiceFactory {
 			try {
 				Class<?> ActorClassFactory = Class.forName(actor);
 				IActorService ActorFactory = (IActorService) ActorClassFactory.newInstance();
-				actorClassMap.put(ActorFactory.getActorClass(), ActorFactory.getServiceURL());
-				actorSelectorsMap.put(ActorFactory.getActorClass(), ActorFactory.getMethodSelectors());
+				if (ActorFactory.isServiceActor()) {
+					LOG.info("initializing ServiceActor: {}", ActorFactory.getServiceURL());
+					ActorRef serviceActor = system.actorOf(Props.create(ActorFactory.getActorClass()),
+							ActorFactory.getServiceURL());
+					serviceActorSelectorRefs.put(serviceActor, ActorFactory.getMethodSelectors());
+					serviceActorActionRefs.put(serviceActor, ActorFactory.getServiceURL());
+				} else {
+					actorClassMap.put(ActorFactory.getActorClass(), ActorFactory.getServiceURL());
+					actorSelectorsMap.put(ActorFactory.getActorClass(), ActorFactory.getMethodSelectors());
+
+				}
 			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 				LOG.error("Could not create a IActorsServices factory instance: {}", e);
 			}
@@ -84,6 +96,20 @@ public class ActorServiceFactory {
 			return system.actorOf(Props.create(classMap.get(typeName)), typeName + "_" + UUID.randomUUID());
 		} else if (selectorsMap.size() > 0) {
 			return system.actorOf(Props.create(selectorsMap.get(actionName)), actionName + "_" + UUID.randomUUID());
+		} else if (serviceActorSelectorRefs.size() > 0) {
+			Map<Object, Object> serviceActorSelectorMap = serviceActorSelectorRefs.entrySet().stream()
+					.filter(a -> Arrays.asList(a.getValue()).contains(actionName))
+					.collect(Collectors.toMap(a -> actionName, a -> a.getKey()));
+			Map<Object, Object> serviceActorActionMap = serviceActorActionRefs.entrySet().stream()
+					.filter(a -> a.getValue().equals(typeName))
+					.collect(Collectors.toMap(a -> typeName, a -> a.getKey()));
+			if (serviceActorSelectorMap.size() > 0) {
+				return (ActorRef) serviceActorSelectorMap.get(actionName);
+			} else if (serviceActorActionMap.size() > 0) {
+				return (ActorRef) serviceActorActionMap.get(typeName);
+			} else {
+				return null;
+			}
 		} else {
 			return null;
 		}

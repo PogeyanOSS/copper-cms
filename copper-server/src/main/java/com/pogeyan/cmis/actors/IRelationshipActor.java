@@ -20,4 +20,9 @@ public class IRelationshipActor implements IActorService {
 		return selectors;
 	}
 
+	@Override
+	public boolean isServiceActor() {
+		return false;
+	}
+
 }

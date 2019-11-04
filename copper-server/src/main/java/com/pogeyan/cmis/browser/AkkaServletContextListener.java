@@ -125,9 +125,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 		} catch (Exception e) {
 			LOG.error("Service factory couldn't be created: {}", e);
 		}
-		if (externalActorClassMap != null && !externalActorClassMap.isEmpty()) {
-			externalActorClassMap.forEach((key, value) -> sf.system.actorOf(Props.create(key), value));
-		}
 
 		if (Helpers.isPerfMode()) {
 			ConsoleReporter reporter = ConsoleReporter.forRegistry(MetricsInputs.get().getMetrics())
