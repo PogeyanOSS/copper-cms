@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ObjectArrays;
 import com.pogeyan.cmis.api.IActorService;
-import com.pogeyan.cmis.server.GatewayActor;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -43,7 +41,8 @@ public class ActorServiceFactory {
 			"com.pogeyan.cmis.actors.IDiscoveryActor", "com.pogeyan.cmis.actors.INavigationActor",
 			"com.pogeyan.cmis.actors.IObjectActor", "com.pogeyan.cmis.actors.IPolicyActor",
 			"com.pogeyan.cmis.actors.IRelationshipActor", "com.pogeyan.cmis.actors.IRepositoryActor",
-			"com.pogeyan.cmis.actors.ITypeCacheActor", "com.pogeyan.cmis.actors.IVersioningActor" };
+			"com.pogeyan.cmis.actors.ITypeCacheActor", "com.pogeyan.cmis.actors.IVersioningActor",
+			"com.pogeyan.cmis.auth.ILoginActor" };
 
 	public void setExternalActors(String[] externalActors) {
 		IActorsServices = ObjectArrays.concat(IActorsServices, externalActors, String.class);
@@ -82,11 +81,9 @@ public class ActorServiceFactory {
 				.filter(t -> Arrays.asList(t.getValue()).contains(actionName))
 				.collect(Collectors.toMap(a -> actionName, a -> a.getKey()));
 		if (classMap.size() > 0) {
-			return system.actorOf(Props.create(classMap.get(typeName)),
-					typeName + "_" + UUID.randomUUID());
+			return system.actorOf(Props.create(classMap.get(typeName)), typeName + "_" + UUID.randomUUID());
 		} else if (selectorsMap.size() > 0) {
-			return system.actorOf(Props.create(selectorsMap.get(actionName)),
-					actionName + "_" + UUID.randomUUID());
+			return system.actorOf(Props.create(selectorsMap.get(actionName)), actionName + "_" + UUID.randomUUID());
 		} else {
 			return null;
 		}

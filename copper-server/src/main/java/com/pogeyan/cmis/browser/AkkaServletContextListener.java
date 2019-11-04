@@ -57,7 +57,6 @@ import com.pogeyan.cmis.api.repo.IRepositoryStore;
 import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
-import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.EncryptionFactory;
