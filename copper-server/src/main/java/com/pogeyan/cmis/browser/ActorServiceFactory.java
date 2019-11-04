@@ -34,7 +34,7 @@ public class ActorServiceFactory {
 
 	/** The constant logger */
 	private static final Logger LOG = LoggerFactory.getLogger(ActorServiceFactory.class);
-	static ActorSystem system;
+	public static ActorSystem system;
 	private static ActorServiceFactory sf = null;
 	private static Map<Class<?>, String> actorClassMap = new HashMap<Class<?>, String>();
 	private static Map<ActorRef, String> serviceActorActionRefs = new HashMap<ActorRef, String>();
@@ -55,10 +55,6 @@ public class ActorServiceFactory {
 		LOG.info("Storing Actor MetaData");
 		ActorServiceFactory.setSystem(ActorSystem.create("GatewaySystem"));
 		this.storeActorMetaData();
-	}
-
-	public static ActorSystem getSystem() {
-		return system;
 	}
 
 	public static ActorServiceFactory getInstance() {

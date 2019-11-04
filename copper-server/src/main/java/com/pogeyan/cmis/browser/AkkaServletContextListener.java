@@ -35,16 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.pogeyan.cmis.actors.AclActor;
-import com.pogeyan.cmis.actors.DiscoveryActor;
-import com.pogeyan.cmis.actors.NavigationActor;
-import com.pogeyan.cmis.actors.ObjectActor;
-import com.pogeyan.cmis.actors.PolicyActor;
-import com.pogeyan.cmis.actors.RelationshipActor;
-import com.pogeyan.cmis.actors.RepositoryActor;
-import com.pogeyan.cmis.actors.TypeCacheActor;
-import com.pogeyan.cmis.actors.VersioningActor;
-import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 import com.pogeyan.cmis.api.data.IDBClientFactory;
@@ -96,12 +86,12 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String DEFAULT_DB_CLIENT_FACTORY = "com.pogeyan.cmis.data.mongo.services.MongoClientFactory";
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
-	static ActorServiceFactory sf = ActorServiceFactory.getInstance();
 
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		sce.getServletContext().setAttribute("ActorSystem", sf.system);
+		ActorServiceFactory.getInstance();
+		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.system);
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
 		if (configFilename == null) {
@@ -111,7 +101,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 		// DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
 
 		LOG.info("Registering gateway actor to main actor system");
-		sf.system.actorOf(Props.create(GatewayActor.class), "gateway");
+		ActorServiceFactory.getInstance();
+		ActorServiceFactory.system.actorOf(Props.create(GatewayActor.class), "gateway");
 
 		LOG.info("Initializing service factory instances");
 		try {
@@ -318,7 +309,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	private static boolean externalActorFactoryClassinitializeExtensions(String externalActorClassName) {
 		String[] externalActorFactoryClassNames = externalActorClassName.split(",");
-		sf.setExternalActors(externalActorFactoryClassNames);
+		ActorServiceFactory.getInstance().setExternalActors(externalActorFactoryClassNames);
 		return true;
 	}
 

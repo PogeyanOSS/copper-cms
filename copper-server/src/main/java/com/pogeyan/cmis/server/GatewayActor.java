@@ -15,11 +15,8 @@
  */
 package com.pogeyan.cmis.server;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -32,7 +29,6 @@ import com.codahale.metrics.Timer;
 import com.pogeyan.cmis.api.BaseMessage;
 import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.MessageType;
-import com.pogeyan.cmis.api.messages.MemberUpRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.browser.ActorServiceFactory;
@@ -123,7 +119,7 @@ public class GatewayActor extends UntypedActor {
 						LOG.debug("Reply back to servlet actor for message: {}", bm);
 					}
 					ActorRef responseActorRef = this.messageRefs.get(bm.getMessageId());
-					ActorServiceFactory.getSystem().stop(actorRefs.get(bm.getMessageId()));
+					ActorServiceFactory.system.stop(actorRefs.get(bm.getMessageId()));
 					this.messageRefs.remove(bm.getMessageId());
 					responseActorRef.tell(bm, ActorRef.noSender());
 					if (Helpers.isPerfMode()) {
