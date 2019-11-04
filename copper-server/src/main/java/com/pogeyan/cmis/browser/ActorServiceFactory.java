@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ObjectArrays;
 import com.pogeyan.cmis.api.IActorService;
 import akka.actor.ActorRef;
-import akka.actor.ActorRefFactory;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 
@@ -65,10 +64,10 @@ public class ActorServiceFactory {
 	}
 
 	public void setSystem(ActorSystem system) {
-		ActorServiceFactory.getInstance().system = system;
+		this.system = system;
 	}
 
-	public ActorRefFactory getSystem() {
+	public ActorSystem getSystem() {
 		return system;
 	}
 
@@ -101,10 +100,10 @@ public class ActorServiceFactory {
 				.filter(t -> Arrays.asList(t.getValue()).contains(actionName))
 				.collect(Collectors.toMap(a -> actionName, a -> a.getKey()));
 		if (classMap.size() > 0) {
-			return ActorServiceFactory.getInstance().system.actorOf(Props.create(classMap.get(typeName)),
+			return this.system.actorOf(Props.create(classMap.get(typeName)),
 					typeName + "_" + UUID.randomUUID());
 		} else if (selectorsMap.size() > 0) {
-			return ActorServiceFactory.getInstance().system.actorOf(Props.create(selectorsMap.get(actionName)),
+			return this.system.actorOf(Props.create(selectorsMap.get(actionName)),
 					actionName + "_" + UUID.randomUUID());
 		} else if (sf.serviceActorSelectorRefs.size() > 0) {
 			Map<Object, Object> serviceActorSelectorMap = sf.serviceActorSelectorRefs.entrySet().stream()
