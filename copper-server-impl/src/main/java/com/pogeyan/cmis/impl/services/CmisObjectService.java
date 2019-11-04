@@ -227,8 +227,8 @@ public class CmisObjectService {
 			IBaseObject data = null;
 			try {
 				if (baseTypeId == null || baseTypeId != BaseTypeId.CMIS_DOCUMENT) {
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, filterArray,
-							typeId);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId,
+							filterArray, typeId);
 				} else {
 					data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, objectId, null);
 				}
@@ -923,7 +923,8 @@ public class CmisObjectService {
 			if (data == null && objectId != null) {
 				try {
 					String[] principalIds = Helpers.getPrincipalIds(userObject);
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null,
+							typeId);
 				} catch (Exception e) {
 					LOG.error("getAllowableActions Exception: {}, repository: {}, TraceId: {}",
 							ExceptionUtils.getStackTrace(e), repositoryId, span != null ? span.getTraceId() : null);
@@ -1396,7 +1397,8 @@ public class CmisObjectService {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
 						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
-								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(), data.getProperties());
+								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
+								data.getProperties());
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -1442,10 +1444,10 @@ public class CmisObjectService {
 							} else {
 								Long value = convertInstanceOfObject(valueOfType, Long.class);
 								if (value != null) {
-								GregorianCalendar lastModifiedCalender = new GregorianCalendar();
-								lastModifiedCalender.setTimeInMillis(value);
-								addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender,
-										userObject);
+									GregorianCalendar lastModifiedCalender = new GregorianCalendar();
+									lastModifiedCalender.setTimeInMillis(value);
+									addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender,
+											userObject);
 								}
 							}
 
@@ -1669,7 +1671,8 @@ public class CmisObjectService {
 			PropertiesImpl props = compileWriteProperties(repositoryId, typeDef, userObject, properties, null,
 					tracingId, span);
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
+						typeId);
 			} else {
 				parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 			}
@@ -1754,8 +1757,10 @@ public class CmisObjectService {
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			if (baseType == BaseTypeId.CMIS_DOCUMENT) {
-				CmisObjectService.Impl.createFolder(repositoryId, parent.getId(), properties, null, aclImp, null,
-						userObject, tracingId, span);
+				String folderObjectId = CmisObjectService.Impl.createFolder(repositoryId, parent.getId(), properties,
+						null, aclImp, null, userObject, tracingId, span);
+				CmisAclServices.Impl.applyAcl(repositoryId, folderObjectId, null, null,
+						AclPropagation.REPOSITORYDETERMINED, null, null, null, userObject, typeId, tracingId, parentSpan);
 			} else {
 				createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
 						props.getProperties(), objectMorphiaDAO, null, aclImp, null, tracingId, span);
@@ -2008,8 +2013,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * returns an documentObject for particular document based on the
-		 * folderID
+		 * returns an documentObject for particular document based on the folderID
 		 */
 		@SuppressWarnings("unchecked")
 		private static IDocumentObject createDocumentIntern(String repositoryId, Properties properties,
@@ -2119,7 +2123,8 @@ public class CmisObjectService {
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			IBaseObject parent = null;
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
+						typeId);
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
@@ -2419,7 +2424,8 @@ public class CmisObjectService {
 						.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 				IBaseObject parent = null;
 				if (folderId != null) {
-					parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+					parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
+							typeId);
 				} else {
 					objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value()) ? objectTypeId = "@ROOT@"
 							: objectTypeId;
@@ -2620,7 +2626,8 @@ public class CmisObjectService {
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
+						typeId);
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_ITEM.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
@@ -2656,7 +2663,7 @@ public class CmisObjectService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createItemObject", null);
 			Tuple2<String, String> p = resolvePathForObject(parentData, itemName);
-		
+
 			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeIds, repositoryId,
 					typeId, userObject);
 			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -2795,15 +2802,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship without a sourceId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span));
@@ -2814,15 +2817,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {},  TraceId: {}",
 						"cannot create a relationship without a sourceId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_SOURCEID), span));
@@ -2833,15 +2832,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship without a targetId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span));
@@ -2851,15 +2846,11 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship without a targetId.", repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(
+								TracingWriter.log(
+										String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span),
+								ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITHOUT_TARGETID), span));
@@ -2889,15 +2880,10 @@ public class CmisObjectService {
 				LOG.error("Create relationship exception: {}, {}, repositoryId: {}, TraceId: {}",
 						"cannot create a relationship with a non-relationship type: ", typeDef.getId(), repositoryId,
 						span != null ? span.getTraceId() : null);
-				TracingApiServiceFactory.getApiService()
-						.updateSpan(span,
-								TracingErrorMessage
-										.message(
-												TracingWriter.log(
-														String.format(
-																ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE),
-														span),
-												ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
+				TracingApiServiceFactory.getApiService().updateSpan(span,
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE),
+								span), ErrorMessages.INVALID_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisInvalidArgumentException(TracingWriter
 						.log(String.format(ErrorMessages.CANNOT_CREATE_RELATIONSHIP_WITH_NON_RELATIONSHIP_TYPE), span));
@@ -2969,7 +2955,8 @@ public class CmisObjectService {
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			if (folderId != null) {
-				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+				parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
+						typeId);
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_RELATIONSHIP.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
@@ -3024,8 +3011,8 @@ public class CmisObjectService {
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
-			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, result.getId(),
-					null, typeId);
+			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation,
+					result.getId(), null, typeId);
 			if (itemObject != null) {
 				LOG.error("Relationship object already present: {}, repositoryId: {}, TraceId: {}", itemObject.getId(),
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -3274,7 +3261,8 @@ public class CmisObjectService {
 			if (folderId != null) {
 				folderId = folderId.equals("@ROOT@") ? folderId = objectTypeId : folderId;
 				if (folderId.matches("-?[0-9a-fA-F]+")) {
-					parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+					parent = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
+							typeId);
 				} else {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, folderId, false, null, typeId);
 				}
@@ -3510,7 +3498,8 @@ public class CmisObjectService {
 				updatecontentProps.put("modifiedBy", userObject == null ? null : userObject.getUserDN());
 				updatecontentProps.put("token", token);
 				String description = props.getProperties().get(PropertyIds.DESCRIPTION) != null
-						? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString() : null;
+						? props.getProperties().get(PropertyIds.DESCRIPTION).getFirstValue().toString()
+						: null;
 				if (description != null) {
 					updatecontentProps.put("description", description);
 				}
@@ -4015,7 +4004,8 @@ public class CmisObjectService {
 				navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 						MNavigationServiceDAO.class);
 				String[] principalIds = Helpers.getPrincipalIds(userObject);
-				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null, typeId);
+				data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId, null,
+						typeId);
 			} catch (MongoException e) {
 				LOG.error("deleteObject object not found in repositoryId: {}, TraceId: {}", repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -4082,7 +4072,7 @@ public class CmisObjectService {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteObjectChildrens", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
-		
+
 			if (data == null) {
 				LOG.error("deleteObjectChildrens object not found! in repositoryId: {}, TraceId: {}", repositoryId,
 						span != null ? span.getTraceId() : null);
@@ -4219,7 +4209,8 @@ public class CmisObjectService {
 					navigationMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 							.getObjectService(repositoryId, MNavigationServiceDAO.class);
 
-					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null, typeId);
+					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, folderId, null,
+							typeId);
 				} catch (MongoException e) {
 					LOG.error("deleteTree object not found: {}, repositoryId: {}, TraceId: {}", folderId, repositoryId,
 							span != null ? span.getTraceId() : null);
@@ -4397,8 +4388,8 @@ public class CmisObjectService {
 					throw new CmisNotSupportedException(
 							TracingWriter.log(String.format(ErrorMessages.NO_MOVE_OPERATION), span));
 				}
-				IBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, targetFolderId,
-						null, data.getTypeId());
+				IBaseObject soTarget = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation,
+						targetFolderId, null, data.getTypeId());
 				if (null == soTarget) {
 					LOG.error("moveObject unknown target folder: {}, repositoryId: {}, TraceId: {}", targetFolderId,
 							repositoryId, span != null ? span.getTraceId() : null);
@@ -4424,8 +4415,8 @@ public class CmisObjectService {
 				}
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
-				IBaseObject soSource = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, sourceFolderId,
-						null, data.getTypeId());
+				IBaseObject soSource = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation,
+						sourceFolderId, null, data.getTypeId());
 				if (null == soSource) {
 					LOG.error("moveObject unknown source folder: {}, repositoryId: {}, TraceId: {}", sourceFolderId,
 							repositoryId, span != null ? span.getTraceId() : null);
@@ -4543,7 +4534,8 @@ public class CmisObjectService {
 							} else {
 								Map<String, Object> updatePropsDoc = new HashMap<String, Object>();
 								String docName = child.getContentStreamFileName() != null
-										? child.getContentStreamFileName() : child.getName();
+										? child.getContentStreamFileName()
+										: child.getName();
 								String cmisPath = cmisUpdatePath + "/" + docName;
 								updatePropsDoc.put("internalPath", updatePath + data.getId() + ",");
 								updatePropsDoc.put("path", cmisPath);
@@ -5281,9 +5273,9 @@ public class CmisObjectService {
 				} else {
 
 					String[] queryResult = data.getInternalPath().split(",");
-					List<IBaseObject> folderChildren = Stream.of(queryResult)
-							.filter(t -> !t.isEmpty()).map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId,
-									principalIds, aclPropagation, t, null, data.getTypeId()))
+					List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
+							.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, t, null,
+									data.getTypeId()))
 							.collect(Collectors.<IBaseObject>toList());
 					List<AccessControlListImplExt> mAcl = null;
 					if (folderChildren.size() == 1) {
@@ -5418,8 +5410,8 @@ public class CmisObjectService {
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			String[] queryResult = dataPath.split(",");
-			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty())
-					.map(t -> DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, t, null, typeId))
+			List<IBaseObject> folderChildren = Stream.of(queryResult).filter(t -> !t.isEmpty()).map(
+					t -> DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, t, null, typeId))
 					.collect(Collectors.<IBaseObject>toList());
 
 			List<AccessControlListImplExt> mAcl = null;
@@ -5451,8 +5443,8 @@ public class CmisObjectService {
 
 			// Acl Propagation ObjectOnly
 			if (objectOnly) {
-				children = navigationMorphiaDAO.getChildren(path, principalIds, aclPropagation, -1, -1, null, null, null, null,
-						repositoryId, typeId);
+				children = navigationMorphiaDAO.getChildren(path, principalIds, aclPropagation, -1, -1, null, null,
+						null, null, repositoryId, typeId);
 
 			}
 
@@ -5496,8 +5488,8 @@ public class CmisObjectService {
 					IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(key,
 							doc.getRepositoryId());
 					if (objectFlowService != null) {
-						LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}", doc != null
-								? doc.getId() : null, invokeMethod);
+						LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}",
+								doc != null ? doc.getId() : null, invokeMethod);
 						if (ObjectFlowType.CREATED.equals(invokeMethod)) {
 							objectFlowService.afterCreation(doc);
 						} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
@@ -5559,24 +5551,27 @@ public class CmisObjectService {
 		}
 
 		private static Object invokeDecryptAfterCreate(IObjectEncryptService objectFlowService, String repositoryId,
-				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType, List<String> secondaryObjectTypeIdsValues, Map<String, Object> customProps) {
+				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType,
+				List<String> secondaryObjectTypeIdsValues, Map<String, Object> customProps) {
 			if (objectFlowService != null) {
 				try {
 					if (EncryptType.DECRYPT.equals(invokeMethod)) {
 						LOG.info("invokeEncryptBeforeCreate, InvokeMethod: {}", invokeMethod);
-                        if (objectFlowService.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,
-								        customProps.get(FV_ENCRYPT_PROPS) != null
-										                ? customProps.get(FV_ENCRYPT_PROPS) instanceof String
-																? Arrays.asList(customProps.get(FV_ENCRYPT_PROPS).toString())
-																		: (List<String>) customProps.get(FV_ENCRYPT_PROPS)
-										                : null)) {
-							propValue = objectFlowService.decrypt(repositoryId, typeId, propId, propValue,
-									        secondaryObjectTypeIdsValues,
-									        customProps.get(FV_ENCRYPT_PROPS) != null
-											                ? customProps.get(FV_ENCRYPT_PROPS) instanceof String
-																	? Arrays.asList(customProps.get(FV_ENCRYPT_PROPS).toString())
-																			: (List<String>) customProps.get(FV_ENCRYPT_PROPS)
-											                : null);
+						if (objectFlowService
+								.shouldEncrypt(repositoryId, typeId, propId, secondaryObjectTypeIdsValues,
+										customProps.get(FV_ENCRYPT_PROPS) != null
+												? customProps.get(FV_ENCRYPT_PROPS) instanceof String
+														? Arrays.asList(customProps.get(FV_ENCRYPT_PROPS).toString())
+														: (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+												: null)) {
+							propValue = objectFlowService
+									.decrypt(repositoryId, typeId, propId, propValue, secondaryObjectTypeIdsValues,
+											customProps.get(FV_ENCRYPT_PROPS) != null
+													? customProps.get(FV_ENCRYPT_PROPS) instanceof String
+															? Arrays.asList(
+																	customProps.get(FV_ENCRYPT_PROPS).toString())
+															: (List<String>) customProps.get(FV_ENCRYPT_PROPS)
+													: null);
 							propValue = convertDecryptProperties(propValue, propertyType);
 						}
 					}
