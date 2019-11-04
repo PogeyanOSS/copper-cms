@@ -90,8 +90,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		ActorServiceFactory.getInstance();
-		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.system);
+		ActorServiceFactory.getInstance().setSystem(ActorSystem.create("GatewaySystem"));
+		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.getInstance().getSystem());
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
 		if (configFilename == null) {
@@ -101,8 +101,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 		// DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
 
 		LOG.info("Registering gateway actor to main actor system");
-		ActorServiceFactory.getInstance();
-		ActorServiceFactory.system.actorOf(Props.create(GatewayActor.class), "gateway");
+		ActorServiceFactory.getInstance().getSystem().actorOf(Props.create(GatewayActor.class), "gateway");
 
 		LOG.info("Initializing service factory instances");
 		try {
