@@ -53,6 +53,7 @@ public class ActorServiceFactory {
 
 	public ActorServiceFactory() {
 		LOG.info("Storing Actor MetaData");
+		this.setSystem(ActorSystem.create("GatewaySystem"));
 		this.storeActorMetaData();
 	}
 

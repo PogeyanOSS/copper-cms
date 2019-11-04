@@ -90,7 +90,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		ActorServiceFactory.getInstance().setSystem(ActorSystem.create("GatewaySystem"));
+		
 		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.getInstance().getSystem());
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
