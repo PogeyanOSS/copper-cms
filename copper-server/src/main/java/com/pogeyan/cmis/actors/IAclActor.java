@@ -21,7 +21,7 @@ public class IAclActor implements IActorService {
 	}
 
 	@Override
-	public boolean isSingletonService () {
+	public boolean isSingletonService() {
 		return false;
 	}
 
