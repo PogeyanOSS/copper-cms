@@ -1753,13 +1753,13 @@ public class CmisObjectService {
 			aclImp.setAclPropagation(AclPropagation.REPOSITORYDETERMINED.toString());
 			PropertyData<?> objectIdProperty = properties.getProperties().get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
-			if (baseType == BaseTypeId.CMIS_DOCUMENT) {
-				CmisObjectService.Impl.createFolder(repositoryId, parent.getId(), properties, null, aclImp, null,
-						userObject, tracingId, span);
-			} else {
+//			if (baseType == BaseTypeId.CMIS_DOCUMENT) {
+//				CmisObjectService.Impl.createFolder(repositoryId, parent.getId(), properties, null, aclImp, null,
+//						userObject, tracingId, span);
+//			} else {
 				createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
 						props.getProperties(), objectMorphiaDAO, null, aclImp, null, tracingId, span);
-			}
+//			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		}
 
