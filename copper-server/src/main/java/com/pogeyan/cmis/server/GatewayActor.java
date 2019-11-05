@@ -77,7 +77,8 @@ public class GatewayActor extends UntypedActor {
 				if (!this.messageRefs.containsKey(bm.getMessageId())) {
 					this.messageRefs.put(bm.getMessageId(), this.getSender());
 					// get actor either with type name or action name
-					ActorRef actorReference = ActorServiceFactory.getInstance().initActorRef(bm.getTypeName(), bm.getActionName());
+					ActorRef actorReference = ActorServiceFactory.getInstance().initActorRef(bm.getTypeName(),
+							bm.getActionName());
 					actorRefs.put(bm.getMessageId(), actorReference);
 					if (actorReference != null) {
 						// get type name from actor reference
@@ -119,9 +120,9 @@ public class GatewayActor extends UntypedActor {
 						LOG.debug("Reply back to servlet actor for message: {}", bm);
 					}
 					ActorRef responseActorRef = this.messageRefs.get(bm.getMessageId());
-					if(!ActorServiceFactory.getInstance().isSingletonActor(actorRefs.get(bm.getMessageId()))) {
-                        ActorServiceFactory.getInstance().getSystem().stop(actorRefs.get(bm.getMessageId()));
-                    }
+					if (!ActorServiceFactory.getInstance().isSingletonActor(actorRefs.get(bm.getMessageId()))) {
+						ActorServiceFactory.getInstance().getSystem().stop(actorRefs.get(bm.getMessageId()));
+					}
 					this.messageRefs.remove(bm.getMessageId());
 					responseActorRef.tell(bm, ActorRef.noSender());
 					if (Helpers.isPerfMode()) {
