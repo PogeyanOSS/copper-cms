@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ObjectArrays;
 import com.pogeyan.cmis.api.IActorService;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -38,6 +38,7 @@ public class ActorServiceFactory {
 	private ActorSystem system;
 	private Map<Class<?>, String> actorClassMap = new HashMap<Class<?>, String>();
 	private Map<ActorRef, String> serviceActorActionRefs = new HashMap<ActorRef, String>();
+	private Map<ActorRef, Boolean> singletonActorRefs = new HashMap<ActorRef, Boolean>();
 	private Map<Class<?>, String[]> actorSelectorsMap = new HashMap<Class<?>, String[]>();
 	private Map<ActorRef, String[]> serviceActorSelectorRefs = new HashMap<ActorRef, String[]>();
 	private static String[] IActorsServices = new String[] { "com.pogeyan.cmis.actors.IAclActor",
@@ -48,13 +49,14 @@ public class ActorServiceFactory {
 			"com.pogeyan.cmis.auth.ILoginActor" };
 
 	public void setExternalActors(String[] externalActors) {
-		IActorsServices = ObjectArrays.concat(IActorsServices, externalActors, String.class);
+		LOG.info("Storing External Actor MetaData");
+		this.storeActorMetaData(externalActors);
 	}
 
 	public ActorServiceFactory() {
-		LOG.info("Storing Actor MetaData");
+		LOG.info("Storing Internal Actor MetaData");
 		this.setSystem(ActorSystem.create("GatewaySystem"));
-		this.storeActorMetaData();
+		this.storeActorMetaData(IActorsServices);
 	}
 
 	public static ActorServiceFactory getInstance() {
@@ -72,8 +74,8 @@ public class ActorServiceFactory {
 		return system;
 	}
 
-	private void storeActorMetaData() {
-		for (String actor : IActorsServices) {
+	private void storeActorMetaData(String[] actors) {
+		for (String actor : actors) {
 			try {
 				Class<?> ActorClassFactory = Class.forName(actor);
 				IActorService ActorFactory = (IActorService) ActorClassFactory.newInstance();
@@ -83,6 +85,7 @@ public class ActorServiceFactory {
 							ActorFactory.getServiceURL());
 					serviceActorSelectorRefs.put(serviceActor, ActorFactory.getMethodSelectors());
 					serviceActorActionRefs.put(serviceActor, ActorFactory.getServiceURL());
+					singletonActorRefs.put(serviceActor, ActorFactory.isSingletonService());
 				} else {
 					actorClassMap.put(ActorFactory.getActorClass(), ActorFactory.getServiceURL());
 					actorSelectorsMap.put(ActorFactory.getActorClass(), ActorFactory.getMethodSelectors());
@@ -101,8 +104,7 @@ public class ActorServiceFactory {
 				.filter(t -> Arrays.asList(t.getValue()).contains(actionName))
 				.collect(Collectors.toMap(a -> actionName, a -> a.getKey()));
 		if (classMap.size() > 0) {
-			return this.system.actorOf(Props.create(classMap.get(typeName)),
-					typeName + "_" + UUID.randomUUID());
+			return this.system.actorOf(Props.create(classMap.get(typeName)), typeName + "_" + UUID.randomUUID());
 		} else if (selectorsMap.size() > 0) {
 			return this.system.actorOf(Props.create(selectorsMap.get(actionName)),
 					actionName + "_" + UUID.randomUUID());
@@ -123,6 +125,14 @@ public class ActorServiceFactory {
 		} else {
 			return null;
 		}
+	}
 
+	public boolean isSingletonActor(ActorRef actor) {
+		Map<ActorRef, Boolean> isSingletonActorRef = singletonActorRefs.entrySet().stream()
+				.filter(a -> a.getKey().equals(actor)).collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+		if (isSingletonActorRef.size() > 0) {
+			return isSingletonActorRef.get(actor);
+		}
+		return false;
 	}
 }
