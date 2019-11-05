@@ -120,9 +120,7 @@ public class GatewayActor extends UntypedActor {
 						LOG.debug("Reply back to servlet actor for message: {}", bm);
 					}
 					ActorRef responseActorRef = this.messageRefs.get(bm.getMessageId());
-					if (!ActorServiceFactory.getInstance().isSingletonActor(actorRefs.get(bm.getMessageId()))) {
-						ActorServiceFactory.getInstance().getSystem().stop(actorRefs.get(bm.getMessageId()));
-					}
+					ActorServiceFactory.getInstance().stopActor(actorRefs.get(bm.getMessageId()));
 					this.messageRefs.remove(bm.getMessageId());
 					responseActorRef.tell(bm, ActorRef.noSender());
 					if (Helpers.isPerfMode()) {

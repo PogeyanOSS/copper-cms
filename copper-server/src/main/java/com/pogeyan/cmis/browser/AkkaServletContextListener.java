@@ -125,6 +125,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
+		ActorServiceFactory.getInstance().shutdown();
 		ActorSystem system = (ActorSystem) sce.getServletContext().getAttribute("GatewaySystem");
 		sce.getServletContext().removeAttribute("ActorSystem");
 		system.terminate();
@@ -397,4 +398,5 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 		return true;
 	}
+
 }

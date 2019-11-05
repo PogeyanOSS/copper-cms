@@ -98,9 +98,10 @@ public class ActorServiceFactory {
 	}
 
 	public ActorRef initActorRef(String typeName, String actionName) throws ClassNotFoundException {
-		Map<Object, Class<?>> classMap = sf.actorClassMap.entrySet().stream().filter(t -> t.getValue().equals(typeName))
+		Map<Object, Class<?>> classMap = this.actorClassMap.entrySet().stream()
+				.filter(t -> t.getValue().equals(typeName))
 				.collect(Collectors.toMap(a -> a.getValue(), a -> a.getKey()));
-		Map<Object, Class<?>> selectorsMap = sf.actorSelectorsMap.entrySet().stream()
+		Map<Object, Class<?>> selectorsMap = this.actorSelectorsMap.entrySet().stream()
 				.filter(t -> Arrays.asList(t.getValue()).contains(actionName))
 				.collect(Collectors.toMap(a -> actionName, a -> a.getKey()));
 		if (classMap.size() > 0) {
@@ -108,11 +109,11 @@ public class ActorServiceFactory {
 		} else if (selectorsMap.size() > 0) {
 			return this.system.actorOf(Props.create(selectorsMap.get(actionName)),
 					actionName + "_" + UUID.randomUUID());
-		} else if (sf.serviceActorSelectorRefs.size() > 0) {
-			Map<Object, Object> serviceActorSelectorMap = sf.serviceActorSelectorRefs.entrySet().stream()
+		} else if (this.serviceActorSelectorRefs.size() > 0) {
+			Map<Object, Object> serviceActorSelectorMap = this.serviceActorSelectorRefs.entrySet().stream()
 					.filter(a -> Arrays.asList(a.getValue()).contains(actionName))
 					.collect(Collectors.toMap(a -> actionName, a -> a.getKey()));
-			Map<Object, Object> serviceActorActionMap = sf.serviceActorActionRefs.entrySet().stream()
+			Map<Object, Object> serviceActorActionMap = this.serviceActorActionRefs.entrySet().stream()
 					.filter(a -> a.getValue().equals(typeName))
 					.collect(Collectors.toMap(a -> typeName, a -> a.getKey()));
 			if (serviceActorSelectorMap.size() > 0) {
@@ -127,12 +128,15 @@ public class ActorServiceFactory {
 		}
 	}
 
-	public boolean isSingletonActor(ActorRef actor) {
+	public void stopActor(ActorRef actor) {
 		Map<ActorRef, Boolean> isSingletonActorRef = singletonActorRefs.entrySet().stream()
 				.filter(a -> a.getKey().equals(actor)).collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
-		if (isSingletonActorRef.size() > 0) {
-			return isSingletonActorRef.get(actor);
+		if (isSingletonActorRef.size() == 0) {
+			system.stop(actor);
 		}
-		return false;
+	}
+
+	public void shutdown() {
+		singletonActorRefs.forEach((k, v) -> system.stop(k));
 	}
 }
