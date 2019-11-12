@@ -87,10 +87,9 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	static final Logger LOG = LoggerFactory.getLogger(AkkaServletContextListener.class);
 
-
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		
+
 		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.getInstance().getSystem());
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
@@ -295,11 +294,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
 			Class<?> c = Class.forName(cacheProviderFactoryClassName);
 			ICacheProvider cacheProviderFactory = (ICacheProvider) c.newInstance();
-			ICacheProvider UserCacheProviderFactory = (ICacheProvider) c.newInstance();
+			ICacheProvider userCacheProviderFactory = (ICacheProvider) c.newInstance();
+			ICacheProvider roleCacheProviderFactory = (ICacheProvider) c.newInstance();
 			CacheProviderServiceFactory.addTypeCacheService(cacheProviderFactory);
-			CacheProviderServiceFactory.addUserCacheService(UserCacheProviderFactory);
+			CacheProviderServiceFactory.addUserCacheService(userCacheProviderFactory);
+			CacheProviderServiceFactory.addRoleCacheService(roleCacheProviderFactory);
 			cacheProviderFactory.init(intervalTime);
-			UserCacheProviderFactory.init(intervalTime);
+			userCacheProviderFactory.init(intervalTime);
+			roleCacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;
