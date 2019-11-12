@@ -9,6 +9,7 @@ public class CacheProviderServiceFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(CacheProviderServiceFactory.class);
 	static ICacheProvider typeCacheProvider = null;
 	static ICacheProvider userCacheMapProvider = null;
+	static ICacheProvider roleCacheMapProvider = null;
 
 	static public ICacheProvider getTypeCacheServiceProvider() {
 		return typeCacheProvider;
@@ -16,6 +17,10 @@ public class CacheProviderServiceFactory {
 
 	static public ICacheProvider getUserCacheServiceProvider() {
 		return userCacheMapProvider;
+	}
+
+	static public ICacheProvider getRoleCacheServiceProvider() {
+		return roleCacheMapProvider;
 	}
 
 	public static void addTypeCacheService(ICacheProvider cacheProviderServiceFactory) {
@@ -26,5 +31,10 @@ public class CacheProviderServiceFactory {
 	public static void addUserCacheService(ICacheProvider cacheProviderServiceFactory) {
 		LOG.info("cacheProviderServiceFactory for user: {}", cacheProviderServiceFactory);
 		userCacheMapProvider = cacheProviderServiceFactory;
+	};
+
+	public static void addRoleCacheService(ICacheProvider cacheProviderServiceFactory) {
+		LOG.info("cacheProviderServiceFactory for role: {}", cacheProviderServiceFactory);
+		roleCacheMapProvider = cacheProviderServiceFactory;
 	};
 }
