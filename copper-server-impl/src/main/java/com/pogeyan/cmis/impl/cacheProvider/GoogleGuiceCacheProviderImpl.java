@@ -30,7 +30,7 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			} else if (key.size() == 1) {
 				if (typeCacheMap.getIfPresent(key.get(0)) instanceof List<?>) {
 					return (T) typeCacheMap.getIfPresent(key.get(0));
-				} else {
+				} else if(typeCacheMap.getIfPresent(key.get(0)) != null) {
 					return (T) Arrays.asList(typeCacheMap.getIfPresent(key.get(0)));
 				}
 
@@ -89,4 +89,5 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 		}
 
 	}
+
 }
