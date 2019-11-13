@@ -16,7 +16,7 @@ public class ITypeCacheActor implements IActorService {
 
 	@Override
 	public String[] getMethodSelectors() {
-		String[] selectors = new String[] { "resetcache" };
+		String[] selectors = new String[] { "resetcache", "resetcachebykey" };
 		return selectors;
 	}
 
