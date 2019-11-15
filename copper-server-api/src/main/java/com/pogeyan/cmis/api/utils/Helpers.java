@@ -438,8 +438,8 @@ public class Helpers {
 	public static Boolean isSystemUser(IUserObject role) {
 		if (role != null) {
 			for (IUserGroupObject userobject : role.getGroups()) {
-				if (System.getenv("SYSTEM_USER") != null
-						&& System.getenv("SYSTEM_USER").equals(userobject.getGroupDN())) {
+				if (System.getenv("SYSTEM_ADMIN") != null
+						&& System.getenv("SYSTEM_ADMIN").equals(userobject.getGroupDN())) {
 					return true;
 				}
 			}
