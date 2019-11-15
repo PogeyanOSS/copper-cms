@@ -45,8 +45,7 @@ public class ActorServiceFactory {
 			"com.pogeyan.cmis.actors.IDiscoveryActor", "com.pogeyan.cmis.actors.INavigationActor",
 			"com.pogeyan.cmis.actors.IObjectActor", "com.pogeyan.cmis.actors.IPolicyActor",
 			"com.pogeyan.cmis.actors.IRelationshipActor", "com.pogeyan.cmis.actors.IRepositoryActor",
-			"com.pogeyan.cmis.actors.ITypeCacheActor", "com.pogeyan.cmis.actors.IVersioningActor",
-			"com.pogeyan.cmis.auth.ILoginActor" };
+			"com.pogeyan.cmis.actors.IVersioningActor", "com.pogeyan.cmis.auth.ILoginActor" };
 
 	public void setExternalActors(String[] externalActors) {
 		LOG.info("Storing External Actor MetaData");

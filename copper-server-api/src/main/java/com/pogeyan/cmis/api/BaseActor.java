@@ -46,7 +46,7 @@ import akka.actor.UntypedActor;
  * @param <R>
  *            the generic type
  */
-abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
+public abstract class BaseActor<T, R extends BaseResponse> extends UntypedActor {
 
 	/** The Constant logger. */
 	protected static final Logger logger = LoggerFactory.getLogger(BaseActor.class);
