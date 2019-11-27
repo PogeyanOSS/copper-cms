@@ -19,4 +19,8 @@ public interface IActorService {
 	public String getServiceURL();
 
 	public Class<?> getActorClass() throws ClassNotFoundException;
+	
+	public String[] getMethodSelectors();
+	
+	public boolean isSingletonService();
 }

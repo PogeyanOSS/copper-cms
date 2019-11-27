@@ -15,11 +15,8 @@
  */
 package com.pogeyan.cmis.server;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -32,9 +29,9 @@ import com.codahale.metrics.Timer;
 import com.pogeyan.cmis.api.BaseMessage;
 import com.pogeyan.cmis.api.BaseResponse;
 import com.pogeyan.cmis.api.MessageType;
-import com.pogeyan.cmis.api.messages.MemberUpRequest;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
+import com.pogeyan.cmis.browser.ActorServiceFactory;
 
 import akka.actor.ActorRef;
 import akka.actor.Terminated;
@@ -44,10 +41,9 @@ public class GatewayActor extends UntypedActor {
 	/** The Constant LOG. */
 	private static final Logger LOG = LoggerFactory.getLogger(GatewayActor.class);
 
-	private final Map<ActorKey, ActorRef> actorRefs = new HashMap<ActorKey, ActorRef>();
-
 	/** The message refs. */
 	private final Map<String, ActorRef> messageRefs = new HashMap<String, ActorRef>();
+	private final Map<String, ActorRef> actorRefs = new HashMap<String, ActorRef>();
 	private final Map<String, Timer.Context> perfTimerContext = new HashMap<String, Timer.Context>();
 	private Meter requestMeter = null;
 	private Meter responseMeter = null;
@@ -55,6 +51,7 @@ public class GatewayActor extends UntypedActor {
 	private Meter baseResponseErrorMeter = null;
 
 	public GatewayActor() {
+
 		if (Helpers.isPerfMode()) {
 			this.requestMeter = MetricsInputs.get().getMarker("RequestMeter");
 			this.responseMeter = MetricsInputs.get().getMarker("ResponseMeter");
@@ -75,21 +72,14 @@ public class GatewayActor extends UntypedActor {
 		if (message instanceof BaseMessage) {
 			BaseMessage bm = (BaseMessage) message;
 			if (bm.getTypeName().equals("entry")) {
-				String senderName = this.getTypeName(this.getSender());
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("entry message received for sender: {}", senderName);
-				}
-				MemberUpRequest memberUpRequest = (MemberUpRequest) bm.getMessageAsType(MemberUpRequest.class);
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Adding {} with methods {} to ref list", senderName, memberUpRequest.getSelectors());
-				}
-				actorRefs.put(new ActorKey(senderName, memberUpRequest.getSelectors()), this.getSender());
-				getContext().watch(getSender());
+				// removed the oldLogic
 			} else if (bm.getMessageType() == MessageType.REQUEST) {
 				if (!this.messageRefs.containsKey(bm.getMessageId())) {
 					this.messageRefs.put(bm.getMessageId(), this.getSender());
 					// get actor either with type name or action name
-					ActorRef actorReference = this.getActorRefBy(bm.getTypeName(), bm.getActionName());
+					ActorRef actorReference = ActorServiceFactory.getInstance().initActorRef(bm.getTypeName(),
+							bm.getActionName());
+					actorRefs.put(bm.getMessageId(), actorReference);
 					if (actorReference != null) {
 						// get type name from actor reference
 						String typeName = this.getTypeName(actorReference);
@@ -130,6 +120,7 @@ public class GatewayActor extends UntypedActor {
 						LOG.debug("Reply back to servlet actor for message: {}", bm);
 					}
 					ActorRef responseActorRef = this.messageRefs.get(bm.getMessageId());
+					ActorServiceFactory.getInstance().stopActor(actorRefs.get(bm.getMessageId()));
 					this.messageRefs.remove(bm.getMessageId());
 					responseActorRef.tell(bm, ActorRef.noSender());
 					if (Helpers.isPerfMode()) {
@@ -150,8 +141,6 @@ public class GatewayActor extends UntypedActor {
 			String[] s = terminated.getActor().path().name().split(Pattern.quote("."));
 			String terminatedActor = s[s.length - 1];
 			LOG.info("Actor terminated: {}", terminatedActor);
-			ActorRef tActor = actorRefs.remove(terminatedActor);
-			getContext().unwatch(tActor);
 		} else {
 			LOG.error("Unknown message received: {}", message != null ? message.toString() : "");
 			unhandled(message);
@@ -163,41 +152,6 @@ public class GatewayActor extends UntypedActor {
 		String[] s = actorRef.path().name().split(Pattern.quote("."));
 		String typeName = s[s.length - 1];
 		return typeName;
-	}
-
-	private ActorRef getActorRefBy(String typeName, String actionName) {
-		Optional<Entry<ActorKey, ActorRef>> r = this.actorRefs.entrySet().stream()
-				.filter(t -> t.getKey().getActorName().equals(typeName)
-						|| Arrays.asList(t.getKey().getSelectors()).contains(actionName))
-				.findFirst();
-		if (r.isPresent()) {
-			return r.get().getValue();
-		}
-
-		return null;
-	}
-
-	class ActorKey {
-		private String actorName = "";
-		private String[] selectors = new String[] {};
-
-		public ActorKey(String actorName, String[] selectors) {
-			this.actorName = actorName;
-			this.selectors = selectors;
-		}
-
-		public String getActorName() {
-			return actorName;
-		}
-
-		public String[] getSelectors() {
-			return selectors;
-		}
-
-		@Override
-		public String toString() {
-			return String.format("%s, %s", this.actorName, this.selectors);
-		}
 	}
 
 	public interface Gauge<T> extends Metric {

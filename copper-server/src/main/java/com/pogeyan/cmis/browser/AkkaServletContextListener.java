@@ -35,16 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.pogeyan.cmis.actors.AclActor;
-import com.pogeyan.cmis.actors.DiscoveryActor;
-import com.pogeyan.cmis.actors.NavigationActor;
-import com.pogeyan.cmis.actors.ObjectActor;
-import com.pogeyan.cmis.actors.PolicyActor;
-import com.pogeyan.cmis.actors.RelationshipActor;
-import com.pogeyan.cmis.actors.RepositoryActor;
-import com.pogeyan.cmis.actors.TypeCacheActor;
-import com.pogeyan.cmis.actors.VersioningActor;
-import com.pogeyan.cmis.api.IActorService;
 import com.pogeyan.cmis.api.auth.IAuthFactory;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 import com.pogeyan.cmis.api.data.IDBClientFactory;
@@ -57,7 +47,6 @@ import com.pogeyan.cmis.api.repo.IRepositoryStore;
 import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
-import com.pogeyan.cmis.auth.LoginActor;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.EncryptionFactory;
@@ -91,7 +80,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 	private static final String DEFAULT_AUTH_STORE_CLASS = "com.pogeyan.cmis.repo.local.LocalRepoAuthFactory";
 	private static final String DEFAULT_FILE_STORE_CLASS = "com.pogeyan.cmis.impl.storage.FileSystemStorageFactory";
 	private static final String DEFAULT_CACHE_PROVIDER_CLASS = "com.pogeyan.cmis.impl.cacheProvider.GoogleGuiceCacheProviderImpl";
-	private static Map<Class<?>, String> externalActorClassMap = new HashMap<Class<?>, String>();
 	private static final String DEFAULT_TRACING_API_CLASS = "com.pogeyan.cmis.tracing.TracingDefaultImpl";
 	private static final String PROPERTY_TRACING_API_CLASS = "tracingApiFactory";
 	private static final String PROPERTY_DB_CLIENT_FACTORY = "cbmClientFactory";
@@ -101,8 +89,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		ActorSystem system = ActorSystem.create("GatewaySystem");
-		sce.getServletContext().setAttribute("ActorSystem", system);
+
+		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.getInstance().getSystem());
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
 		if (configFilename == null) {
@@ -111,18 +99,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 		// DatabaseServiceFactory.add(MongoClientFactory.createDatabaseService());
 
-		LOG.info("Registering actors to main actor system");
-		system.actorOf(Props.create(GatewayActor.class), "gateway");
-		system.actorOf(Props.create(LoginActor.class), "login");
-		system.actorOf(Props.create(RepositoryActor.class), "repository");
-		system.actorOf(Props.create(ObjectActor.class), "object");
-		system.actorOf(Props.create(NavigationActor.class), "navigation");
-		system.actorOf(Props.create(RelationshipActor.class), "relationships");
-		system.actorOf(Props.create(PolicyActor.class), "policy");
-		system.actorOf(Props.create(VersioningActor.class), "versioning");
-		system.actorOf(Props.create(AclActor.class), "acl");
-		system.actorOf(Props.create(DiscoveryActor.class), "discovery");
-		system.actorOf(Props.create(TypeCacheActor.class), "cache");
+		LOG.info("Registering gateway actor to main actor system");
+		ActorServiceFactory.getInstance().getSystem().actorOf(Props.create(GatewayActor.class), "gateway");
 
 		LOG.info("Initializing service factory instances");
 		try {
@@ -132,9 +110,6 @@ public class AkkaServletContextListener implements ServletContextListener {
 			}
 		} catch (Exception e) {
 			LOG.error("Service factory couldn't be created: {}", e);
-		}
-		if (externalActorClassMap != null && !externalActorClassMap.isEmpty()) {
-			externalActorClassMap.forEach((key, value) -> system.actorOf(Props.create(key), value));
 		}
 
 		if (Helpers.isPerfMode()) {
@@ -149,6 +124,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
+		ActorServiceFactory.getInstance().shutdown();
 		ActorSystem system = (ActorSystem) sce.getServletContext().getAttribute("GatewaySystem");
 		sce.getServletContext().removeAttribute("ActorSystem");
 		system.terminate();
@@ -248,9 +224,11 @@ public class AkkaServletContextListener implements ServletContextListener {
 				fileStorageClassName, cacheProviderClassName, externalActorClassName, intevalTime);
 		if (mainCLassInitialize) {
 			boolean encryptServicePermission = encryptionServiceClass != null
-					? initializeEncryptionFactory(encryptionServiceClass) : true;
+					? initializeEncryptionFactory(encryptionServiceClass)
+					: true;
 			boolean checkObjectServicePermission = ObjectFlowServiceClass != null
-					? ObjectFlowFactoryClassinitializeExtensions(sce, ObjectFlowServiceClass) : true;
+					? ObjectFlowFactoryClassinitializeExtensions(sce, ObjectFlowServiceClass)
+					: true;
 			if (checkObjectServicePermission && encryptServicePermission) {
 				return true;
 			}
@@ -268,7 +246,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 				if (fileStorageFactoryClassInit(fileStorageClassName)) {
 					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
 						checkExternalActor = externalActorClassName != null
-								? externalActorFactoryClassinitializeExtensions(externalActorClassName) : true;
+								? externalActorFactoryClassinitializeExtensions(externalActorClassName)
+								: true;
 					}
 				}
 			}
@@ -315,11 +294,14 @@ public class AkkaServletContextListener implements ServletContextListener {
 			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
 			Class<?> c = Class.forName(cacheProviderFactoryClassName);
 			ICacheProvider cacheProviderFactory = (ICacheProvider) c.newInstance();
-			ICacheProvider UserCacheProviderFactory = (ICacheProvider) c.newInstance();
+			ICacheProvider userCacheProviderFactory = (ICacheProvider) c.newInstance();
+			ICacheProvider roleCacheProviderFactory = (ICacheProvider) c.newInstance();
 			CacheProviderServiceFactory.addTypeCacheService(cacheProviderFactory);
-			CacheProviderServiceFactory.addUserCacheService(UserCacheProviderFactory);
+			CacheProviderServiceFactory.addUserCacheService(userCacheProviderFactory);
+			CacheProviderServiceFactory.addRoleCacheService(roleCacheProviderFactory);
 			cacheProviderFactory.init(intervalTime);
-			UserCacheProviderFactory.init(intervalTime);
+			userCacheProviderFactory.init(intervalTime);
+			roleCacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;
@@ -328,20 +310,9 @@ public class AkkaServletContextListener implements ServletContextListener {
 	}
 
 	private static boolean externalActorFactoryClassinitializeExtensions(String externalActorClassName) {
-		try {
-			String[] externalActorFactoryClassNames = externalActorClassName.split(",");
-			for (String externalActorFactoryClassName : externalActorFactoryClassNames) {
-				LOG.info("Initialized External Actor Services Factory Class: {}", externalActorFactoryClassName);
-				Class<?> externalActorClassFactory = Class.forName(externalActorFactoryClassName);
-				IActorService externalActorFactory = (IActorService) externalActorClassFactory.newInstance();
-				externalActorClassMap.put(externalActorFactory.getActorClass(), externalActorFactory.getServiceURL());
-			}
-		} catch (Exception e) {
-			LOG.error("Could not create a externalActorFactoryClass services factory instance: {}", e);
-			return false;
-		}
+		String[] externalActorFactoryClassNames = externalActorClassName.split(",");
+		ActorServiceFactory.getInstance().setExternalActors(externalActorFactoryClassNames);
 		return true;
-
 	}
 
 	private static boolean ObjectFlowFactoryClassinitializeExtensions(ServletContextEvent sce,
@@ -429,4 +400,5 @@ public class AkkaServletContextListener implements ServletContextListener {
 		}
 		return true;
 	}
+
 }
