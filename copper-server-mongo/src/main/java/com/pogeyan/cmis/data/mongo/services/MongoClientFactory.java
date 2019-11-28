@@ -179,26 +179,35 @@ public class MongoClientFactory implements IDBClientFactory {
 				port = Integer.valueOf(properties.get(1));
 			}
 
-			String[] columnsToIndex = new String[] { "name", "path", "acl" };
-			Map<Object, Object> indexIds = new HashMap<>();
-			Stream<String> indexId = Arrays.stream(columnsToIndex);
-			indexId.forEach(x -> indexIds.put(x, 1));
 			MongoClient mongoClient = properties.size() == 2
 					? properties.get(0).contains("mongodb://")
 							? getMongoClient(repositoryId, properties.get(0), 0, false)
 							: getMongoClient(repositoryId, properties.get(0), port, false)
 					: getMongoClient(repositoryId, properties.get(0), port, Boolean.valueOf(properties.get(2)));
-			MongoCollection<Document> objectDataCollection = mongoClient
-					.getDatabase(properties.get(properties.size() - 1)).getCollection("objectData");
-			objectDataCollection.createIndex(new BasicDBObject(indexIds));
+
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "path" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "internalPath" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "acl" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "token" });
+
 			clientDatastore = morphia.createDatastore(mongoClient, properties.get(properties.size() - 1));
 			this.clientDatastores.put(repositoryId, clientDatastore);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(properties.size() - 1));
 			}
 		}
-
 		return fun.apply(clientDatastore);
+	}
+
+	private MongoClient createInternalIndex(String repositoryId, MongoClient mongoClient, List<String> properties,
+			String[] columnsToIndex) {
+		Map<Object, Object> indexIds = new HashMap<>();
+		Stream<String> indexId = Arrays.stream(columnsToIndex);
+		indexId.forEach(x -> indexIds.put(x, 1));
+		MongoCollection<Document> objectDataCollection = mongoClient.getDatabase(properties.get(properties.size() - 1))
+				.getCollection("objectData");
+		objectDataCollection.createIndex(new BasicDBObject(indexIds));
+		return mongoClient;
 	}
 
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
