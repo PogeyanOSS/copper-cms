@@ -187,8 +187,12 @@ public class MongoClientFactory implements IDBClientFactory {
 
 			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "path" });
 			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "internalPath" });
-			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "acl" });
-			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "token" });
+			this.createInternalIndex(repositoryId, mongoClient, properties,
+					new String[] { "acl.aces.principal.principalId" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "acl.aclPropagation" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "token.time" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "typeId" });
+			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "name" });
 
 			clientDatastore = morphia.createDatastore(mongoClient, properties.get(properties.size() - 1));
 			this.clientDatastores.put(repositoryId, clientDatastore);
