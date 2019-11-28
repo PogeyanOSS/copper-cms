@@ -196,12 +196,12 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		JSONObject result = new JSONObject();
 		for (RepositoryInfo ri : infoDataList) {
 			String repositoryUrl = HttpUtils
-					.compileRepositoryUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
-							request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+					.compileRepositoryUrl(request.getBaseUrl(), request.getScheme(), "13.127.75.95",
+							31380, request.getContextPath(), request.getServletPath(), ri.getId())
 					.toString();
 			String rootUrl = HttpUtils
-					.compileRootUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
-							request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+					.compileRootUrl(request.getBaseUrl(), request.getScheme(), "13.127.75.95",
+							31380, request.getContextPath(), request.getServletPath(), ri.getId())
 					.toString();
 
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
