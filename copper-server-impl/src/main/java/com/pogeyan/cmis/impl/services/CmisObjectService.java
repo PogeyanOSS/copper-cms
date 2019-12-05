@@ -116,7 +116,6 @@ import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
-import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
@@ -294,9 +293,13 @@ public class CmisObjectService {
 					.getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId, userObject, typeId).get(0);
 			IBaseObject data = null;
 			try {
-				data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
-						checkPrimaryKeyType(primaryKeyValue, type.getPropertyDefinitions().get(primaryKeyField)),
-						filterArray);
+				if (primaryKeyField.equals(PropertyIds.OBJECT_ID)) {
+					data = DBUtils.DocumentDAO.getDocumentByObjectId(repositoryId, primaryKeyValue, filterArray);
+				} else {
+					data = DBUtils.DocumentDAO.getByDocumentByPropertiesField(repositoryId, typeId, primaryKeyField,
+							checkPrimaryKeyType(primaryKeyValue, type.getPropertyDefinitions().get(primaryKeyField)),
+							filterArray);
+				}
 			} catch (Exception e) {
 				LOG.error("getObjectForRestAPI Exception: {}, repository: {}", ExceptionUtils.getStackTrace(e),
 						repositoryId);
@@ -1760,7 +1763,8 @@ public class CmisObjectService {
 				String folderObjectId = CmisObjectService.Impl.createFolder(repositoryId, parent.getId(), properties,
 						null, aclImp, null, userObject, tracingId, span);
 				CmisAclServices.Impl.applyAcl(repositoryId, folderObjectId, null, null,
-						AclPropagation.REPOSITORYDETERMINED, null, null, null, userObject, typeId, tracingId, parentSpan);
+						AclPropagation.REPOSITORYDETERMINED, null, null, null, userObject, typeId, tracingId,
+						parentSpan);
 			} else {
 				createFolderObject(repositoryId, parent, objectId, folderName, userObject, null, typeId,
 						props.getProperties(), objectMorphiaDAO, null, aclImp, null, tracingId, span);
