@@ -314,6 +314,15 @@ public class ServletHelpers {
 		queryRequest.setServerPort(request.getServerPort());
 		queryRequest.setContextPath(request.getContextPath());
 		queryRequest.setServletPath(request.getServletPath());
+		
+		Map<String, String> headers = new HashMap<String, String>();
+		Enumeration headerNames = request.getHeaderNames();
+		while (headerNames.hasMoreElements()) {
+			String headerName = (String) headerNames.nextElement();
+			headers.put(headerName, request.getHeader(headerName));
+			// System.out.println("" + headerName + "::" + request.getHeader(headerName));
+		}
+		queryRequest.setHeaders(headers);
 
 		queryRequest.setRange(request.getHeader("Range"));
 		String objectId = HttpUtils.getStringParameter(request, BrowserConstants.PARAM_OBJECT_ID);

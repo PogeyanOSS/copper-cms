@@ -109,12 +109,6 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			response.addHeader("Cache-Control", "private, max-age=0");
 			response.addHeader("Server", ServerVersion.OPENCMIS_SERVER);
 
-			Enumeration headerNames = request.getHeaderNames();
-			while (headerNames.hasMoreElements()) {
-				String headerName = (String) headerNames.nextElement();
-				System.out.println("" + headerName + "::" + request.getHeader(headerName));
-			}
-
 			// split path
 			String[] pathFragments = HttpUtils.splitPath(request);
 
