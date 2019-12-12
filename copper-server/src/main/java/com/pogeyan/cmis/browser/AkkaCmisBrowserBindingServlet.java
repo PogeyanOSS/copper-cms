@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InvalidObjectException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Enumeration;
 import java.util.Map;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
@@ -107,6 +108,12 @@ public class AkkaCmisBrowserBindingServlet extends HttpServlet {
 			// set default headers
 			response.addHeader("Cache-Control", "private, max-age=0");
 			response.addHeader("Server", ServerVersion.OPENCMIS_SERVER);
+
+			Enumeration headerNames = request.getHeaderNames();
+			while (headerNames.hasMoreElements()) {
+				String headerName = (String) headerNames.nextElement();
+				System.out.println("" + headerName + "::" + request.getHeader(headerName));
+			}
 
 			// split path
 			String[] pathFragments = HttpUtils.splitPath(request);
