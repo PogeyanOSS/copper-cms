@@ -170,6 +170,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	private JSONObject getRepositories(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws MongoException, CmisRuntimeException, CmisRoleValidationException {
+		logger.error(" getBaseUrl:  {} getScheme: {} getServerName: {} getServerPort: {} getContextPath: {} getServletPath: {} getServletPath:{} ",request.getBaseUrl(), request.getScheme(), request.getServerName(),
+				request.getServerPort(), request.getContextPath(), request.getServletPath());
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -203,7 +205,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					.compileRootUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
 							request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
 					.toString();
-
+			
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
