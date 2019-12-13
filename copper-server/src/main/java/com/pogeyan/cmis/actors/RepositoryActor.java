@@ -195,9 +195,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
-		System.out.println("Headers::" + headers.toString());
 		String scheme = headers.containsKey("x-forwarded-proto") ? headers.get("x-forwarded-proto") : request.getScheme();
-		String serverName = headers.containsKey("x-forwarded-host") ? headers.get("x-forwarded-host") : request.getServerName();
+		String serverName = headers.containsKey("x-forwarded-host") ? headers.get("x-forwarded-host") : headers.containsKey("x-forwarded-for") ? headers.get("x-forwarded-for") : request.getServerName();
 		int port = headers.containsKey("x-forwarded-port") ? Integer.parseInt(headers.get("x-forwarded-port")) : request.getServerPort();
 		for (RepositoryInfo ri : infoDataList) {
 			String repositoryUrl = HttpUtils

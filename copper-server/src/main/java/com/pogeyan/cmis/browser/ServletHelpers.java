@@ -320,7 +320,6 @@ public class ServletHelpers {
 		while (headerNames.hasMoreElements()) {
 			String headerName = (String) headerNames.nextElement();
 			headers.put(headerName, request.getHeader(headerName));
-			System.out.println("" + headerName + "::" + request.getHeader(headerName));
 		}
 		queryRequest.setHeaders(headers);
 
