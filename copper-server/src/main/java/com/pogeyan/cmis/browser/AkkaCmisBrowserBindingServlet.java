@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InvalidObjectException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Enumeration;
 import java.util.Map;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;

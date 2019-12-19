@@ -194,16 +194,18 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		};
 
 		JSONObject result = new JSONObject();
+		Map<String, String> headers = request.getHeaders();
+		String scheme = headers.containsKey("x-forwarded-proto") ? headers.get("x-forwarded-proto") : request.getScheme();
+		String serverName = headers.containsKey("x-forwarded-host") ? headers.get("x-forwarded-host") : headers.containsKey("x-forwarded-for") ? headers.get("x-forwarded-for") : request.getServerName();
+		int port = headers.containsKey("x-forwarded-port") ? Integer.parseInt(headers.get("x-forwarded-port")) : request.getServerPort();
 		for (RepositoryInfo ri : infoDataList) {
 			String repositoryUrl = HttpUtils
-					.compileRepositoryUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
-							request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+					.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port, request.getContextPath(), request.getServletPath(), ri.getId())
 					.toString();
 			String rootUrl = HttpUtils
-					.compileRootUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
-							request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+					.compileRootUrl(request.getBaseUrl(), scheme, serverName, port, request.getContextPath(), request.getServletPath(), ri.getId())
 					.toString();
-
+			
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
