@@ -91,6 +91,10 @@ import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
 public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(RepositoryActor.class);
 	private static final String OPENCMIS_SERVER = "Cloud CMIS DB";
+	private static final String PROTO_HEADER = "x-forwarded-proto";
+	private static final String HOST_HEADER = "x-forwarded-host";
+	private static final String PORT_HEADER = "x-forwarded-port";
+	private static final String FOR_HEADER = "x-forwarded-for";
 
 	public RepositoryActor() {
 		this.registerMessageHandle("GetRepositories".toLowerCase(), QueryGetRequest.class,
@@ -195,17 +199,22 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
-		String scheme = headers.containsKey("x-forwarded-proto") ? headers.get("x-forwarded-proto") : request.getScheme();
-		String serverName = headers.containsKey("x-forwarded-host") ? headers.get("x-forwarded-host") : headers.containsKey("x-forwarded-for") ? headers.get("x-forwarded-for") : request.getServerName();
-		int port = headers.containsKey("x-forwarded-port") ? Integer.parseInt(headers.get("x-forwarded-port")) : request.getServerPort();
+		String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
+				? headers.get(PROTO_HEADER)
+				: request.getScheme();
+		String serverName = headers.containsKey(HOST_HEADER) && headers.get(HOST_HEADER) != null
+				? headers.get(HOST_HEADER)
+				: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
+						: request.getServerName();
+		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
+				? Integer.parseInt(headers.get(PORT_HEADER))
+				: request.getServerPort();
 		for (RepositoryInfo ri : infoDataList) {
-			String repositoryUrl = HttpUtils
-					.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port, request.getContextPath(), request.getServletPath(), ri.getId())
-					.toString();
-			String rootUrl = HttpUtils
-					.compileRootUrl(request.getBaseUrl(), scheme, serverName, port, request.getContextPath(), request.getServletPath(), ri.getId())
-					.toString();
-			
+			String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
+					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
+			String rootUrl = HttpUtils.compileRootUrl(request.getBaseUrl(), scheme, serverName, port,
+					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
+
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -357,7 +366,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
 			LOG.error("JSON Parser error: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId() : null);
+					? span.getTraceId()
+					: null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
@@ -425,7 +435,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			typeJson = parser.parse(typeStr);
 		} catch (JSONParseException e) {
 			LOG.error("JSON parse exception: {}" + ExceptionUtils.getStackTrace(e) + "TraceId: " + span != null
-					? span.getTraceId() : null);
+					? span.getTraceId()
+					: null);
 			TracingApiServiceFactory.getApiService().updateSpan(span,
 					TracingErrorMessage.message(TracingWriter
 							.log(String.format(ErrorMessages.JSON_ERROR, ExceptionUtils.getStackTrace(e)), span),
@@ -488,7 +499,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId).getObjectService(repositoryId,
 				MBaseObjectDAO.class);
 		String latestToken = String.valueOf(baseMorphiaDAO.getLatestToken().getChangeToken() != null
-				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime() : null);
+				? baseMorphiaDAO.getLatestToken().getChangeToken().getTime()
+				: null);
 		// repository info
 		RepositoryInfoImpl repoInfo = new RepositoryInfoImpl();
 		repoInfo.setId(repositoryId == null ? "repository" : repositoryId);
