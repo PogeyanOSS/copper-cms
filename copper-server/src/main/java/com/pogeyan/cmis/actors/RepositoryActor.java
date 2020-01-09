@@ -211,7 +211,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 						: request.getServerName();
 		LOG.error("ServerName : {} ", serverName);
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
-				? Integer.parseInt(headers.get(PORT_HEADER))
+				? request.getServerPort()
 				: request.getServerPort();
 		for (RepositoryInfo ri : infoDataList) {
 			String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
