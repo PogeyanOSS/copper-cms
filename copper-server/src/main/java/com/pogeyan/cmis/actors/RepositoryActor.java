@@ -218,10 +218,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
 			LOG.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", request.getServerName(),
 					request.getContextPath(), request.getBaseUrl(), request.getServletPath(), request.getScheme());
-			LOG.error("getRepositories api RepositoryUrl : {} ", repositoryUrl);
+			LOG.error("getRepositories api RepositoryUrl : {} rootUrl: {} ", repositoryUrl, rootUrl);
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+		LOG.error("result : {} ", result);
 		return result;
 
 	}
