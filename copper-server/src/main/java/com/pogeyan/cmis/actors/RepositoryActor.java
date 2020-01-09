@@ -164,10 +164,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				t.getServerPort(), t.getContextPath(), t.getServletPath(), repo.getId()).toString();
 		String rootUrl = HttpUtils.compileRootUrl(t.getBaseUrl(), t.getScheme(), t.getServerName(), t.getServerPort(),
 				t.getContextPath(), t.getServletPath(), repo.getId()).toString();
-		logger.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", t.getServerName(),
+		LOG.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", t.getServerName(),
 				t.getContextPath(), t.getBaseUrl(), t.getServletPath(), t.getScheme());
 		JSONObject result = new JSONObject();
-		logger.error("RepositoryUrl : {} ", repositoryUrl);
+		LOG.error("RepositoryUrl : {} ", repositoryUrl);
 		result.put(repo.getId(), JSONConverter.convert(repo, repositoryUrl, rootUrl, true));
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
@@ -216,7 +216,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
 			String rootUrl = HttpUtils.compileRootUrl(request.getBaseUrl(), scheme, serverName, port,
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
-
+			LOG.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", request.getServerName(),
+					request.getContextPath(), request.getBaseUrl(), request.getServletPath(), request.getScheme());
+			LOG.error("RepositoryUrl : {} ", repositoryUrl);
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
