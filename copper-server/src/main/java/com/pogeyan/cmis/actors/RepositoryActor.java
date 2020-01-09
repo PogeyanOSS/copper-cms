@@ -202,17 +202,20 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
 		logger.error("Headers : {} ",request.getHeaders());
+		logger.error(" Reverse_Proxy: {} ",System.getenv("Reverse_Proxy"));
+		if(System.getenv("Reverse_Proxy").equals("true")) {
 		String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
 				? headers.get(PROTO_HEADER)
 				: request.getScheme();
 		String serverName = headers.containsKey(HOST_HEADER) && headers.get(HOST_HEADER) != null
 				? headers.get(HOST_HEADER)
-				: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? request.getServerName()
+				: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 						: request.getServerName();
 		LOG.error("ServerName : {} ", serverName);
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
-				? request.getServerPort()
+				? Integer.parseInt(headers.get(PORT_HEADER))
 				: request.getServerPort();
+		
 		for (RepositoryInfo ri : infoDataList) {
 			String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
@@ -223,7 +226,18 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			LOG.error(" Before api RepositoryUrl : {} rootUrl: {} ", repositoryUrl, rootUrl);
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+		}else {
+			for (RepositoryInfo ri : infoDataList) {
+				String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(), request.getServerPort(),
+						request.getContextPath(), request.getServletPath(), ri.getId()).toString();
+				String rootUrl = HttpUtils.compileRootUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(), request.getServerPort(),
+						request.getContextPath(), request.getServletPath(), ri.getId()).toString();
+				LOG.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", request.getServerName(),
+						request.getContextPath(), request.getBaseUrl(), request.getServletPath(), request.getScheme());
+				LOG.error(" Before api RepositoryUrl : {} rootUrl: {} ", repositoryUrl, rootUrl);
+				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
+			}
+		}
 		LOG.error("result : {} ", result);
 		return result;
 
