@@ -204,6 +204,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		logger.error("Headers : {} ",request.getHeaders());
 		logger.error(" Reverse_Proxy: {} ",System.getenv("Reverse_Proxy"));
 		if(System.getenv("Reverse_Proxy").equals("true")) {
+		logger.error("Reverse_Proxy Enabled : {} ");
 		String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
 				? headers.get(PROTO_HEADER)
 				: request.getScheme();
