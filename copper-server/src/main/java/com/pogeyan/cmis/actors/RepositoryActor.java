@@ -231,6 +231,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 			}
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
 
 	}
