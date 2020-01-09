@@ -209,6 +209,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				? headers.get(HOST_HEADER)
 				: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 						: request.getServerName();
+		LOG.error("ServerName : {} ", serverName);
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
 				? Integer.parseInt(headers.get(PORT_HEADER))
 				: request.getServerPort();
@@ -220,9 +221,6 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			LOG.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", request.getServerName(),
 					request.getContextPath(), request.getBaseUrl(), request.getServletPath(), request.getScheme());
 			LOG.error(" Before api RepositoryUrl : {} rootUrl: {} ", repositoryUrl, rootUrl);
-		
-			
-			LOG.error("After api RepositoryUrl : {} rootUrl: {} ", repositoryUrl, rootUrl);
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
