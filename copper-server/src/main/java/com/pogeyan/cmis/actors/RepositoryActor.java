@@ -201,6 +201,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
+		logger.error("Headers : {} ",request.getHeaders());
 		String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
 				? headers.get(PROTO_HEADER)
 				: request.getScheme();
