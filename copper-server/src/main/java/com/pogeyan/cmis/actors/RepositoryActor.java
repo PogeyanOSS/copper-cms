@@ -207,7 +207,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				: request.getScheme();
 		String serverName = headers.containsKey(HOST_HEADER) && headers.get(HOST_HEADER) != null
 				? headers.get(HOST_HEADER)
-				: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
+				: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? request.getServerName()
 						: request.getServerName();
 		LOG.error("ServerName : {} ", serverName);
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
