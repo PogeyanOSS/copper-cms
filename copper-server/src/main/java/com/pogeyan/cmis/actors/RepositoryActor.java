@@ -164,8 +164,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				t.getServerPort(), t.getContextPath(), t.getServletPath(), repo.getId()).toString();
 		String rootUrl = HttpUtils.compileRootUrl(t.getBaseUrl(), t.getScheme(), t.getServerName(), t.getServerPort(),
 				t.getContextPath(), t.getServletPath(), repo.getId()).toString();
-
+		logger.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", t.getServerName(),
+				t.getContextPath(), t.getBaseUrl(), t.getServletPath(), t.getScheme());
 		JSONObject result = new JSONObject();
+		logger.error("RepositoryUrl : {} ", repositoryUrl);
 		result.put(repo.getId(), JSONConverter.convert(repo, repositoryUrl, rootUrl, true));
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
