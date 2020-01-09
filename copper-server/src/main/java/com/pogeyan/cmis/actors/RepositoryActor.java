@@ -219,7 +219,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			LOG.error("Server name : {} and ContextPath : {} and BaseUrl : {} and  ServletPath : {} and Scheme : {}", request.getServerName(),
 					request.getContextPath(), request.getBaseUrl(), request.getServletPath(), request.getScheme());
 			LOG.error(" Before api RepositoryUrl : {} rootUrl: {} ", repositoryUrl, rootUrl);
-			repositoryUrl = request.getServerName();
+		
 			
 			LOG.error("After api RepositoryUrl : {} rootUrl: {} ", repositoryUrl, rootUrl);
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
