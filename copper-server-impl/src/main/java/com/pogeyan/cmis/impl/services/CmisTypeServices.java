@@ -200,21 +200,22 @@ public class CmisTypeServices {
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
-					BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true, true, type, cmisRelationExt, null,
-					null);
+					BaseTypeId.CMIS_ITEM, BaseTypeId.CMIS_ITEM.value(), true, true, true, true, true, true, true, type,
+					cmisRelationExt, null, null);
 
 			Map<String, PropertyDefinitionImpl<?>> cmisRelationMd = getRelationShipPropertyExt();
 			TypeDefinition cmisRelationMdObject = typeManagerDAO.createObjectFacade(
 					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_RELATIONSHIP.value(),
 					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_RELATIONSHIP.value(),
-					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), "Relationship", BaseTypeId.CMIS_RELATIONSHIP, null,
-					true, false, true, true, true, true, true, type, cmisRelationMd, null, null);
+					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), "Relationship", BaseTypeId.CMIS_RELATIONSHIP,
+					BaseTypeId.CMIS_RELATIONSHIP.value(), true, false, true, true, true, true, true, type,
+					cmisRelationMd, null, null);
 			Map<String, PropertyDefinitionImpl<?>> cmisExtConfig = getConfigExt();
 			TypeDefinition cmisExtConfigObject = typeManagerDAO.createObjectFacade(CustomTypeId.CMIS_EXT_CONFIG.value(),
 					CustomTypeId.CMIS_EXT_CONFIG.value(), CustomTypeId.CMIS_EXT_CONFIG.value(),
 					CustomTypeId.CMIS_EXT_CONFIG.value(), CustomTypeId.CMIS_EXT_CONFIG.value(),
-					CustomTypeId.CMIS_EXT_CONFIG.value(), BaseTypeId.CMIS_ITEM, null, true, true, true, true, true,
-					true, true, type, cmisExtConfig, null, null);
+					CustomTypeId.CMIS_EXT_CONFIG.value(), BaseTypeId.CMIS_ITEM, BaseTypeId.CMIS_ITEM.value(), true,
+					true, true, true, true, true, true, type, cmisExtConfig, null, null);
 
 			typeList.add(folderType);
 			typeList.add(documentType);
@@ -515,7 +516,7 @@ public class CmisTypeServices {
 			Map<String, PropertyDefinitionImpl<?>> list = getBaseProperty();
 			PropertyDefinitionImpl<?> configDetails = new PropertyDefinitionImpl("configDetails", "localName",
 					"localNameSpace", "configDetails", "configDetails", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("configDetails", configDetails);
 			return list;
 		}
@@ -1094,7 +1095,13 @@ public class CmisTypeServices {
 					listProperty = Stream.of(ownPropertyDefinition, parentPropertyDefinition)
 							.flatMap(m -> m.entrySet().stream())
 							.collect(Collectors.toMap(Entry::getKey, Entry::getValue, (u, v) -> {
-								throw new IllegalStateException(String.format("Duplicate key %s", u));
+								if (!(typeDefinition.getId().equals(CustomTypeId.CMIS_EXT_RELATIONMD.value())
+										|| typeDefinition.getId().equals(CustomTypeId.CMIS_EXT_CONFIG.value())
+										|| typeDefinition.getId().equals(CustomTypeId.CMIS_EXT_RELATIONSHIP.value()))) {
+									throw new IllegalStateException(String.format("Duplicate key %s", u));
+								} else {
+									return u;
+								}
 							}, LinkedHashMap::new));
 				}
 
@@ -1200,8 +1207,10 @@ public class CmisTypeServices {
 					result.setNumItems(BigInteger.valueOf(childrenList.size()));
 					result.setHasMoreItems(childrenList.size() > maxItems - skipCount);
 					List<TypeDefinition> resultTypes = childrenList.stream()
-							.filter(t -> typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-									userObject.getGroups() == null ? null : userObject, t.getId()) : true)
+							.filter(t -> typePermissionFlow != null
+									? typePermissionFlow.checkTypeAccess(repositoryId,
+											userObject.getGroups() == null ? null : userObject, t.getId())
+									: true)
 							.map(t -> getPropertyIncludeObject(repositoryId, t, includePropertyDefinitions,
 									typePermissionFlow, userObject))
 							.collect(Collectors.<TypeDefinition>toList());
@@ -1255,6 +1264,7 @@ public class CmisTypeServices {
 						resultTypes.add(getPropertyIncludeObject(repositoryId, secondaryType.get(0),
 								includePropertyDefinitions, typePermissionFlow, userObject));
 					}
+
 					result.setNumItems(BigInteger.valueOf(resultTypes.size()));
 					result.setHasMoreItems(true);
 					result.setList(resultTypes);
@@ -1387,8 +1397,10 @@ public class CmisTypeServices {
 					depth, -1);
 			for (TypeDefinition child : childrenList) {
 				if (child.getId() != null) {
-					if (typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-							userObject.getGroups() != null ? userObject : null, child.getId()) : true) {
+					if (typePermissionFlow != null
+							? typePermissionFlow.checkTypeAccess(repositoryId,
+									userObject.getGroups() != null ? userObject : null, child.getId())
+							: true) {
 						childTypes = getTypeDesChildrens(repositoryId, child, innerChild, depth,
 								includePropertyDefinitions, typePermissionFlow, userObject);
 					}
@@ -1413,6 +1425,7 @@ public class CmisTypeServices {
 					repositoryId, userObject, BaseTypeId.CMIS_RELATIONSHIP.value());
 			List<? extends TypeDefinition> item = getTypeDefinitionWithTypePermission(typePermissionFlow, repositoryId,
 					userObject, BaseTypeId.CMIS_ITEM.value());
+
 			List<? extends TypeDefinition> secondary = getTypeDefinitionWithTypePermission(typePermissionFlow,
 					repositoryId, userObject, BaseTypeId.CMIS_SECONDARY.value());
 			if (folder != null) {
@@ -1497,8 +1510,10 @@ public class CmisTypeServices {
 			} else {
 				for (TypeDefinition childType : childrenList) {
 					if (childType != null) {
-						if (typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-								userObject.getGroups() != null ? userObject : null, childType.getId()) : true) {
+						if (typePermissionFlow != null
+								? typePermissionFlow.checkTypeAccess(repositoryId,
+										userObject.getGroups() != null ? userObject : null, childType.getId())
+								: true) {
 							List<TypeDefinitionContainer> TypeChild = new ArrayList<>();
 							TypeChild.clear();
 							TypeDefinitionContainerImpl typeInnerDefinitionContainer = getInnerTypeDefinitionContainerImpl(
@@ -1880,8 +1895,9 @@ public class CmisTypeServices {
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
 					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty,
-					type.isVersionable() == null ? false : type.isVersionable(), type.getContentStreamAllowed() == null
-							? ContentStreamAllowed.NOTALLOWED : type.getContentStreamAllowed());
+					type.isVersionable() == null ? false : type.isVersionable(),
+					type.getContentStreamAllowed() == null ? ContentStreamAllowed.NOTALLOWED
+							: type.getContentStreamAllowed());
 			return newType;
 		}
 
