@@ -146,7 +146,6 @@ public final class HttpUtils {
 						+ baseUrl.substring(repIdPos + REPOSITORY_PLACEHOLDER.length()));
 			}
 		}
-
 		UrlBuilder url = new UrlBuilder(scheme, serverName, serverPort, null);
 		url.addPath(contextPath);
 		url.addPath(servletPath);

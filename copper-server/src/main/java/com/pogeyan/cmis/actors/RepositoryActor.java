@@ -164,8 +164,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				t.getServerPort(), t.getContextPath(), t.getServletPath(), repo.getId()).toString();
 		String rootUrl = HttpUtils.compileRootUrl(t.getBaseUrl(), t.getScheme(), t.getServerName(), t.getServerPort(),
 				t.getContextPath(), t.getServletPath(), repo.getId()).toString();
-
+		LOG.info("Server name: {}, ContextPath: {}, BaseUrl: {},  ServletPath: {}, Scheme: {}", t.getServerName(),
+				t.getContextPath(), t.getBaseUrl(), t.getServletPath(), t.getScheme());
 		JSONObject result = new JSONObject();
+		LOG.info("RepositoryUrl: {} ", repositoryUrl);
 		result.put(repo.getId(), JSONConverter.convert(repo, repositoryUrl, rootUrl, true));
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
@@ -199,27 +201,42 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
-		String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
-				? headers.get(PROTO_HEADER)
-				: request.getScheme();
-		String serverName = headers.containsKey(HOST_HEADER) && headers.get(HOST_HEADER) != null
-				? headers.get(HOST_HEADER)
-				: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
-						: request.getServerName();
-		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
-				? Integer.parseInt(headers.get(PORT_HEADER))
-				: request.getServerPort();
-		for (RepositoryInfo ri : infoDataList) {
-			String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
-					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
-			String rootUrl = HttpUtils.compileRootUrl(request.getBaseUrl(), scheme, serverName, port,
-					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
+		String reverProxyEnv = System.getenv("REVERSE_PROXY");
+		if (reverProxyEnv != null && reverProxyEnv.equals("true")) {
+			LOG.info("REVERSE_PROXY Enabled : {} ", reverProxyEnv);
+			String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
+					? headers.get(PROTO_HEADER)
+					: request.getScheme();
+			String serverName = headers.containsKey(HOST_HEADER) && headers.get(HOST_HEADER) != null
+					? headers.get(HOST_HEADER)
+					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
+							: request.getServerName();
+			int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
+					? Integer.parseInt(headers.get(PORT_HEADER))
+					: request.getServerPort();
 
-			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
+			for (RepositoryInfo ri : infoDataList) {
+				String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
+						request.getContextPath(), request.getServletPath(), ri.getId()).toString();
+				String rootUrl = HttpUtils.compileRootUrl(request.getBaseUrl(), scheme, serverName, port,
+						request.getContextPath(), request.getServletPath(), ri.getId()).toString();
+				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
+			}
+		} else {
+			for (RepositoryInfo ri : infoDataList) {
+				String repositoryUrl = HttpUtils
+						.compileRepositoryUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
+								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+						.toString();
+				String rootUrl = HttpUtils
+						.compileRootUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
+								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+						.toString();
+				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
+			}
 		}
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
-
 	}
 
 	private JSONObject getTypeDefinition(QueryGetRequest request, HashMap<String, Object> baggage)
