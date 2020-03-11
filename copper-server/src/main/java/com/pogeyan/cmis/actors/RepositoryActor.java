@@ -203,10 +203,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		Map<String, String> headers = request.getHeaders();
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
 		if (reverProxyEnv != null && reverProxyEnv.equals("true")) {
-			LOG.info("REVERSE_PROXY Enabled : {} ", reverProxyEnv);
-			String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
-					? headers.get(PROTO_HEADER)
-					: request.getScheme();
+			String scheme = System.getenv("FORCE_SCHEME_HTTPS").equals("true") ? "https" : request.getScheme();
 			String serverName = headers.containsKey(HOST_HEADER) && headers.get(HOST_HEADER) != null
 					? headers.get(HOST_HEADER)
 					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
@@ -224,16 +221,13 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			}
 		} else {
 			for (RepositoryInfo ri : infoDataList) {
-				String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
-						? headers.get(PROTO_HEADER)
-						: request.getScheme();
+				String scheme = System.getenv("FORCE_SCHEME_HTTPS").equals("true") ? "https" : request.getScheme();
 				String repositoryUrl = HttpUtils
 						.compileRepositoryUrl(request.getBaseUrl(), scheme, request.getServerName(),
 								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
 						.toString();
-				String rootUrl = HttpUtils
-						.compileRootUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
-								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+				String rootUrl = HttpUtils.compileRootUrl(request.getBaseUrl(), scheme, request.getServerName(),
+						request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
 						.toString();
 				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 			}
