@@ -224,8 +224,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			}
 		} else {
 			for (RepositoryInfo ri : infoDataList) {
+				String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
+						? headers.get(PROTO_HEADER)
+						: request.getScheme();
 				String repositoryUrl = HttpUtils
-						.compileRepositoryUrl(request.getBaseUrl(), request.getScheme(), request.getServerName(),
+						.compileRepositoryUrl(request.getBaseUrl(), scheme, request.getServerName(),
 								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
 						.toString();
 				String rootUrl = HttpUtils
