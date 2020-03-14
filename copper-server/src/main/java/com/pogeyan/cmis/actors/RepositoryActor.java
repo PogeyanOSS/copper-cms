@@ -202,6 +202,9 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
+		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
+						? Integer.parseInt(headers.get(PORT_HEADER))
+						: request.getServerPort();
 		if (reverProxyEnv != null && reverProxyEnv.equals("true")) {
 			String scheme = headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null
 					? headers.get(PROTO_HEADER)
@@ -210,10 +213,6 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					? headers.get(HOST_HEADER)
 					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 							: request.getServerName();
-			int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
-					? Integer.parseInt(headers.get(PORT_HEADER))
-					: request.getServerPort();
-
 			for (RepositoryInfo ri : infoDataList) {
 				String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
 						request.getContextPath(), request.getServletPath(), ri.getId()).toString();
@@ -226,11 +225,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				String scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true") ? "https" : request.getScheme();
 				String repositoryUrl = HttpUtils
 						.compileRepositoryUrl(request.getBaseUrl(), scheme, request.getServerName(),
-								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+								port, request.getContextPath(), request.getServletPath(), ri.getId())
 						.toString();
 				String rootUrl = HttpUtils
 						.compileRootUrl(request.getBaseUrl(), scheme, request.getServerName(),
-								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+								port, request.getContextPath(), request.getServletPath(), ri.getId())
 						.toString();
 				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 			}
