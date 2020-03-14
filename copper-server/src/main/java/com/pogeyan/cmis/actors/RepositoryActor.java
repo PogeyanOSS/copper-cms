@@ -224,13 +224,14 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		} else {
 			for (RepositoryInfo ri : infoDataList) {
 				String scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true") ? "https" : request.getScheme();
+				int port = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true") ? 443 : request.getServerPort();
 				String repositoryUrl = HttpUtils
 						.compileRepositoryUrl(request.getBaseUrl(), scheme, request.getServerName(),
-								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+								port, request.getContextPath(), request.getServletPath(), ri.getId())
 						.toString();
 				String rootUrl = HttpUtils
 						.compileRootUrl(request.getBaseUrl(), scheme, request.getServerName(),
-								request.getServerPort(), request.getContextPath(), request.getServletPath(), ri.getId())
+								port, request.getContextPath(), request.getServletPath(), ri.getId())
 						.toString();
 				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 			}
