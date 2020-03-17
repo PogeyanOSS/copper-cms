@@ -221,8 +221,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 			}
 		} else {
+			String scheme = System.getenv("FORCE_SCHEME_HTTPS") != null
+					&& System.getenv("FORCE_SCHEME_HTTPS").equals("true")
+					&& !request.getServerName().equals("localhost") ? "https" : request.getScheme();
 			for (RepositoryInfo ri : infoDataList) {
-				String scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true") && request.getServerName() != "localhost" ? "https" : request.getScheme();
 				String repositoryUrl = HttpUtils
 						.compileRepositoryUrl(request.getBaseUrl(), scheme, request.getServerName(),
 								port, request.getContextPath(), request.getServletPath(), ri.getId())
