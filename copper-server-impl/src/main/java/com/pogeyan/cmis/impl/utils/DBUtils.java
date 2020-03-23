@@ -97,6 +97,9 @@ public class DBUtils {
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.NAME, name);
+					if (typeId != null) {
+						put(Variables.PATH, "/" + typeId);
+					}
 					if (parentId != null) {
 						put(Variables.PARENTID, parentId);
 					}
