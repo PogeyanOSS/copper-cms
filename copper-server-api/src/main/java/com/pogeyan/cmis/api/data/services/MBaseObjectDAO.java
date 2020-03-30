@@ -32,7 +32,7 @@ public interface MBaseObjectDAO {
 	 * Remove MBaseObject values depending on object
 	 */
 	public void delete(String repositoryId, String[] principalIds, String objectId, boolean forceDelete,
-			TokenImpl token, String typeId);
+			boolean aclPropagation, TokenImpl token, String typeId);
 
 	/**
 	 * Update Folder type objectIds for an object.

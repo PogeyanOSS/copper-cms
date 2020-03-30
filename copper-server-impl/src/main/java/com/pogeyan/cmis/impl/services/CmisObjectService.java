@@ -1720,7 +1720,7 @@ public class CmisObjectService {
 						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
 					}
 				} catch (IOException e) {
-					objectMorphiaDAO.delete(repositoryId, principalIds, folderId, true, null, typeId);
+					objectMorphiaDAO.delete(repositoryId, principalIds, folderId, aclPropagation, true, null, typeId);
 					LOG.error(
 							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}, TraceId: {}",
 							"cmisObjectService", "createFolderIntern", repositoryId, e,
@@ -4066,7 +4066,7 @@ public class CmisObjectService {
 				IStorageService localService = StorageServiceFactory.createStorageService(parameters);
 
 				deleteObjectChildrens(repositoryId, data, baseMorphiaDAO, docMorphiaDAO, navigationMorphiaDAO,
-						localService, userObject, allVersions, forceDelete, typeId, tracingId, span);
+						localService, userObject, allVersions, forceDelete, aclPropagation, typeId, tracingId, span);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			} else {
 				LOG.error("Delete type permission denied for this user: {}, repository: {}, TraceId: {}",
@@ -4087,7 +4087,7 @@ public class CmisObjectService {
 		public static void deleteObjectChildrens(String repositoryId, IBaseObject data, MBaseObjectDAO baseMorphiaDAO,
 				MDocumentObjectDAO docMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO,
 				IStorageService localService, IUserObject userObject, Boolean allVersions, Boolean forceDelete,
-				String typeId, String tracingId, ISpan parentSpan) {
+				boolean aclPropagation, String typeId, String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::deleteObjectChildrens", null);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
@@ -4131,11 +4131,11 @@ public class CmisObjectService {
 						invokeObjectFlowServiceAfterCreate(doc, ObjectFlowType.DELETED, null);
 					}
 					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(),
-							forceDelete == null ? false : forceDelete, token, typeId);
+							forceDelete == null ? false : forceDelete, aclPropagation, token, typeId);
 				}
 				localService.deleteFolder(data.getPath());
 				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
-						forceDelete == null ? false : forceDelete, token, typeId);
+						forceDelete == null ? false : forceDelete, aclPropagation, token, typeId);
 
 				LOG.info("ObjectId: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 
@@ -4160,7 +4160,7 @@ public class CmisObjectService {
 						}
 					}
 					baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
-							forceDelete == null ? false : forceDelete, token, typeId);
+							forceDelete == null ? false : forceDelete, aclPropagation, token, typeId);
 					LOG.info("Object: {}, with baseType:{} is deleted", data.getId(), data.getBaseId());
 				}
 			} else if (data.getBaseId() == BaseTypeId.CMIS_DOCUMENT && allVersions == true) {
@@ -4181,14 +4181,14 @@ public class CmisObjectService {
 						}
 					}
 					baseMorphiaDAO.delete(repositoryId, principalIds, document.getId(),
-							forceDelete == null ? false : forceDelete, token, typeId);
+							forceDelete == null ? false : forceDelete, aclPropagation, token, typeId);
 					LOG.info("Object: {}, with baseType: {}, document: {} deleted", data.getId(), data.getBaseId(),
 							document.getId());
 
 				}
 			} else {
 				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
-						forceDelete == null ? false : forceDelete, token, typeId);
+						forceDelete == null ? false : forceDelete, aclPropagation, token, typeId);
 				invokeObjectFlowServiceAfterCreate(data, ObjectFlowType.DELETED, null);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
@@ -4307,7 +4307,7 @@ public class CmisObjectService {
 				// TODO: optimize here
 				for (IBaseObject child : children) {
 					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(),
-							forceDelete == null ? false : forceDelete, token, child.getTypeId());
+							forceDelete == null ? false : forceDelete, aclPropagation, token, child.getTypeId());
 					IBaseObject childCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation,
 							child.getId(), null, child.getTypeId());
 					if (childCheck != null) {
@@ -4319,7 +4319,7 @@ public class CmisObjectService {
 				// MongoStorageDocument.createStorageService(parameters);
 				// localService.deleteFolder(data.getPath());
 				baseMorphiaDAO.delete(repositoryId, principalIds, folderId, forceDelete == null ? false : forceDelete,
-						token, data.getTypeId());
+						aclPropagation, token, data.getTypeId());
 				IBaseObject parentCheck = DBUtils.BaseDAO.getByObjectId(repositoryId, null, false, folderId, null,
 						data.getTypeId());
 				if (parentCheck != null) {
