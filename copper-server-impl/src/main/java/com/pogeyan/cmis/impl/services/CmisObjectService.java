@@ -3489,8 +3489,8 @@ public class CmisObjectService {
 						}
 
 						updateChildPath(repositoryId, data.getName(), customData.getFirstValue().toString(), id,
-								baseMorphiaDAO, navigationMorphiaDAO, userObject, data.getInternalPath(), data.getAcl(),
-								data.getTypeId(), tracingId, span);
+								baseMorphiaDAO, navigationMorphiaDAO, localService, userObject, data.getInternalPath(),
+								data.getAcl(), data.getTypeId(), tracingId, span);
 					}
 				}
 
@@ -3637,8 +3637,9 @@ public class CmisObjectService {
 		}
 
 		private static void updateChildPath(String repositoryId, String oldName, String newName, String id,
-				MBaseObjectDAO baseMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO, IUserObject userObject,
-				String dataPath, AccessControlListImplExt dataAcl, String typeId, String tracingId, ISpan parentSpan) {
+				MBaseObjectDAO baseMorphiaDAO, MNavigationServiceDAO navigationMorphiaDAO, IStorageService localService,
+				IUserObject userObject, String dataPath, AccessControlListImplExt dataAcl, String typeId,
+				String tracingId, ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::updateChildPath", null);
 			if (id != null) {
@@ -3651,6 +3652,20 @@ public class CmisObjectService {
 				for (IBaseObject child : children) {
 					Map<String, Object> updatePath = new HashMap<>();
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
+					try {
+						localService.rename(child.getPath(), gettingFolderPath(child.getPath(), newName, oldName));
+					} catch (Exception e) {
+						LOG.error("updateProperties folder rename exception: {}, repositoryId: {}, TraceId: {}", e,
+								repositoryId, span != null ? span.getTraceId() : null);
+						TracingApiServiceFactory.getApiService().updateSpan(span,
+								TracingErrorMessage.message(
+										TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span),
+										ErrorMessages.ILLEGAL_EXCEPTION, repositoryId, true));
+						TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
+						throw new IllegalArgumentException(
+								TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span));
+					}
+
 					baseMorphiaDAO.update(repositoryId, child.getId(), updatePath, typeId);
 					invokeObjectFlowServiceAfterCreate(child, ObjectFlowType.UPDATED, null);
 				}
