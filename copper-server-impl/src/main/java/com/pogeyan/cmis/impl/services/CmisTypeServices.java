@@ -813,6 +813,9 @@ public class CmisTypeServices {
 			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId, userObject, type,
 					EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
+			String systemAdmin = System.getenv("SYSTEM_ADMIN");
+			boolean aclPropagation = Stream.of(userObject.getGroups())
+					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			if (permission) {
 				TypeDefinition object = null;
 
@@ -847,7 +850,8 @@ public class CmisTypeServices {
 				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, true, "/" + type,
 						type);
 				if (folderObject != null) {
-					baseMorphiaDAO.delete(repositoryId, principalIds, folderObject.getId(), true, null, type);
+					baseMorphiaDAO.delete(repositoryId, principalIds, folderObject.getId(), aclPropagation, true, null,
+							type);
 				}
 				typeManagerDAO.delete(type);
 				CacheProviderServiceFactory.getTypeCacheServiceProvider().remove(repositoryId, type);
@@ -1200,8 +1204,10 @@ public class CmisTypeServices {
 					result.setNumItems(BigInteger.valueOf(childrenList.size()));
 					result.setHasMoreItems(childrenList.size() > maxItems - skipCount);
 					List<TypeDefinition> resultTypes = childrenList.stream()
-							.filter(t -> typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-									userObject.getGroups() == null ? null : userObject, t.getId()) : true)
+							.filter(t -> typePermissionFlow != null
+									? typePermissionFlow.checkTypeAccess(repositoryId,
+											userObject.getGroups() == null ? null : userObject, t.getId())
+									: true)
 							.map(t -> getPropertyIncludeObject(repositoryId, t, includePropertyDefinitions,
 									typePermissionFlow, userObject))
 							.collect(Collectors.<TypeDefinition>toList());
@@ -1387,8 +1393,10 @@ public class CmisTypeServices {
 					depth, -1);
 			for (TypeDefinition child : childrenList) {
 				if (child.getId() != null) {
-					if (typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-							userObject.getGroups() != null ? userObject : null, child.getId()) : true) {
+					if (typePermissionFlow != null
+							? typePermissionFlow.checkTypeAccess(repositoryId,
+									userObject.getGroups() != null ? userObject : null, child.getId())
+							: true) {
 						childTypes = getTypeDesChildrens(repositoryId, child, innerChild, depth,
 								includePropertyDefinitions, typePermissionFlow, userObject);
 					}
@@ -1497,8 +1505,10 @@ public class CmisTypeServices {
 			} else {
 				for (TypeDefinition childType : childrenList) {
 					if (childType != null) {
-						if (typePermissionFlow != null ? typePermissionFlow.checkTypeAccess(repositoryId,
-								userObject.getGroups() != null ? userObject : null, childType.getId()) : true) {
+						if (typePermissionFlow != null
+								? typePermissionFlow.checkTypeAccess(repositoryId,
+										userObject.getGroups() != null ? userObject : null, childType.getId())
+								: true) {
 							List<TypeDefinitionContainer> TypeChild = new ArrayList<>();
 							TypeChild.clear();
 							TypeDefinitionContainerImpl typeInnerDefinitionContainer = getInnerTypeDefinitionContainerImpl(
@@ -1880,8 +1890,9 @@ public class CmisTypeServices {
 					type.isFulltextIndexed() == null ? false : type.isFulltextIndexed(),
 					type.isIncludedInSupertypeQuery() == null ? false : type.isIncludedInSupertypeQuery(),
 					type.isControllablePolicy(), type.isControllableAcl(), typeMutability, Mproperty,
-					type.isVersionable() == null ? false : type.isVersionable(), type.getContentStreamAllowed() == null
-							? ContentStreamAllowed.NOTALLOWED : type.getContentStreamAllowed());
+					type.isVersionable() == null ? false : type.isVersionable(),
+					type.getContentStreamAllowed() == null ? ContentStreamAllowed.NOTALLOWED
+							: type.getContentStreamAllowed());
 			return newType;
 		}
 
