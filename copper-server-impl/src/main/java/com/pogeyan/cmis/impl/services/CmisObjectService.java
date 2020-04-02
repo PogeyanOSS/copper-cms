@@ -1720,7 +1720,7 @@ public class CmisObjectService {
 						LOG.info("Folder: {} created ", result != null ? result.getName() : null);
 					}
 				} catch (IOException e) {
-					objectMorphiaDAO.delete(repositoryId, principalIds, folderId, aclPropagation, true, null, typeId);
+					objectMorphiaDAO.delete(repositoryId, principalIds, folderId, true, aclPropagation, null, typeId);
 					LOG.error(
 							"className: {}, methodName: {}, repositoryId: {}, createFolderIntern folder creation exception: {}, TraceId: {}",
 							"cmisObjectService", "createFolderIntern", repositoryId, e,

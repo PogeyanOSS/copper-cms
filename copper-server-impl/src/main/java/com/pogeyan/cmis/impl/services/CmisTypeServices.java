@@ -69,6 +69,8 @@ import com.pogeyan.cmis.api.data.common.CmisSecondaryTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.ItemTypeDefinitionImpl;
 import com.pogeyan.cmis.api.data.common.PermissionType;
 import com.pogeyan.cmis.api.data.common.PropertyDefinitionImpl;
+import com.pogeyan.cmis.api.data.common.TokenChangeType;
+import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.common.TypeMutabilityImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
@@ -849,8 +851,9 @@ public class CmisTypeServices {
 				// localService.deleteFolder(parameters, repositoryId, type);
 				IBaseObject folderObject = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, true, "/" + type,
 						type);
+				TokenImpl token = new TokenImpl(TokenChangeType.DELETED, System.currentTimeMillis());
 				if (folderObject != null) {
-					baseMorphiaDAO.delete(repositoryId, principalIds, folderObject.getId(), aclPropagation, true, null,
+					baseMorphiaDAO.delete(repositoryId, principalIds, folderObject.getId(), true, aclPropagation, token,
 							type);
 				}
 				typeManagerDAO.delete(type);
