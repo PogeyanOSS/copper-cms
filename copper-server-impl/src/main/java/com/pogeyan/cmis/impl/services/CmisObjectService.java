@@ -3698,11 +3698,7 @@ public class CmisObjectService {
 			for (String folderName : folderNames) {
 				if (!folderName.isEmpty()) {
 					if (folderName.equals(oldName)) {
-						if (i == 0) {
-							folderNames[i] = newName.toString();
-						} else {
-							folderNames[i] = folderName;
-						}
+						folderNames[i] = newName.toString();
 					}
 				}
 				i++;
