@@ -100,11 +100,9 @@ public class DBUtils {
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.NAME, name);
-					
 					if (parentId != null) {
 						put(Variables.PARENTID, parentId);
 					}
-
 				}
 			};
 			List<? extends IBaseObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation,
