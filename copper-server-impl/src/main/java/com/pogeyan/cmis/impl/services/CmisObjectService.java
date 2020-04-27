@@ -3651,9 +3651,11 @@ public class CmisObjectService {
 			if (children.size() > 0) {
 				for (IBaseObject child : children) {
 					Map<String, Object> updatePath = new HashMap<>();
-					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName));
+					String[] internalPath = child.getInternalPath().split(",");
+					int folderpathId = getUpdateFolderPathId(internalPath, id);
+					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName, folderpathId));
 					try {
-						localService.rename(child.getPath(), gettingFolderPath(child.getPath(), newName, oldName));
+						localService.rename(child.getPath(), gettingFolderPath(child.getPath(), newName, oldName, folderpathId));
 					} catch (Exception e) {
 						LOG.error("updateProperties folder rename exception: {}, repositoryId: {}, TraceId: {}", e,
 								repositoryId, span != null ? span.getTraceId() : null);
@@ -3691,14 +3693,16 @@ public class CmisObjectService {
 
 		}
 
-		private static String gettingFolderPath(String path, Object newName, String oldName) {
+		private static String gettingFolderPath(String path, Object newName, String oldName, int folderpathId) {
 			String[] folderNames = path.split("/");
 			int i = 0;
 			String root = null;
 			for (String folderName : folderNames) {
 				if (!folderName.isEmpty()) {
 					if (folderName.equals(oldName)) {
-						folderNames[i] = newName.toString();
+						if (i == folderpathId) {
+							folderNames[i] = newName.toString();
+						}
 					}
 				}
 				i++;
@@ -5622,5 +5626,14 @@ public class CmisObjectService {
 				}
 			}
 		}
+	}
+
+	public static int getUpdateFolderPathId(String[] internalPath, String id) {
+		for (int i = 1; i < internalPath.length; i++) {
+			if (internalPath[i].equals(id)) {
+				return i-1;
+			}
+		}
+		return 0;
 	}
 }
