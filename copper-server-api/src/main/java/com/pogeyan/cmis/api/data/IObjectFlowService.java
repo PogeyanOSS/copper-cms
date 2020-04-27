@@ -11,18 +11,20 @@ import org.apache.chemistry.opencmis.commons.data.Properties;
 import com.pogeyan.cmis.api.auth.IUserObject;
 
 public interface IObjectFlowService {
+
 	public void setObjectFlowStoreSettings(IObjectFlowStoreSetting dbSettings) throws InvalidTargetObjectTypeException;
 
 	public boolean beforeCreation(String repositoryId, String objectId, Properties properties, List<String> policies,
 			Acl addAces, Acl removeAces, IUserObject userObject);
 
-	public boolean beforeUpdate(String repositoryId, String objectId, Properties properties, Acl acl, String userName);
+	public boolean beforeUpdate(String repositoryId, String objectId, Properties properties, Acl acl,
+			IUserObject userObject);
 
-	public boolean beforeDeletion(String repositoryId, String objectId, boolean allVers, String userName);
+	public boolean beforeDeletion(String repositoryId, String objectId, boolean allVers, IUserObject userObject);
 
-	public void afterCreation(IBaseObject resultData);
+	public void afterCreation(IBaseObject resultData, IUserObject userObject);
 
-	public void afterUpdate(IBaseObject resultData, Map<String, Object> updateValues);
+	public void afterUpdate(IBaseObject resultData, Map<String, Object> updateValues, IUserObject userObject);
 
-	public void afterDeletion(IBaseObject resultData);
+	public void afterDeletion(IBaseObject resultData, IUserObject userObject);
 }

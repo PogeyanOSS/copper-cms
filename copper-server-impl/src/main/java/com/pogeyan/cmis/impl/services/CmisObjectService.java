@@ -1734,7 +1734,7 @@ public class CmisObjectService {
 							TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e), span));
 				}
 			}
-			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null);
+			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null, userObject);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
@@ -2184,7 +2184,7 @@ public class CmisObjectService {
 				}
 			}
 
-			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null);
+			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null, userObject);
 
 			GregorianCalendar creationDateCalender = new GregorianCalendar();
 			creationDateCalender.setTimeInMillis(result.getCreatedAt());
@@ -2488,7 +2488,7 @@ public class CmisObjectService {
 								TracingWriter.log(String.format(ErrorMessages.EXCEPTION, ex), span));
 					}
 				}
-				invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null);
+				invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null, userObject);
 				GregorianCalendar creationDateCalender = new GregorianCalendar();
 				creationDateCalender.setTimeInMillis(result.getCreatedAt());
 				// set creation date
@@ -2650,7 +2650,7 @@ public class CmisObjectService {
 			IBaseObject result = createItemObject(repositoryId, parent, objectId, itemName, userObject,
 					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove, tracingId,
 					span);
-			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null);
+			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null, userObject);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
@@ -2972,7 +2972,7 @@ public class CmisObjectService {
 
 			IBaseObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
 					propMapNew, userObject, typeDef.getId(), policies, aclAdd, tracingId, span);
-			invokeObjectFlowServiceAfterCreate(storedObject, ObjectFlowType.CREATED, null);
+			invokeObjectFlowServiceAfterCreate(storedObject, ObjectFlowType.CREATED, null, userObject);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return storedObject;
 		}
@@ -3298,7 +3298,7 @@ public class CmisObjectService {
 			IBaseObject result = createPolicyObject(repositoryId, parent, objectId, policyName, userObject,
 					secondaryObjectTypeIds, typeId, props.getProperties(), policies, aclAdd, aclRemove, tracingId,
 					span);
-			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null);
+			invokeObjectFlowServiceAfterCreate(result, ObjectFlowType.CREATED, null, userObject);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
 		}
@@ -3594,7 +3594,8 @@ public class CmisObjectService {
 					}
 				}
 				baseMorphiaDAO.update(repositoryId, id, updatecontentProps, typeId);
-				invokeObjectFlowServiceAfterCreate(data, ObjectFlowType.UPDATED, objectFlowUpdateContentProps);
+				invokeObjectFlowServiceAfterCreate(data, ObjectFlowType.UPDATED, objectFlowUpdateContentProps,
+						userObject);
 				if (updatecontentProps != null) {
 					LOG.debug("updateProperties for: {}, object: {}", id, updatecontentProps);
 				}
@@ -3655,7 +3656,8 @@ public class CmisObjectService {
 					int folderpathId = getUpdateFolderPathId(internalPath, id);
 					updatePath.put("path", gettingFolderPath(child.getPath(), newName, oldName, folderpathId));
 					try {
-						localService.rename(child.getPath(), gettingFolderPath(child.getPath(), newName, oldName, folderpathId));
+						localService.rename(child.getPath(),
+								gettingFolderPath(child.getPath(), newName, oldName, folderpathId));
 					} catch (Exception e) {
 						LOG.error("updateProperties folder rename exception: {}, repositoryId: {}, TraceId: {}", e,
 								repositoryId, span != null ? span.getTraceId() : null);
@@ -3669,7 +3671,7 @@ public class CmisObjectService {
 					}
 
 					baseMorphiaDAO.update(repositoryId, child.getId(), updatePath, typeId);
-					invokeObjectFlowServiceAfterCreate(child, ObjectFlowType.UPDATED, null);
+					invokeObjectFlowServiceAfterCreate(child, ObjectFlowType.UPDATED, null, userObject);
 				}
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -3851,7 +3853,7 @@ public class CmisObjectService {
 
 				}
 
-				invokeObjectFlowServiceAfterCreate(object, ObjectFlowType.UPDATED, null);
+				invokeObjectFlowServiceAfterCreate(object, ObjectFlowType.UPDATED, null, userObject);
 
 				if (updatecontentProps != null) {
 					LOG.debug("setContentStream updateObjects id: {}, properties: {}", id, updatecontentProps);
@@ -3920,7 +3922,7 @@ public class CmisObjectService {
 					}
 				}
 				baseMorphiaDAO.update(id, updatecontentProps);
-				invokeObjectFlowServiceAfterCreate(docDetails, ObjectFlowType.UPDATED, null);
+				invokeObjectFlowServiceAfterCreate(docDetails, ObjectFlowType.UPDATED, null, userObject);
 
 				LOG.debug("appendContentStream updateObjects for object: {}, {}", id, updatecontentProps);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -3983,7 +3985,7 @@ public class CmisObjectService {
 				TokenImpl updateToken = new TokenImpl(TokenChangeType.UPDATED, System.currentTimeMillis());
 				docorphiaDAO.delete(id, updatecontentProps, false, true, updateToken);
 
-				invokeObjectFlowServiceAfterCreate(docDetails, ObjectFlowType.DELETED, null);
+				invokeObjectFlowServiceAfterCreate(docDetails, ObjectFlowType.DELETED, null, userObject);
 
 				if (updatecontentProps != null) {
 					LOG.debug("deleteContentStream, removeFields id: {}, properties: {}", id, updatecontentProps);
@@ -4132,7 +4134,7 @@ public class CmisObjectService {
 						// failed!");
 						// }
 
-						invokeObjectFlowServiceAfterCreate(doc, ObjectFlowType.DELETED, null);
+						invokeObjectFlowServiceAfterCreate(doc, ObjectFlowType.DELETED, null, userObject);
 					}
 					baseMorphiaDAO.delete(repositoryId, principalIds, child.getId(),
 							forceDelete == null ? false : forceDelete, aclPropagation, token, typeId);
@@ -4155,7 +4157,7 @@ public class CmisObjectService {
 					if (doc.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(doc.getContentStreamFileName(),
 								doc.getPath(), doc.getContentStreamMimeType());
-						invokeObjectFlowServiceAfterCreate(doc, ObjectFlowType.DELETED, null);
+						invokeObjectFlowServiceAfterCreate(doc, ObjectFlowType.DELETED, null, userObject);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}",
 							// doc.getId());
@@ -4176,7 +4178,7 @@ public class CmisObjectService {
 					if (document.getContentStreamFileName() != null) {
 						boolean contentDeleted = localService.deleteContent(document.getContentStreamFileName(),
 								document.getPath(), document.getContentStreamMimeType());
-						invokeObjectFlowServiceAfterCreate(doc, ObjectFlowType.DELETED, null);
+						invokeObjectFlowServiceAfterCreate(doc, ObjectFlowType.DELETED, null, userObject);
 						if (!contentDeleted) {
 							// LOG.error("Unknown ContentStreamID:{}",
 							// doc.getId());
@@ -4193,7 +4195,7 @@ public class CmisObjectService {
 			} else {
 				baseMorphiaDAO.delete(repositoryId, principalIds, data.getId(),
 						forceDelete == null ? false : forceDelete, aclPropagation, token, typeId);
-				invokeObjectFlowServiceAfterCreate(data, ObjectFlowType.DELETED, null);
+				invokeObjectFlowServiceAfterCreate(data, ObjectFlowType.DELETED, null, userObject);
 				LOG.info("Object: {}, with baseType: {} is deleted", data.getId(), data.getBaseId());
 			}
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
@@ -5504,7 +5506,7 @@ public class CmisObjectService {
 		}
 
 		private static void invokeObjectFlowServiceAfterCreate(IBaseObject doc, ObjectFlowType invokeMethod,
-				Map<String, Object> updatedValues) {
+				Map<String, Object> updatedValues, IUserObject userObject) {
 			Map<String, IObjectFlowFactory> objectFlowFactoryMap = ObjectFlowFactory.getObjectFlowFactoryMap();
 			if (objectFlowFactoryMap != null && objectFlowFactoryMap.size() > 0) {
 				objectFlowFactoryMap.forEach((key, objectFlowFactory) -> {
@@ -5514,11 +5516,11 @@ public class CmisObjectService {
 						LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}",
 								doc != null ? doc.getId() : null, invokeMethod);
 						if (ObjectFlowType.CREATED.equals(invokeMethod)) {
-							objectFlowService.afterCreation(doc);
+							objectFlowService.afterCreation(doc, userObject);
 						} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-							objectFlowService.afterUpdate(doc, updatedValues);
+							objectFlowService.afterUpdate(doc, updatedValues, userObject);
 						} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
-							objectFlowService.afterDeletion(doc);
+							objectFlowService.afterDeletion(doc, userObject);
 						}
 					}
 				});
@@ -5551,10 +5553,10 @@ public class CmisObjectService {
 										policies, addAces, removeAces, userObject);
 							} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
 								resultFlow = objectFlowService.beforeUpdate(repositoryId, objectId, properties, addAces,
-										userObject.getUserDN());
+										userObject);
 							} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
 								resultFlow = objectFlowService.beforeDeletion(repositoryId, objectId, allVers,
-										userObject.getUserDN());
+										userObject);
 							}
 							if (!resultFlow) {
 								LOG.error("Operation failed with ObjectFlowService for InvokeMethod: {}", invokeMethod);
@@ -5631,7 +5633,7 @@ public class CmisObjectService {
 	public static int getUpdateFolderPathId(String[] internalPath, String id) {
 		for (int i = 1; i < internalPath.length; i++) {
 			if (internalPath[i].equals(id)) {
-				return i-1;
+				return i - 1;
 			}
 		}
 		return 0;
