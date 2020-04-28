@@ -33,7 +33,7 @@ public class ObjectFlowFactory {
 
 	public static void setObjectFlow(IObjectFlowFactory objetFlowFactory) {
 		objectFlowFactory.put(objetFlowFactory.getStoreSetting().getType(), objetFlowFactory);
-		LOG.info("Setting ObjectFlowService: {}", objetFlowFactory);
+		LOG.info("Setting ObjectFlowService: {}", objetFlowFactory.getClass().getName());
 	}
 
 	public static Map<String, IObjectFlowFactory> getObjectFlowFactoryMap() {

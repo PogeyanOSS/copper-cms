@@ -324,7 +324,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 				IObjectFlowFactory ObjectFlowActorFactory = (IObjectFlowFactory) ObjectFlowServiceClassFactory
 						.newInstance();
 				ObjectFlowFactory.setObjectFlow(ObjectFlowActorFactory);
-				LOG.info("Initialized Object Flow Services Factory Class: {}", ObjectFlowServiceClassName);
+				LOG.info("Initialized Object Flow Services Factory Class: {}",
+						ObjectFlowServiceClassFactory.getSimpleName());
 			}
 			ObjectFlowFactory.setSystem((ActorSystem) sce.getServletContext().getAttribute("ActorSystem"));
 		} catch (Exception e) {
@@ -336,12 +337,12 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	private static void typePermissionFlowFactoryClassinitializeExtensions(String typePermissionServiceClassName) {
 		try {
-
-			LOG.info("Initialized Type Permission Flow Services Factory Class: {}", typePermissionServiceClassName);
 			Class<?> typePermissionFlowServiceClassFactory = Class.forName(typePermissionServiceClassName);
 			ITypePermissionFactory typePermissionFlowActorFactory = (ITypePermissionFactory) typePermissionFlowServiceClassFactory
 					.newInstance();
 			TypeServiceFactory.setTypePermissionFactory(typePermissionFlowActorFactory);
+			LOG.info("Initialized Type Permission Flow Services Factory Class: {}",
+					typePermissionFlowServiceClassFactory.getSimpleName());
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 
@@ -370,7 +371,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			Class<?> traceApiServiceClass = Class.forName(traceApiClass);
 			ITracingService apiService = (ITracingService) traceApiServiceClass.newInstance();
 			TracingApiServiceFactory.add(apiService);
-			LOG.info("Initialized Tracing Api Services Class: {}", traceApiClass);
+			LOG.info("Initialized Tracing Api Services Class: {}", traceApiServiceClass.getSimpleName());
 		} catch (Exception e) {
 			LOG.error("Could not create a Tracing Api services factory instance: {}", e);
 		}
@@ -389,11 +390,12 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	private static boolean initializeEncryptionFactory(String encryptionServiceClassName) {
 		try {
-			LOG.info("Initialized Encryption Services Factory Class: {}", encryptionServiceClassName);
 			Class<?> encryptionServiceClassFactory = Class.forName(encryptionServiceClassName);
 			IObjectEncryptFactory encryptActorFactory = (IObjectEncryptFactory) encryptionServiceClassFactory
 					.newInstance();
 			EncryptionFactory.setEncryptFactory(encryptActorFactory);
+			LOG.info("Initialized Encryption Services Factory Class: {}",
+					encryptionServiceClassFactory.getSimpleName());
 		} catch (Exception e) {
 			LOG.error("Could not create a encryption services factory instance: {}", e);
 			return false;
