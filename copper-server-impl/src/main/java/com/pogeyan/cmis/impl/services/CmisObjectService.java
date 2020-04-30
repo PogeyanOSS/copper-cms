@@ -2132,7 +2132,8 @@ public class CmisObjectService {
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
+				parent = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, aclPropagation, "/" + objectTypeId,
+						typeId);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
@@ -2635,7 +2636,8 @@ public class CmisObjectService {
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_ITEM.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
+				parent = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, aclPropagation, "/" + objectTypeId,
+						typeId);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
@@ -2964,7 +2966,8 @@ public class CmisObjectService {
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_RELATIONSHIP.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
+				parent = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, aclPropagation, "/" + objectTypeId,
+						typeId);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
@@ -3273,7 +3276,8 @@ public class CmisObjectService {
 			} else {
 				objectTypeId = objectTypeId.equals(BaseTypeId.CMIS_POLICY.value()) ? objectTypeId = "@ROOT@"
 						: objectTypeId;
-				parent = DBUtils.BaseDAO.getByName(repositoryId, objectTypeId, false, null, typeId);
+				parent = DBUtils.BaseDAO.getByPath(repositoryId, principalIds, aclPropagation, "/" + objectTypeId,
+						typeId);
 				if (parent == null) {
 					parent = DBUtils.BaseDAO.getByName(repositoryId, "@ROOT@", false, null, typeId);
 				}
