@@ -31,6 +31,7 @@ public class LoginAuthServiceFactory {
 			throws InvalidTargetObjectTypeException {
 		if (loginSettings.containsKey("type")) {
 			String type = loginSettings.get("type");
+			type = type.contains(":") ? type.split(":")[0] : type;
 			if (authFactory.get(type) != null) {
 				IAuthStoreSettings authStoreSetting = authFactory.get(type).getStoreSetting();
 				authStoreSetting.setStoreSetting(loginSettings);
