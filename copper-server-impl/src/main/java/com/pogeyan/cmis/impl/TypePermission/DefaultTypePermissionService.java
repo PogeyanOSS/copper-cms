@@ -39,4 +39,13 @@ public class DefaultTypePermissionService implements ITypePermissionService {
 		}
 		return false;
 	}
+
+	@Override
+	public List<String> getAclPropagationList(String repositoryId, IUserObject role, String typeId) {
+		if (typeId != null) {
+			List<String> aclList = new ArrayList<String>();
+			return aclList;
+		}
+		return null;
+	}
 }
