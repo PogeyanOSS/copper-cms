@@ -48,4 +48,13 @@ public class DefaultTypePermissionService implements ITypePermissionService {
 		}
 		return null;
 	}
+
+	@Override
+	public List<String> getRoles(String repositoryId, IUserObject role, String typeId) {
+		if (typeId != null) {
+			List<String> roleList = new ArrayList<String>();
+			return roleList;
+		}
+		return null;
+	}
 }

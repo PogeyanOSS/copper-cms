@@ -14,4 +14,6 @@ public interface ITypePermissionService {
 			PermissionType permissionAccess);
 
 	public List<String> getAclPropagationList(String repositoryId, IUserObject role, String typeId);
+
+	public List<String> getRoles(String repositoryId, IUserObject role, String typeId);
 }
