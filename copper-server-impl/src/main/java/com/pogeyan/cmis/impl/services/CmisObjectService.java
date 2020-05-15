@@ -1911,7 +1911,7 @@ public class CmisObjectService {
 					} else {
 						List<Double> valueList = new ArrayList<>();
 						valueName.getValues().forEach(v -> {
-							BigDecimal value = convertInstanceOfObject(valueName.getFirstValue(), BigDecimal.class);
+							BigDecimal value = convertInstanceOfObject(v, BigDecimal.class);
 							valueList.add(value.doubleValue());
 						});
 						custom.put(valueName.getId(), valueList);
