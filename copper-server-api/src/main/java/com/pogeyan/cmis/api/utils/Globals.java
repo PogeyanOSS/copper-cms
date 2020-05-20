@@ -19,18 +19,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The Globals configuration utility class.
  */
 public class Globals {
 	private static Properties versionProps = new Properties();
+	private static final Logger LOG = LoggerFactory.getLogger(Globals.class);
 
 	static {
-		try (InputStream resourceStream = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("version.properties")) {
+		try (InputStream resourceStream = Globals.class.getClassLoader().getResourceAsStream("version.properties")) {
 			versionProps.load(resourceStream);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("Error in loading the version.properties file, error: {}", ExceptionUtils.getStackTrace(e));
 		}
 	}
 

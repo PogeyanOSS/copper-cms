@@ -45,6 +45,7 @@ import com.pogeyan.cmis.api.data.ITypePermissionFactory;
 import com.pogeyan.cmis.api.repo.IRepositoryManager;
 import com.pogeyan.cmis.api.repo.IRepositoryStore;
 import com.pogeyan.cmis.api.storage.IStorageFactory;
+import com.pogeyan.cmis.api.utils.Globals;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
@@ -90,6 +91,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
 
+		LOG.error("CMIS version: ", Globals.getAppVersion());
 		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.getInstance().getSystem());
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
