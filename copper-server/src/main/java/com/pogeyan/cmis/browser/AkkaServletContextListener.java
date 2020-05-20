@@ -91,7 +91,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
 
-		LOG.error("CMIS version: ", Globals.getAppVersion());
+		System.out.println("CMIS version: " + Globals.getAppVersion());
 		sce.getServletContext().setAttribute("ActorSystem", ActorServiceFactory.getInstance().getSystem());
 
 		String configFilename = sce.getServletContext().getInitParameter(CONFIG_INIT_PARAM);
