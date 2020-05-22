@@ -3741,7 +3741,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					docDetails.getTypeId(), EnumSet.of(PermissionType.READ), false);
+					docDetails.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY), false);
 			if (permission) {
 				try {
 					Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
