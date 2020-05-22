@@ -700,7 +700,7 @@ public class CmisTypeServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId, userObject, type.getId(),
-					EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
+					EnumSet.of(PermissionType.READ, PermissionType.UPDATE), false);
 			if (permission) {
 				TypeMutabilityImpl typeMutability = null;
 				Map<String, PropertyDefinitionImpl<?>> Mproperty = null;
@@ -813,7 +813,7 @@ public class CmisTypeServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = checkCrudPermission(typePermissionFlow, repositoryId, userObject, type,
-					EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
+					EnumSet.of(PermissionType.READ, PermissionType.DELETE), false);
 			String[] principalIds = Helpers.getPrincipalIds(userObject);
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
 			boolean aclPropagation = Stream.of(userObject.getGroups())

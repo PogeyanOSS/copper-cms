@@ -98,7 +98,7 @@ public class CmisAclServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, user, typeId,
-					EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.SHARE), false);
+					EnumSet.of(PermissionType.READ, PermissionType.SHARE), false);
 			if (permission) {
 				List<String> id = new ArrayList<String>();
 				Acl addAces = TypeValidators.impl.expandAclMakros(user.getUserDN(), aclAdd);
