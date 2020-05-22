@@ -117,7 +117,7 @@ public class CmisPolicyService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
+					data.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.UPDATE), false);
 			if (permission) {
 				List<String> polIds = null;
 				TokenImpl token = new TokenImpl(TokenChangeType.SECURITY, System.currentTimeMillis());
@@ -181,7 +181,7 @@ public class CmisPolicyService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
+					data.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.UPDATE), false);
 			if (permission) {
 				List<String> polIds = null;
 				IBaseObject policy = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, policyId, null,
