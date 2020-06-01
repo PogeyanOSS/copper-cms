@@ -62,12 +62,14 @@ public final class HttpUtils {
 			try {
 				POSTHttpServletRequestWrapper requestWrapper = (POSTHttpServletRequestWrapper) request;
 				String requestBody = requestWrapper.getRequestBody();
-				Map<String, Object> map = new HashMap<String, Object>();
-				// convert JSON string to Map
-				map = mapper.readValue(requestBody, new TypeReference<Map<String, String>>() {
-				});
-				if (map.containsKey(name)) {
-					return map.get(name).toString();
+				if (requestBody != null) {
+					Map<String, Object> map = new HashMap<String, Object>();
+					// convert JSON string to Map
+					map = mapper.readValue(requestBody, new TypeReference<Map<String, String>>() {
+					});
+					if (map.containsKey(name)) {
+						return map.get(name).toString();
+					}
 				}
 			} catch (Exception ex) {
 				LOG.error("getStringParameter exception: {}, stack: {}", ex.getMessage(),

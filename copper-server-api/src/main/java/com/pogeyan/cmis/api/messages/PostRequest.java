@@ -21,6 +21,8 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 
+import com.pogeyan.cmis.api.CustomContentStream;
+
 public class PostRequest extends QueryGetRequest {
 	private boolean isMultipart = false;
 	private String cmisAction;
@@ -29,7 +31,7 @@ public class PostRequest extends QueryGetRequest {
 	private List<String> policies;
 	private Acl addAcl;
 	private Acl removeAcl;
-	private ContentStream contentStream;
+	private List<CustomContentStream> contentStreamList;
 	private List<String> objectIds;
 	private List<String> changeTokens;
 	private List<String> addSecondaryTypes;
@@ -103,11 +105,15 @@ public class PostRequest extends QueryGetRequest {
 	}
 
 	public ContentStream getContentStream() {
-		return contentStream;
+		if (this.contentStreamList != null && this.contentStreamList.size() == 1
+				&& this.contentStreamList.get(0) != null) {
+			return this.contentStreamList.get(0);
+		}
+		return null;
 	}
 
-	public void setContentStream(ContentStream contentStream) {
-		this.contentStream = contentStream;
+	public void setContentStream(List<CustomContentStream> contentStream) {
+		this.contentStreamList = contentStream;
 	}
 
 	public List<String> getObjectIds() {
@@ -158,11 +164,15 @@ public class PostRequest extends QueryGetRequest {
 		this.requestBody = requestBody;
 	}
 
+	public List<CustomContentStream> getContentStreamList() {
+		return contentStreamList;
+	}
+
 	@Override
 	public String toString() {
 		return "PostRequest [isMultipart=" + isMultipart + ", cmisAction=" + cmisAction + ", token=" + token
 				+ ", propertyData=" + propertyData + ", policies=" + policies + ", addAcl=" + addAcl + ", removeAcl="
-				+ removeAcl + ", contentStream=" + contentStream + ", objectIds=" + objectIds + ", changeTokens="
+				+ removeAcl + ", contentStream=" + contentStreamList + ", objectIds=" + objectIds + ", changeTokens="
 				+ changeTokens + ", addSecondaryTypes=" + addSecondaryTypes + ", removeSecondaryTypes="
 				+ removeSecondaryTypes + ", policyId=" + policyId + ", aclPropagation=" + aclPropagation
 				+ ", requestBody=" + requestBody + ", getRepositoryId()=" + getRepositoryId() + "]";
