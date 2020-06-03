@@ -38,6 +38,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.servlet.ServletRequestContext;
 
+import com.pogeyan.cmis.api.CustomContentStream;
+
 public final class POSTHttpServletRequestWrapper extends QueryStringHttpServletRequestWrapper {
 
 	public static final String FORM_URLENCODED = "application/x-www-form-urlencoded";
@@ -45,10 +47,7 @@ public final class POSTHttpServletRequestWrapper extends QueryStringHttpServletR
 	private static final int BUFFER_SIZE = 64 * 1024;
 	private static final String CHARSET_FIELD = "_charset_";
 
-	private String filename;
-	private String contentType;
-	private BigInteger size;
-	private InputStream stream;
+	private List<CustomContentStream> streamList = new ArrayList<CustomContentStream>();
 	private boolean multipart;
 	private String requestBody;
 
@@ -56,6 +55,7 @@ public final class POSTHttpServletRequestWrapper extends QueryStringHttpServletR
 		super(request);
 
 		if (ServletFileUpload.isMultipartContent(request)) {
+			CustomContentStream stream = new CustomContentStream();
 			// Create a factory for disk-based file items
 			DiskFileItemFactory factory = new DiskFileItemFactory();
 			// Configure a repository (to ensure a secure temp location is used)
@@ -72,21 +72,20 @@ public final class POSTHttpServletRequestWrapper extends QueryStringHttpServletR
 				if (item.isFormField()) {
 					addParameter(item.getFieldName(), item.getString());
 				} else {
-					filename = URLDecoder.decode(item.getName(),"UTF-8");
-					contentType = item.getContentType();
-					size = BigInteger.valueOf(item.getSize());
-					stream = item.getInputStream();
+					stream = new CustomContentStream(item.getFieldName(), URLDecoder.decode(item.getName(), "UTF-8"),
+							BigInteger.valueOf(item.getSize()), item.getContentType(), item.getInputStream());
+
+					String filenameControl = HttpUtils.getStringParameter(this, Constants.CONTROL_FILENAME);
+					if (filenameControl != null && filenameControl.trim().length() > 0) {
+						stream.setFileName(filenameControl);
+					}
+
+					String contentTypeControl = HttpUtils.getStringParameter(this, Constants.CONTROL_CONTENT_TYPE);
+					if (contentTypeControl != null && contentTypeControl.trim().length() > 0) {
+						stream.setMimeType(contentTypeControl);
+					}
+					streamList.add(stream);
 				}
-			}
-
-			String filenameControl = HttpUtils.getStringParameter(this, Constants.CONTROL_FILENAME);
-			if (filenameControl != null && filenameControl.trim().length() > 0) {
-				filename = filenameControl;
-			}
-
-			String contentTypeControl = HttpUtils.getStringParameter(this, Constants.CONTROL_CONTENT_TYPE);
-			if (contentTypeControl != null && contentTypeControl.trim().length() > 0) {
-				contentType = contentTypeControl;
 			}
 		} else if (isFormUrlencodedContent(request)) {
 			// form data processing
@@ -98,23 +97,6 @@ public final class POSTHttpServletRequestWrapper extends QueryStringHttpServletR
 		}
 	}
 
-	public String getFilename() {
-		return filename;
-	}
-
-	@Override
-	public String getContentType() {
-		return contentType;
-	}
-
-	public BigInteger getSize() {
-		return size;
-	}
-
-	public InputStream getStream() {
-		return stream;
-	}
-
 	public String getRequestBody() {
 		return this.requestBody;
 	}
@@ -123,11 +105,18 @@ public final class POSTHttpServletRequestWrapper extends QueryStringHttpServletR
 		return this.multipart;
 	}
 
+	public List<CustomContentStream> getStreamList() {
+		return streamList;
+	}
+
+	public void setStreamList(List<CustomContentStream> streamList) {
+		this.streamList = streamList;
+	}
+
 	/**
 	 * Parses a form data request
 	 * 
-	 * @param request
-	 *            the request
+	 * @param request the request
 	 * @return {@code true} if the body contained data, {@code false} otherwise
 	 */
 	protected boolean parseFormUrlEncodedData(HttpServletRequest request) throws IOException {

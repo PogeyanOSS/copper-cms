@@ -22,12 +22,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 
+import com.pogeyan.cmis.api.CustomContentStream;
 import com.pogeyan.cmis.api.messages.PostRequest;
 import com.pogeyan.cmis.api.messages.QueryGetRequest;
 
@@ -92,18 +91,13 @@ public class CmisRequestParameter {
 		return new AccessControlListImpl(aces);
 	}
 
-	public ContentStream createContentStream(HttpServletRequest request) {
-		ContentStreamImpl result = null;
+	public List<CustomContentStream> createContentStream(HttpServletRequest request) {
 
 		if (request instanceof POSTHttpServletRequestWrapper) {
 			POSTHttpServletRequestWrapper post = (POSTHttpServletRequestWrapper) request;
-			if (post.getStream() != null) {
-				result = new ContentStreamImpl(post.getFilename(), post.getSize(), post.getContentType(),
-						post.getStream());
-			}
+			return post.getStreamList();
 		}
-
-		return result;
+		return new ArrayList<CustomContentStream>();
 	}
 
 	public String getPolicyId(ControlParser controlParser, PostRequest request) {
