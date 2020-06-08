@@ -3889,7 +3889,7 @@ public class CmisObjectService {
 		 * append the contentStream present in CMIS 1.1.
 		 */
 		public static void appendContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-				ContentStream contentStream, Boolean isLastChunk, IUserObject userObject, String tracingId,
+				ContentStream appendStream, Boolean isLastChunk, IUserObject userObject, String tracingId,
 				ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::appendContentStream", null);
@@ -3910,26 +3910,19 @@ public class CmisObjectService {
 				TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, modifiedTime);
 				updatecontentProps.put("token", token);
 				if (isLastChunk != null) {
-					if (contentStream != null && contentStream.getStream() != null) {
-						ContentStream contentsteamOld = localService.appendContent(docDetails.getId().toString(),
-								docDetails.getContentStreamFileName(), docDetails.getPath(), contentStream,
-								isLastChunk);
-						if (contentsteamOld != null && contentsteamOld.getStream() != null && contentStream != null
-								&& contentStream.getStream() != null) {
-							updatecontentProps.put("contentStreamLength",
-									contentsteamOld.getLength() + contentStream.getLength());
-							updatecontentProps.put("contentStreamMimeType", contentStream.getMimeType());
-							updatecontentProps.put("contentStreamFileName", contentStream.getFileName());
+					if (appendStream != null && appendStream.getStream() != null) {
+						ContentStream newContent = localService.appendContent(docDetails.getId().toString(),
+								docDetails.getContentStreamFileName(), docDetails.getPath(), appendStream, isLastChunk);
+						if (newContent != null && newContent.getStream() != null && appendStream != null
+								&& appendStream.getStream() != null) {
+							updatecontentProps.put("contentStreamLength", newContent.getLength());
+							updatecontentProps.put("contentStreamMimeType", appendStream.getMimeType());
+							updatecontentProps.put("contentStreamFileName", newContent.getFileName());
 							updatecontentProps.put("modifiedAt", modifiedTime);
-						} else if (contentsteamOld != null && contentsteamOld.getStream() != null) {
-							updatecontentProps.put("contentStreamLength", contentsteamOld.getLength());
-							updatecontentProps.put("contentStreamMimeType", contentsteamOld.getMimeType());
-							updatecontentProps.put("contentStreamFileName", contentsteamOld.getFileName());
-							updatecontentProps.put("modifiedAt", modifiedTime);
-						} else {
-							updatecontentProps.put("contentStreamLength", contentStream.getLength());
-							updatecontentProps.put("contentStreamMimeType", contentStream.getMimeType());
-							updatecontentProps.put("contentStreamFileName", contentStream.getFileName());
+						} else if (newContent != null && newContent.getStream() != null) {
+							updatecontentProps.put("contentStreamLength", newContent.getLength());
+							updatecontentProps.put("contentStreamMimeType", newContent.getMimeType());
+							updatecontentProps.put("contentStreamFileName", newContent.getFileName());
 							updatecontentProps.put("modifiedAt", modifiedTime);
 						}
 					}
