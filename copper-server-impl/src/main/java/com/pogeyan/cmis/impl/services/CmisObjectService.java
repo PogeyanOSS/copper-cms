@@ -2996,6 +2996,8 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
 			Tuple2<String, String> p = resolvePathForObject(parentData, name);
 
+			PropertyData<?> objectIdProperty = properties.get(PropertyIds.OBJECT_ID);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IBaseObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId,
 					repositoryId, secondaryObjectTypeId,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
@@ -3030,6 +3032,13 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(
 						TracingWriter.log(String.format(ErrorMessages.TYPE_ID_PRESENT, typeId), span));
+			}
+
+			if (result instanceof ISettableBaseObject) {
+				ISettableBaseObject settableBaseObject = (ISettableBaseObject) result;
+				if (objectId != null && !objectId.isEmpty()) {
+					settableBaseObject.setId(objectId);
+				}
 			}
 
 			baseMorphiaDAO.commit(result, typeId);
