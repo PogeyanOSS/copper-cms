@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
@@ -167,60 +168,64 @@ public class FileSystemStorageService implements IStorageService {
 	/**
 	 * Append a content.
 	 * 
-	 * @param dataId,
-	 *            contentStream, isLastChunk the content identifier.
+	 * @param dataId, contentStream, isLastChunk the content identifier.
 	 * @return ContentStream the old ContentStream for the objectId
 	 */
 	@Override
-	public ContentStream appendContent(String objectId, String objectName, String path, ContentStream contentStream,
-			Boolean isLastChunk) {
-		ContentStream oldContent = null;
-		LOG.info("appendContent dataId:{}" + objectName);
+	public ContentStream appendContent(String objectId, String oldFileName, String objectOldPath,
+			ContentStream contentStream, Boolean isLastChunk) {
+		LOG.info("append Content for file with objectId:{}, FileName: {}", objectId, oldFileName);
 		try {
-			LOG.debug("appendContent dataId:{}" + objectName);
 
-			if (!getFileExtensionExists(objectName)) {
-				objectName = objectName + MimeUtils.guessExtensionFromMimeType(contentStream.getMimeType());
+			if (!getFileExtensionExists(oldFileName)) {
+				oldFileName = oldFileName + MimeUtils.guessExtensionFromMimeType(contentStream.getMimeType());
 			}
+			Path oldPath = Paths
+					.get(gettingFolderPath(this.storeSettings.getFileLocation(), gettingDocNamePath(objectOldPath))
+							+ File.separator + oldFileName);
+			File oldFile = oldPath.toFile();
 
-			File appendFileName = new File(
-					gettingFolderPath(this.storeSettings.getFileLocation(), gettingDocNamePath(path)) + File.separator
-							+ objectName);
-
-			if (!appendFileName.exists()) {
-				LOG.error("appendContent exception: {}", "File not found");
+			if (!oldFile.exists()) {
+				LOG.error("appendContent exception Old File not found at path: {}", oldPath.toString());
 			}
 			// write content, if available
 
-			SequenceInputStream id = null;
 			if (contentStream != null && contentStream.getStream() != null) {
-				// if (isLastChunk.equals(true)) {
-				// id = new SequenceInputStream(new
-				// FileInputStream(appendFileName), contentStream.getStream());
-				// } else {
-				// id = new SequenceInputStream(contentStream.getStream(), new
-				// FileInputStream(appendFileName));
-				// }
-				id = new SequenceInputStream(new FileInputStream(appendFileName), contentStream.getStream());
-				Files.write(Paths.get(gettingFolderPath(this.storeSettings.getFileLocation(), gettingDocNamePath(path))
-						+ File.separator + objectName), ByteStreams.toByteArray(id), StandardOpenOption.WRITE);
+				SequenceInputStream id = null;
+				if (isLastChunk.equals(true)) {
+					id = new SequenceInputStream(new FileInputStream(oldFile), contentStream.getStream());
+				} else {
+					id = new SequenceInputStream(contentStream.getStream(), new FileInputStream(oldFile));
+				}
+				String newFileName = contentStream.getFileName();
+				if (!getFileExtensionExists(newFileName)) {
+					newFileName = newFileName + MimeUtils.guessExtensionFromMimeType(contentStream.getMimeType());
+				}
+				Path newPath = Paths
+						.get(gettingFolderPath(this.storeSettings.getFileLocation(), gettingDocNamePath(objectOldPath))
+								+ File.separator + newFileName);
+
+				File newFile = Files.write(
+						Paths.get(gettingFolderPath(this.storeSettings.getFileLocation(),
+								gettingDocNamePath(objectOldPath)) + File.separator + newFileName),
+						ByteStreams.toByteArray(id), StandardOpenOption.CREATE).toFile();
 				id.close();
-				oldContent = getContent(objectName, path, contentStream.getMimeType(),
-						BigInteger.valueOf(appendFileName.length()), null);
+				ContentStream newContent = getContent(contentStream.getFileName(), newPath.toString(),
+						contentStream.getMimeType(), BigInteger.valueOf(newFile.length()), contentStream.getFileName());
+				return newContent;
 			}
 		} catch (Exception e) {
 			LOG.error("appendContent exception: {}, {}", e.getMessage(), ExceptionUtils.getStackTrace(e));
 			throw new CmisObjectNotFoundException(e.getMessage(), e);
 		}
-		return oldContent;
+		return null;
 	}
 
 	/**
 	 * Delete a content. Since folder are not materialized, only document are
 	 * deleted from the storage system.
 	 * 
-	 * @param dataId
-	 *            the content identifier.
+	 * @param dataId the content identifier.
 	 * @return
 	 */
 	public boolean deleteContent(String objectName, String path, String mimeType) {
@@ -262,14 +267,11 @@ public class FileSystemStorageService implements IStorageService {
 	}
 
 	@Override
-	public org.apache.chemistry.opencmis.commons.data.ContentStream getContent(String objectName, String path,
-			String mimeType, BigInteger length, String fileName) {
-		LOG.info("getConetent file name:{}" + objectName);
+	public ContentStream getContent(String objectName, String path, String mimeType, BigInteger length,
+			String fileName) {
+		LOG.info("getConetent file name: {}", objectName);
 		try {
 			String objectNameWithExtension = objectName;
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("getConetent file name:{}" + objectName);
-			}
 			if (!getFileExtensionExists(objectName)) {
 				objectNameWithExtension = objectName + MimeUtils.guessExtensionFromMimeType(mimeType);
 			}
