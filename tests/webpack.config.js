@@ -4,7 +4,7 @@ const isProduction = appEnv === 'production';
 const exclude = /node_modules/;
 
 module.exports = {
-    entry: ['./a.js'],
+    entry: ['./clearDB.js'],
     target: "node",
     devtool: "none",
     mode: isProduction ? "production" : "development",
