@@ -7,12 +7,19 @@
     "doc": "docs"
   },
   "scripts": {
+    "build": "webpack --config=./webpack.config.js --progress --colors",
     "push": "cp -r ../tests ../test && npm publish",
     "test": "vsts-npm-auth -config .npmrc"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PogeyanOSS/copper-cms.git"
+  },
+  "dependencies": {
+    "cmis": "github:PogeyanOSS/CmisJS",
+    "mongodb": "3.5.9",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3"
   },
   "author": "",
   "license": "ISC",
