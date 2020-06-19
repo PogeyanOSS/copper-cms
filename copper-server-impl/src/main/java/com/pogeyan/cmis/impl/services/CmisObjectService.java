@@ -3794,15 +3794,15 @@ public class CmisObjectService {
 							TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span));
 				}
 			} else {
-				LOG.error("read type permission denied for this user: {}, repository: {}, TraceId: {}",
+				LOG.error("viewonly type permission denied for this user: {}, repository: {}, TraceId: {}",
 						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
 						TracingErrorMessage.message(TracingWriter
-								.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span),
+								.log(String.format(ErrorMessages.VIEWONLY_PERMISSION_DENIED, userObject.getUserDN()), span),
 								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisRoleValidationException(TracingWriter
-						.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span));
+						.log(String.format(ErrorMessages.VIEWONLY_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 
 		}
