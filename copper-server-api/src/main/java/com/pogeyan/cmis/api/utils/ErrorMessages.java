@@ -35,6 +35,7 @@ public class ErrorMessages {
 	public static String UNKNOWN_TYPE_ID = "Unknown TypeId: %s";
 	public static String CREATE_PERMISSION_DENIED = "create type permission denied for this userId: %s";
 	public static String READ_PERMISSION_DENIED = "read type permission denied for this userId: %s";
+	public static String VIEWONLY_PERMISSION_DENIED = "viewonly type permission denied for this userId: %s";
 	public static String UPDATE_PERMISSION_DENIED = "update type permission denied for this userId: %s";
 	public static String SHARE_PERMISSION_DENIED = "share type permission denied for this userId: %s";
 	public static String DELETE_PERMISSION_DENIED = "delete type permission denied for this userId: %s";
