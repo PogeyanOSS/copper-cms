@@ -1,10 +1,10 @@
-var mongo = require('mongodb');
+var MongoClient = require('mongodb').MongoClient;
 const cmis = require("cmis");
 var mongoURL = process.env.MONGO_CLIENT_URL;
 var username = process.env.CMIS_USERNAME;
 var password = process.env.CMIS_PASSWORD;
 var repoName = process.env.CMIS_REPO_ID;
-var url = process.env.HOSTURL + '/sapp-cms/' + repoName;
+var url = process.env.HOST_URL + '/sapp-cms/' + repoName;
 
 async function clearDB() {
     try {
@@ -12,24 +12,17 @@ async function clearDB() {
         await session.resetCache();
         console.log("Cache cleared in CMIS");
         await new Promise((resolve, reject) => {
-            mongo.MongoClient.connect(mongoURL, function (err, client) {
+            MongoClient.connect(mongoURL, function (err, client) {
                 var dbname = repoName.replace("-", "_");
                 var db = client.db(dbname);
-                if (err) {
-                    console.log(`Error in connecting to DB: ${dbname}, Error: ${err}`)
-                    reject(err);
-                }
-                console.log("Connection to Database established!");
-                console.log("db object points to the database: " + db.databaseName);
+                if (err) reject(err);
+                console.log("Connected to Database!");
+                console.log("db object points to the database : " + db.databaseName);
                 db.dropDatabase(function (err, result) {
-                    if (err) {
-                        console.log(`Error in dropping DB: ${db.databaseName}, Error: ${err}`)
-                        reject(err);
-                    }
-                    console.log(`Database: ${db.databaseName} dropped `);
+                    console.log("Error : " + err);
+                    if (err) reject(err);
+                    console.log("Operation Success ? " + result);
                     client.close();
-                    console.log(`Db client closed`);
-                    resolve(true);
                 });
             });
             resolve(true);

@@ -1,6 +1,6 @@
 {
   "name": "@cmis/test-tcks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Copper CMS project implements the (OpenCMIS specifications)[http://docs.oasis-open.org/cmis/CMIS/v1.1/CMIS-v1.1.html]. It implements the following CMIS services,",
   "main": "index.js",
   "directories": {

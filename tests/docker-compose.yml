@@ -1,0 +1,8 @@
+version: "2"
+
+services:
+    chainin-sapp:
+    container_name: chainin-sapp
+    image: {ECR_URL}
+    ports:
+      - "8080:8080"
