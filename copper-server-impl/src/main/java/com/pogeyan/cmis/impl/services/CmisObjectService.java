@@ -1407,6 +1407,10 @@ public class CmisObjectService {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
 										BigInteger.valueOf(valueBigInteger), userObject);
+							} else if (valueOfType instanceof Long) {
+								Long valueBigInteger = convertInstanceOfObject(valueOfType, Long.class);
+								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
+										BigInteger.valueOf(valueBigInteger), userObject);
 							} else if (valueOfType instanceof List<?>) {
 								List<BigInteger> value = convertInstanceOfObject(valueOfType, List.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id, value, userObject);
