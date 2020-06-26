@@ -1407,6 +1407,10 @@ public class CmisObjectService {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
 										BigInteger.valueOf(valueBigInteger), userObject);
+							} else if (valueOfType instanceof Long) {
+								Long valueBigInteger = convertInstanceOfObject(valueOfType, Long.class);
+								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
+										BigInteger.valueOf(valueBigInteger), userObject);
 							} else if (valueOfType instanceof List<?>) {
 								List<BigInteger> value = convertInstanceOfObject(valueOfType, List.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id, value, userObject);
@@ -1893,7 +1897,11 @@ public class CmisObjectService {
 						BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
 								BigInteger.class);
 						int value = valueBigInteger.intValue();
-						custom.put(valueName.getId(), value);
+						if (value < 0) {
+							custom.put(valueName.getId(), valueBigInteger.longValue());
+						} else {
+							custom.put(valueName.getId(), value);
+						}
 					} else {
 						List<Integer> valueList = new ArrayList<>();
 						valueName.getValues().forEach(v -> {
@@ -3797,8 +3805,8 @@ public class CmisObjectService {
 				LOG.error("viewonly type permission denied for this user: {}, repository: {}, TraceId: {}",
 						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(TracingWriter
-								.log(String.format(ErrorMessages.VIEWONLY_PERMISSION_DENIED, userObject.getUserDN()), span),
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.VIEWONLY_PERMISSION_DENIED, userObject.getUserDN()), span),
 								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisRoleValidationException(TracingWriter
