@@ -16,7 +16,7 @@ public class IDiscoveryActor implements IActorService {
 
 	@Override
 	public String[] getMethodSelectors() {
-		String[] selectors = new String[] { "contentChanges", "query" };
+		String[] selectors = new String[] { "contentChanges" };
 		return selectors;
 	}
 
