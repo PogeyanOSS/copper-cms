@@ -168,6 +168,7 @@ public class QueryGetRequest extends CmisBaseRequest {
 	public static final String CONTROL_CHANGE_TOKEN = "changeToken";
 	public static final String CONTROL_ADD_SECONDARY_TYPE = "addSecondaryTypeId";
 	public static final String CONTROL_REMOVE_SECONDARY_TYPE = "removeSecondaryTypeId";
+	public static final String CONTROL_RELATIONSHIP_QUERY = "query";
 
 	// parameter
 	public static final String PARAM_ACL = "includeACL";

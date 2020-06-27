@@ -57,9 +57,6 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		this.registerMessageHandle("contentChanges", QueryGetRequest.class,
 				(t, b) -> CompletableFuture.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(
 						() -> this.getContentChanges((QueryGetRequest) t, (HashMap<String, Object>) b))));
-
-		this.registerMessageHandle("query", QueryGetRequest.class, (t, b) -> CompletableFuture
-				.supplyAsync(() -> CmisBaseResponse.fromWithTryCatch(() -> this.getQuery((QueryGetRequest) t))));
 	}
 
 	private JSONObject getContentChanges(QueryGetRequest request, HashMap<String, Object> baggage)
@@ -102,10 +99,6 @@ public class DiscoveryActor extends BaseClusterActor<BaseRequest, BaseResponse> 
 		jsonChanges.put(JSONConstants.JSON_OBJECTLIST_CHANGE_LOG_TOKEN, changeLogTokenHolder.getValue());
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonChanges;
-	}
-
-	private JSONObject getQuery(QueryGetRequest t) throws CmisRuntimeException, CmisRoleValidationException {
-		return null;
 	}
 
 }
