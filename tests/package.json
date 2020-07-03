@@ -1,0 +1,27 @@
+{
+  "name": "@cmis/test-tcks",
+  "version": "1.0.1",
+  "description": "Copper CMS project implements the (OpenCMIS specifications)[http://docs.oasis-open.org/cmis/CMIS/v1.1/CMIS-v1.1.html]. It implements the following CMIS services,",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "push": "cp -r ../tests ../test && npm publish",
+    "test": "vsts-npm-auth -config .npmrc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PogeyanOSS/copper-cms.git"
+  },
+  "dependencies": {
+    "cmis": "github:PogeyanOSS/CmisJS",
+    "mongodb": "3.5.9"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PogeyanOSS/copper-cms/issues"
+  },
+  "homepage": "https://github.com/PogeyanOSS/copper-cms#readme"
+}
