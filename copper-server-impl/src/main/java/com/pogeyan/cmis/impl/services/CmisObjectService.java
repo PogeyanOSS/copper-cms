@@ -1407,6 +1407,10 @@ public class CmisObjectService {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
 										BigInteger.valueOf(valueBigInteger), userObject);
+							} else if (valueOfType instanceof Long) {
+								Long valueBigInteger = convertInstanceOfObject(valueOfType, Long.class);
+								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
+										BigInteger.valueOf(valueBigInteger), userObject);
 							} else if (valueOfType instanceof List<?>) {
 								List<BigInteger> value = convertInstanceOfObject(valueOfType, List.class);
 								addPropertyBigInteger(repositoryId, props, typeId, filter, id, value, userObject);
@@ -1893,7 +1897,11 @@ public class CmisObjectService {
 						BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
 								BigInteger.class);
 						int value = valueBigInteger.intValue();
-						custom.put(valueName.getId(), value);
+						if (value < 0) {
+							custom.put(valueName.getId(), valueBigInteger.longValue());
+						} else {
+							custom.put(valueName.getId(), value);
+						}
 					} else {
 						List<Integer> valueList = new ArrayList<>();
 						valueName.getValues().forEach(v -> {
@@ -2996,6 +3004,8 @@ public class CmisObjectService {
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
 			Tuple2<String, String> p = resolvePathForObject(parentData, name);
 
+			PropertyData<?> objectIdProperty = properties.get(PropertyIds.OBJECT_ID);
+			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
 			IBaseObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId,
 					repositoryId, secondaryObjectTypeId,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
@@ -3030,6 +3040,13 @@ public class CmisObjectService {
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new IllegalArgumentException(
 						TracingWriter.log(String.format(ErrorMessages.TYPE_ID_PRESENT, typeId), span));
+			}
+
+			if (result instanceof ISettableBaseObject) {
+				ISettableBaseObject settableBaseObject = (ISettableBaseObject) result;
+				if (objectId != null && !objectId.isEmpty()) {
+					settableBaseObject.setId(objectId);
+				}
 			}
 
 			baseMorphiaDAO.commit(result, typeId);
@@ -3741,7 +3758,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					docDetails.getTypeId(), EnumSet.of(PermissionType.READ), false);
+					docDetails.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY), false);
 			if (permission) {
 				try {
 					Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -3785,15 +3802,15 @@ public class CmisObjectService {
 							TracingWriter.log(String.format(ErrorMessages.EXCEPTION, e.toString()), span));
 				}
 			} else {
-				LOG.error("read type permission denied for this user: {}, repository: {}, TraceId: {}",
+				LOG.error("viewonly type permission denied for this user: {}, repository: {}, TraceId: {}",
 						userObject.getUserDN(), repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
-						TracingErrorMessage.message(TracingWriter
-								.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span),
+						TracingErrorMessage.message(TracingWriter.log(
+								String.format(ErrorMessages.VIEWONLY_PERMISSION_DENIED, userObject.getUserDN()), span),
 								ErrorMessages.ROLE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 				throw new CmisRoleValidationException(TracingWriter
-						.log(String.format(ErrorMessages.READ_PERMISSION_DENIED, userObject.getUserDN()), span));
+						.log(String.format(ErrorMessages.VIEWONLY_PERMISSION_DENIED, userObject.getUserDN()), span));
 			}
 
 		}
@@ -3813,7 +3830,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					object.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
+					object.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.UPDATE), false);
 			if (permission) {
 				MDocumentObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MDocumentObjectDAO.class);
@@ -3880,7 +3897,7 @@ public class CmisObjectService {
 		 * append the contentStream present in CMIS 1.1.
 		 */
 		public static void appendContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-				ContentStream contentStream, Boolean isLastChunk, IUserObject userObject, String tracingId,
+				ContentStream appendStream, Boolean isLastChunk, IUserObject userObject, String tracingId,
 				ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::appendContentStream", null);
@@ -3890,7 +3907,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					docDetails.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
+					docDetails.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.UPDATE), false);
 			if (permission) {
 				Map<String, Object> updatecontentProps = new HashMap<String, Object>();
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
@@ -3901,26 +3918,19 @@ public class CmisObjectService {
 				TokenImpl token = new TokenImpl(TokenChangeType.UPDATED, modifiedTime);
 				updatecontentProps.put("token", token);
 				if (isLastChunk != null) {
-					if (contentStream != null && contentStream.getStream() != null) {
-						ContentStream contentsteamOld = localService.appendContent(docDetails.getId().toString(),
-								docDetails.getContentStreamFileName(), docDetails.getPath(), contentStream,
-								isLastChunk);
-						if (contentsteamOld != null && contentsteamOld.getStream() != null && contentStream != null
-								&& contentStream.getStream() != null) {
-							updatecontentProps.put("contentStreamLength",
-									contentsteamOld.getLength() + contentStream.getLength());
-							updatecontentProps.put("contentStreamMimeType", contentStream.getMimeType());
-							updatecontentProps.put("contentStreamFileName", contentStream.getFileName());
+					if (appendStream != null && appendStream.getStream() != null) {
+						ContentStream newContent = localService.appendContent(docDetails.getId().toString(),
+								docDetails.getContentStreamFileName(), docDetails.getPath(), appendStream, isLastChunk);
+						if (newContent != null && newContent.getStream() != null && appendStream != null
+								&& appendStream.getStream() != null) {
+							updatecontentProps.put("contentStreamLength", newContent.getLength());
+							updatecontentProps.put("contentStreamMimeType", appendStream.getMimeType());
+							updatecontentProps.put("contentStreamFileName", newContent.getFileName());
 							updatecontentProps.put("modifiedAt", modifiedTime);
-						} else if (contentsteamOld != null && contentsteamOld.getStream() != null) {
-							updatecontentProps.put("contentStreamLength", contentsteamOld.getLength());
-							updatecontentProps.put("contentStreamMimeType", contentsteamOld.getMimeType());
-							updatecontentProps.put("contentStreamFileName", contentsteamOld.getFileName());
-							updatecontentProps.put("modifiedAt", modifiedTime);
-						} else {
-							updatecontentProps.put("contentStreamLength", contentStream.getLength());
-							updatecontentProps.put("contentStreamMimeType", contentStream.getMimeType());
-							updatecontentProps.put("contentStreamFileName", contentStream.getFileName());
+						} else if (newContent != null && newContent.getStream() != null) {
+							updatecontentProps.put("contentStreamLength", newContent.getLength());
+							updatecontentProps.put("contentStreamMimeType", newContent.getMimeType());
+							updatecontentProps.put("contentStreamFileName", newContent.getFileName());
 							updatecontentProps.put("modifiedAt", modifiedTime);
 						}
 					}
@@ -3956,7 +3966,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					docDetails.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
+					docDetails.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.DELETE), false);
 			if (permission) {
 				Map<String, String> parameters = RepositoryManagerFactory.getFileDetails(repositoryId);
 				MDocumentObjectDAO docorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -4059,7 +4069,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
+					data.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.DELETE), false);
 			if (permission) {
 				if (data.getName().equalsIgnoreCase("@ROOT@")) {
 					LOG.error("deleteObject failed: {}, repositoryId: {}, TraceId: {}", "can't delete a root folder.",
@@ -4217,7 +4227,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.DELETE), false);
+					typeId, EnumSet.of(PermissionType.READ, PermissionType.DELETE), false);
 			if (permission) {
 				invokeObjectFlowServiceBeforeCreate(repositoryId, folderId, null, null, null, null, userObject, allVers,
 						ObjectFlowType.DELETED);
@@ -4364,7 +4374,7 @@ public class CmisObjectService {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					typeId, EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.UPDATE), false);
+					typeId, EnumSet.of(PermissionType.READ, PermissionType.UPDATE), false);
 			if (permission) {
 				IBaseObject data = null;
 				MBaseObjectDAO baseMorphiaDAO = null;

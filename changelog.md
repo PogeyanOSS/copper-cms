@@ -1,5 +1,11 @@
 Release Notes
 ============= 
+### Version 1.11.3
+
+**Features**
+
+- Support for multiple content in bulk api
+
 ### Version 1.0.3
 
 **Features**

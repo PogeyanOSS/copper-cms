@@ -218,7 +218,7 @@ public class CmisVersioningServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
+					data.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.CREATE), false);
 			if (permission) {
 				if (data.getIsVersionSeriesCheckedOut()) {
 					LOG.error("checkOut document: {} is already checked out, repositoryid: {}, TraceId: {}",
@@ -325,7 +325,7 @@ public class CmisVersioningServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
+					data.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.CREATE), false);
 			if (permission) {
 				if (data.getIsPrivateWorkingCopy() == false) {
 					LOG.error("cancelCheckOut pwc: {}, is not private working copy in repositoryid: {}, TraceId: {}",
@@ -390,7 +390,7 @@ public class CmisVersioningServices {
 			ITypePermissionService typePermissionFlow = TypeServiceFactory
 					.createTypePermissionFlowService(repositoryId);
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
-					data.getTypeId(), EnumSet.of(PermissionType.VIEW_ONLY, PermissionType.CREATE), false);
+					data.getTypeId(), EnumSet.of(PermissionType.READ, PermissionType.CREATE), false);
 			if (permission) {
 				if (data.getVersionSeriesId() == null) {
 					LOG.error("checkIn document is not versionable: {}, repositoryid: {}, TraceId: {}", objectId,
