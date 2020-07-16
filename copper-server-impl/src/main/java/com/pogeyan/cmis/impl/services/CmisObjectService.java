@@ -1896,17 +1896,12 @@ public class CmisObjectService {
 					if (valueName.getValues().size() == 1) {
 						BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
 								BigInteger.class);
-						int value = valueBigInteger.intValue();
-						if (value < 0) {
-							custom.put(valueName.getId(), valueBigInteger.longValue());
-						} else {
-							custom.put(valueName.getId(), value);
-						}
+						custom.put(valueName.getId(), valueBigInteger.longValue());
 					} else {
-						List<Integer> valueList = new ArrayList<>();
+						List<Long> valueList = new ArrayList<>();
 						valueName.getValues().forEach(v -> {
 							BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
-							valueList.add(valueBigInteger.intValue());
+							valueList.add(valueBigInteger.longValue());
 						});
 						custom.put(valueName.getId(), valueList);
 					}
