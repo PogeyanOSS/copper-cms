@@ -9,6 +9,7 @@ public class QueryRequest {
 	private List<FilterQueryRequest> filter;
 	private List<SortQueryRequest> sort;
 	private Map<String, QueryRequest> fields;
+	private String direction;
 	
 	public int getSize() {
 		return size;
@@ -33,6 +34,12 @@ public class QueryRequest {
 	}
 	public void setFields(Map<String, QueryRequest> fields) {
 		this.fields = fields;
+	}
+	public String getDirection() {
+		return direction;
+	}
+	public void setDirection(String direction) {
+		this.direction = direction;
 	}
 	
 }
