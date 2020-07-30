@@ -176,18 +176,21 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			String direction, Entry<String, QueryRequest> fieldsQuery) {
 		Document projection = new Document();
 		if (fieldsQuery.getValue().getFields() != null) {
-			String key = fieldsQuery.getKey();
-			if (key.contains(".")) {
-				String[] keys = key.split("\\.");
-				String label = keys[0];
-				String field = keys[1];
-				String fieldKey = field;
-				String fieldName = "$" + label + "." + getQueryName(field);
-				projection.append(fieldKey, fieldName);
-			} else {
-				String fieldName = "$" + getQueryName(key);
-				projection.append(key, fieldName);
+			for (Entry<String, QueryRequest> fields : fieldsQuery.getValue().getFields().entrySet()) {
+				String key = fields.getKey();
+				if (key.contains(".")) {
+					String[] keys = key.split("\\.");
+					String label = keys[0];
+					String field = keys[1];
+					String fieldKey = field;
+					String fieldName = "$" + label + "." + getQueryName(field);
+					projection.append(fieldKey, fieldName);
+				} else {
+					String fieldName = "$" + getQueryName(key);
+					projection.append(key, fieldName);
+				}
 			}
+			
 		}
 		projection = getDefaultProjectDocument(fieldsQuery, projection, sourceTypeId, targetTypeId,
 				direction);
