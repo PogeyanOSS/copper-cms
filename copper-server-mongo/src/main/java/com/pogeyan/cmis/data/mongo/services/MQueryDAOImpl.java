@@ -39,18 +39,28 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		List<SortQueryRequest> sortRequest = request.getSort();
 		Document projections = new Document();
 		Document projectionDocument = new Document();
+		String sourceTypeId = null;
+		String targetTypeId = null;
 		Map<String, QueryRequest> fieldsRequestMap = request.getFields();
 		if (!fieldsRequestMap.isEmpty()) {
 			for (Entry<String, QueryRequest> fieldsRequest : fieldsRequestMap.entrySet()) {
 				if (fieldsRequest.getKey().contains("_")) {
-					document = getLookupQuery(fieldsRequest, document, principalIds);
+					String key = fieldsRequest.getKey();
+					String[] keySplit = key.split("_");
+					String direction = fieldsRequest.getValue().getDirection();
+					sourceTypeId = keySplit[0];
+					targetTypeId = keySplit[1];
+					projectionDocument = getDefaultProjectDocument(fieldsRequest, projectionDocument, sourceTypeId,
+							targetTypeId, direction);
+					document = getLookupQuery(fieldsRequest, document, principalIds, sourceTypeId, targetTypeId, key,
+							projectionDocument);
 				} else {
 					String key = fieldsRequest.getKey();
 					if (key.contains(".")) {
 						String[] keys = key.split("\\.");
 						String label = keys[0];
 						String field = keys[1];
-						String fieldKey = label + "_" + field;
+						String fieldKey = field;
 						String fieldName = "$" + label + "." + getQueryName(field);
 						projectionDocument.append(fieldKey, fieldName);
 					} else {
@@ -60,6 +70,7 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 				}
 			}
 		}
+
 		document = getQueryAggsPipeline(request, filterRequest, sortRequest, document, true, principalIds);
 		if (projectionDocument != null && !projectionDocument.isEmpty()) {
 			projections.append("$project", projectionDocument);
@@ -86,6 +97,24 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		return result;
 	}
 
+	private Document getDefaultProjectDocument(Entry<String, QueryRequest> fieldsQuery, Document projectionDocument,
+			String sourceTypeId, String targetTypeId, String direction) {
+		String label = sourceTypeId;
+		String objectId = "$" + label + "." + getQueryName("cmis:objectId");
+		String objectTypeId = "$" + label + "." + getQueryName("cmis:objectTypeId");
+		String objectName = "$" + label + "." + getQueryName("cmis:name");
+		if (direction != null && direction.equals("target")) {
+			label = targetTypeId;
+			objectId = "$" + label + "." + getQueryName("cmis:objectId");
+			objectTypeId = "$" + label + "." + getQueryName("cmis:objectTypeId");
+			objectName = "$" + label + "." + getQueryName("cmis:name");
+		}
+		projectionDocument.append("cmis:objectId", objectId);
+		projectionDocument.append("cmis:objectTypeId", objectTypeId);
+		projectionDocument.append("cmis:name", objectName);
+		return projectionDocument;
+	}
+
 	private List<Document> getQueryAggsPipeline(QueryRequest request, List<FilterQueryRequest> filterRequest,
 			List<SortQueryRequest> sortRequest, List<Document> document, boolean aclPropagation,
 			String[] principalIds) {
@@ -94,11 +123,11 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		Document sortQuery = new Document();
 		Document limitQuery = new Document();
 
-		if (filterRequest.size() > 0 && !filterRequest.isEmpty()) {
+		if (filterRequest != null && filterRequest.size() > 0 && !filterRequest.isEmpty()) {
 			filterQuery = getFilterQuery(filterRequest, aclPropagation, principalIds);
 		}
 
-		if (sortRequest.size() > 0 && !sortRequest.isEmpty()) {
+		if (sortRequest != null && sortRequest.size() > 0 && !sortRequest.isEmpty()) {
 			sortQuery = getSortQuery(sortRequest);
 		}
 
@@ -118,39 +147,52 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 	}
 
 	private List<Document> getLookupQuery(Entry<String, QueryRequest> fieldsQuery, List<Document> document,
-			String[] principalIds) {
+			String[] principalIds, String sourceTypeId, String targetTypeId, String key, Document projectionDocument) {
 		Document rootProjection = new Document();
-		String key = fieldsQuery.getKey();
-		String sourceTypeId = null;
-		String targetTypeId = null;
-		if (key.contains("_")) {
-			String[] keySplit = key.split("_");
-			sourceTypeId = keySplit[0];
-			targetTypeId = keySplit[1];
-			if (fieldsQuery.getValue() != null && (fieldsQuery.getValue().getDirection() != null
-					&& fieldsQuery.getValue().getDirection().equals("target"))) {
-				getLookupByDirection(document, rootProjection, targetTypeId, sourceTypeId, "target");
-			} else {
-				getLookupByDirection(document, rootProjection, sourceTypeId, targetTypeId, "source");
-			}
+		Document projectionDoc = new Document(); 
+		if (fieldsQuery.getValue() != null && (fieldsQuery.getValue().getDirection() != null
+				&& fieldsQuery.getValue().getDirection().equals("target"))) {
+			getLookupByDirection(document, rootProjection, targetTypeId, sourceTypeId, "target");
+			projectionDoc = getProjectDocumentOnLookup(targetTypeId, sourceTypeId, "source" , fieldsQuery);
+			projectionDocument.append(sourceTypeId, projectionDoc);
+		} else {
+			getLookupByDirection(document, rootProjection, sourceTypeId, targetTypeId, "source");
+			projectionDoc = getProjectDocumentOnLookup(targetTypeId, sourceTypeId, "target" , fieldsQuery);
+			projectionDocument.append(targetTypeId, projectionDoc);
 		}
 
 		if (fieldsQuery.getValue() != null && (fieldsQuery.getValue().getFields() != null
-				|| fieldsQuery.getValue().getFilter() != null || fieldsQuery.getValue().getSort() != null)) {
+				|| fieldsQuery.getValue().getFilter() != null || fieldsQuery.getValue().getSort() != null))
+		{
 			QueryRequest aggsRequest = fieldsQuery.getValue();
 			List<FilterQueryRequest> filter = aggsRequest.getFilter();
 			List<SortQueryRequest> sort = aggsRequest.getSort();
 			document = getQueryAggsPipeline(aggsRequest, filter, sort, document, false, principalIds);
-			Document groupDoc = new Document();
-			Document groupQuery = new Document();
-			Document pushItem = new Document(sourceTypeId, "$" + sourceTypeId);
-			pushItem.append(targetTypeId, "$" + targetTypeId);
-			groupDoc.append("_id", "$" + targetTypeId + "._id");
-			groupDoc.append(key, new Document("$push", pushItem));
-			groupQuery.append("$group", groupDoc);
-			document.add(groupQuery);
 		}
 		return document;
+	}
+
+	private Document getProjectDocumentOnLookup(String targetTypeId, String sourceTypeId,
+			String direction, Entry<String, QueryRequest> fieldsQuery) {
+		Document projection = new Document();
+		if (fieldsQuery.getValue().getFields() != null) {
+			String key = fieldsQuery.getKey();
+			if (key.contains(".")) {
+				String[] keys = key.split("\\.");
+				String label = keys[0];
+				String field = keys[1];
+				String fieldKey = field;
+				String fieldName = "$" + label + "." + getQueryName(field);
+				projection.append(fieldKey, fieldName);
+			} else {
+				String fieldName = "$" + getQueryName(key);
+				projection.append(key, fieldName);
+			}
+		}
+		projection = getDefaultProjectDocument(fieldsQuery, projection, sourceTypeId, targetTypeId,
+				direction);
+		
+		return projection;
 	}
 
 	private void getLookupByDirection(List<Document> document, Document rootProjection, String sourceTypeId,
@@ -339,7 +381,7 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 				|| name.equalsIgnoreCase(PropertyIds.VERSION_SERIES_CHECKED_OUT_BY)) {
 			return getFieldName(name);
 		} else if (name.equalsIgnoreCase(PropertyIds.OBJECT_ID)) {
-			return "id";
+			return "_id";
 		} else if (name.equalsIgnoreCase(PropertyIds.SECONDARY_OBJECT_TYPE_IDS)) {
 			return "secondaryTypeIds";
 		} else if (name.equalsIgnoreCase(PropertyIds.OBJECT_TYPE_ID)) {
