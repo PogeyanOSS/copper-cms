@@ -8,8 +8,8 @@ public class QueryAggregationConstants {
 	public static final String LESSTHAN = "lt";
 	public static final String GREATERTHANEQUAL = "gte";
 	public static final String LESSTHANEQUAL = "lte";
-	public static final String ASCENDING = "asce";
-	public static final String DESCENDING = "desc";
+	public static final String ASCENDING = "asc";
+	public static final String DESCENDING = "dsc";
 	public static final String SOURCE = "source";
 	public static final String TARGET = "target";
 	public static final String PROJECT = "$project";
@@ -17,6 +17,7 @@ public class QueryAggregationConstants {
 	public static final String GROUP = "$group";
 	public static final String SORT = "$sort";
 	public static final String LIMIT = "$limit";
+	public static final String SKIP = "$skip";
 	public static final String LOOKUP = "$lookup";
 	public static final String UNWIND = "$unwind";
 	public static final String OR = "$or";
