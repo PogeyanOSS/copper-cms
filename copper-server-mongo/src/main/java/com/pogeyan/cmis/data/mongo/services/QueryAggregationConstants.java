@@ -33,7 +33,7 @@ public class QueryAggregationConstants {
 	public static final String COLLECTION_NAME = "objectData";
 	public static final String SOURCE_TABLE = "source_table";
 	public static final String TARGET_TABLE = "target_table";
-	public static final String RELATION_TYPE = "copper_relationType";
+	public static final String RELATION_TYPE = "cmis:relationType";
 	
 	
 }

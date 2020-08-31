@@ -506,16 +506,16 @@ public class CmisTypeServices {
 					"localNameSpace", "target_column", "target_column", "description", PropertyType.STRING,
 					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("target_column", target_column);
-			PropertyDefinitionImpl<?> copper_relationType = new PropertyDefinitionImpl("copper_relationType",
-                    "localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
-                    PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, false);
+			PropertyDefinitionImpl<?> relationType = new PropertyDefinitionImpl("cmis:relationType",
+                    "localName", "localNameSpace", "cmis:relationType ", "cmis:relationType", "description",
+                    PropertyType.INTEGER, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, false);
             List<ChoiceImpl<Integer>>choiceList = new ArrayList<ChoiceImpl<Integer>>();
             ChoiceImpl<Integer> relType = new ChoiceImpl<Integer>();
-            relType.setDisplayName("relationType");
+            relType.setDisplayName("cmis:relationType");
             relType.setValue(Arrays.asList(0, 1, 2));
             choiceList.add(relType);
-            copper_relationType.setChoice(choiceList);
-            list.put("copper_relationType", copper_relationType);
+            relationType.setChoice(choiceList);
+            list.put("cmis:relationType", relationType);
 			return list;
 		}
 
