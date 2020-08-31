@@ -132,6 +132,5 @@
 		<module>copper-server-mongo</module>
 		<module>external</module>
 		<module>copper-server</module>
-		<module>copper-server-dynamo</module>
 	</modules>
 </project>
