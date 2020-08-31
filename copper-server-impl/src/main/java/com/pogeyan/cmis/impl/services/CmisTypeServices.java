@@ -47,6 +47,7 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionContainerImpl;
@@ -506,9 +507,15 @@ public class CmisTypeServices {
 					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("target_column", target_column);
 			PropertyDefinitionImpl<?> copper_relationType = new PropertyDefinitionImpl("copper_relationType",
-					"localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
-			list.put("copper_relationType", copper_relationType);
+                    "localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
+                    PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, false);
+            List<ChoiceImpl<Integer>>choiceList = new ArrayList<ChoiceImpl<Integer>>();
+            ChoiceImpl<Integer> relType = new ChoiceImpl<Integer>();
+            relType.setDisplayName("relationType");
+            relType.setValue(Arrays.asList(0, 1, 2));
+            choiceList.add(relType);
+            copper_relationType.setChoice(choiceList);
+            list.put("copper_relationType", copper_relationType);
 			return list;
 		}
 
@@ -1848,7 +1855,7 @@ public class CmisTypeServices {
 				propertyDefinition.setMinValue(pi.getMinValue() == null ? null : pi.getMinValue().intValue());
 				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue().intValue());
 			}
-			propertyDefinition.setChoice(pro.getChoices());
+//			propertyDefinition.setChoice(pro.getChoices());
 			return propertyDefinition;
 		}
 
