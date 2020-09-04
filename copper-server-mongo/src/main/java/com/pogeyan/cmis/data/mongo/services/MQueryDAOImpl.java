@@ -55,7 +55,8 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 					if (baseObject != null) {
 						sourceTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.SOURCE_TABLE);
 						targetTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.TARGET_TABLE);
-						relationshipType = (Integer) baseObject.getProperties().get(QueryAggregationConstants.RELATION_TYPE);
+						relationshipType = (Integer) baseObject.getProperties()
+								.get(QueryAggregationConstants.RELATION_TYPE);
 						String direction = fieldsRequest.getValue().getDirection();
 						projectionDocument = getDefaultProjectDocument(fieldsRequest, projectionDocument, sourceTypeId,
 								targetTypeId, direction);
@@ -102,75 +103,105 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			result.add(respose);
 		}
 		LOG.error("Get Response Dynamic for RelationShip Query Result : {} ", list);
-		if (relationshipType.equals(1)) {
+		if (result != null && !result.isEmpty() && relationshipType.equals(1)) {
 			List<IQueryResponse> finalResult = getQueryByRelationshipType(result);
 			return finalResult;
-		} else {
-			return result;
 		}
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")
 	private List<IQueryResponse> getQueryByRelationshipType(List<IQueryResponse> result) {
-		IQueryResponse response = new IQueryResponse();
-		List<IQueryResponse> finalResult = new ArrayList<IQueryResponse>();
+
+		List<IQueryResponse> resposeRes = new ArrayList<IQueryResponse>();
 		boolean isGroup = false;
 		for (IQueryResponse res : result) {
+			IQueryResponse response = new IQueryResponse();
 			for (Entry<String, Object> set : res.entrySet()) {
 				String key = set.getKey();
-				if (key.equals(PropertyIds.OBJECT_ID) && response.get(key) != null
-						&& response.get(key).equals(set.getValue())) {
-					isGroup = true;
-					break;
-				}
-				if (set.getValue() instanceof Map) {
-					Map<String, Object> subVlaue = (Map<String, Object>) set.getValue();
-					if (subVlaue.get(PropertyIds.OBJECT_ID) != null) {
-						Map<String, Object> map = new HashMap<String, Object>();
-						for (Entry<String, Object> sub : subVlaue.entrySet()) {
-							map.put(sub.getKey(), sub.getValue());
+				if (key.equals(PropertyIds.OBJECT_ID)) {
+					for (IQueryResponse iQueryResponse : resposeRes) {
+						if (iQueryResponse.get(key) != null && iQueryResponse.get(key).equals(set.getValue())) {
+							isGroup = true;
+							getNestedArray(res, iQueryResponse);
+							break;
 						}
-						List<Map<String, Object>> childArray = new ArrayList<Map<String, Object>>();
-						childArray.add(map);
-						response.put(key, childArray);
 					}
-				} else {
-					response.put(key, set.getValue());
 				}
-			}
-			if (isGroup) {
-				for (Entry<String, Object> set : res.entrySet()) {
-					String key = set.getKey();
-					Object value = set.getValue();
-					if (value instanceof Map) {
+				if (!isGroup) {
+					if (set.getValue() instanceof Map) {
 						Map<String, Object> subVlaue = (Map<String, Object>) set.getValue();
 						if (subVlaue.get(PropertyIds.OBJECT_ID) != null) {
 							Map<String, Object> map = new HashMap<String, Object>();
 							for (Entry<String, Object> sub : subVlaue.entrySet()) {
 								map.put(sub.getKey(), sub.getValue());
 							}
-							IQueryResponse queryResponse = new IQueryResponse(response);
-							List<Map<String, Object>> childArray = (List<Map<String, Object>>) queryResponse.get(key);
+							List<Map<String, Object>> childArray = new ArrayList<Map<String, Object>>();
 							childArray.add(map);
-							isGroup = false;
-							if (finalResult.size() > 0) {
-								for (IQueryResponse queryRes : finalResult) {
-									if (queryRes.get(PropertyIds.OBJECT_ID)
-											.equals(queryResponse.get(PropertyIds.OBJECT_ID))) {
-										finalResult.remove(queryRes);
-										break;
-									}
-								}
-							}
-							finalResult.add(queryResponse);
-							break;
+							response.put(key, childArray);
 						}
+					} else {
+						response.put(key, set.getValue());
 					}
 				}
 			}
+			if (!isGroup) {
+				resposeRes.add(response);
+			}
 		}
-		return finalResult;
+		return resposeRes;
 	}
+
+	private void getNestedArray(IQueryResponse res, IQueryResponse iQueryResponse) {
+		for (Entry<String, Object> ent : res.entrySet()) {
+			String entKey = ent.getKey();
+			Object value = ent.getValue();
+			if (value instanceof Map) {
+				Map<String, Object> subVlaue = (Map<String, Object>) ent.getValue();
+				if (subVlaue.get(PropertyIds.OBJECT_ID) != null) {
+					Map<String, Object> map = new HashMap<String, Object>();
+					for (Entry<String, Object> sub : subVlaue.entrySet()) {
+						map.put(sub.getKey(), sub.getValue());
+					}
+					IQueryResponse queryResponse = new IQueryResponse(iQueryResponse);
+					List<Map<String, Object>> childArray = (List<Map<String, Object>>) queryResponse.get(entKey);
+					childArray.add(map);
+				}
+			}
+		}
+	}
+
+//	private boolean getGroupResult(List<IQueryResponse> finalResult, boolean isGroup, IQueryResponse res,
+//			IQueryResponse response) {
+//		for (Entry<String, Object> set : res.entrySet()) {
+//			String key = set.getKey();
+//			Object value = set.getValue();
+//			if (value instanceof Map) {
+//				Map<String, Object> subVlaue = (Map<String, Object>) set.getValue();
+//				if (subVlaue.get(PropertyIds.OBJECT_ID) != null) {
+//					Map<String, Object> map = new HashMap<String, Object>();
+//					for (Entry<String, Object> sub : subVlaue.entrySet()) {
+//						map.put(sub.getKey(), sub.getValue());
+//					}
+//					IQueryResponse queryResponse = new IQueryResponse(response);
+//					List<Map<String, Object>> childArray = (List<Map<String, Object>>) queryResponse.get(key);
+//					childArray.add(map);
+//					isGroup = false;
+//					if (finalResult.size() > 0) {
+//						for (IQueryResponse queryRes : finalResult) {
+//							if (queryRes.get(PropertyIds.OBJECT_ID).equals(queryResponse.get(PropertyIds.OBJECT_ID))) {
+//								finalResult.remove(queryRes);
+//								break;
+//							}
+//						}
+//					}
+//					finalResult.add(queryResponse);
+//					break;
+//				}
+//			}
+//		}
+//		return isGroup;
+//	}
 
 	@SuppressWarnings("serial")
 	private IBaseObject getRelationshipMd(String[] principalIds, MBaseObjectDAO objectMorphiaDAO, String key) {
