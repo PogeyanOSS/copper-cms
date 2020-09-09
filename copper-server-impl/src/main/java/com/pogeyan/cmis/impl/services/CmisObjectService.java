@@ -1893,17 +1893,31 @@ public class CmisObjectService {
 											"wrong choice for propertyType:" + valueName.getId());
 								});
 					}
+					BigInteger maxInt = BigInteger.valueOf(Integer.MAX_VALUE);
 					if (valueName.getValues().size() == 1) {
 						BigInteger valueBigInteger = convertInstanceOfObject(valueName.getFirstValue(),
 								BigInteger.class);
-						custom.put(valueName.getId(), valueBigInteger.longValue());
+						if (valueBigInteger.compareTo(maxInt) > 0) {
+							custom.put(valueName.getId(), valueBigInteger.longValue());
+						} else {
+							custom.put(valueName.getId(), valueBigInteger.intValue());
+						}
 					} else {
 						List<Long> valueList = new ArrayList<>();
+						List<Integer> intValueList = new ArrayList<>();
 						valueName.getValues().forEach(v -> {
 							BigInteger valueBigInteger = convertInstanceOfObject(v, BigInteger.class);
-							valueList.add(valueBigInteger.longValue());
+							if (valueBigInteger.compareTo(maxInt) > 0) {
+								valueList.add(valueBigInteger.longValue());
+							} else {
+								intValueList.add(valueBigInteger.intValue());
+							}
 						});
-						custom.put(valueName.getId(), valueList);
+						if (!intValueList.isEmpty()) {
+							custom.put(valueName.getId(), intValueList);
+						} else {
+							custom.put(valueName.getId(), valueList);
+						}
 					}
 
 				} else if (valueName.getFirstValue().getClass().getSimpleName().equalsIgnoreCase("BigDecimal")) {
