@@ -47,6 +47,7 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ChoiceImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionContainerImpl;
@@ -202,7 +203,7 @@ public class CmisTypeServices {
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
-					BaseTypeId.CMIS_ITEM, null, true, true, true, true, true, true, true, type, cmisRelationExt, null,
+					BaseTypeId.CMIS_ITEM, BaseTypeId.CMIS_ITEM.value(), true, true, true, true, true, true, true, type, cmisRelationExt, null,
 					null);
 
 			Map<String, PropertyDefinitionImpl<?>> cmisRelationMd = getRelationShipPropertyExt();
@@ -505,10 +506,16 @@ public class CmisTypeServices {
 					"localNameSpace", "target_column", "target_column", "description", PropertyType.STRING,
 					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("target_column", target_column);
-			PropertyDefinitionImpl<?> copper_relationType = new PropertyDefinitionImpl("copper_relationType",
-					"localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
-			list.put("copper_relationType", copper_relationType);
+			PropertyDefinitionImpl<?> relationType = new PropertyDefinitionImpl("cmis:relationType",
+                    "localName", "localNameSpace", "cmis:relationType ", "cmis:relationType", "description",
+                    PropertyType.INTEGER, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, false);
+            List<ChoiceImpl<Integer>>choiceList = new ArrayList<ChoiceImpl<Integer>>();
+            ChoiceImpl<Integer> relType = new ChoiceImpl<Integer>();
+            relType.setDisplayName("cmis:relationType");
+            relType.setValue(Arrays.asList(0, 1, 2));
+            choiceList.add(relType);
+            relationType.setChoice(choiceList);
+            list.put("cmis:relationType", relationType);
 			return list;
 		}
 

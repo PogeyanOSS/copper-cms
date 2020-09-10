@@ -31,6 +31,9 @@ public class QueryAggregationConstants {
 	public static final String SOURCE_ID = "cmis:sourceId";
 	public static final String TARGET_ID = "cmis:targetId";
 	public static final String COLLECTION_NAME = "objectData";
+	public static final String SOURCE_TABLE = "source_table";
+	public static final String TARGET_TABLE = "target_table";
+	public static final String RELATION_TYPE = "cmis:relationType";
 	
 	
 }
