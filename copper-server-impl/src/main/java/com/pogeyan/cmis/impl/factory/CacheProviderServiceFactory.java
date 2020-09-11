@@ -44,7 +44,7 @@ public class CacheProviderServiceFactory {
 	};
 	
 	public static void addRelationshipCacheService(ICacheProvider cacheProviderServiceFactory) {
-		LOG.info("cacheProviderServiceFactory for role: {}", cacheProviderServiceFactory);
+		LOG.info("cacheProviderServiceFactory for relationship: {}", cacheProviderServiceFactory);
 		relationshipCacheProvider = cacheProviderServiceFactory;
 	};
 }
