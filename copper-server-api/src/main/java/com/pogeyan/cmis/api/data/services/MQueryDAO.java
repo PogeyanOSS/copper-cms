@@ -7,6 +7,6 @@ import com.pogeyan.cmis.data.query.QueryRequest;
 
 public interface MQueryDAO {
 	
-	public List<IQueryResponse> query(QueryRequest request, String[] principalIds, String dbName);
+	public List<IQueryResponse> query(QueryRequest request, String[] principalIds);
 
 }

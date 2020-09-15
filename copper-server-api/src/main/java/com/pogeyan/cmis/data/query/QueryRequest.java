@@ -6,9 +6,11 @@ import java.util.Map;
 public class QueryRequest {
 	
 	private int size;
+	private int step;
 	private List<FilterQueryRequest> filter;
 	private List<SortQueryRequest> sort;
 	private Map<String, QueryRequest> fields;
+	private String direction;
 	
 	public int getSize() {
 		return size;
@@ -33,6 +35,18 @@ public class QueryRequest {
 	}
 	public void setFields(Map<String, QueryRequest> fields) {
 		this.fields = fields;
+	}
+	public String getDirection() {
+		return direction;
+	}
+	public void setDirection(String direction) {
+		this.direction = direction;
+	}
+	public int getStep() {
+		return step;
+	}
+	public void setStep(int step) {
+		this.step = step;
 	}
 	
 }
