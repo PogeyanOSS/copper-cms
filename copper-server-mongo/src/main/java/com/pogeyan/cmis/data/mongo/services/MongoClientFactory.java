@@ -61,11 +61,13 @@ import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.data.services.MQueryDAO;
+import com.pogeyan.cmis.api.data.services.MRelationObjectDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
 import com.pogeyan.cmis.data.mongo.MDocumentObject;
+import com.pogeyan.cmis.data.mongo.MRelationObject;
 import com.pogeyan.cmis.data.mongo.MTypeDocumentObject;
 import com.pogeyan.cmis.data.mongo.MTypeObject;
 
@@ -79,6 +81,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MTYPEMANAGERDAO = "MTypeManagerDAO";
 	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private static String MQUERYDAO = "MQueryDAO";
+	private static String MRELATIONOBJECCTDAOIMPL = "MRelationObjectDAOImpl";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
 	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
 	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
@@ -94,6 +97,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		objectServiceClass.put(MTypeManagerDAO.class, MongoClientFactory.MTYPEMANAGERDAO);
 		objectServiceClass.put(MNavigationDocServiceDAO.class, MongoClientFactory.MNAVIGATIONDOCSERVICEDAO);
 		objectServiceClass.put(MQueryDAO.class, MongoClientFactory.MQUERYDAO);
+		objectServiceClass.put(MRelationObjectDAO.class, MongoClientFactory.MRELATIONOBJECCTDAOIMPL);
 		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
 		morphia.getMapper().getConverters().addConverter(new AceConverter());
 		morphia.getMapper().getConverters().addConverter(new TokenConverter());
@@ -140,6 +144,9 @@ public class MongoClientFactory implements IDBClientFactory {
 		}
 		if (className.equals(MongoClientFactory.MQUERYDAO)) {
 			return (T) getContentDBMongoClient(repositoryId, (t) -> new MQueryDAOImpl(MBaseObject.class, t));
+		}
+		if (className.equals(MongoClientFactory.MRELATIONOBJECCTDAOIMPL)) {
+			return (T) getContentDBMongoClient(repositoryId, (t) -> new MRelationObjectDAOImpl(MRelationObject.class, t));
 		}
 		return null;
 	}

@@ -31,10 +31,12 @@ import org.bson.types.ObjectId;
 import com.codahale.metrics.MetricRegistryListener.Base;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.IRelationObject;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
+import com.pogeyan.cmis.api.data.services.MRelationObjectDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.api.utils.Helpers;
@@ -396,8 +398,34 @@ public class DBUtils {
 			return objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation, true, maxItems, skipCount,
 					mappedColumns, typeId);
 		}
-	}
+		
+		@SuppressWarnings("serial")
+		public static IRelationObject getRelationshipByName(String repositoryId, String name, boolean aclPropagation, String parentId,
+				String typeId) {
+			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
+			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
+				{
+					put(Variables.NAME, name);
+					
+					if (parentId != null) {
+						put(Variables.PARENTID, parentId);
+					}
 
+				}
+			};
+			List<? extends IRelationObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation,
+					false, 0, 0, null, typeId);
+			if (result.size() > 0) {
+				return result.get(0);
+			}
+
+			return null;
+		}
+
+	}
+	
+	
 	public static class TypeServiceDAO {
 		@SuppressWarnings("unchecked")
 		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId,
