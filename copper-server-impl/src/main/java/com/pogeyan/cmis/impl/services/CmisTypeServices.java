@@ -198,20 +198,20 @@ public class CmisTypeServices {
 					BaseTypeId.CMIS_SECONDARY, null, false, false, true, true, true, false, false, type,
 					SecondaryTypeProperty, null, null);
 
-			Map<String, PropertyDefinitionImpl<?>> cmisRelationExt = getRelationExt();
-			TypeDefinition cmisRelationExtObject = typeManagerDAO.createObjectFacade(
+			Map<String, PropertyDefinitionImpl<?>> cmisRelationMd = getRelationMdExt();
+			TypeDefinition cmisRelationMdObject = typeManagerDAO.createObjectFacade(
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
 					CustomTypeId.CMIS_EXT_RELATIONMD.value(), CustomTypeId.CMIS_EXT_RELATIONMD.value(),
-					BaseTypeId.CMIS_ITEM, BaseTypeId.CMIS_ITEM.value(), true, true, true, true, true, true, true, type, cmisRelationExt, null,
+					BaseTypeId.CMIS_ITEM, BaseTypeId.CMIS_ITEM.value(), true, true, true, true, true, true, true, type, cmisRelationMd, null,
 					null);
 
-			Map<String, PropertyDefinitionImpl<?>> cmisRelationMd = getRelationShipPropertyExt();
-			TypeDefinition cmisRelationMdObject = typeManagerDAO.createObjectFacade(
+			Map<String, PropertyDefinitionImpl<?>> cmisRelationShip = getRelationShipPropertyExt();
+			TypeDefinition cmisRelationShipObject = typeManagerDAO.createObjectFacade(
 					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_RELATIONSHIP.value(),
 					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), CustomTypeId.CMIS_EXT_RELATIONSHIP.value(),
 					CustomTypeId.CMIS_EXT_RELATIONSHIP.value(), "Relationship", BaseTypeId.CMIS_RELATIONSHIP, null,
-					true, false, true, true, true, true, true, type, cmisRelationMd, null, null);
+					true, false, true, true, true, true, true, type, cmisRelationShip, null, null);
 			Map<String, PropertyDefinitionImpl<?>> cmisExtConfig = getConfigExt();
 			TypeDefinition cmisExtConfigObject = typeManagerDAO.createObjectFacade(CustomTypeId.CMIS_EXT_CONFIG.value(),
 					CustomTypeId.CMIS_EXT_CONFIG.value(), CustomTypeId.CMIS_EXT_CONFIG.value(),
@@ -225,8 +225,8 @@ public class CmisTypeServices {
 			typeList.add(realtionShipType);
 			typeList.add(policyType);
 			typeList.add(secondaryType);
-			typeList.add(cmisRelationExtObject);
 			typeList.add(cmisRelationMdObject);
+			typeList.add(cmisRelationShipObject);
 			typeList.add(cmisExtConfigObject);
 
 			return typeList;
@@ -488,15 +488,15 @@ public class CmisTypeServices {
 		}
 
 		@SuppressWarnings("rawtypes")
-		public static Map<String, PropertyDefinitionImpl<?>> getRelationExt() {
-			Map<String, PropertyDefinitionImpl<?>> list = getBaseProperty();
+		public static Map<String, PropertyDefinitionImpl<?>> getRelationMdExt() {
+			Map<String, PropertyDefinitionImpl<?>> list = new HashMap<>();
 			PropertyDefinitionImpl<?> source_table = new PropertyDefinitionImpl("source_table", "localName",
 					"localNameSpace", "source_table", "source_table", "description", PropertyType.STRING,
 					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
 			list.put("source_table", source_table);
 			PropertyDefinitionImpl<?> target_table = new PropertyDefinitionImpl("target_table", "localName",
 					"localNameSpace", "target_table", "target_table", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
 			list.put("target_table", target_table);
 			PropertyDefinitionImpl<?> source_column = new PropertyDefinitionImpl("source_column", "localName",
 					"localNameSpace", "source_column", "source_column", "description", PropertyType.STRING,
@@ -504,11 +504,11 @@ public class CmisTypeServices {
 			list.put("source_column", source_column);
 			PropertyDefinitionImpl<?> target_column = new PropertyDefinitionImpl("target_column", "localName",
 					"localNameSpace", "target_column", "target_column", "description", PropertyType.STRING,
-					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+					Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, null);
 			list.put("target_column", target_column);
 			PropertyDefinitionImpl<?> relationType = new PropertyDefinitionImpl("cmis:relationType",
                     "localName", "localNameSpace", "cmis:relationType ", "cmis:relationType", "description",
-                    PropertyType.INTEGER, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, false);
+                    PropertyType.INTEGER, Cardinality.SINGLE, Updatability.READWRITE, false, false, true, false, false);
             List<ChoiceImpl<Integer>>choiceList = new ArrayList<ChoiceImpl<Integer>>();
             ChoiceImpl<Integer> relType = new ChoiceImpl<Integer>();
             relType.setDisplayName("cmis:relationType");
