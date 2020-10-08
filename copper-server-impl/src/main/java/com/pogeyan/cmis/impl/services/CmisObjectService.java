@@ -94,6 +94,7 @@ import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.IObjectEncryptService;
 import com.pogeyan.cmis.api.data.IObjectFlowFactory;
 import com.pogeyan.cmis.api.data.IObjectFlowService;
+import com.pogeyan.cmis.api.data.IRelationObject;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.ITypePermissionService;
@@ -107,6 +108,7 @@ import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDocumentObjectDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
+import com.pogeyan.cmis.api.data.services.MRelationObjectDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.api.storage.IStorageService;
@@ -2746,7 +2748,7 @@ public class CmisObjectService {
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
 					typeId, EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
-				IBaseObject so = createRelationshipIntern(repositoryId, folderId, properties, typeId, policies, addAces,
+				IRelationObject so = createRelationshipIntern(repositoryId, folderId, properties, typeId, policies, addAces,
 						removeAces, userObject, tracingId, span);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 				return so == null ? null : so.getId();
@@ -2767,17 +2769,17 @@ public class CmisObjectService {
 		 * returns relationship Document
 		 */
 		@SuppressWarnings({ "unchecked", "unused" })
-		private static IBaseObject createRelationshipIntern(String repositoryId, String folderId, Properties properties,
+		private static IRelationObject createRelationshipIntern(String repositoryId, String folderId, Properties properties,
 				String typeId, List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject,
 				String tracingId, ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createRelationshipIntern", null);
 			Map<String, Object> attrMap = new HashMap<String, Object>();
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
-			invokeObjectFlowServiceBeforeCreate(repositoryId, folderId, properties, policies, addAces, removeAces,
-					userObject, null, ObjectFlowType.CREATED);
+			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
+			//invokeObjectFlowServiceBeforeCreate(repositoryId, folderId, properties, policies, addAces, removeAces,
+				//	userObject, null, ObjectFlowType.CREATED);
 			List<String> secondaryObjectTypeIds = null;
 			TypeValidator.validateRequiredSystemProperties(properties);
 
@@ -2990,9 +2992,9 @@ public class CmisObjectService {
 				}
 			}
 
-			IBaseObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
+			IRelationObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
 					propMapNew, userObject, typeDef.getId(), policies, aclAdd, tracingId, span);
-			invokeObjectFlowServiceAfterCreate(storedObject, ObjectFlowType.CREATED, null, userObject);
+			//invokeObjectFlowServiceAfterCreate(storedObject, ObjectFlowType.CREATED, null, userObject);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return storedObject;
 		}
@@ -3000,7 +3002,7 @@ public class CmisObjectService {
 		/**
 		 * inserting relationshipObject into mongoDB
 		 */
-		private static IBaseObject createRelationshipObject(String repositoryId, IBaseObject parentData, String name,
+		private static IRelationObject createRelationshipObject(String repositoryId, IBaseObject parentData, String name,
 				List<String> secondaryObjectTypeId, Map<String, PropertyData<?>> properties, IUserObject userObject,
 				String typeId, List<String> policies, AccessControlListImplExt aclAdd, String tracingId,
 				ISpan parentSpan) throws CmisObjectNotFoundException, IllegalArgumentException {
@@ -3008,20 +3010,18 @@ public class CmisObjectService {
 					"CmisNavigationService::createRelationshipObject", null);
 			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeId, repositoryId,
 					typeId, userObject);
-			MBaseObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
+			MRelationObjectDAO baseMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
 			TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
 			Tuple2<String, String> p = resolvePathForObject(parentData, name);
 
 			PropertyData<?> objectIdProperty = properties.get(PropertyIds.OBJECT_ID);
 			String objectId = objectIdProperty == null ? null : (String) objectIdProperty.getFirstValue();
-			IBaseObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId,
-					repositoryId, secondaryObjectTypeId,
+			IRelationObject result = baseMorphiaDAO.createObjectFacade(name, BaseTypeId.CMIS_RELATIONSHIP, typeId,
 					properties.get(PropertyIds.DESCRIPTION) == null ? ""
 							: properties.get(PropertyIds.DESCRIPTION).getFirstValue().toString(),
 					userObject == null ? null : userObject.getUserDN(),
-					userObject == null ? null : userObject.getUserDN(), token, p._1(), custom, policies, aclAdd, p._2(),
-					parentData.getId().toString());
+					userObject == null ? null : userObject.getUserDN(), token, custom, aclAdd, p._2());
 			if (result.equals(null)) {
 				LOG.error("createRelationshipObject unknown relation object: {}, repositoryId: {}, TraceId: {}", result,
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -3071,7 +3071,7 @@ public class CmisObjectService {
 		 * Validating the CMIS Relation Objects
 		 */
 		private static void validateRelationshipDocuments(String repositoryId, String relationName, String sourceTypeId,
-				String targetTypeId, Boolean cmis11, MBaseObjectDAO baseMorphiaDAO, String typeId, String tracingId,
+				String targetTypeId, Boolean cmis11, MRelationObjectDAO baseMorphiaDAO, String typeId, String tracingId,
 				ISpan parentSpan) {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::validateRelationshipDocuments", null);
