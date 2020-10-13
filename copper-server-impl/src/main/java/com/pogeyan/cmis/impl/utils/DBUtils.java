@@ -342,10 +342,10 @@ public class DBUtils {
 
 	public static class RelationshipDAO {
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipDocuments(String repositoryId, String typeId,
+		public static List<? extends IRelationObject> getRelationshipDocuments(String repositoryId, String typeId,
 				boolean aclPropagation) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
+			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.TYPEID, typeId);
@@ -356,10 +356,10 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipTargetIds(String repositoryId, String targetId,
+		public static List<? extends IRelationObject> getRelationshipTargetIds(String repositoryId, String targetId,
 				boolean aclPropagation, String primaryKey, Object value) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
+			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put(Variables.TYPEID, targetId);
@@ -371,10 +371,10 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipBySourceId(String repositoryId, String sourceId,
+		public static List<? extends IRelationObject> getRelationshipBySourceId(String repositoryId, String sourceId,
 				boolean aclPropagation, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
+			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put("properties.cmis:sourceId", sourceId);
@@ -386,10 +386,10 @@ public class DBUtils {
 		}
 
 		@SuppressWarnings("serial")
-		public static List<? extends IBaseObject> getRelationshipByTargetId(String repositoryId, String targetId,
+		public static List<? extends IRelationObject> getRelationshipByTargetId(String repositoryId, String targetId,
 				boolean aclPropagation, int maxItems, int skipCount, String[] mappedColumns, String typeId) {
-			MBaseObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
-					.getObjectService(repositoryId, MBaseObjectDAO.class);
+			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
 			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
 				{
 					put("properties.cmis:targetId", targetId);
@@ -416,6 +416,25 @@ public class DBUtils {
 			};
 			List<? extends IRelationObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null, aclPropagation,
 					false, 0, 0, null, typeId);
+			if (result.size() > 0) {
+				return result.get(0);
+			}
+
+			return null;
+		}
+		
+		public static IRelationObject getRelationshipByObjectId(String repositoryId, String[] principalIds, boolean aclPropagation,
+				String objectId, String[] mappedColumns, String typeId) {
+			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
+					.getObjectService(repositoryId, MRelationObjectDAO.class);
+			HashMap<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
+				{
+					put(Variables.OBJECTID, objectId);
+				}
+			};
+
+			List<? extends IRelationObject> result = objectMorphiaDAO.filter(fieldsNamesAndValues, null,
+					aclPropagation, false, 0, 0, mappedColumns, typeId);
 			if (result.size() > 0) {
 				return result.get(0);
 			}

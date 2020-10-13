@@ -227,7 +227,7 @@ public class CmisObjectService {
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			IBaseObject data = null;
 			try {
-				if (baseTypeId == null || baseTypeId != BaseTypeId.CMIS_DOCUMENT) {
+				if (baseTypeId == null || (baseTypeId != BaseTypeId.CMIS_DOCUMENT)) {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId,
 							filterArray, typeId);
 				} else {
@@ -1214,24 +1214,24 @@ public class CmisObjectService {
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			if (includeRelationships == IncludeRelationships.SOURCE) {
-				List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
+				List<? extends IRelationObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
 						spo.getId().toString(), aclPropagation, maxItems, skipCount, mappedColumns, spo.getTypeId());
-				return getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, source);
+				return CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, source);
 			} else if (includeRelationships == IncludeRelationships.TARGET) {
-				List<? extends IBaseObject> target = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId,
+				List<? extends IRelationObject> target = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId,
 						spo.getId().toString(), aclPropagation, maxItems, skipCount, mappedColumns, spo.getTypeId());
-				return getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, target);
+				return CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, target);
 			} else if (includeRelationships == IncludeRelationships.BOTH) {
 				List<ObjectData> sourceTarget = new ArrayList<>();
-				List<? extends IBaseObject> sourceObject = DBUtils.RelationshipDAO.getRelationshipBySourceId(
+				List<? extends IRelationObject> sourceObject = DBUtils.RelationshipDAO.getRelationshipBySourceId(
 						repositoryId, spo.getId().toString(), aclPropagation, maxItems, skipCount, mappedColumns,
 						spo.getTypeId());
-				List<? extends IBaseObject> targetObject = DBUtils.RelationshipDAO.getRelationshipByTargetId(
+				List<? extends IRelationObject> targetObject = DBUtils.RelationshipDAO.getRelationshipByTargetId(
 						repositoryId, spo.getId().toString(), aclPropagation, maxItems, skipCount, mappedColumns,
 						spo.getTypeId());
-				List<ObjectData> source = getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
+				List<ObjectData> source = CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
 						sourceObject);
-				List<ObjectData> taregt = getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
+				List<ObjectData> taregt = CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
 						targetObject);
 				getSourceTargetList(sourceTarget, source);
 				getSourceTargetList(sourceTarget, taregt);
@@ -3037,7 +3037,7 @@ public class CmisObjectService {
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
-			IBaseObject itemObject = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation,
+			IRelationObject itemObject = DBUtils.RelationshipDAO.getRelationshipByObjectId(repositoryId, principalIds, aclPropagation,
 					result.getId(), null, typeId);
 			if (itemObject != null) {
 				LOG.error("Relationship object already present: {}, repositoryId: {}, TraceId: {}", itemObject.getId(),
