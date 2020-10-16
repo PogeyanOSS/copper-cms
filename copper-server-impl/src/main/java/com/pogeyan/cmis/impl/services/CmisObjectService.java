@@ -227,7 +227,7 @@ public class CmisObjectService {
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
 			IBaseObject data = null;
 			try {
-				if (baseTypeId == null || (baseTypeId != BaseTypeId.CMIS_DOCUMENT)) {
+				if (baseTypeId == null || baseTypeId != BaseTypeId.CMIS_DOCUMENT) {
 					data = DBUtils.BaseDAO.getByObjectId(repositoryId, principalIds, aclPropagation, objectId,
 							filterArray, typeId);
 				} else {

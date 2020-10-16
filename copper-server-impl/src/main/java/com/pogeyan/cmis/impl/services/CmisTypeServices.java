@@ -509,10 +509,10 @@ public class CmisTypeServices {
 					"localName", "localNameSpace", "cmis:relationType", "cmis:relationType", "description",
 					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("cmis:relationType", cmis_relationType);
-			PropertyDefinitionImpl<?> relation_propagation = new PropertyDefinitionImpl("relation_propagation", "localName",
-					"localNameSpace", "relation_propagation", "relation_propagation", "description", PropertyType.STRING,
+			PropertyDefinitionImpl<?> relation_propagation = new PropertyDefinitionImpl("cmis:relation_propagation", "localName",
+					"localNameSpace", "cmis:relation_propagation", "cmis:relation_propagation", "description", PropertyType.BOOLEAN,
 					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
-			list.put("relation_propagation", relation_propagation);
+			list.put("cmis:relation_propagation", relation_propagation);
 			return list;
 		}
 
