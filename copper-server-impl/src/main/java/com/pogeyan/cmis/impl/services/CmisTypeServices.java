@@ -505,10 +505,14 @@ public class CmisTypeServices {
 					"localNameSpace", "target_column", "target_column", "description", PropertyType.STRING,
 					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("target_column", target_column);
-			PropertyDefinitionImpl<?> copper_relationType = new PropertyDefinitionImpl("copper_relationType",
-					"localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
+			PropertyDefinitionImpl<?> cmis_relationType = new PropertyDefinitionImpl("cmis:relationType",
+					"localName", "localNameSpace", "cmis:relationType", "cmis:relationType", "description",
 					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
-			list.put("copper_relationType", copper_relationType);
+			list.put("cmis:relationType", cmis_relationType);
+			PropertyDefinitionImpl<?> relation_propagation = new PropertyDefinitionImpl("relation_propagation", "localName",
+					"localNameSpace", "relation_propagation", "relation_propagation", "description", PropertyType.STRING,
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+			list.put("relation_propagation", relation_propagation);
 			return list;
 		}
 
