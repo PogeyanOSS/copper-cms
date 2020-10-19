@@ -344,10 +344,12 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			List<FilterQueryRequest> filter = aggsRequest.getFilter();
 			List<SortQueryRequest> sort = aggsRequest.getSort();
 			document = getQueryAggsPipeline(aggsRequest, filter, sort, document, false, principalIds);
-			for (Entry<String, QueryRequest> fields : fieldsQuery.getValue().getFields().entrySet()) {
-				if (fields.getValue() != null && (fields.getValue().getFields() != null
-						|| fields.getValue().getFilter() != null || fields.getValue().getSort() != null)) {
-					getNestedQuery(fields, document, principalIds);
+			if (fieldsQuery.getValue().getFields() != null) {
+				for (Entry<String, QueryRequest> fields : fieldsQuery.getValue().getFields().entrySet()) {
+					if (fields.getValue() != null && (fields.getValue().getFields() != null
+							|| fields.getValue().getFilter() != null || fields.getValue().getSort() != null)) {
+						getNestedQuery(fields, document, principalIds);
+					}
 				}
 			}
 		}
