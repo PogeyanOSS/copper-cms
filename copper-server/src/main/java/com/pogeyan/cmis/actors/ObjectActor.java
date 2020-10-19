@@ -73,6 +73,7 @@ import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisObjectService;
+import com.pogeyan.cmis.impl.services.CmisRelationshipService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 import com.pogeyan.cmis.impl.services.CmisVersioningServices;
 import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
@@ -634,7 +635,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
-		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
+		ObjectData object = CmisRelationshipService.Impl.getRelationshipSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_RELATIONSHIP, request.getTypeId());
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,

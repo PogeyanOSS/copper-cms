@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import com.pogeyan.cmis.api.auth.IUserObject;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
+import com.pogeyan.cmis.api.data.IRelationObject;
 import com.pogeyan.cmis.api.data.ISpan;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
@@ -489,7 +490,7 @@ public class CmisNavigationService {
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
-			List<? extends IBaseObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
+			List<? extends IRelationObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
 					folderId.toString(), aclPropagation, 0, 0, null, typeId);
 			List<String> targetIds = source.stream()
 					.map(relId -> relId.getProperties().get(PropertyIds.TARGET_ID).toString())
