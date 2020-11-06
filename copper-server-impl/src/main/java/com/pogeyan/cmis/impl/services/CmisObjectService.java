@@ -4829,7 +4829,7 @@ public class CmisObjectService {
 
 		private static <T> T convertInstanceOfObject(Object o, Class<T> clazz) {
 			try {
-				return clazz.cast(o);
+				return (T)o;
 			} catch (ClassCastException e) {
 				return null;
 			}
