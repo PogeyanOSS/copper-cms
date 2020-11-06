@@ -98,6 +98,7 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 
 	private JSONObject getChildren(QueryGetRequest request, HashMap<String, Object> baggage)
 			throws CmisObjectNotFoundException, CmisRuntimeException, CmisRoleValidationException {
+		long startTimeMain = System.currentTimeMillis();
 		String tracingId = (String) baggage.get(BrowserConstants.TRACINGID);
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
@@ -140,10 +141,13 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span));
 		}
-
+		long covertJsonMain = System.currentTimeMillis();
 		JSONObject jsonChildren = JSONConverter.convert(children, CmisTypeCacheService.get(request.getRepositoryId()),
 				succinct, dateTimeFormat);
+		LOG.error("JsonChildren convert Total Time : {} ", System.currentTimeMillis() - covertJsonMain);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+		LOG.error("GetChildrenMain Total Time : {} ", System.currentTimeMillis() - startTimeMain);
+		
 		return jsonChildren;
 
 	}

@@ -174,12 +174,16 @@ public class CmisNavigationService {
 						}
 					}
 				}
+				long startTime = System.currentTimeMillis();
 				// Acl Propagation ObjectOnly
 				if (objectOnly) {
 					children = navigationMorphiaDAO.getChildren(path, principalIds, aclPropagation, maxItems, skipCount, orderBy,
 							filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, typeId);
+					LOG.error("GetChildren ObjectOnly Time : {} ", System.currentTimeMillis() - startTime);
+					long startTimeSize = System.currentTimeMillis();
 					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, aclPropagation, repositoryId, typeId,
 							Helpers.splitFilterQuery(filter), typeManagerDAO);
+					LOG.error("GetChildrenSize for ObjectOnly Time : {} ", System.currentTimeMillis() - startTimeSize);
 				}
 			}
 
