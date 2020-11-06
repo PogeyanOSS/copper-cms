@@ -27,6 +27,8 @@ import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistryListener.Base;
 import com.pogeyan.cmis.api.data.IBaseObject;
@@ -42,8 +44,12 @@ import com.pogeyan.cmis.api.repo.CopperCmsRepository;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.services.CmisObjectService;
 
 public class DBUtils {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(DBUtils.class);
+	
 	public static class Variables {
 		public static final String OBJECTID = "id";
 		public static final String PREVIOUSVERSIONOBJECTID = "previousVersionObjectId";
@@ -449,10 +455,12 @@ public class DBUtils {
 		@SuppressWarnings("unchecked")
 		public static List<? extends TypeDefinition> getById(String repositoryId, List<?> typeId,
 				String[] fieldAccess) {
+			long startTimeById = System.currentTimeMillis();
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
 			if (typeDef == null || typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
 				if (typeId != null) {
+					LOG.error("Getting typedef for Id : {} from DB", typeId);
 					MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 							.getObjectService(repositoryId, MTypeManagerDAO.class);
 					MDocumentTypeManagerDAO docManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -469,6 +477,7 @@ public class DBUtils {
 					});
 				}
 			}
+			LOG.error("Total time taken for getTypeById : {}", System.currentTimeMillis() - startTimeById);
 			return typeDef;
 		}
 

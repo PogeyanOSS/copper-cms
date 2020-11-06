@@ -404,8 +404,10 @@ public class CmisObjectService {
 					"CmisObjectService::compileObjectData", null);
 			ObjectDataImpl result = new ObjectDataImpl();
 			ObjectInfoImpl objectInfo = new ObjectInfoImpl();
+			long startTimeSetProp = System.currentTimeMillis();
 			result.setProperties(
 					compileProperties(repositoryId, data, filter, objectInfo, userObject, tracingId, span));
+			LOG.error("Time taken to set properties : {}", System.currentTimeMillis() - startTimeSetProp);
 
 			if (includeAllowableActions) {
 				AllowableActions action = getAllowableActions(repositoryId, data, null,
@@ -644,8 +646,10 @@ public class CmisObjectService {
 			// let's do it
 			try {
 				PropertiesImpl result = new PropertiesImpl();
+				long startTimeType = System.currentTimeMillis();
 				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
 						tracingId, span);
+				LOG.error("Total Time Taken for getTypeDefinition : {}", System.currentTimeMillis() - startTimeType);
 				// id
 				String id = data.getId().toString();
 				addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_ID, id, userObject);
@@ -886,11 +890,13 @@ public class CmisObjectService {
 						objectInfo.setRelationshipTargetIds(targetIds);
 					}
 				}
+				long startTimeReadCustom = System.currentTimeMillis();
 				if (data.getProperties() != null) {
 					ITypePermissionService typePermissionService = TypeServiceFactory
 							.createTypePermissionFlowService(repositoryId);
 					readCustomProperties(repositoryId, data, result, type, filter, typePermissionService, userObject);
 				}
+				LOG.error("Total Time Taken for readCustomProperties: {}", System.currentTimeMillis() - startTimeReadCustom);
 				// if (filter != null) {
 				// if (!filter.isEmpty()) {
 				// LOG.warn("Unknown filter properties: {} ",
@@ -1395,6 +1401,7 @@ public class CmisObjectService {
 
 			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
+				long startTimeObjecEncrypt = System.currentTimeMillis();
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
 					String id = customValues.getKey();
@@ -1504,6 +1511,7 @@ public class CmisObjectService {
 						}
 					}
 				}
+				LOG.error("Total time taken for encryptService : {}", System.currentTimeMillis() - startTimeObjecEncrypt);
 			}
 		}
 
