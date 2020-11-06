@@ -1399,7 +1399,7 @@ public class CmisObjectService {
 					}
 				}
 			});
-			LOG.error("Total time taken for readCustomProperties: {}", System.currentTimeMillis() - startTimeObjecEncrypt);
+			LOG.error("Total time taken for readCustomProperties: {}", System.currentTimeMillis() - startTimeReadCustomProperties);
 
 			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
