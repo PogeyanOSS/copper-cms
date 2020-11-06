@@ -894,7 +894,7 @@ public class CmisObjectService {
 				if (data.getProperties() != null) {
 					ITypePermissionService typePermissionService = TypeServiceFactory
 							.createTypePermissionFlowService(repositoryId);
-					readCustomProperties(repositoryId, data, result, type, filter, typePermissionService, userObject);
+					CmisObjectService.Impl.readCustomProperties(repositoryId, data, result, type, filter, typePermissionService, userObject);
 				}
 				LOG.error("Total Time Taken for readCustomProperties: {}", System.currentTimeMillis() - startTimeReadCustom);
 				// if (filter != null) {
@@ -1401,9 +1401,9 @@ public class CmisObjectService {
 			});
 			LOG.error("Total time taken for readCustomProperties: {}", System.currentTimeMillis() - startTimeReadCustomProperties);
 
+			long startTimeObjecEncrypt = System.currentTimeMillis();
 			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
-				long startTimeObjecEncrypt = System.currentTimeMillis();
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
 					String id = customValues.getKey();
@@ -1513,8 +1513,8 @@ public class CmisObjectService {
 						}
 					}
 				}
-				LOG.error("Total time taken for encryptService : {}", System.currentTimeMillis() - startTimeObjecEncrypt);
 			}
+			LOG.error("Total time taken for encryptService : {}", System.currentTimeMillis() - startTimeObjecEncrypt);
 		}
 
 		@SuppressWarnings("unchecked")
