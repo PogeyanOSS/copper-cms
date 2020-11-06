@@ -1346,6 +1346,7 @@ public class CmisObjectService {
 		private static void readCustomProperties(String repositoryId, IBaseObject data, PropertiesImpl props,
 				TypeDefinition typeId, Set<String> filter, ITypePermissionService typePermissionFlow,
 				IUserObject userObject) {
+			long startTimeReadCustomProperties = System.currentTimeMillis();
 			HashMap<String, Object> customProps = new HashMap<String, Object>();
 			data.getProperties().entrySet().forEach(map -> {
 				if (!(map.getKey().equalsIgnoreCase(PropertyIds.NAME)
@@ -1373,9 +1374,10 @@ public class CmisObjectService {
 						|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_SERIES_CHECKED_OUT_ID)
 						|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_SERIES_ID)
 						|| map.getKey().equalsIgnoreCase(PropertyIds.IS_IMMUTABLE))) {
-
-					if (typeId.getPropertyDefinitions().get(map.getKey()) == null) {
+					Map<String, PropertyDefinition<?>> propDefs = typeId.getPropertyDefinitions();
+					if (propDefs.get(map.getKey()) == null) {
 						if (data.getSecondaryTypeIds() != null) {
+							LOG.error("Inside readCustomProperties getSecondaryTypeIds");
 							List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl
 									.checkTypePermissionList(typePermissionFlow, repositoryId, userObject,
 											data.getSecondaryTypeIds());
@@ -1393,11 +1395,11 @@ public class CmisObjectService {
 							throw new IllegalArgumentException("Property '" + map.getKey() + "' is unknown!");
 						}
 					} else {
-						customProps.put(map.getKey(),
-								typeId.getPropertyDefinitions().get(map.getKey()).getPropertyType());
+						customProps.put(map.getKey(), propDefs.get(map.getKey()).getPropertyType());
 					}
 				}
 			});
+			LOG.error("Total time taken for readCustomProperties: {}", System.currentTimeMillis() - startTimeObjecEncrypt);
 
 			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
