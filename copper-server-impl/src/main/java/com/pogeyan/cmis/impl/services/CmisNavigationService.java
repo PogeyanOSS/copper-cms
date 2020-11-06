@@ -186,16 +186,17 @@ public class CmisNavigationService {
 					LOG.error("GetChildrenSize for ObjectOnly Time : {} ", System.currentTimeMillis() - startTimeSize);
 				}
 			}
-
+			long startTimeCompile = System.currentTimeMillis();
 			for (IDocumentObject child : children) {
 				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 				if (includePathSegments != null && includePathSegments) {
 					oifd.setPathSegment(child.getName());
 				}
-
+				long startTimeCompileData = System.currentTimeMillis();
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child, filterCollection,
 						includeAllowableActions, false, true, objectInfos, renditionFilter, includeRelationships,
 						userObject, tracingId, span);
+				LOG.error("Time taken for each CompileObjectData : {} ", System.currentTimeMillis() - startTimeCompileData);
 				oifd.setObject(objectData);
 				folderList.add(oifd);
 				if (objectInfos != null) {
@@ -203,7 +204,7 @@ public class CmisNavigationService {
 					objectInfos.addObjectInfo(objectInfo);
 				}
 			}
-
+			LOG.error("Total Time CompileObjectData : {} ", System.currentTimeMillis() - startTimeCompile);
 			result.setObjects(folderList);
 			result.setNumItems(BigInteger.valueOf(childrenCount));
 			result.setHasMoreItems(skipCount + 1 * maxItems < childrenCount);

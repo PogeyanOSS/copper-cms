@@ -144,9 +144,9 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		long covertJsonMain = System.currentTimeMillis();
 		JSONObject jsonChildren = JSONConverter.convert(children, CmisTypeCacheService.get(request.getRepositoryId()),
 				succinct, dateTimeFormat);
-		LOG.error("JsonChildren convert Total Time : {} ", System.currentTimeMillis() - covertJsonMain);
+		LOG.error("JsonChildren convert Total Time : {}, repositoryId: {} ", System.currentTimeMillis() - covertJsonMain, request.getRepositoryId());
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
-		LOG.error("GetChildrenMain Total Time : {} ", System.currentTimeMillis() - startTimeMain);
+		LOG.error("GetChildrenMain Total Time : {} repositoryId: {} ", System.currentTimeMillis() - startTimeMain, request.getRepositoryId());
 		
 		return jsonChildren;
 
