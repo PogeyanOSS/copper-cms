@@ -25,10 +25,8 @@ import org.apache.chemistry.opencmis.commons.definitions.DocumentTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.commons.lang3.ArrayUtils;
 import org.bson.types.ObjectId;
 
-import com.codahale.metrics.MetricRegistryListener.Base;
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.api.data.IDocumentObject;
 import com.pogeyan.cmis.api.data.IRelationObject;
@@ -39,11 +37,11 @@ import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MRelationObjectDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.CopperCmsRepository;
-import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 
 public class DBUtils {
+		
 	public static class Variables {
 		public static final String OBJECTID = "id";
 		public static final String PREVIOUSVERSIONOBJECTID = "previousVersionObjectId";

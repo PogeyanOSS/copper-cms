@@ -182,13 +182,11 @@ public class CmisNavigationService {
 							Helpers.splitFilterQuery(filter), typeManagerDAO);
 				}
 			}
-
 			for (IDocumentObject child : children) {
 				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 				if (includePathSegments != null && includePathSegments) {
 					oifd.setPathSegment(child.getName());
 				}
-
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child, filterCollection,
 						includeAllowableActions, false, true, objectInfos, renditionFilter, includeRelationships,
 						userObject, tracingId, span);
@@ -199,7 +197,6 @@ public class CmisNavigationService {
 					objectInfos.addObjectInfo(objectInfo);
 				}
 			}
-
 			result.setObjects(folderList);
 			result.setNumItems(BigInteger.valueOf(childrenCount));
 			result.setHasMoreItems(skipCount + 1 * maxItems < childrenCount);

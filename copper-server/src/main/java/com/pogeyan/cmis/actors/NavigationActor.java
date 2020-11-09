@@ -140,7 +140,6 @@ public class NavigationActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.CHILDREN_NULL), span));
 		}
-
 		JSONObject jsonChildren = JSONConverter.convert(children, CmisTypeCacheService.get(request.getRepositoryId()),
 				succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);

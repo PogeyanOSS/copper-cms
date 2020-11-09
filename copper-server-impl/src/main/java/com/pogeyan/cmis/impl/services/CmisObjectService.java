@@ -119,7 +119,6 @@ import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
@@ -404,8 +403,10 @@ public class CmisObjectService {
 					"CmisObjectService::compileObjectData", null);
 			ObjectDataImpl result = new ObjectDataImpl();
 			ObjectInfoImpl objectInfo = new ObjectInfoImpl();
+			long startTimeSetProp = System.currentTimeMillis();
 			result.setProperties(
 					compileProperties(repositoryId, data, filter, objectInfo, userObject, tracingId, span));
+			LOG.error("Time taken to set properties : {}", System.currentTimeMillis() - startTimeSetProp);
 
 			if (includeAllowableActions) {
 				AllowableActions action = getAllowableActions(repositoryId, data, null,
@@ -644,8 +645,10 @@ public class CmisObjectService {
 			// let's do it
 			try {
 				PropertiesImpl result = new PropertiesImpl();
+				long startTimeType = System.currentTimeMillis();
 				TypeDefinition type = CmisTypeServices.Impl.getTypeDefinition(repositoryId, typeId, null, userObject,
 						tracingId, span);
+				LOG.error("Total Time Taken for getTypeDefinition : {}", System.currentTimeMillis() - startTimeType);
 				// id
 				String id = data.getId().toString();
 				addPropertyId(repositoryId, result, type, filter, PropertyIds.OBJECT_ID, id, userObject);
@@ -886,11 +889,13 @@ public class CmisObjectService {
 						objectInfo.setRelationshipTargetIds(targetIds);
 					}
 				}
+				long startTimeReadCustom = System.currentTimeMillis();
 				if (data.getProperties() != null) {
 					ITypePermissionService typePermissionService = TypeServiceFactory
 							.createTypePermissionFlowService(repositoryId);
-					readCustomProperties(repositoryId, data, result, type, filter, typePermissionService, userObject);
+					CmisObjectService.Impl.readCustomProperties(repositoryId, data, result, type, filter, typePermissionService, userObject);
 				}
+				LOG.error("Total Time Taken for readCustomProperties: {}", System.currentTimeMillis() - startTimeReadCustom);
 				// if (filter != null) {
 				// if (!filter.isEmpty()) {
 				// LOG.warn("Unknown filter properties: {} ",
@@ -1367,9 +1372,10 @@ public class CmisObjectService {
 						|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_SERIES_CHECKED_OUT_ID)
 						|| map.getKey().equalsIgnoreCase(PropertyIds.VERSION_SERIES_ID)
 						|| map.getKey().equalsIgnoreCase(PropertyIds.IS_IMMUTABLE))) {
-
-					if (typeId.getPropertyDefinitions().get(map.getKey()) == null) {
+					Map<String, PropertyDefinition<?>> propDefs = typeId.getPropertyDefinitions();
+					if (propDefs.get(map.getKey()) == null) {
 						if (data.getSecondaryTypeIds() != null) {
+							LOG.error("Inside readCustomProperties getSecondaryTypeIds");
 							List<? extends TypeDefinition> secondaryObject = CmisTypeServices.Impl
 									.checkTypePermissionList(typePermissionFlow, repositoryId, userObject,
 											data.getSecondaryTypeIds());
@@ -1387,13 +1393,11 @@ public class CmisObjectService {
 							throw new IllegalArgumentException("Property '" + map.getKey() + "' is unknown!");
 						}
 					} else {
-						customProps.put(map.getKey(),
-								typeId.getPropertyDefinitions().get(map.getKey()).getPropertyType());
+						customProps.put(map.getKey(), propDefs.get(map.getKey()).getPropertyType());
 					}
 				}
 			});
-
-			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
+			//IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
@@ -1401,9 +1405,9 @@ public class CmisObjectService {
 					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
-						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
-								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
-								data.getProperties());
+						// valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
+						// 		typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
+						// 		data.getProperties());
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -4819,7 +4823,7 @@ public class CmisObjectService {
 
 		private static <T> T convertInstanceOfObject(Object o, Class<T> clazz) {
 			try {
-				return clazz.cast(o);
+				return (T)o;
 			} catch (ClassCastException e) {
 				return null;
 			}
