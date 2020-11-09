@@ -1393,7 +1393,7 @@ public class CmisObjectService {
 				}
 			});
 
-			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
+//			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
@@ -1401,9 +1401,9 @@ public class CmisObjectService {
 					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
-						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
-								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
-								data.getProperties());
+//						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
+//								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
+//								data.getProperties());
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
