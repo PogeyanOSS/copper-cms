@@ -174,29 +174,22 @@ public class CmisNavigationService {
 						}
 					}
 				}
-				long startTime = System.currentTimeMillis();
 				// Acl Propagation ObjectOnly
 				if (objectOnly) {
 					children = navigationMorphiaDAO.getChildren(path, principalIds, aclPropagation, maxItems, skipCount, orderBy,
 							filterArray, Helpers.splitFilterQuery(filter), typeManagerDAO, repositoryId, typeId);
-					LOG.error("GetChildren ObjectOnly Time : {} ", System.currentTimeMillis() - startTime);
-					long startTimeSize = System.currentTimeMillis();
 					childrenCount = navigationMorphiaDAO.getChildrenSize(path, principalIds, aclPropagation, repositoryId, typeId,
 							Helpers.splitFilterQuery(filter), typeManagerDAO);
-					LOG.error("GetChildrenSize for ObjectOnly Time : {} ", System.currentTimeMillis() - startTimeSize);
 				}
 			}
-			long startTimeCompile = System.currentTimeMillis();
 			for (IDocumentObject child : children) {
 				ObjectInFolderDataImpl oifd = new ObjectInFolderDataImpl();
 				if (includePathSegments != null && includePathSegments) {
 					oifd.setPathSegment(child.getName());
 				}
-				long startTimeCompileData = System.currentTimeMillis();
 				ObjectData objectData = CmisObjectService.Impl.compileObjectData(repositoryId, child, filterCollection,
 						includeAllowableActions, false, true, objectInfos, renditionFilter, includeRelationships,
 						userObject, tracingId, span);
-				LOG.error("Time taken for each CompileObjectData : {} ", System.currentTimeMillis() - startTimeCompileData);
 				oifd.setObject(objectData);
 				folderList.add(oifd);
 				if (objectInfos != null) {
@@ -204,7 +197,6 @@ public class CmisNavigationService {
 					objectInfos.addObjectInfo(objectInfo);
 				}
 			}
-			LOG.error("Total Time CompileObjectData : {} ", System.currentTimeMillis() - startTimeCompile);
 			result.setObjects(folderList);
 			result.setNumItems(BigInteger.valueOf(childrenCount));
 			result.setHasMoreItems(skipCount + 1 * maxItems < childrenCount);

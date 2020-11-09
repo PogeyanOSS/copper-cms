@@ -81,7 +81,6 @@ import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.server.RenditionInfo;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.TypeValidator;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,7 +118,6 @@ import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
@@ -1399,120 +1397,118 @@ public class CmisObjectService {
 				}
 			});
 
-			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
-			if (customProps.size() > 0) {
-				long startTimeObjecEncrypt = System.currentTimeMillis();
-				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
-				for (Map.Entry<String, Object> customValues : customData) {
-					String id = customValues.getKey();
-					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
-						Object valueOfType = data.getProperties().get(id);
-						PropertyType propertyType = (PropertyType) customValues.getValue();
-						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
-								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
-								data.getProperties());
-						if (propertyType == PropertyType.INTEGER) {
-							if (valueOfType instanceof Integer) {
-								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
-								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
-										BigInteger.valueOf(valueBigInteger), userObject);
-							} else if (valueOfType instanceof Long) {
-								Long valueBigInteger = convertInstanceOfObject(valueOfType, Long.class);
-								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
-										BigInteger.valueOf(valueBigInteger), userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<BigInteger> value = convertInstanceOfObject(valueOfType, List.class);
-								addPropertyBigInteger(repositoryId, props, typeId, filter, id, value, userObject);
-							}
-						} else if (propertyType == PropertyType.BOOLEAN) {
-							if (valueOfType instanceof Boolean) {
-								Boolean booleanValue = convertInstanceOfObject(valueOfType, Boolean.class);
-								addPropertyBoolean(repositoryId, props, typeId, filter, id, booleanValue, userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<Boolean> booleanValue = convertInstanceOfObject(valueOfType, List.class);
-								addPropertyBoolean(repositoryId, props, typeId, filter, id, booleanValue, userObject);
-							}
-						} else if (propertyType == PropertyType.ID) {
-							if (valueOfType instanceof String) {
-								String value = convertInstanceOfObject(valueOfType, String.class);
-								addPropertyId(repositoryId, props, typeId, filter, id, value, userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<String> value = convertInstanceOfObject(valueOfType, List.class);
-								addPropertyId(repositoryId, props, typeId, filter, id, value, userObject);
-							}
-
-						} else if (propertyType == PropertyType.DATETIME) {
-							if (valueOfType instanceof GregorianCalendar) {
-								Long value = convertInstanceOfObject(valueOfType, Long.class);
-								GregorianCalendar lastModifiedCalender = new GregorianCalendar();
-								lastModifiedCalender.setTimeInMillis(value);
-								addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender,
-										userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<Long> value = convertInstanceOfObject(valueOfType, List.class);
-								List<GregorianCalendar> calenderList = new ArrayList<>();
-								value.forEach(v -> {
-									GregorianCalendar lastModifiedCalender = new GregorianCalendar();
-									lastModifiedCalender.setTimeInMillis(v);
-									calenderList.add(lastModifiedCalender);
-								});
-								addPropertyDateTime(repositoryId, props, typeId, filter, id, calenderList, userObject);
-							} else {
-								Long value = convertInstanceOfObject(valueOfType, Long.class);
-								if (value != null) {
-									GregorianCalendar lastModifiedCalender = new GregorianCalendar();
-									lastModifiedCalender.setTimeInMillis(value);
-									addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender,
-											userObject);
-								}
-							}
-
-						} else if (propertyType == PropertyType.DECIMAL) {
-							if (valueOfType instanceof Double) {
-								Double value = convertInstanceOfObject(valueOfType, Double.class);
-								addPropertyBigDecimal(repositoryId, props, typeId, filter, id,
-										BigDecimal.valueOf(value), userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<BigDecimal> value = convertInstanceOfObject(valueOfType, List.class);
-								addPropertyBigDecimal(repositoryId, props, typeId, filter, id, value, userObject);
-							}
-
-						} else if (propertyType == PropertyType.HTML) {
-							if (valueOfType instanceof String) {
-								String value = convertInstanceOfObject(valueOfType, String.class);
-								String decodedValue = StringEscapeUtils.unescapeHtml4(value);
-								addPropertyHtml(repositoryId, props, typeId, filter, id, decodedValue, userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<String> value = convertInstanceOfObject(valueOfType, List.class);
-								List<String> decodedValue = new ArrayList<>();
-								value.forEach(v -> {
-									decodedValue.add(StringEscapeUtils.unescapeHtml4(v));
-								});
-								addPropertyHtml(repositoryId, props, typeId, filter, id, decodedValue, userObject);
-							}
-
-						} else if (propertyType == PropertyType.STRING) {
-							if (valueOfType instanceof String) {
-								String value = convertInstanceOfObject(valueOfType, String.class);
-								addPropertyString(repositoryId, props, typeId, filter, id, value, userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<String> value = convertInstanceOfObject(valueOfType, List.class);
-								addPropertyString(repositoryId, props, typeId, filter, id, value, userObject);
-							}
-						} else if (propertyType == PropertyType.URI) {
-							if (valueOfType instanceof String) {
-								String value = convertInstanceOfObject(valueOfType, String.class);
-								addPropertyUri(repositoryId, props, typeId, filter, id, value, userObject);
-							} else if (valueOfType instanceof List<?>) {
-								List<String> value = convertInstanceOfObject(valueOfType, List.class);
-								addPropertyUri(repositoryId, props, typeId, filter, id, value, userObject);
-							}
-
-						}
-					}
-				}
-				LOG.error("Total time taken for encryptService : {}", System.currentTimeMillis() - startTimeObjecEncrypt);
-			}
+//			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
+//			if (customProps.size() > 0) {
+//				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
+//				for (Map.Entry<String, Object> customValues : customData) {
+//					String id = customValues.getKey();
+//					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
+//						Object valueOfType = data.getProperties().get(id);
+//						PropertyType propertyType = (PropertyType) customValues.getValue();
+//						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
+//								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
+//								data.getProperties());
+//						if (propertyType == PropertyType.INTEGER) {
+//							if (valueOfType instanceof Integer) {
+//								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
+//								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
+//										BigInteger.valueOf(valueBigInteger), userObject);
+//							} else if (valueOfType instanceof Long) {
+//								Long valueBigInteger = convertInstanceOfObject(valueOfType, Long.class);
+//								addPropertyBigInteger(repositoryId, props, typeId, filter, id,
+//										BigInteger.valueOf(valueBigInteger), userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<BigInteger> value = convertInstanceOfObject(valueOfType, List.class);
+//								addPropertyBigInteger(repositoryId, props, typeId, filter, id, value, userObject);
+//							}
+//						} else if (propertyType == PropertyType.BOOLEAN) {
+//							if (valueOfType instanceof Boolean) {
+//								Boolean booleanValue = convertInstanceOfObject(valueOfType, Boolean.class);
+//								addPropertyBoolean(repositoryId, props, typeId, filter, id, booleanValue, userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<Boolean> booleanValue = convertInstanceOfObject(valueOfType, List.class);
+//								addPropertyBoolean(repositoryId, props, typeId, filter, id, booleanValue, userObject);
+//							}
+//						} else if (propertyType == PropertyType.ID) {
+//							if (valueOfType instanceof String) {
+//								String value = convertInstanceOfObject(valueOfType, String.class);
+//								addPropertyId(repositoryId, props, typeId, filter, id, value, userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<String> value = convertInstanceOfObject(valueOfType, List.class);
+//								addPropertyId(repositoryId, props, typeId, filter, id, value, userObject);
+//							}
+//
+//						} else if (propertyType == PropertyType.DATETIME) {
+//							if (valueOfType instanceof GregorianCalendar) {
+//								Long value = convertInstanceOfObject(valueOfType, Long.class);
+//								GregorianCalendar lastModifiedCalender = new GregorianCalendar();
+//								lastModifiedCalender.setTimeInMillis(value);
+//								addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender,
+//										userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<Long> value = convertInstanceOfObject(valueOfType, List.class);
+//								List<GregorianCalendar> calenderList = new ArrayList<>();
+//								value.forEach(v -> {
+//									GregorianCalendar lastModifiedCalender = new GregorianCalendar();
+//									lastModifiedCalender.setTimeInMillis(v);
+//									calenderList.add(lastModifiedCalender);
+//								});
+//								addPropertyDateTime(repositoryId, props, typeId, filter, id, calenderList, userObject);
+//							} else {
+//								Long value = convertInstanceOfObject(valueOfType, Long.class);
+//								if (value != null) {
+//									GregorianCalendar lastModifiedCalender = new GregorianCalendar();
+//									lastModifiedCalender.setTimeInMillis(value);
+//									addPropertyDateTime(repositoryId, props, typeId, filter, id, lastModifiedCalender,
+//											userObject);
+//								}
+//							}
+//
+//						} else if (propertyType == PropertyType.DECIMAL) {
+//							if (valueOfType instanceof Double) {
+//								Double value = convertInstanceOfObject(valueOfType, Double.class);
+//								addPropertyBigDecimal(repositoryId, props, typeId, filter, id,
+//										BigDecimal.valueOf(value), userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<BigDecimal> value = convertInstanceOfObject(valueOfType, List.class);
+//								addPropertyBigDecimal(repositoryId, props, typeId, filter, id, value, userObject);
+//							}
+//
+//						} else if (propertyType == PropertyType.HTML) {
+//							if (valueOfType instanceof String) {
+//								String value = convertInstanceOfObject(valueOfType, String.class);
+//								String decodedValue = StringEscapeUtils.unescapeHtml4(value);
+//								addPropertyHtml(repositoryId, props, typeId, filter, id, decodedValue, userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<String> value = convertInstanceOfObject(valueOfType, List.class);
+//								List<String> decodedValue = new ArrayList<>();
+//								value.forEach(v -> {
+//									decodedValue.add(StringEscapeUtils.unescapeHtml4(v));
+//								});
+//								addPropertyHtml(repositoryId, props, typeId, filter, id, decodedValue, userObject);
+//							}
+//
+//						} else if (propertyType == PropertyType.STRING) {
+//							if (valueOfType instanceof String) {
+//								String value = convertInstanceOfObject(valueOfType, String.class);
+//								addPropertyString(repositoryId, props, typeId, filter, id, value, userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<String> value = convertInstanceOfObject(valueOfType, List.class);
+//								addPropertyString(repositoryId, props, typeId, filter, id, value, userObject);
+//							}
+//						} else if (propertyType == PropertyType.URI) {
+//							if (valueOfType instanceof String) {
+//								String value = convertInstanceOfObject(valueOfType, String.class);
+//								addPropertyUri(repositoryId, props, typeId, filter, id, value, userObject);
+//							} else if (valueOfType instanceof List<?>) {
+//								List<String> value = convertInstanceOfObject(valueOfType, List.class);
+//								addPropertyUri(repositoryId, props, typeId, filter, id, value, userObject);
+//							}
+//
+//						}
+//					}
+//				}
+//			}
 		}
 
 		@SuppressWarnings("unchecked")
