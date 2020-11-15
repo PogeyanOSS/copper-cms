@@ -12,7 +12,6 @@ import com.google.common.cache.CacheBuilder;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 
 public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
-
 	private Map<String, Cache<String, Object>> repo = new HashMap<String, Cache<String, Object>>();
 	private long intervalTime;
 
@@ -81,13 +80,4 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			repo.remove(repositoryId);
 		}
 	}
-
-	@Override
-	public void removeByKey(String repositoryId, String key) {
-		if (repo.containsKey(repositoryId)) {
-			repo.get(repositoryId).invalidate(key);
-		}
-
-	}
-
 }
