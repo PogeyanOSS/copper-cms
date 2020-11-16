@@ -48,6 +48,7 @@ import com.pogeyan.cmis.api.storage.IStorageFactory;
 import com.pogeyan.cmis.api.utils.Globals;
 import com.pogeyan.cmis.api.utils.Helpers;
 import com.pogeyan.cmis.api.utils.MetricsInputs;
+import com.pogeyan.cmis.data.mongo.services.MongoClientFactory;
 import com.pogeyan.cmis.impl.factory.CacheProviderServiceFactory;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
 import com.pogeyan.cmis.impl.factory.EncryptionFactory;
@@ -126,6 +127,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
+		MongoClientFactory.close();
 		ActorServiceFactory.getInstance().shutdown();
 		ActorSystem system = (ActorSystem) sce.getServletContext().getAttribute("GatewaySystem");
 		sce.getServletContext().removeAttribute("ActorSystem");
@@ -306,7 +308,7 @@ public class AkkaServletContextListener implements ServletContextListener {
 			cacheProviderFactory.init(intervalTime);
 			userCacheProviderFactory.init(intervalTime);
 			roleCacheProviderFactory.init(intervalTime);
-			relationshipCacheProviderFactory.init(10*60);
+			relationshipCacheProviderFactory.init(10 * 60);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;

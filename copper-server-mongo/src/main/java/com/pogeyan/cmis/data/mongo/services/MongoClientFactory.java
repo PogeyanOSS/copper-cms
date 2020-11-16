@@ -254,6 +254,14 @@ public class MongoClientFactory implements IDBClientFactory {
 		return mClient;
 	}
 
+	public static void close() {
+		MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
+			if (mgCli != null) {
+				mgCli.close();
+			}
+		});
+	}
+
 	/**
 	 * Finds all substrings in MongoCilent connection details from the corresponding
 	 * Environmental property.
