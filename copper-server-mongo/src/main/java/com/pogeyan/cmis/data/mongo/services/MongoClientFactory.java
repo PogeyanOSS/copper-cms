@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +47,8 @@ import org.mongodb.morphia.mapping.MappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -84,8 +87,15 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MRELATIONOBJECCTDAOIMPL = "MRelationObjectDAOImpl";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
 	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
-	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
 	private Morphia morphia = new Morphia();
+	private final static Cache<String, MongoClient> mongoClient;
+	static {
+		int intervalTime = System.getenv("DB_CONNECTION_TIMEOUT") != null
+				? Integer.valueOf(System.getenv("DB_CONNECTION_TIMEOUT"))
+				: 30;
+		mongoClient = CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(intervalTime, TimeUnit.MINUTES)
+				.build();
+	}
 
 	@SuppressWarnings("rawtypes")
 	public MongoClientFactory() {
@@ -146,7 +156,8 @@ public class MongoClientFactory implements IDBClientFactory {
 			return (T) getContentDBMongoClient(repositoryId, (t) -> new MQueryDAOImpl(MBaseObject.class, t));
 		}
 		if (className.equals(MongoClientFactory.MRELATIONOBJECCTDAOIMPL)) {
-			return (T) getContentDBMongoClient(repositoryId, (t) -> new MRelationObjectDAOImpl(MRelationObject.class, t));
+			return (T) getContentDBMongoClient(repositoryId,
+					(t) -> new MRelationObjectDAOImpl(MRelationObject.class, t));
 		}
 		return null;
 	}
@@ -228,7 +239,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
-		MongoClient mClient = this.mongoClient.get(repositoryId);
+		MongoClient mClient = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
 		if (mClient == null) {
 			if (replica) {
 				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)));
@@ -238,7 +249,7 @@ public class MongoClientFactory implements IDBClientFactory {
 			} else {
 				mClient = new MongoClient(host, port);
 			}
-			this.mongoClient.put(repositoryId, mClient);
+			MongoClientFactory.mongoClient.put(repositoryId, mClient);
 		}
 		return mClient;
 	}
