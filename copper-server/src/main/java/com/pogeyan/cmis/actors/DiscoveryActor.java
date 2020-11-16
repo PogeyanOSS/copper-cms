@@ -23,7 +23,7 @@ import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.enums.DateTimeFormat;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.JSONConstants;
-import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
+import com.pogeyan.cmis.api.utils.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.slf4j.Logger;

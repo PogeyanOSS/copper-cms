@@ -152,7 +152,7 @@ public class CmisObjectService {
 				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId, typeId, false);
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
-					addRootFolder(repositoryId);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 					return rootData.getId();
 				} else {
 					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -166,6 +166,7 @@ public class CmisObjectService {
 					LOG.info("Root folder created in Database: {} , repository: {} ",
 							folderObject != null ? folderObject.getId() : null, repositoryId);
 					addRootFolder(repositoryId);
+					TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 					return folderObject.getId();
 				}
 			} catch (MongoException e) {
@@ -177,7 +178,7 @@ public class CmisObjectService {
 								ErrorMessages.BASE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			
 			return null;
 		}
 

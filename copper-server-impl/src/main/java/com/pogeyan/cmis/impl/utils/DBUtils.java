@@ -494,7 +494,6 @@ public class DBUtils {
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
 				return typeManagerDAO.getAllPropertyById(propId, fieldAccess);
 			}
-
 		}
 	}
 
