@@ -31,16 +31,13 @@ public class DatabaseServiceFactory {
 	public static final String SQL = "sql";
 
 	public static IDBClientFactory getInstance(String repositoryId) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Repository type{}", repositoryId);
-		}
-
+		LOG.debug("Repository type: {}", repositoryId);
 		Map<String, String> db = RepositoryManagerFactory.getDatabaseDetails(repositoryId);
 		String dbType = db.get("type");
 		if (dbFactory.containsKey(dbType)) {
 			return dbFactory.get(dbType);
 		}
-		
+
 		return null;
 	}
 
@@ -48,5 +45,9 @@ public class DatabaseServiceFactory {
 		if (!dbFactory.containsKey(dbFactoryInstance.getType())) {
 			dbFactory.put(dbFactoryInstance.getType(), dbFactoryInstance);
 		}
+	}
+
+	public static Map<String, IDBClientFactory> getDbfactory() {
+		return dbFactory;
 	}
 }

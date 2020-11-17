@@ -49,6 +49,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -89,12 +91,18 @@ public class MongoClientFactory implements IDBClientFactory {
 	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
 	private Morphia morphia = new Morphia();
 	private final static Cache<String, MongoClient> mongoClient;
+	private static RemovalListener<String, MongoClient> removalListener = new RemovalListener<String, MongoClient>() {
+		public void onRemoval(RemovalNotification<String, MongoClient> removal) {
+			MongoClient conn = removal.getValue();
+			conn.close();
+		}
+	};
 	static {
 		int intervalTime = System.getenv("DB_CONNECTION_TIMEOUT") != null
 				? Integer.valueOf(System.getenv("DB_CONNECTION_TIMEOUT"))
 				: 30;
 		mongoClient = CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(intervalTime, TimeUnit.MINUTES)
-				.build();
+				.removalListener(removalListener).build();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -254,12 +262,14 @@ public class MongoClientFactory implements IDBClientFactory {
 		return mClient;
 	}
 
-	public static void close() {
+	@Override
+	public void close() {
 		MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
 			if (mgCli != null) {
 				mgCli.close();
 			}
 		});
+		MongoClientFactory.mongoClient.invalidateAll();
 	}
 
 	/**
