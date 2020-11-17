@@ -180,6 +180,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 				"RepositoryActor::getRepositories", null);
+		ISpan repoListSpan = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::ArrayList<RepositoryInfo>", null);
 		List<RepositoryInfo> infoDataList = new ArrayList<RepositoryInfo>() {
 			private static final long serialVersionUID = 1L;
 			{
@@ -198,7 +200,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				}
 			}
 		};
-
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, repoListSpan, false);
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
@@ -214,10 +216,18 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 							: request.getServerName();
 		} else {
-			scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")
-					&& !request.getServerName().equals("localhost") ? "https" : request.getScheme();
+			if (headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null) {
+				scheme = headers.get(PROTO_HEADER);
+			} /*else if (System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")) {
+				scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")
+						&& !request.getServerName().equals("localhost") ? "https" : request.getScheme();
+			}*/ else {
+				scheme = request.getScheme();
+			}
 			serverName = request.getServerName();
 		}
+		ISpan infoDataListSpan = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
+				"RepositoryActor::infoDataList", null);
 		for (RepositoryInfo ri : infoDataList) {
 			String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
@@ -225,6 +235,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
+		TracingApiServiceFactory.getApiService().endSpan(tracingId, infoDataListSpan, false);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
 	}
