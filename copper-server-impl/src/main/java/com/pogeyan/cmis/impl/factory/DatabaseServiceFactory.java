@@ -50,10 +50,12 @@ public class DatabaseServiceFactory {
 	public static void close(String repoId) {
 		if (repoId != null) {
 			getInstance(repoId).close(repoId);
-		} else {
-			dbFactory.values().forEach(dbInstance -> {
-				dbInstance.close(null);
-			});
 		}
+	}
+
+	public static void closeAll() {
+		dbFactory.values().forEach(dbInstance -> {
+			dbInstance.close(null);
+		});
 	}
 }

@@ -268,17 +268,21 @@ public class MongoClientFactory implements IDBClientFactory {
 		if (repositoryId != null) {
 			MongoClient mgCli = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
 			if (mgCli != null) {
+				LOG.info("Closing mongoDB for repoId:{}", repositoryId);
 				mgCli.close();
 			}
-		} else {
-			MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
-				if (mgCli != null) {
-					LOG.info("Closing mongoDB for repoId:{}",repoId);
-					mgCli.close();
-				}
-			});
-			MongoClientFactory.mongoClient.invalidateAll();
 		}
+	}
+
+	@Override
+	public void closeAll() {
+		MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
+			if (mgCli != null) {
+				LOG.info("Closing mongoDB for repoId:{}", repoId);
+				mgCli.close();
+			}
+		});
+		MongoClientFactory.mongoClient.invalidateAll();
 	}
 
 	/**

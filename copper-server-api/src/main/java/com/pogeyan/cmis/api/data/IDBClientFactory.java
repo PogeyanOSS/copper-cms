@@ -23,4 +23,6 @@ public interface IDBClientFactory {
 	void addIndex(String repositoryId, String[] columnsToIndex);
 
 	void close(String repoId);
+
+	void closeAll();
 }
