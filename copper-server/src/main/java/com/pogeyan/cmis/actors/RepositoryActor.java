@@ -203,8 +203,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, repoListSpan, false);
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
-		LOG.error("RepositoryUrl headers: {} ", headers.toString());
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
+		String useProtoEnv = System.getenv("USE_PROTO_HEADER");
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
 				? Integer.parseInt(headers.get(PORT_HEADER))
 				: request.getServerPort();
@@ -217,12 +217,16 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 							: request.getServerName();
 		} else {
-			if (headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null) {
-				scheme = headers.get(PROTO_HEADER);
-			} /*else if (System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")) {
-				scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")
-						&& !request.getServerName().equals("localhost") ? "https" : request.getScheme();
-			}*/ else {
+			if (useProtoEnv != null && useProtoEnv.equals("true")) {
+				if (headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null) {
+					scheme = headers.get(PROTO_HEADER);
+				} /*else if (System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")) {
+					scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")
+							&& !request.getServerName().equals("localhost") ? "https" : request.getScheme();
+				}*/ else {
+					scheme = request.getScheme();
+				}
+			} else {
 				scheme = request.getScheme();
 			}
 			serverName = request.getServerName();
