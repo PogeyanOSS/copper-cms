@@ -204,7 +204,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
-		String useProtoEnv = System.getenv("USE_PROTO_HEADER");
+		String httpsPortEnv = System.getenv("HTTPS_PORT");
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
 				? Integer.parseInt(headers.get(PORT_HEADER))
 				: request.getServerPort();
@@ -217,15 +217,8 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 							: request.getServerName();
 		} else {
-			if (useProtoEnv != null && useProtoEnv.equals("true")) {
-				if (headers.containsKey(PROTO_HEADER) && headers.get(PROTO_HEADER) != null) {
-					scheme = headers.get(PROTO_HEADER);
-				} /*else if (System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")) {
-					scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")
-							&& !request.getServerName().equals("localhost") ? "https" : request.getScheme();
-				}*/ else {
-					scheme = request.getScheme();
-				}
+			if (httpsPortEnv != null && httpsPortEnv.equals(port)) {
+				scheme = "https";
 			} else {
 				scheme = request.getScheme();
 			}
