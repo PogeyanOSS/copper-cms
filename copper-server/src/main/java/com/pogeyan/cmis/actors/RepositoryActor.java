@@ -203,6 +203,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, repoListSpan, false);
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
+		LOG.error("RepositoryUrl headers: {} ", headers.toString());
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
 				? Integer.parseInt(headers.get(PORT_HEADER))
