@@ -217,7 +217,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 							: request.getServerName();
 		} else {
-			if (httpsPortEnv != null && httpsPortEnv.equals(port)) {
+			if (httpsPortEnv != null && httpsPortEnv.equals(String.valueOf(port))) {
 				scheme = "https";
 			} else {
 				scheme = request.getScheme();
