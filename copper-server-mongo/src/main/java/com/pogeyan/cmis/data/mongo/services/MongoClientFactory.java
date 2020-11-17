@@ -94,6 +94,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static RemovalListener<String, MongoClient> removalListener = new RemovalListener<String, MongoClient>() {
 		public void onRemoval(RemovalNotification<String, MongoClient> removal) {
 			MongoClient conn = removal.getValue();
+			LOG.info("Closing mongoDB RemovalListener ");
 			conn.close();
 		}
 	};
@@ -263,13 +264,21 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	@Override
-	public void close() {
-		MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
+	public void close(String repositoryId) {
+		if (repositoryId != null) {
+			MongoClient mgCli = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
 			if (mgCli != null) {
 				mgCli.close();
 			}
-		});
-		MongoClientFactory.mongoClient.invalidateAll();
+		} else {
+			MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
+				if (mgCli != null) {
+					LOG.info("Closing mongoDB for repoId:{}",repoId);
+					mgCli.close();
+				}
+			});
+			MongoClientFactory.mongoClient.invalidateAll();
+		}
 	}
 
 	/**

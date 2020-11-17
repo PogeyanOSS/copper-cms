@@ -47,7 +47,13 @@ public class DatabaseServiceFactory {
 		}
 	}
 
-	public static Map<String, IDBClientFactory> getDbfactory() {
-		return dbFactory;
+	public static void close(String repoId) {
+		if (repoId != null) {
+			getInstance(repoId).close(repoId);
+		} else {
+			dbFactory.values().forEach(dbInstance -> {
+				dbInstance.close(null);
+			});
+		}
 	}
 }

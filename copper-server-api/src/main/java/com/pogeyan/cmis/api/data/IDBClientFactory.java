@@ -17,10 +17,10 @@ package com.pogeyan.cmis.api.data;
 
 public interface IDBClientFactory {
 	public String getType();
-	
+
 	public <T> T getObjectService(String repositoryId, Class<?> objectServiceClass);
 
 	void addIndex(String repositoryId, String[] columnsToIndex);
-	
-	void close();
+
+	void close(String repoId);
 }
