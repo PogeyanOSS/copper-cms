@@ -55,7 +55,7 @@ public class DatabaseServiceFactory {
 
 	public static void closeAll() {
 		dbFactory.values().forEach(dbInstance -> {
-			dbInstance.close(null);
+			dbInstance.closeAll();
 		});
 	}
 }
