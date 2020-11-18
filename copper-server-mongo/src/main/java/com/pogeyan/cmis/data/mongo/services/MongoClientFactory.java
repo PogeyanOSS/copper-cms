@@ -94,7 +94,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static RemovalListener<String, MongoClient> removalListener = new RemovalListener<String, MongoClient>() {
 		public void onRemoval(RemovalNotification<String, MongoClient> removal) {
 			MongoClient conn = removal.getValue();
-			LOG.info("Closing mongoDB RemovalListener ");
+			LOG.info("Closing MongoClient connection in RemovalListener");
 			conn.close();
 		}
 	};
@@ -268,9 +268,11 @@ public class MongoClientFactory implements IDBClientFactory {
 		if (repositoryId != null) {
 			MongoClient mgCli = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
 			if (mgCli != null) {
-				LOG.info("Closing mongoDB for repoId:{}", repositoryId);
+				LOG.info("Closing MongoClient in closeFunc for repoId: {}", repositoryId);
 				mgCli.close();
+				MongoClientFactory.mongoClient.invalidate(repositoryId);
 			}
+			this.clientDatastores.remove(repositoryId);
 		}
 	}
 
@@ -278,15 +280,16 @@ public class MongoClientFactory implements IDBClientFactory {
 	public void closeAll() {
 		MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
 			if (mgCli != null) {
-				LOG.info("Closing mongoDB for repoId:{}", repoId);
+				LOG.info("Closing MongoClient in closeAll for repoId: {}", repoId);
 				mgCli.close();
 			}
 		});
 		MongoClientFactory.mongoClient.invalidateAll();
+		this.clientDatastores.clear();
 	}
 
 	/**
-	 * Finds all substrings in MongoCilent connection details from the corresponding
+	 * Finds all substrings in MongoClient connection details from the corresponding
 	 * Environmental property.
 	 */
 	private List<String> getClientProperties(String props) {
