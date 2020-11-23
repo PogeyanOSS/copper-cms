@@ -35,5 +35,6 @@ public class QueryAggregationConstants {
 	public static final String TARGET_TABLE = "target_table";
 	public static final String RELATION_TYPE = "cmis:relationType";
 	public static final String RELATION_COLLECTION_NAME= "relationData";
-	
+	public static final String CONTAINS = "contains";
+	public static final String REGEX = "regex";
 }

@@ -50,10 +50,11 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		String sourceTypeId = null;
 		String targetTypeId = null;
 		Integer relationshipType = 0;
+		String direction = null;
 		Map<String, QueryRequest> fieldsRequestMap = request.getFields();
 		if (!fieldsRequestMap.isEmpty()) {
 			for (Entry<String, QueryRequest> fieldsRequest : fieldsRequestMap.entrySet()) {
-				if (!fieldsRequest.getKey().contains(".") && fieldsRequest.getKey().contains("_")) {
+				if (!fieldsRequest.getKey().contains(".")) {
 					String key = fieldsRequest.getKey();
 					IBaseObject baseObject = getRelationshipMd(principalIds, objectMorphiaDAO, key);
 					if (baseObject != null) {
@@ -61,12 +62,14 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 						targetTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.TARGET_TABLE);
 						relationshipType = (Integer) baseObject.getProperties()
 								.get(QueryAggregationConstants.RELATION_TYPE);
-						String direction = fieldsRequest.getValue().getDirection();
-						projectionDocument = getDefaultProjectDocument(fieldsRequest, projectionDocument, sourceTypeId,
-								targetTypeId, direction);
-						document = getLookupQuery(fieldsRequest, document, principalIds, sourceTypeId, targetTypeId,
-								key, projectionDocument, objectMorphiaDAO);
+						direction = fieldsRequest.getValue().getDirection();
+					} else {
+						sourceTypeId = fieldsRequest.getKey();
 					}
+					projectionDocument = getDefaultProjectDocument(fieldsRequest, projectionDocument, sourceTypeId,
+							targetTypeId, direction);
+					document = getLookupQuery(fieldsRequest, document, principalIds, sourceTypeId, targetTypeId,
+							key, projectionDocument, objectMorphiaDAO);
 				} else {
 					String key = fieldsRequest.getKey();
 					if (key.contains(".")) {
@@ -84,7 +87,7 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			}
 		}
 
-		document = getQueryAggsPipeline(request, filterRequest, sortRequest, document, true, principalIds);
+		document = getQueryAggsPipeline(request, filterRequest, sortRequest, document, false, principalIds);
 
 		if (projectionDocument != null && !projectionDocument.isEmpty()) {
 			projections.append(QueryAggregationConstants.PROJECT, projectionDocument);
@@ -324,13 +327,23 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			rootProjection = new Document(QueryAggregationConstants.PROJECT,
 					rootProjection.append(sourceTypeId, QueryAggregationConstants.ROOT));
 			document.add(rootProjection);
+			if (targetTypeId != null) {
 			operatorDoc = new Document(sourceTypeId + "." + "token.changeType",
 					new Document("$" + QueryAggregationConstants.NOTEQUAL, 2));
+			} else {
+				Document sourceLookupDoc = new Document();
+				sourceLookupDoc.append(sourceTypeId + "." + "token.changeType",
+						new Document("$" + QueryAggregationConstants.NOTEQUAL, 2));
+				sourceLookupDoc.append(sourceTypeId + "." + "typeId", sourceTypeId);
+				operatorDoc = sourceLookupDoc;
+			}
 			filterDoc = new Document(QueryAggregationConstants.MATCH, operatorDoc);
 			document.add(filterDoc);
 		}
-		getNestedRelationShip(fieldsQuery, document, sourceTypeId, targetTypeId, projectionDocument, principalIds,
-				objectMorphiaDAO);
+		if (targetTypeId != null) {
+			getNestedRelationShip(fieldsQuery, document, sourceTypeId, targetTypeId, projectionDocument, principalIds,
+					objectMorphiaDAO);
+		}
 
 		document = getNestedQuery(fieldsQuery, document, principalIds);
 		return document;
@@ -602,6 +615,13 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 
 		case QueryAggregationConstants.LESSTHAN:
 			operatorDoc.append(field, new Document("$" + QueryAggregationConstants.LESSTHAN, value));
+			break;
+			
+		case QueryAggregationConstants.CONTAINS:
+			Document stringPattern = new Document();
+			stringPattern.append("$" + QueryAggregationConstants.REGEX, value);
+			stringPattern.append("$options", "i");
+			operatorDoc.append(field, stringPattern);
 			break;
 
 		default:
