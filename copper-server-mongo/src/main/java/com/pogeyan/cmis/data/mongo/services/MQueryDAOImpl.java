@@ -590,7 +590,7 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		} else {
 			value = (String) value;
 		}
-		
+
 		switch (operatorName) {
 
 		case QueryAggregationConstants.EQUAL:
