@@ -89,7 +89,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	private final static PassiveExpiringMap<String, Datastore> clientDatastores;
 	private Morphia morphia = new Morphia();
 	private final static PassiveExpiringMap<String, MongoClient> mongoClient;
-	
+
 	private static PassiveExpiringMapListener<String, MongoClient> removalMongoCLientListener = new PassiveExpiringMapListener<String, MongoClient>() {
 		@Override
 		public void notifyOnRemoval(Object key, MongoClient mgCli) {
@@ -104,9 +104,9 @@ public class MongoClientFactory implements IDBClientFactory {
 		int intervalTime = System.getenv("DB_CONNECTION_TIMEOUT") != null
 				? Integer.valueOf(System.getenv("DB_CONNECTION_TIMEOUT"))
 				: 30;
-		mongoClient = new PassiveExpiringMap<String, MongoClient>(intervalTime, TimeUnit.SECONDS)
+		mongoClient = new PassiveExpiringMap<String, MongoClient>(intervalTime, TimeUnit.MINUTES)
 				.registerRemovalListener(removalMongoCLientListener);
-		clientDatastores = new PassiveExpiringMap<String, Datastore>(intervalTime, TimeUnit.SECONDS);
+		clientDatastores = new PassiveExpiringMap<String, Datastore>(intervalTime, TimeUnit.MINUTES);
 
 	}
 
