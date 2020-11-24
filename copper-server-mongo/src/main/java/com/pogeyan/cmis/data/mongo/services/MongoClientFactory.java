@@ -47,10 +47,6 @@ import org.mongodb.morphia.mapping.MappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -75,6 +71,8 @@ import com.pogeyan.cmis.data.mongo.MDocumentObject;
 import com.pogeyan.cmis.data.mongo.MRelationObject;
 import com.pogeyan.cmis.data.mongo.MTypeDocumentObject;
 import com.pogeyan.cmis.data.mongo.MTypeObject;
+import com.pogeyan.cmis.data.mongo.PassiveExpiringMap;
+import com.pogeyan.cmis.data.mongo.PassiveExpiringMapListener;
 
 public class MongoClientFactory implements IDBClientFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(MongoClientFactory.class.getName());
@@ -88,22 +86,28 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MQUERYDAO = "MQueryDAO";
 	private static String MRELATIONOBJECCTDAOIMPL = "MRelationObjectDAOImpl";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
-	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
+	private final static PassiveExpiringMap<String, Datastore> clientDatastores;
 	private Morphia morphia = new Morphia();
-	private final static Cache<String, MongoClient> mongoClient;
-	private static RemovalListener<String, MongoClient> removalListener = new RemovalListener<String, MongoClient>() {
-		public void onRemoval(RemovalNotification<String, MongoClient> removal) {
-			MongoClient conn = removal.getValue();
-			LOG.info("Closing MongoClient connection in RemovalListener");
-			conn.close();
+	private final static PassiveExpiringMap<String, MongoClient> mongoClient;
+	
+	private static PassiveExpiringMapListener<String, MongoClient> removalMongoCLientListener = new PassiveExpiringMapListener<String, MongoClient>() {
+		@Override
+		public void notifyOnRemoval(Object key, MongoClient mgCli) {
+			LOG.info("Closing MongoClient connection in RemovalListener for repoId: {}", key);
+			if (mgCli != null) {
+				mgCli.close();
+			}
 		}
 	};
+
 	static {
 		int intervalTime = System.getenv("DB_CONNECTION_TIMEOUT") != null
 				? Integer.valueOf(System.getenv("DB_CONNECTION_TIMEOUT"))
 				: 30;
-		mongoClient = CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(intervalTime, TimeUnit.MINUTES)
-				.removalListener(removalListener).build();
+		mongoClient = new PassiveExpiringMap<String, MongoClient>(30, TimeUnit.SECONDS)
+				.registerRemovalListener(removalMongoCLientListener);
+		clientDatastores = new PassiveExpiringMap<String, Datastore>(30, TimeUnit.SECONDS);
+
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -200,7 +204,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	public <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {
-		Datastore clientDatastore = this.clientDatastores.get(repositoryId);
+		Datastore clientDatastore = MongoClientFactory.clientDatastores.get(repositoryId);
 		if (clientDatastore == null) {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
@@ -228,7 +232,7 @@ public class MongoClientFactory implements IDBClientFactory {
 			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "name" });
 
 			clientDatastore = morphia.createDatastore(mongoClient, properties.get(properties.size() - 1));
-			this.clientDatastores.put(repositoryId, clientDatastore);
+			MongoClientFactory.clientDatastores.put(repositoryId, clientDatastore);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(properties.size() - 1));
 			}
@@ -248,7 +252,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
-		MongoClient mClient = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
+		MongoClient mClient = MongoClientFactory.mongoClient.get(repositoryId);
 		if (mClient == null) {
 			if (replica) {
 				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)));
@@ -266,26 +270,15 @@ public class MongoClientFactory implements IDBClientFactory {
 	@Override
 	public void close(String repositoryId) {
 		if (repositoryId != null) {
-			MongoClient mgCli = MongoClientFactory.mongoClient.getIfPresent(repositoryId);
-			if (mgCli != null) {
-				LOG.info("Closing MongoClient in closeFunc for repoId: {}", repositoryId);
-				mgCli.close();
-				MongoClientFactory.mongoClient.invalidate(repositoryId);
-			}
-			this.clientDatastores.remove(repositoryId);
+			MongoClientFactory.mongoClient.remove(repositoryId);
+			MongoClientFactory.clientDatastores.remove(repositoryId);
 		}
 	}
 
 	@Override
 	public void closeAll() {
-		MongoClientFactory.mongoClient.asMap().forEach((repoId, mgCli) -> {
-			if (mgCli != null) {
-				LOG.info("Closing MongoClient in closeAll for repoId: {}", repoId);
-				mgCli.close();
-			}
-		});
 		MongoClientFactory.mongoClient.invalidateAll();
-		this.clientDatastores.clear();
+		MongoClientFactory.clientDatastores.invalidateAll();
 	}
 
 	/**
