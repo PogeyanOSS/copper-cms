@@ -104,9 +104,9 @@ public class MongoClientFactory implements IDBClientFactory {
 		int intervalTime = System.getenv("DB_CONNECTION_TIMEOUT") != null
 				? Integer.valueOf(System.getenv("DB_CONNECTION_TIMEOUT"))
 				: 30;
-		mongoClient = new PassiveExpiringMap<String, MongoClient>(30, TimeUnit.SECONDS)
+		mongoClient = new PassiveExpiringMap<String, MongoClient>(intervalTime, TimeUnit.SECONDS)
 				.registerRemovalListener(removalMongoCLientListener);
-		clientDatastores = new PassiveExpiringMap<String, Datastore>(30, TimeUnit.SECONDS);
+		clientDatastores = new PassiveExpiringMap<String, Datastore>(intervalTime, TimeUnit.SECONDS);
 
 	}
 
