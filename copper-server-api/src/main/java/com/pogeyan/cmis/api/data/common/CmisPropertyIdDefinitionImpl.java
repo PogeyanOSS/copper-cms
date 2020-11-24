@@ -44,6 +44,7 @@ public class CmisPropertyIdDefinitionImpl<T> implements PropertyIdDefinition {
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<?> choice;
+	private List<?> defaultValue;
 
 	public CmisPropertyIdDefinitionImpl() {
 		super();
@@ -66,6 +67,7 @@ public class CmisPropertyIdDefinitionImpl<T> implements PropertyIdDefinition {
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
+		this.defaultValue = type.getDefaultValue();
 	}
 
 	@Override
@@ -138,9 +140,17 @@ public class CmisPropertyIdDefinitionImpl<T> implements PropertyIdDefinition {
 		return this.isOpenChoice;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<String> getDefaultValue() {
-		return null;
+		if (defaultValue == null) {
+			defaultValue = new ArrayList<String>(0);
+		}
+		return (List<String>) defaultValue;
+	}
+
+	public void setDefaultValue(List<?> defaultValue) {
+		this.defaultValue = defaultValue;
 	}
 
 	@SuppressWarnings("unchecked")

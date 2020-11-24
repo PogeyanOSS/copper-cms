@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.definitions.Choice;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
@@ -103,6 +104,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		morphia.getMapper().getConverters().addConverter(new TokenConverter());
 		morphia.getMapper().getConverters().addConverter(new ChoiceImplConverter());
 		morphia.getMapper().getConverters().addConverter(new ChoiceObjectConverter());
+		morphia.getMapper().getConverters().addConverter(new DefaultValueConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -146,7 +148,8 @@ public class MongoClientFactory implements IDBClientFactory {
 			return (T) getContentDBMongoClient(repositoryId, (t) -> new MQueryDAOImpl(MBaseObject.class, t));
 		}
 		if (className.equals(MongoClientFactory.MRELATIONOBJECCTDAOIMPL)) {
-			return (T) getContentDBMongoClient(repositoryId, (t) -> new MRelationObjectDAOImpl(MRelationObject.class, t));
+			return (T) getContentDBMongoClient(repositoryId,
+					(t) -> new MRelationObjectDAOImpl(MRelationObject.class, t));
 		}
 		return null;
 	}
@@ -464,6 +467,29 @@ public class MongoClientFactory implements IDBClientFactory {
 		public Object encode(final Object value, final MappedField optionalExtraInfo) {
 			return null;
 		}
+	}
+
+	public static class DefaultValueConverter<T> extends TypeConverter implements SimpleValueConverter {
+		public DefaultValueConverter() {
+			super(PropertyDefinition.class);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object decode(Class<?> targetClass, Object fromDBObject, MappedField optionalExtraInfo)
+				throws MappingException {
+			if (fromDBObject != null) {
+				try {
+					List<T> dbObject = (List<T>) fromDBObject;
+					return dbObject;
+				} catch (Exception e) {
+					LOG.error("DefaultValueConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
+			}
+			return null;
+		}
+
 	}
 
 }

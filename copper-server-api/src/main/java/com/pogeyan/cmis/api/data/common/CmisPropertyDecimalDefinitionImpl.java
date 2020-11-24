@@ -46,6 +46,7 @@ public class CmisPropertyDecimalDefinitionImpl<T> implements PropertyDecimalDefi
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<?> choice;
+	private List<?> defaultValue;
 
 	public CmisPropertyDecimalDefinitionImpl() {
 		super();
@@ -68,6 +69,7 @@ public class CmisPropertyDecimalDefinitionImpl<T> implements PropertyDecimalDefi
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
+		this.defaultValue = type.getDefaultValue();
 	}
 
 	@Override
@@ -140,9 +142,17 @@ public class CmisPropertyDecimalDefinitionImpl<T> implements PropertyDecimalDefi
 		return this.isOpenChoice;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<BigDecimal> getDefaultValue() {
-		return null;
+		if (defaultValue == null) {
+			defaultValue = new ArrayList<BigDecimal>(0);
+		}
+		return (List<BigDecimal>) defaultValue;
+	}
+
+	public void setDefaultValue(List<?> defaultValue) {
+		this.defaultValue = defaultValue;
 	}
 
 	@SuppressWarnings("unchecked")

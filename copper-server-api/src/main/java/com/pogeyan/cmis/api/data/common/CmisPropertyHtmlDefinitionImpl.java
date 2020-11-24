@@ -44,6 +44,7 @@ public class CmisPropertyHtmlDefinitionImpl<T> implements PropertyHtmlDefinition
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<?> choice;
+	private List<?> defaultValue;
 
 	public CmisPropertyHtmlDefinitionImpl() {
 		super();
@@ -66,6 +67,7 @@ public class CmisPropertyHtmlDefinitionImpl<T> implements PropertyHtmlDefinition
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
+		this.defaultValue = type.getDefaultValue();
 	}
 
 	@Override
@@ -138,9 +140,17 @@ public class CmisPropertyHtmlDefinitionImpl<T> implements PropertyHtmlDefinition
 		return this.isOpenChoice;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<String> getDefaultValue() {
-		return null;
+		if (defaultValue == null) {
+			defaultValue = new ArrayList<String>(0);
+		}
+		return (List<String>) defaultValue;
+	}
+
+	public void setDefaultValue(List<?> defaultValue) {
+		this.defaultValue = defaultValue;
 	}
 
 	@SuppressWarnings("unchecked")
