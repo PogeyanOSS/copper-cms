@@ -80,4 +80,9 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			repo.remove(repositoryId);
 		}
 	}
+
+	@Override
+	public void close() {
+		// do nothing
+	}
 }

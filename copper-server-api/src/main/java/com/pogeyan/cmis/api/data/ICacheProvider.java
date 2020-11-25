@@ -15,4 +15,6 @@ public interface ICacheProvider {
 	public boolean contains(String repositoryId, String key);
 
 	public void init(long time);
+	
+	public void close();
 }
