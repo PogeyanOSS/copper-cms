@@ -507,7 +507,7 @@ public class CmisTypeServices {
 			list.put("target_column", target_column);
 			PropertyDefinitionImpl<?> cmis_relationType = new PropertyDefinitionImpl("cmis:relationType",
 					"localName", "localNameSpace", "cmis:relationType", "cmis:relationType", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+					PropertyType.INTEGER, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("cmis:relationType", cmis_relationType);
 			PropertyDefinitionImpl<?> relation_propagation = new PropertyDefinitionImpl("cmis:relation_propagation", "localName",
 					"localNameSpace", "cmis:relation_propagation", "cmis:relation_propagation", "description", PropertyType.BOOLEAN,
