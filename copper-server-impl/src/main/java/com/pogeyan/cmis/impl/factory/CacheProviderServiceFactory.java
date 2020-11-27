@@ -11,6 +11,7 @@ public class CacheProviderServiceFactory {
 	static ICacheProvider userCacheMapProvider = null;
 	static ICacheProvider roleCacheMapProvider = null;
 	static ICacheProvider relationshipCacheProvider = null;
+	static ICacheProvider commonCacheProvider = null;
 
 	static public ICacheProvider getTypeCacheServiceProvider() {
 		return typeCacheProvider;
@@ -26,6 +27,10 @@ public class CacheProviderServiceFactory {
 	
 	static public ICacheProvider getRelationshipCacheServiceProvider() {
 		return relationshipCacheProvider;
+	}
+	
+	static public ICacheProvider getCommonCacheServiceProvider() {
+		return commonCacheProvider;
 	}
 
 	public static void addTypeCacheService(ICacheProvider cacheProviderServiceFactory) {
@@ -46,5 +51,18 @@ public class CacheProviderServiceFactory {
 	public static void addRelationshipCacheService(ICacheProvider cacheProviderServiceFactory) {
 		LOG.info("cacheProviderServiceFactory for relationship: {}", cacheProviderServiceFactory);
 		relationshipCacheProvider = cacheProviderServiceFactory;
+	}
+
+	public static void addCommonCacheService(ICacheProvider cacheProviderServiceFactory) {
+		LOG.info("cacheProviderServiceFactory for common services: {}", cacheProviderServiceFactory);
+		commonCacheProvider = cacheProviderServiceFactory;
 	};
+	
+	public static void closeAll() {
+		typeCacheProvider.close();
+		userCacheMapProvider.close();
+		roleCacheMapProvider.close();
+		relationshipCacheProvider.close();
+		commonCacheProvider.close();
+	}
 }

@@ -14,6 +14,9 @@ import com.pogeyan.cmis.api.data.ICacheProvider;
 public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 	private Map<String, Cache<String, Object>> repo = new HashMap<String, Cache<String, Object>>();
 	private long intervalTime;
+	
+	public GoogleGuiceCacheProviderImpl(String cacheName) {
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -52,13 +55,6 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			repo.put(repositoryId, typeCacheMap);
 		}
 
-	}
-
-	@Override
-	public boolean contains(String repositoryId, String key) {
-		Cache<String, Object> typeCacheMap = repo.get(repositoryId);
-		boolean typePresent = typeCacheMap.getIfPresent(key) != null ? true : false;
-		return typePresent;
 	}
 
 	@Override
