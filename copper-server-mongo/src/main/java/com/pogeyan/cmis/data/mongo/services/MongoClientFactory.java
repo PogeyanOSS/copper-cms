@@ -97,7 +97,6 @@ public class MongoClientFactory implements IDBClientFactory {
 			try {
 				if (mgCli != null) {
 					mgCli.close();
-					MongoClientFactory.clientDatastores.remove(key);
 				}
 			} catch (Exception e) {
 				LOG.error("Closing MongoClient error in RemovalListener for repoId: {}", e.getMessage());

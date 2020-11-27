@@ -33,7 +33,10 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 				if (typeCacheMap.getIfPresent(key.get(0)) instanceof List<?>) {
 					return (T) typeCacheMap.getIfPresent(key.get(0));
 				}  else {
-					return (T) Arrays.asList(typeCacheMap.getIfPresent(key.get(0)));
+					Object cacheValue = typeCacheMap.getIfPresent(key.get(0));
+					if (cacheValue != null) {
+						return (T) Arrays.asList(cacheValue);
+					}
 				}
 
 			} else {

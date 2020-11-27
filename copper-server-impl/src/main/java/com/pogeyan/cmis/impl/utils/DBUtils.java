@@ -451,7 +451,7 @@ public class DBUtils {
 				String[] fieldAccess) {
 			List<? extends TypeDefinition> typeDef = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, typeId));
-			if (typeDef == null || typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null) {
+			if (typeDef == null || (typeDef != null && !typeDef.isEmpty() && typeDef.get(0) == null)) {
 				if (typeId != null) {
 					MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 							.getObjectService(repositoryId, MTypeManagerDAO.class);
@@ -485,8 +485,8 @@ public class DBUtils {
 				String[] fieldAccess) {
 			List<? extends TypeDefinition> typeDefList = ((List<TypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, null));
-			TypeDefinition typeDef = typeDefList.stream().filter(a -> a.getPropertyDefinitions().get(propId) != null)
-					.findFirst().orElse(null);
+			TypeDefinition typeDef = typeDefList != null ? typeDefList.stream().filter(a -> a.getPropertyDefinitions().get(propId) != null)
+					.findFirst().orElse(null) : null;
 			if (typeDef != null) {
 				return typeDef.getPropertyDefinitions().get(propId);
 			} else {
@@ -510,7 +510,7 @@ public class DBUtils {
 						docTypeDef);
 				return docTypeDef;
 			}
-			return docType.get(0);
+			return docType != null && docType.size() > 0 ? docType.get(0) : null;
 		}
 	}
 }
