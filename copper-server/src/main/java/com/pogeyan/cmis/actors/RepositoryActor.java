@@ -180,8 +180,6 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		ISpan parentSpan = (ISpan) baggage.get(BrowserConstants.PARENT_SPAN);
 		ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 				"RepositoryActor::getRepositories", null);
-		ISpan repoListSpan = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
-				"RepositoryActor::ArrayList<RepositoryInfo>", null);
 		List<RepositoryInfo> infoDataList = new ArrayList<RepositoryInfo>() {
 			private static final long serialVersionUID = 1L;
 			{
@@ -200,7 +198,6 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				}
 			}
 		};
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, repoListSpan, false);
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
@@ -224,8 +221,6 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			}
 			serverName = request.getServerName();
 		}
-		ISpan infoDataListSpan = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
-				"RepositoryActor::infoDataList", null);
 		for (RepositoryInfo ri : infoDataList) {
 			String repositoryUrl = HttpUtils.compileRepositoryUrl(request.getBaseUrl(), scheme, serverName, port,
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
@@ -233,7 +228,6 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					request.getContextPath(), request.getServletPath(), ri.getId()).toString();
 			result.put(ri.getId(), JSONConverter.convert(ri, repositoryUrl, rootUrl, true));
 		}
-		TracingApiServiceFactory.getApiService().endSpan(tracingId, infoDataListSpan, false);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
 	}

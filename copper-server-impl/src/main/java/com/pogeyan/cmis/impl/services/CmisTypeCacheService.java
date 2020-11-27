@@ -61,12 +61,7 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public PropertyDefinition<?> getPropertyDefinition(String propId) {
-		Long startTime = System.currentTimeMillis();
 		PropertyDefinition<?> property = DBUtils.TypeServiceDAO.getAllPropertyById(this.repositoryId, propId, null);
-		Long totalTime = System.currentTimeMillis() - startTime;
-		if (LOG.isDebugEnabled()) {	
-			LOG.debug("Method Name: getPropertyDefinition, TotalTime: {} ms", totalTime);
-		}
 		return property != null ? property : null;
 	}
 
