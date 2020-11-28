@@ -1247,20 +1247,6 @@ public class CmisObjectService {
 
 		}
 
-		private static List<ObjectData> getSourceTargetRelationship(String repositoryId,
-				boolean includeAllowableActions, IUserObject userObject, List<? extends IBaseObject> relationships) {
-			List<ObjectData> res = new ArrayList<ObjectData>();
-			for (IBaseObject so : relationships) {
-				ObjectData od = compileObjectData(repositoryId, so, null, includeAllowableActions, false, false, null,
-						null, null, userObject, null, null);
-				res.add(od);
-			}
-			if (res != null) {
-				LOG.debug("SourceTargetRelationship result data count: {}", res.size());
-			}
-			return res;
-		}
-
 		public static Map<String, IBaseObject> getRelationshipObjects(String repositoryId,
 				Map<String, Object> relationshipIds, String typeId) {
 			Map<String, IBaseObject> result = new HashMap<>();

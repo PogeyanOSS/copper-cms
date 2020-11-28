@@ -124,7 +124,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
 		}
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
@@ -188,7 +188,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
 		}
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;

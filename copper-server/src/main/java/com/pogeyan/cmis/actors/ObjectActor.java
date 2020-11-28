@@ -211,7 +211,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null, t.getUserObject(),
 					t.getBaseTypeId(), typeId, tracingId, span);
 		}
-		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(t.getRepositoryId()),
+		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(t.getRepositoryId(), t.getTypeId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
@@ -259,7 +259,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 						TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span));
 			}
 			JSONObject result = JSONConverter.convert(properties, objectId.toString(),
-					CmisTypeCacheService.get(t.getRepositoryId()), JSONConverter.PropertyMode.CHANGE, succinct,
+					CmisTypeCacheService.get(t.getRepositoryId(), t.getTypeId()), JSONConverter.PropertyMode.CHANGE, succinct,
 					dateTimeFormat);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
@@ -371,7 +371,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("createFolder complete with id: {}", object.getId());
 		}
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
@@ -433,7 +433,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
@@ -1108,7 +1108,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"moveObject", objectId, sourceFolderId, targetFolderId, request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.moveObject(request.getRepositoryId(), objectIdHolder, targetFolderId,
 				sourceFolderId, null, request.getUserObject(), request.getTypeId(), tracingId, span);
-		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;

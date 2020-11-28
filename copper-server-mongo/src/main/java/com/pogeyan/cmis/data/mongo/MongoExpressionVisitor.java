@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.mongodb.morphia.query.Criteria;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -187,7 +188,8 @@ public class MongoExpressionVisitor<T> implements ExpressionVisitor {
 				return Integer.parseInt(value);
 			}
 			try {
-				PropertyDefinition<?> propDef = this.typeManager.getAllPropertyById(propId, null);
+				TypeDefinition typeDef = this.typeManager.getAllPropertyById(propId, null);
+				PropertyDefinition<?> propDef = typeDef.getPropertyDefinitions().get(propId);
 				if (propDef != null) {
 					if (propDef.getPropertyType().equals(PropertyType.STRING)) {
 						return value;

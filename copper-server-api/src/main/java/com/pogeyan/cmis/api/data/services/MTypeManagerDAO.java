@@ -45,7 +45,7 @@ public interface MTypeManagerDAO {
 	/**
 	 * Returns propertyDef depending on propId
 	 */
-	public PropertyDefinition<?> getAllPropertyById(String propId, String[] fieldAccess);
+	public TypeDefinition getAllPropertyById(String propId, String[] fieldAccess);
 
 	public <T extends TypeDefinition> void commit(T entity);
 

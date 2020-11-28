@@ -492,7 +492,9 @@ public class DBUtils {
 			} else {
 				MTypeManagerDAO typeManagerDAO = DatabaseServiceFactory.getInstance(repositoryId)
 						.getObjectService(repositoryId, MTypeManagerDAO.class);
-				return typeManagerDAO.getAllPropertyById(propId, fieldAccess);
+				TypeDefinition dbTypeDef = typeManagerDAO.getAllPropertyById(propId, fieldAccess);
+				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, dbTypeDef.getId(), dbTypeDef);
+				return dbTypeDef.getPropertyDefinitions().get(propId);
 			}
 		}
 	}
