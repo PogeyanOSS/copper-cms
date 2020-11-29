@@ -506,11 +506,13 @@ public class DBUtils {
 					.getObjectService(repositoryId, MDocumentTypeManagerDAO.class);
 			List<? extends DocumentTypeDefinition> docType = ((List<DocumentTypeDefinition>) CacheProviderServiceFactory
 					.getTypeCacheServiceProvider().get(repositoryId, Arrays.asList(typeId)));
-			if (docType != null && !docType.isEmpty() && docType.get(0) == null) {
-				DocumentTypeDefinition docTypeDef = docManagerDAO.getByTypeId(typeId, fieldAccess);
-				CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, docTypeDef.getId(),
-						docTypeDef);
-				return docTypeDef;
+			if (docType == null || (docType != null && !docType.isEmpty() && docType.get(0) == null)) {
+				if (typeId != null) {
+					DocumentTypeDefinition docTypeDef = docManagerDAO.getByTypeId(typeId, fieldAccess);
+					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, docTypeDef.getId(),
+							docTypeDef);
+					return docTypeDef;
+				}
 			}
 			return docType != null && docType.size() > 0 ? docType.get(0) : null;
 		}
