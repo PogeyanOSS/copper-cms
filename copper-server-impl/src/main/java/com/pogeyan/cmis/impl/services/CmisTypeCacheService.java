@@ -29,21 +29,23 @@ import com.pogeyan.cmis.impl.utils.DBUtils;
 public class CmisTypeCacheService implements TypeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(CmisTypeCacheService.class);
 	private final String repositoryId;
-	private final String typeId;
-	private final TypeDefinition typeDef;
+	private String typeId;
+	private TypeDefinition typeDef;
 
 	CmisTypeCacheService(String repositoryId, String typeId) {
 		this.repositoryId = repositoryId;
-		this.typeId = typeId;
-		List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
-				Arrays.asList(typeId), null);
-		this.typeDef = typeDef != null ? typeDef.get(0) : null;
+		if (this.typeId != null) {
+			this.typeId = typeId;
+			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+					Arrays.asList(typeId), null);
+			this.typeDef = typeDef != null ? typeDef.get(0) : null;
+		}
 		// load all props of this typeDef, including base props
 	}
 
 	@Override
 	public TypeDefinition getTypeDefinition(String typeId) {
-		if (typeId == this.typeId) {
+		if (this.typeDef != null && typeId == this.typeId) {
 			return this.typeDef;
 		}
 
@@ -72,7 +74,7 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public PropertyDefinition<?> getPropertyDefinition(String propId) {
-		if (this.typeDef.getPropertyDefinitions().containsKey(propId)) {
+		if (this.typeDef != null && this.typeDef.getPropertyDefinitions().containsKey(propId)) {
 			return this.typeDef.getPropertyDefinitions().get(propId);
 		}
 
