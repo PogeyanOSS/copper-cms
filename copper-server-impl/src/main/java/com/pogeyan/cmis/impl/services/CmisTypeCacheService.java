@@ -34,7 +34,7 @@ public class CmisTypeCacheService implements TypeCache {
 
 	CmisTypeCacheService(String repositoryId, String typeId) {
 		this.repositoryId = repositoryId;
-		if (this.typeId != null) {
+		if (typeId != null) {
 			this.typeId = typeId;
 			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
 					Arrays.asList(typeId), null);
