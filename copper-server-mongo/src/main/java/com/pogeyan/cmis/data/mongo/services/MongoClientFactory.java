@@ -94,8 +94,12 @@ public class MongoClientFactory implements IDBClientFactory {
 		@Override
 		public void notifyOnRemoval(Object key, MongoClient mgCli) {
 			LOG.info("Closing MongoClient connection in RemovalListener for repoId: {}", key);
-			if (mgCli != null) {
-				mgCli.close();
+			try {
+				if (mgCli != null) {
+					mgCli.close();
+				}
+			} catch (Exception e) {
+				LOG.error("Closing MongoClient error in RemovalListener for repoId: {}", e.getMessage());
 			}
 		}
 	};

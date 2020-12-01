@@ -28,7 +28,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedExceptio
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUpdateConflictException;
-import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
+import com.pogeyan.cmis.api.utils.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
@@ -124,7 +124,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
 		}
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
@@ -188,7 +188,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 			throw new CmisRuntimeException(TracingWriter.log(String.format(ErrorMessages.DOCUMENT_NULL), span));
 		}
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;

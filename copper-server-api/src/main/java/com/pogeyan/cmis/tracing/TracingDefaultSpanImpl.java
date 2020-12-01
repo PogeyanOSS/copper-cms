@@ -24,7 +24,9 @@ public class TracingDefaultSpanImpl implements ISpan {
 	@Override
 	public void close(boolean isError) {
 		Long totalTime = System.currentTimeMillis() - startTime;
-		LOG.debug("Method Name: {}, TotalTime: {} ms", name, totalTime);
+		if (LOG.isDebugEnabled()) {	
+			LOG.debug("Method Name: {}, TotalTime: {} ms", name, totalTime);
+		}
 	}
 
 	@Override
@@ -36,7 +38,9 @@ public class TracingDefaultSpanImpl implements ISpan {
 		this.name = name;
 		this.startTime = System.currentTimeMillis();
 		this.tracingId = tracingId;
-		LOG.debug("Method Name: {}, StartTime: {} ms", name, startTime);
+//		if (LOG.isDebugEnabled()) {		
+//			LOG.debug("Method Name: {}, StartTime: {} ms", name, startTime);
+//		}
 	}
 
 	@Override

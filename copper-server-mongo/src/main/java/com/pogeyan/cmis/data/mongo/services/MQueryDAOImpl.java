@@ -95,7 +95,7 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		MongoDatabase db = this.ds.getMongo().getDatabase(dBName);
 		MongoCursor<Document> iterator = db.getCollection(QueryAggregationConstants.COLLECTION_NAME).aggregate(document)
 				.iterator();
-		LOG.error("Get Dynamic Relationship Query Result of iterator has next : {} ", iterator.hasNext());
+		LOG.debug("Get Dynamic Relationship Query Result of iterator has next : {} ", iterator.hasNext());
 		List<Document> list = new ArrayList<Document>();
 		if (iterator.hasNext()) {
 			iterator.forEachRemaining(list::add);
@@ -108,7 +108,7 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			}
 			result.add(respose);
 		}
-		LOG.error("Get Response Dynamic for RelationShip Query Result : {} ", result);
+		LOG.debug("Get Response Dynamic for RelationShip Query Result : {} ", result);
 
 		if (result != null && !result.isEmpty() && relationshipType.equals(1)) {
 			List<IQueryResponse> finalResult = getGroupbyResponse(result);

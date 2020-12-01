@@ -152,7 +152,6 @@ public class CmisObjectService {
 				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId, typeId, false);
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
-					addRootFolder(repositoryId);
 					return rootData.getId();
 				} else {
 					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -177,7 +176,7 @@ public class CmisObjectService {
 								ErrorMessages.BASE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			
 			return null;
 		}
 
@@ -1246,20 +1245,6 @@ public class CmisObjectService {
 			}
 			return sourceTarget;
 
-		}
-
-		private static List<ObjectData> getSourceTargetRelationship(String repositoryId,
-				boolean includeAllowableActions, IUserObject userObject, List<? extends IBaseObject> relationships) {
-			List<ObjectData> res = new ArrayList<ObjectData>();
-			for (IBaseObject so : relationships) {
-				ObjectData od = compileObjectData(repositoryId, so, null, includeAllowableActions, false, false, null,
-						null, null, userObject, null, null);
-				res.add(od);
-			}
-			if (res != null) {
-				LOG.debug("SourceTargetRelationship result data count: {}", res.size());
-			}
-			return res;
 		}
 
 		public static Map<String, IBaseObject> getRelationshipObjects(String repositoryId,
