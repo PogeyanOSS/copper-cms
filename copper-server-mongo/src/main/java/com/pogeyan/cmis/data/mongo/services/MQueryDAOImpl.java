@@ -631,6 +631,10 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		if (type != null && type.equals("or")) {
 			List<Document> filterList = new ArrayList<Document>();
 			Document fileterDoc = new Document();
+			if (operatorDoc.containsKey(QueryAggregationConstants.OR)) {
+				filterList = (ArrayList<Document>) operatorDoc.get(QueryAggregationConstants.OR);
+				operatorDoc.remove(QueryAggregationConstants.OR);
+			}
 			filterList.add(operatorDoc);
 			fileterDoc.append(QueryAggregationConstants.OR, filterList);
 			return fileterDoc;
