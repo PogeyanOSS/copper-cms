@@ -47,7 +47,7 @@ public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefi
 	private List<?> choice;
 	private BigInteger minValue;
 	private BigInteger maxValue;
-	private List<?> defaultValue;
+	private DefaultValueImpl<T> defaultValue;
 
 	public CmisPropertyIntegerDefinitionImpl() {
 		super();
@@ -72,7 +72,7 @@ public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefi
 		this.choice = type.getChoices();
 		this.minValue = type.getMinValue();
 		this.maxValue = type.getMaxValue();
-		this.defaultValue = type.getDefaultValue();
+		setDefaultValue(type.getDefaultValue());
 	}
 
 	@Override
@@ -148,14 +148,17 @@ public class CmisPropertyIntegerDefinitionImpl<T> implements PropertyIntegerDefi
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<BigInteger> getDefaultValue() {
-		if (defaultValue == null) {
-			defaultValue = new ArrayList<String>(0);
+		if (defaultValue != null) {
+			return (List<BigInteger>) defaultValue.getValue();
 		}
-		return (List<BigInteger>) defaultValue;
+		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setDefaultValue(List<?> defaultValue) {
-		this.defaultValue = defaultValue;
+		if (defaultValue != null) {
+			this.defaultValue = new DefaultValueImpl<T>((List<T>) defaultValue);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
