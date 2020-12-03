@@ -627,16 +627,16 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		default:
 			break;
 		}
-
-		if (type != null && type.equals("or")) {
+		//supporting and/or conditions in filter
+		if (type != null) {
 			List<Document> filterList = new ArrayList<Document>();
 			Document fileterDoc = new Document();
-			if (operatorDoc.containsKey(QueryAggregationConstants.OR)) {
-				filterList = (ArrayList<Document>) operatorDoc.get(QueryAggregationConstants.OR);
-				operatorDoc.remove(QueryAggregationConstants.OR);
+			if (operatorDoc.containsKey(type)) {
+				filterList = (ArrayList<Document>) operatorDoc.get(type);
+				operatorDoc.remove(type);
 			}
 			filterList.add(operatorDoc);
-			fileterDoc.append(QueryAggregationConstants.OR, filterList);
+			fileterDoc.append("$"+type, filterList);
 			return fileterDoc;
 		}
 		return operatorDoc;
