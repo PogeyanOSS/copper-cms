@@ -54,6 +54,7 @@ import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.pogeyan.cmis.api.data.IDBClientFactory;
+import com.pogeyan.cmis.api.data.common.DefaultValueImpl;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
@@ -130,6 +131,7 @@ public class MongoClientFactory implements IDBClientFactory {
 		morphia.getMapper().getConverters().addConverter(new TokenConverter());
 		morphia.getMapper().getConverters().addConverter(new ChoiceImplConverter());
 		morphia.getMapper().getConverters().addConverter(new ChoiceObjectConverter());
+		morphia.getMapper().getConverters().addConverter(new DefaultValueConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -503,9 +505,49 @@ public class MongoClientFactory implements IDBClientFactory {
 		}
 
 		@Override
-		public Object encode(final Object value, final MappedField optionalExtraInfo) {
+		public Object encode(final Object fromDBObject, final MappedField optionalExtraInfo) {
 			return null;
 		}
+	}
+
+	public static class DefaultValueConverter<T> extends TypeConverter implements SimpleValueConverter {
+		public DefaultValueConverter() {
+			super(DefaultValueImpl.class);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object decode(Class<?> targetClass, Object fromDBObject, MappedField optionalExtraInfo)
+				throws MappingException {
+			if (fromDBObject != null) {
+				try {
+					List<T> dbObject = (List<T>) fromDBObject;
+					return new DefaultValueImpl<T>(dbObject);
+				} catch (Exception e) {
+					LOG.error("DefaultValueConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
+			}
+			return null;
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public Object encode(final Object fromDBObject, final MappedField optionalExtraInfo) {
+			if (fromDBObject != null) {
+				DefaultValueImpl<T> ch = (DefaultValueImpl<T>) fromDBObject;
+				List<T> value = ch.getValue();
+				if (value.size() > 0) {
+					if (!value.isEmpty() && value.get(0) instanceof BigInteger) {
+						List<BigInteger> bigIntegerArray = (List<BigInteger>) value;
+						value = (List<T>) bigIntegerArray.stream().map(s -> s.intValue()).collect(Collectors.toList());
+					}
+					return value;
+				}
+			}
+			return null;
+		}
+
 	}
 
 }

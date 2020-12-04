@@ -1853,6 +1853,7 @@ public class CmisTypeServices {
 				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue().intValue());
 			}
 			propertyDefinition.setChoice(pro.getChoices());
+			propertyDefinition.setDefaultValue(pro.getDefaultValue());
 			return propertyDefinition;
 		}
 
