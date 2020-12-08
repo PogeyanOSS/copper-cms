@@ -119,6 +119,7 @@ import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
+import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
@@ -175,7 +176,7 @@ public class CmisObjectService {
 								ErrorMessages.BASE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			}
-			
+
 			return null;
 		}
 
@@ -1378,8 +1379,7 @@ public class CmisObjectService {
 					}
 				}
 			});
-
-//			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
+			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
@@ -1387,9 +1387,9 @@ public class CmisObjectService {
 					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
-//						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
-//								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
-//								data.getProperties());
+						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
+								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
+								data.getProperties());
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -5597,6 +5597,7 @@ public class CmisObjectService {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		private static Object invokeDecryptAfterCreate(IObjectEncryptService objectFlowService, String repositoryId,
 				EncryptType invokeMethod, String typeId, String propId, Object propValue, PropertyType propertyType,
 				List<String> secondaryObjectTypeIdsValues, Map<String, Object> customProps) {
