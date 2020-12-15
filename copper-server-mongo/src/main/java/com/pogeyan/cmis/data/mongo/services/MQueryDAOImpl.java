@@ -98,6 +98,7 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		MongoDatabase db = this.ds.getMongo().getDatabase(dBName);
 		MongoCursor<Document> iterator = db.getCollection(QueryAggregationConstants.COLLECTION_NAME).aggregate(document)
 				.iterator();
+		int totalObjects = getObjectCount(document);
 		LOG.debug("Get Dynamic Relationship Query Result of iterator has next : {} ", iterator.hasNext());
 		List<Document> list = new ArrayList<Document>();
 		if (iterator.hasNext()) {
@@ -111,6 +112,9 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			}
 			result.add(respose);
 		}
+		IQueryResponse response = new IQueryResponse();
+		response.put("TotalObjects", totalObjects);
+		result.add(response);
 		LOG.debug("Get Response Dynamic for RelationShip Query Result : {} ", result);
 
 		if (result != null && !result.isEmpty() && relationshipType.equals(1)) {
@@ -118,6 +122,29 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			return finalResult;
 		}
 		return result;
+	}
+
+	private int getObjectCount(List<Document> document) {
+		List<Document> countdoc = new ArrayList<Document>();
+		for (Document doc : document) {
+			if (doc.containsKey(QueryAggregationConstants.LIMIT)) {
+				doc.remove(QueryAggregationConstants.LIMIT);
+			} else if (doc.containsKey(QueryAggregationConstants.SKIP)) {
+				doc.remove(QueryAggregationConstants.SKIP);
+			} else {
+				countdoc.add(doc);
+			}
+		}
+		String dBName = this.ds.getDB().getName();
+		MongoDatabase db = this.ds.getMongo().getDatabase(dBName);
+		MongoCursor<Document> totalObjects = db.getCollection(QueryAggregationConstants.COLLECTION_NAME)
+				.aggregate(countdoc).iterator();
+		int count = 0;
+		while (totalObjects.hasNext()) {
+			totalObjects.next();
+			count++;
+		}
+		return count;
 	}
 
 	private List<IQueryResponse> getGroupbyResponse(List<IQueryResponse> result) {
