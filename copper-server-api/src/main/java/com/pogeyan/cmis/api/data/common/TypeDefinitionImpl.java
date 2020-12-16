@@ -1,5 +1,6 @@
 package com.pogeyan.cmis.api.data.common;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +13,9 @@ import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeMutability;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 
-public class TypeDefinitionImpl implements TypeDefinition {
-	private static final long serialVersionUID = 1L;
+public class TypeDefinitionImpl implements TypeDefinition, Serializable {
+
+	private static final long serialVersionUID = 349396601102910686L;
 	protected String id;
 	protected String localName;
 	protected String localNamespace;
