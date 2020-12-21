@@ -126,6 +126,8 @@ public class AkkaServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
+		DatabaseServiceFactory.closeAll();
+		CacheProviderServiceFactory.closeAll();
 		ActorServiceFactory.getInstance().shutdown();
 		ActorSystem system = (ActorSystem) sce.getServletContext().getAttribute("GatewaySystem");
 		sce.getServletContext().removeAttribute("ActorSystem");
@@ -243,10 +245,10 @@ public class AkkaServletContextListener implements ServletContextListener {
 			long intervaltime) {
 		LOG.info("Initialized External Services Factory Classes");
 		boolean checkExternalActor = false;
-		if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
-			if (authFactoryClassinitializeExtensions(authStoreClassName)) {
-				if (fileStorageFactoryClassInit(fileStorageClassName)) {
-					if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
+		if (cacheProviderFactoryClassInit(cacheProviderClassName, intervaltime)) {
+			if (repoFactoryClassinitializeExtensions(className, repoClassName)) {
+				if (authFactoryClassinitializeExtensions(authStoreClassName)) {
+					if (fileStorageFactoryClassInit(fileStorageClassName)) {
 						checkExternalActor = externalActorClassName != null
 								? externalActorFactoryClassinitializeExtensions(externalActorClassName)
 								: true;
@@ -295,18 +297,21 @@ public class AkkaServletContextListener implements ServletContextListener {
 		try {
 			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
 			Class<?> c = Class.forName(cacheProviderFactoryClassName);
-			ICacheProvider cacheProviderFactory = (ICacheProvider) c.newInstance();
-			ICacheProvider userCacheProviderFactory = (ICacheProvider) c.newInstance();
-			ICacheProvider roleCacheProviderFactory = (ICacheProvider) c.newInstance();
-			ICacheProvider relationshipCacheProviderFactory = (ICacheProvider) c.newInstance();
-			CacheProviderServiceFactory.addTypeCacheService(cacheProviderFactory);
+			ICacheProvider typeCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("types");
+			ICacheProvider userCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("users");
+			ICacheProvider roleCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("roles");
+			ICacheProvider relationshipCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("relations");
+			ICacheProvider commonCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("common");
+			CacheProviderServiceFactory.addTypeCacheService(typeCacheProviderFactory);
 			CacheProviderServiceFactory.addUserCacheService(userCacheProviderFactory);
 			CacheProviderServiceFactory.addRoleCacheService(roleCacheProviderFactory);
 			CacheProviderServiceFactory.addRelationshipCacheService(relationshipCacheProviderFactory);
-			cacheProviderFactory.init(intervalTime);
+			CacheProviderServiceFactory.addCommonCacheService(commonCacheProviderFactory);
+			typeCacheProviderFactory.init(intervalTime);
 			userCacheProviderFactory.init(intervalTime);
 			roleCacheProviderFactory.init(intervalTime);
-			relationshipCacheProviderFactory.init(10*60);
+			relationshipCacheProviderFactory.init(intervalTime);
+			commonCacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;

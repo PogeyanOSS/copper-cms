@@ -119,7 +119,6 @@ import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.impl.factory.DatabaseServiceFactory;
-import com.pogeyan.cmis.impl.factory.EncryptionFactory;
 import com.pogeyan.cmis.impl.factory.ObjectFlowFactory;
 import com.pogeyan.cmis.impl.factory.StorageServiceFactory;
 import com.pogeyan.cmis.impl.factory.TypeServiceFactory;
@@ -152,7 +151,6 @@ public class CmisObjectService {
 				IBaseObject rootData = DBUtils.BaseDAO.getRootFolder(repositoryId, typeId, false);
 				if (rootData != null) {
 					LOG.info("Root folderId: {}, already created for repository: {}", rootData.getId(), repositoryId);
-					addRootFolder(repositoryId);
 					return rootData.getId();
 				} else {
 					TokenImpl token = new TokenImpl(TokenChangeType.CREATED, System.currentTimeMillis());
@@ -177,7 +175,7 @@ public class CmisObjectService {
 								ErrorMessages.BASE_EXCEPTION, repositoryId, true));
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, true);
 			}
-			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
+			
 			return null;
 		}
 
@@ -1216,11 +1214,13 @@ public class CmisObjectService {
 			if (includeRelationships == IncludeRelationships.SOURCE) {
 				List<? extends IRelationObject> source = DBUtils.RelationshipDAO.getRelationshipBySourceId(repositoryId,
 						spo.getId().toString(), aclPropagation, maxItems, skipCount, mappedColumns, spo.getTypeId());
-				return CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, source);
+				return CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions,
+						userObject, source);
 			} else if (includeRelationships == IncludeRelationships.TARGET) {
 				List<? extends IRelationObject> target = DBUtils.RelationshipDAO.getRelationshipByTargetId(repositoryId,
 						spo.getId().toString(), aclPropagation, maxItems, skipCount, mappedColumns, spo.getTypeId());
-				return CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject, target);
+				return CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions,
+						userObject, target);
 			} else if (includeRelationships == IncludeRelationships.BOTH) {
 				List<ObjectData> sourceTarget = new ArrayList<>();
 				List<? extends IRelationObject> sourceObject = DBUtils.RelationshipDAO.getRelationshipBySourceId(
@@ -1229,10 +1229,10 @@ public class CmisObjectService {
 				List<? extends IRelationObject> targetObject = DBUtils.RelationshipDAO.getRelationshipByTargetId(
 						repositoryId, spo.getId().toString(), aclPropagation, maxItems, skipCount, mappedColumns,
 						spo.getTypeId());
-				List<ObjectData> source = CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
-						sourceObject);
-				List<ObjectData> taregt = CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId, includeAllowableActions, userObject,
-						targetObject);
+				List<ObjectData> source = CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId,
+						includeAllowableActions, userObject, sourceObject);
+				List<ObjectData> taregt = CmisRelationshipService.Impl.getSourceTargetRelationship(repositoryId,
+						includeAllowableActions, userObject, targetObject);
 				getSourceTargetList(sourceTarget, source);
 				getSourceTargetList(sourceTarget, taregt);
 				return sourceTarget;
@@ -1246,20 +1246,6 @@ public class CmisObjectService {
 			}
 			return sourceTarget;
 
-		}
-
-		private static List<ObjectData> getSourceTargetRelationship(String repositoryId,
-				boolean includeAllowableActions, IUserObject userObject, List<? extends IBaseObject> relationships) {
-			List<ObjectData> res = new ArrayList<ObjectData>();
-			for (IBaseObject so : relationships) {
-				ObjectData od = compileObjectData(repositoryId, so, null, includeAllowableActions, false, false, null,
-						null, null, userObject, null, null);
-				res.add(od);
-			}
-			if (res != null) {
-				LOG.debug("SourceTargetRelationship result data count: {}", res.size());
-			}
-			return res;
 		}
 
 		public static Map<String, IBaseObject> getRelationshipObjects(String repositoryId,
@@ -1393,7 +1379,7 @@ public class CmisObjectService {
 				}
 			});
 
-			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
+//			IObjectEncryptService encryptService = EncryptionFactory.createEncryptionService(repositoryId);
 			if (customProps.size() > 0) {
 				Set<Map.Entry<String, Object>> customData = customProps.entrySet();
 				for (Map.Entry<String, Object> customValues : customData) {
@@ -1401,9 +1387,9 @@ public class CmisObjectService {
 					if (!(customValues.getKey().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))) {
 						Object valueOfType = data.getProperties().get(id);
 						PropertyType propertyType = (PropertyType) customValues.getValue();
-						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
-								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
-								data.getProperties());
+//						valueOfType = invokeDecryptAfterCreate(encryptService, repositoryId, EncryptType.DECRYPT,
+//								typeId.getId(), id, valueOfType, propertyType, data.getSecondaryTypeIds(),
+//								data.getProperties());
 						if (propertyType == PropertyType.INTEGER) {
 							if (valueOfType instanceof Integer) {
 								Integer valueBigInteger = convertInstanceOfObject(valueOfType, Integer.class);
@@ -2748,8 +2734,8 @@ public class CmisObjectService {
 			boolean permission = CmisTypeServices.checkCrudPermission(typePermissionFlow, repositoryId, userObject,
 					typeId, EnumSet.of(PermissionType.CREATE), false);
 			if (permission) {
-				IRelationObject so = createRelationshipIntern(repositoryId, folderId, properties, typeId, policies, addAces,
-						removeAces, userObject, tracingId, span);
+				IRelationObject so = createRelationshipIntern(repositoryId, folderId, properties, typeId, policies,
+						addAces, removeAces, userObject, tracingId, span);
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 				return so == null ? null : so.getId();
 			} else {
@@ -2769,17 +2755,18 @@ public class CmisObjectService {
 		 * returns relationship Document
 		 */
 		@SuppressWarnings({ "unchecked", "unused" })
-		private static IRelationObject createRelationshipIntern(String repositoryId, String folderId, Properties properties,
-				String typeId, List<String> policies, Acl addAces, Acl removeAces, IUserObject userObject,
-				String tracingId, ISpan parentSpan)
+		private static IRelationObject createRelationshipIntern(String repositoryId, String folderId,
+				Properties properties, String typeId, List<String> policies, Acl addAces, Acl removeAces,
+				IUserObject userObject, String tracingId, ISpan parentSpan)
 				throws CmisInvalidArgumentException, CmisObjectNotFoundException, IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisObjectService::createRelationshipIntern", null);
 			Map<String, Object> attrMap = new HashMap<String, Object>();
 			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
 					.getObjectService(repositoryId, MRelationObjectDAO.class);
-			//invokeObjectFlowServiceBeforeCreate(repositoryId, folderId, properties, policies, addAces, removeAces,
-				//	userObject, null, ObjectFlowType.CREATED);
+			// invokeObjectFlowServiceBeforeCreate(repositoryId, folderId, properties,
+			// policies, addAces, removeAces,
+			// userObject, null, ObjectFlowType.CREATED);
 			List<String> secondaryObjectTypeIds = null;
 			TypeValidator.validateRequiredSystemProperties(properties);
 
@@ -2994,7 +2981,8 @@ public class CmisObjectService {
 
 			IRelationObject storedObject = createRelationshipObject(repositoryId, parent, name, secondaryObjectTypeIds,
 					propMapNew, userObject, typeDef.getId(), policies, aclAdd, tracingId, span);
-			//invokeObjectFlowServiceAfterCreate(storedObject, ObjectFlowType.CREATED, null, userObject);
+			// invokeObjectFlowServiceAfterCreate(storedObject, ObjectFlowType.CREATED,
+			// null, userObject);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return storedObject;
 		}
@@ -3002,10 +2990,10 @@ public class CmisObjectService {
 		/**
 		 * inserting relationshipObject into mongoDB
 		 */
-		private static IRelationObject createRelationshipObject(String repositoryId, IBaseObject parentData, String name,
-				List<String> secondaryObjectTypeId, Map<String, PropertyData<?>> properties, IUserObject userObject,
-				String typeId, List<String> policies, AccessControlListImplExt aclAdd, String tracingId,
-				ISpan parentSpan) throws CmisObjectNotFoundException, IllegalArgumentException {
+		private static IRelationObject createRelationshipObject(String repositoryId, IBaseObject parentData,
+				String name, List<String> secondaryObjectTypeId, Map<String, PropertyData<?>> properties,
+				IUserObject userObject, String typeId, List<String> policies, AccessControlListImplExt aclAdd,
+				String tracingId, ISpan parentSpan) throws CmisObjectNotFoundException, IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisNavigationService::createRelationshipObject", null);
 			Map<String, Object> custom = readCustomPropetiesData(properties, secondaryObjectTypeId, repositoryId,
@@ -3037,8 +3025,8 @@ public class CmisObjectService {
 			String systemAdmin = System.getenv("SYSTEM_ADMIN");
 			boolean aclPropagation = Stream.of(userObject.getGroups())
 					.anyMatch(a -> a.getGroupDN() != null && a.getGroupDN().equals(systemAdmin)) ? false : true;
-			IRelationObject itemObject = DBUtils.RelationshipDAO.getRelationshipByObjectId(repositoryId, principalIds, aclPropagation,
-					result.getId(), null, typeId);
+			IRelationObject itemObject = DBUtils.RelationshipDAO.getRelationshipByObjectId(repositoryId, principalIds,
+					aclPropagation, result.getId(), null, typeId);
 			if (itemObject != null) {
 				LOG.error("Relationship object already present: {}, repositoryId: {}, TraceId: {}", itemObject.getId(),
 						repositoryId, span != null ? span.getTraceId() : null);
@@ -3140,7 +3128,7 @@ public class CmisObjectService {
 		}
 
 		/**
-		 * Setting the RelationshipProperties
+		 * Setting the DefaultProperties
 		 */
 		private static Map<String, PropertyData<?>> setDefaultProperties(String repositoryId, TypeDefinition typeDef,
 				Map<String, PropertyData<?>> properties) {
@@ -3159,13 +3147,19 @@ public class CmisObjectService {
 						hasCopied = true;
 					}
 					Object value = propDef.getCardinality() == Cardinality.SINGLE ? defaultVal.get(0) : defaultVal;
+					if (value instanceof Integer) {
+						value = BigInteger.valueOf(((Integer) value).longValue());
+					}
+					if (value instanceof Double) {
+						value = BigDecimal.valueOf(((Double) value).longValue());
+					}
 					CopperCmsRepository fObject = new CopperCmsRepository(repositoryId);
 					PropertyData<?> pd = fObject.getObjectFactory().createPropertyData(propDef, value);
 					// set property:
 					propertiesReturn.put(propId, pd);
 				}
 			}
-			LOG.debug("Default relationship properties: {}", propertiesReturn);
+			LOG.debug("Default properties: {}", propertiesReturn);
 
 			return propertiesReturn;
 		}
@@ -4727,8 +4721,9 @@ public class CmisObjectService {
 					.createTypePermissionFlowService(repositoryId);
 			PropertiesImpl result = new PropertiesImpl();
 			// Set<String> addedProps = new HashSet<String>();
+			Map<String, PropertyData<?>> propMap = properties.getProperties();
 
-			if (properties == null || properties.getProperties() == null) {
+			if (properties == null || propMap == null) {
 				LOG.error("Method name: {}, unknown properties: {}, repositoryId: {}, TraceId: {}",
 						"compileWriteProperties", properties, repositoryId, span != null ? span.getTraceId() : null);
 				TracingApiServiceFactory.getApiService().updateSpan(span,
@@ -4751,7 +4746,7 @@ public class CmisObjectService {
 			}
 
 			List<?> secondaryObjectTypeIds = null;
-			PropertyData<?> secondaryObjectType = properties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
+			PropertyData<?> secondaryObjectType = propMap.get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
 			if (secondaryObjectType != null) {
 				secondaryObjectTypeIds = secondaryObjectType.getValues();
 			} else {
@@ -4762,7 +4757,7 @@ public class CmisObjectService {
 
 			PropertyDefinition<?> propTypes = null;
 			// check if all required properties are there
-			for (PropertyData<?> prop : properties.getProperties().values()) {
+			for (PropertyData<?> prop : propMap.values()) {
 				propTypes = null;
 				Map<String, PropertyDefinition<?>> property = type.getPropertyDefinitions();
 				propTypes = property.get(prop.getId());
@@ -4809,7 +4804,11 @@ public class CmisObjectService {
 					result.addProperty(prop);
 				}
 			}
-
+			// set Default Properties
+			Map<String, PropertyData<?>> propMapNew = setDefaultProperties(repositoryId, type, propMap);
+			if (propMapNew != propMap) { // NOSONAR
+				result = new PropertiesImpl(propMapNew.values());
+			}
 			if (result != null) {
 				LOG.debug("compileWriteProperties data count: {}", result.getPropertyList().size());
 			}

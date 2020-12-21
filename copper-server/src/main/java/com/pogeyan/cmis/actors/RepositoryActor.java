@@ -48,7 +48,7 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
+import com.pogeyan.cmis.api.utils.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AclCapabilitiesDataImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.CreatablePropertyTypesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.NewTypeSettableAttributesImpl;
@@ -198,10 +198,10 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				}
 			}
 		};
-
 		JSONObject result = new JSONObject();
 		Map<String, String> headers = request.getHeaders();
 		String reverProxyEnv = System.getenv("REVERSE_PROXY");
+		String httpsPortEnv = System.getenv("HTTPS_PORT");
 		int port = headers.containsKey(PORT_HEADER) && headers.get(PORT_HEADER) != null
 				? Integer.parseInt(headers.get(PORT_HEADER))
 				: request.getServerPort();
@@ -214,8 +214,11 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 					: headers.containsKey(FOR_HEADER) && headers.get(FOR_HEADER) != null ? headers.get(FOR_HEADER)
 							: request.getServerName();
 		} else {
-			scheme = System.getenv("FORCE_SCHEME_HTTPS") != null && System.getenv("FORCE_SCHEME_HTTPS").equals("true")
-					&& !request.getServerName().equals("localhost") ? "https" : request.getScheme();
+			if (httpsPortEnv != null && httpsPortEnv.equals(String.valueOf(port))) {
+				scheme = "https";
+			} else {
+				scheme = request.getScheme();
+			}
 			serverName = request.getServerName();
 		}
 		for (RepositoryInfo ri : infoDataList) {

@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.data.mongo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,8 @@ import com.pogeyan.cmis.api.data.common.TokenImpl;
 
 @Entity(value = "relationData", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
-public class MRelationObject implements IRelationObject, ISettableBaseObject {
+public class MRelationObject implements IRelationObject, ISettableBaseObject, Serializable {
+	private static final long serialVersionUID = -8927949155958535058L;
 	@Id
 	private String id;
 	private String name;

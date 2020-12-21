@@ -46,6 +46,7 @@ public class CmisPropertyStringDefinitionImpl<T> implements PropertyStringDefini
 	private Boolean isOpenChoice;
 	private List<?> choice;
 	private BigInteger maxLength;
+	private DefaultValueImpl<T> defaultValue;
 
 	public CmisPropertyStringDefinitionImpl() {
 		super();
@@ -69,6 +70,7 @@ public class CmisPropertyStringDefinitionImpl<T> implements PropertyStringDefini
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
 		this.maxLength = type.getMaxLength();
+		setDefaultValue(type.getDefaultValue());
 	}
 
 	@Override
@@ -146,9 +148,20 @@ public class CmisPropertyStringDefinitionImpl<T> implements PropertyStringDefini
 		return this.isOpenChoice;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<String> getDefaultValue() {
+		if (defaultValue != null) {
+			return (List<String>) defaultValue.getValue();
+		}
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setDefaultValue(List<?> defaultValue) {
+		if (defaultValue != null) {
+			this.defaultValue = new DefaultValueImpl<T>((List<T>) defaultValue);
+		}
 	}
 
 	@SuppressWarnings("unchecked")

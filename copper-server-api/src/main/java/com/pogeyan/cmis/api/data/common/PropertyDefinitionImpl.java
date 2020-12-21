@@ -47,6 +47,7 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 	private Integer minValue;
 	private Integer maxValue;
 	private Integer maxLength;
+	private DefaultValueImpl<T> defaultValue;
 
 	public PropertyDefinitionImpl() {
 
@@ -154,7 +155,17 @@ public class PropertyDefinitionImpl<T> implements PropertyDefinition<T> {
 
 	@Override
 	public List<T> getDefaultValue() {
+		if (defaultValue != null) {
+			return defaultValue.getValue();
+		}
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setDefaultValue(List<?> list) {
+		if (list != null) {
+			this.defaultValue = new DefaultValueImpl<T>((List<T>) list);
+		}
 	}
 
 	@SuppressWarnings("unchecked")

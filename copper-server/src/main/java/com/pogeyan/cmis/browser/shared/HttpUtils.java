@@ -63,7 +63,7 @@ public final class HttpUtils {
 				POSTHttpServletRequestWrapper requestWrapper = (POSTHttpServletRequestWrapper) request;
 				String requestBody = requestWrapper.getRequestBody();
 				if (requestBody != null) {
-					Map<String, Object> map = new HashMap<String, Object>();
+					Map<String, String> map = new HashMap<String, String>();
 					// convert JSON string to Map
 					map = mapper.readValue(requestBody, new TypeReference<Map<String, String>>() {
 					});

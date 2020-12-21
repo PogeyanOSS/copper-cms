@@ -16,28 +16,39 @@
 package com.pogeyan.cmis.impl.services;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.impl.TypeCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 
 public class CmisTypeCacheService implements TypeCache {
-	private static Map<String, TypeCache> instances = new HashMap<String, TypeCache>();
+	private static final Logger LOG = LoggerFactory.getLogger(CmisTypeCacheService.class);
 	private final String repositoryId;
+	private String typeId;
+	private TypeDefinition typeDef;
 
-	CmisTypeCacheService(String repositoryId) {
+	CmisTypeCacheService(String repositoryId, String typeId) {
 		this.repositoryId = repositoryId;
-		CmisTypeCacheService.instances.put(repositoryId, this);
+		if (typeId != null) {
+			this.typeId = typeId;
+			List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
+					Arrays.asList(typeId), null);
+			this.typeDef = typeDef != null ? typeDef.get(0) : null;
+		}
+		// load all props of this typeDef, including base props
 	}
 
 	@Override
 	public TypeDefinition getTypeDefinition(String typeId) {
+		if (this.typeDef != null && typeId == this.typeId) {
+			return this.typeDef;
+		}
+
 		List<? extends TypeDefinition> typeDef = DBUtils.TypeServiceDAO.getById(this.repositoryId,
 				Arrays.asList(typeId), null);
 		return typeDef != null ? typeDef.get(0) : null;
@@ -63,18 +74,15 @@ public class CmisTypeCacheService implements TypeCache {
 
 	@Override
 	public PropertyDefinition<?> getPropertyDefinition(String propId) {
+		if (this.typeDef != null && this.typeDef.getPropertyDefinitions().containsKey(propId)) {
+			return this.typeDef.getPropertyDefinitions().get(propId);
+		}
+
 		PropertyDefinition<?> property = DBUtils.TypeServiceDAO.getAllPropertyById(this.repositoryId, propId, null);
 		return property != null ? property : null;
 	}
 
-	public static TypeCache get(String repositoryId) {
-		TypeCache instance = null;
-		if (!CmisTypeCacheService.instances.containsKey(repositoryId)) {
-			instance = new CmisTypeCacheService(repositoryId);
-		} else {
-			instance = CmisTypeCacheService.instances.get(repositoryId);
-		}
-
-		return instance;
+	public static TypeCache get(String repositoryId, String typeId) {
+		return new CmisTypeCacheService(repositoryId, typeId);
 	}
 }
