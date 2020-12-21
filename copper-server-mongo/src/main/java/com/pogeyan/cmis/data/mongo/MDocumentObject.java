@@ -15,6 +15,8 @@
  */
 package com.pogeyan.cmis.data.mongo;
 
+import java.io.Serializable;
+
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Field;
 import org.mongodb.morphia.annotations.Index;
@@ -25,7 +27,8 @@ import com.pogeyan.cmis.api.data.IDocumentObject;
 
 @Entity(value = "objectData", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
-public class MDocumentObject extends MBaseObject implements IDocumentObject {
+public class MDocumentObject extends MBaseObject implements IDocumentObject, Serializable {
+	private static final long serialVersionUID = 4325001035854649673L;
 	private Boolean isImmutable;
 	private Boolean isLatestVersion;
 	private Boolean isMajorVersion;

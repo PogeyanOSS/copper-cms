@@ -15,6 +15,7 @@
  */
 package com.pogeyan.cmis.data.mongo;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +47,9 @@ import com.pogeyan.cmis.api.data.common.TypeMutabilityImpl;
 
 @Entity(value = "type", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
-public class MTypeObject implements TypeDefinition {
+public class MTypeObject implements TypeDefinition, Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 3484946944091478572L;
 	@Id
 	protected String id;
 	protected String localName;

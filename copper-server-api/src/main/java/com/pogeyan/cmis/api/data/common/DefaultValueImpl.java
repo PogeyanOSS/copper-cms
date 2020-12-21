@@ -1,10 +1,11 @@
 package com.pogeyan.cmis.api.data.common;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultValueImpl<T> {
-
+public class DefaultValueImpl<T> implements Serializable {
+	private static final long serialVersionUID = 5185025809016103495L;
 	private List<T> value;
 
 	public DefaultValueImpl(List<T> value) {
