@@ -658,9 +658,9 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		if (type != null) {
 			List<Document> filterList = new ArrayList<Document>();
 			Document fileterDoc = new Document();
-			if (operatorDoc.containsKey(type)) {
-				filterList = (ArrayList<Document>) operatorDoc.get(type);
-				operatorDoc.remove(type);
+			if (operatorDoc.containsKey("$"+type)) {
+				filterList = (ArrayList<Document>) operatorDoc.get("$"+type);
+				operatorDoc.remove("$"+type);
 			}
 			filterList.add(operatorDoc);
 			fileterDoc.append("$"+type, filterList);
