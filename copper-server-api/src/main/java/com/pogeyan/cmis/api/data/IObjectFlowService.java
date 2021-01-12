@@ -22,9 +22,9 @@ public interface IObjectFlowService {
 
 	public boolean beforeDeletion(String repositoryId, String objectId, boolean allVers, IUserObject userObject);
 
-	public void afterCreation(IBaseObject resultData, IUserObject userObject);
+	public void afterCreation(IBaseObject resultData, IUserObject userObject, Map<String, String> headers, String repositoryId);
 
-	public void afterUpdate(IBaseObject resultData, Map<String, Object> updateValues, IUserObject userObject);
+	public void afterUpdate(IBaseObject resultData, Map<String, Object> updateValues, IUserObject userObject, Map<String, String> headers, String repositoryId);
 
-	public void afterDeletion(IBaseObject resultData, IUserObject userObject);
+	public void afterDeletion(IBaseObject resultData, IUserObject userObject, Map<String, String> headers, String repositoryId);
 }

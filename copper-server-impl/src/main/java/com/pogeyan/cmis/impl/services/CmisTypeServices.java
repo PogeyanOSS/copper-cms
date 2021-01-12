@@ -119,7 +119,7 @@ public class CmisTypeServices {
 									|| tm.getId().equalsIgnoreCase(CustomTypeId.CMIS_EXT_RELATIONSHIP.value())
 									|| tm.getId().equalsIgnoreCase(CustomTypeId.CMIS_EXT_CONFIG.value())) {
 								try {
-									createFolderForType(tm, userObject, repositoryId);
+									createFolderForType(tm, userObject, repositoryId, null);
 								} catch (IOException e) {
 									typeManagerDAO.delete(tm.getId());
 									LOG.error("Folder creation exception:  {}, repositoryId: {}, TraceId: {}", e,
@@ -532,7 +532,7 @@ public class CmisTypeServices {
 		 * @throws CmisException
 		 */
 		public static TypeDefinition createType(String repositoryId, TypeDefinition type, ExtensionsData extension,
-				IUserObject userObject, String tracingId, ISpan parentSpan) throws IllegalArgumentException {
+				IUserObject userObject, String tracingId, ISpan parentSpan, Map<String, String> headers) throws IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisTypeService::createType", null);
 			if (type == null) {
@@ -626,7 +626,7 @@ public class CmisTypeServices {
 					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(),
 							newType);
 					try {
-						createFolderForType(type, userObject, repositoryId);
+						createFolderForType(type, userObject, repositoryId, headers);
 					} catch (IOException e) {
 						typeManagerDAO.delete(type.getId());
 						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
@@ -649,7 +649,7 @@ public class CmisTypeServices {
 							newType);
 					try {
 						if (type.getBaseTypeId() != BaseTypeId.CMIS_FOLDER) {
-							createFolderForType(type, userObject, repositoryId);
+							createFolderForType(type, userObject, repositoryId, headers);
 						}
 					} catch (IOException e) {
 						typeManagerDAO.delete(type.getId());
@@ -1857,7 +1857,7 @@ public class CmisTypeServices {
 			return propertyDefinition;
 		}
 
-		private static void createFolderForType(TypeDefinition type, IUserObject userObject, String repositoryId)
+		private static void createFolderForType(TypeDefinition type, IUserObject userObject, String repositoryId, Map<String, String> headers)
 				throws IOException, IllegalArgumentException, CmisInvalidArgumentException {
 			PropertiesImpl result = new PropertiesImpl();
 			PropertyData<?> propertyIDData = new PropertyIdImpl(PropertyIds.OBJECT_TYPE_ID,
@@ -1865,7 +1865,7 @@ public class CmisTypeServices {
 			PropertyData<?> propertyNameData = new PropertyIdImpl(PropertyIds.NAME, type.getId());
 			result.addProperty(propertyIDData);
 			result.addProperty(propertyNameData);
-			CmisObjectService.Impl.createTypeFolder(repositoryId, result, userObject, type.getBaseTypeId(), null, null);
+			CmisObjectService.Impl.createTypeFolder(repositoryId, result, userObject, type.getBaseTypeId(), null, null, headers);
 		}
 
 		private static TypeDefinition getTypeDefinitionManager(MTypeManagerDAO typeManagerDAO, TypeDefinition type,

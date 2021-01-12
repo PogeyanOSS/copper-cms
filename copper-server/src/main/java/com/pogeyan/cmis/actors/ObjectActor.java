@@ -24,6 +24,8 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -72,6 +74,7 @@ import com.pogeyan.cmis.api.utils.MetricsInputs;
 import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.browser.BrowserConstants;
+import com.pogeyan.cmis.browser.ServletHelpers;
 import com.pogeyan.cmis.impl.services.CmisObjectService;
 import com.pogeyan.cmis.impl.services.CmisRelationshipService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
@@ -80,6 +83,8 @@ import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
 import com.pogeyan.cmis.impl.utils.CmisUtils;
 import com.pogeyan.cmis.impl.utils.DBUtils;
 import com.pogeyan.cmis.tracing.TracingApiServiceFactory;
+
+import akka.stream.impl.fusing.Map;
 
 public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(ObjectActor.class);
@@ -355,7 +360,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, creating folder using this id: {} , repository: {}", "createFolder", folderId,
 				request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createFolder(request.getRepositoryId(), folderId, prop,
-				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
+				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span, request.getHeaders());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -413,11 +418,11 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (request.getContentStream() == null) {
 			newObjectId = CmisObjectService.Impl.createDocument(request.getRepositoryId(), prop, folderId, null,
 					versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(),
-					tracingId, span);
+					tracingId, span, request.getHeaders());
 		} else {
 			newObjectId = CmisObjectService.Impl.createDocument(request.getRepositoryId(), prop, folderId,
 					request.getContentStream(), versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(),
-					request.getUserObject(), tracingId, span);
+					request.getUserObject(), tracingId, span, request.getHeaders());
 		}
 		LOG.info("Method name:{}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
@@ -485,7 +490,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"createDocumentFromSource", folderId, request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createDocumentFromSource(request.getRepositoryId(), sourceId, prop,
 				folderId, versioningState, request.getPolicies(), aclImp, request.getRemoveAcl(),
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getHeaders());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -526,7 +531,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 			throw new CmisRuntimeException(
 					TracingWriter.log(String.format(ErrorMessages.NOT_AUTHORISED, request.getUserName()), span));
 		}
-
+		// java.util.Map<String, String> headers = ServletHelpers.getHeadersInfo((HttpServletRequest) request);
 		String folderId = request.getObjectId() != null ? request.getObjectId() : null;
 		boolean succinct = request.getBooleanParameter(QueryGetRequest.CONTROL_SUCCINCT, false);
 		DateTimeFormat dateTimeFormat = request.getDateTimeFormatParameter();
@@ -536,7 +541,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, creating item under this folder: {}, repository: {}", "createItem", folderId,
 				request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createItem(request.getRepositoryId(), prop, folderId,
-				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
+				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span, request.getHeaders());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -584,7 +589,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, creating policy under this folder: {}, repository: {}", "createPolicy", folderId,
 				request.getRepositoryId());
 		String newObjectId = CmisObjectService.Impl.createPolicy(request.getRepositoryId(), prop, folderId,
-				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
+				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span, request.getHeaders());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
@@ -702,7 +707,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"bulkUpdateProperties", objectIdAndChangeToken, request.getRepositoryId());
 		List<BulkUpdateObjectIdAndChangeToken> result = CmisObjectService.Impl.bulkUpdateProperties(
 				request.getRepositoryId(), objectIdAndChangeToken, properties, addSecondaryTypes, removeSecondaryTypes,
-				null, request.getUserObject(), tracingId, span);
+				null, request.getUserObject(), tracingId, span, request.getHeaders());
 
 		// return result
 		JSONArray jsonList = new JSONArray();
@@ -768,7 +773,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, update the object properties using this id: {}, repositoryId: {}",
 				"updateProperties", objectIdHolder, request.getRepositoryId());
 		CmisObjectService.Impl.updateProperties(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-				properties, null, null, request.getUserObject(), request.getTypeId(), tracingId, span);
+				properties, null, null, request.getUserObject(), request.getTypeId(), tracingId, span, request.getHeaders());
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
@@ -884,10 +889,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		Holder<String> changeTokenHolder = (changeToken == null ? null : new Holder<String>(changeToken));
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, null, request.getUserObject(), tracingId, span);
+					changeTokenHolder, null, request.getUserObject(), tracingId, span, request.getHeaders());
 		} else {
 			CmisObjectService.Impl.setContentStream(request.getRepositoryId(), objectIdHolder, overwriteFlag,
-					changeTokenHolder, request.getContentStream(), request.getUserObject(), tracingId, span);
+					changeTokenHolder, request.getContentStream(), request.getUserObject(), tracingId, span, request.getHeaders());
 		}
 
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
@@ -938,10 +943,10 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"appendContentStream", objectId, request.getRepositoryId(), isLastChunk);
 		if (request.getContentStream() == null) {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					null, isLastChunk, request.getUserObject(), tracingId, span);
+					null, isLastChunk, request.getUserObject(), tracingId, span, request.getHeaders());
 		} else {
 			CmisObjectService.Impl.appendContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-					request.getContentStream(), isLastChunk, request.getUserObject(), tracingId, span);
+					request.getContentStream(), isLastChunk, request.getUserObject(), tracingId, span, request.getHeaders());
 		}
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
@@ -991,7 +996,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, deleting content stream for this id: {}, repositoryId: {}", "deleteContentStream",
 				objectId, request.getRepositoryId());
 		CmisObjectService.Impl.deleteContentStream(request.getRepositoryId(), objectIdHolder, changeTokenHolder,
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getHeaders());
 		String newObjectId = (objectIdHolder.getValue() == null ? objectId : objectIdHolder.getValue());
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
@@ -1036,7 +1041,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		LOG.info("Method name: {}, delete the  object for this id: {}, repositoryId: {}, allVersions: {}",
 				"deleteObject", objectId, request.getRepositoryId(), allVersions);
 		CmisObjectService.Impl.deleteObject(request.getRepositoryId(), objectId, allVersions, forceDelete,
-				request.getUserObject(), typeId, tracingId, span);
+				request.getUserObject(), typeId, tracingId, span, request.getHeaders());
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return null;
 
