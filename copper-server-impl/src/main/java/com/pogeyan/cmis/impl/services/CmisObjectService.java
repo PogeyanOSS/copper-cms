@@ -5532,6 +5532,7 @@ public class CmisObjectService {
 		private static void invokeObjectFlowServiceAfterCreate(IBaseObject doc, ObjectFlowType invokeMethod,
 				Map<String, Object> updatedValues, IUserObject userObject, Map<String, String> headers, String repositoryId) {
 			Map<String, IObjectFlowFactory> objectFlowFactoryMap = ObjectFlowFactory.getObjectFlowFactoryMap();
+			headers.put("x-cmis-repo-id", repositoryId);
 			if (objectFlowFactoryMap != null && objectFlowFactoryMap.size() > 0) {
 				objectFlowFactoryMap.forEach((key, objectFlowFactory) -> {
 					IObjectFlowService objectFlowService = ObjectFlowFactory.createObjectFlowService(key,
@@ -5540,11 +5541,11 @@ public class CmisObjectService {
 						LOG.info("invokeObjectFlowServiceAfterCreate for objectId: {}, InvokeMethod: {}",
 								doc != null ? doc.getId() : null, invokeMethod);
 						if (ObjectFlowType.CREATED.equals(invokeMethod)) {
-							objectFlowService.afterCreation(doc, userObject, headers, repositoryId);
+							objectFlowService.afterCreation(doc, userObject, headers);
 						} else if (ObjectFlowType.UPDATED.equals(invokeMethod)) {
-							objectFlowService.afterUpdate(doc, updatedValues, userObject, headers, repositoryId);
+							objectFlowService.afterUpdate(doc, updatedValues, userObject, headers);
 						} else if (ObjectFlowType.DELETED.equals(invokeMethod)) {
-							objectFlowService.afterDeletion(doc, userObject, headers, repositoryId);
+							objectFlowService.afterDeletion(doc, userObject, headers);
 						}
 					}
 				});
