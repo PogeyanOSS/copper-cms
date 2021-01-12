@@ -532,7 +532,7 @@ public class CmisTypeServices {
 		 * @throws CmisException
 		 */
 		public static TypeDefinition createType(String repositoryId, TypeDefinition type, ExtensionsData extension,
-				IUserObject userObject, String tracingId, ISpan parentSpan, Map<String, String> headers) throws IllegalArgumentException {
+				IUserObject userObject, String tracingId, ISpan parentSpan, Map<String, String> extensionObjects) throws IllegalArgumentException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisTypeService::createType", null);
 			if (type == null) {
@@ -626,7 +626,7 @@ public class CmisTypeServices {
 					CacheProviderServiceFactory.getTypeCacheServiceProvider().put(repositoryId, newType.getId(),
 							newType);
 					try {
-						createFolderForType(type, userObject, repositoryId, headers);
+						createFolderForType(type, userObject, repositoryId, extensionObjects);
 					} catch (IOException e) {
 						typeManagerDAO.delete(type.getId());
 						LOG.error("Type folder creation exception:  {}, repository: {}, TraceId: {}", e, repositoryId,
@@ -649,7 +649,7 @@ public class CmisTypeServices {
 							newType);
 					try {
 						if (type.getBaseTypeId() != BaseTypeId.CMIS_FOLDER) {
-							createFolderForType(type, userObject, repositoryId, headers);
+							createFolderForType(type, userObject, repositoryId, extensionObjects);
 						}
 					} catch (IOException e) {
 						typeManagerDAO.delete(type.getId());
@@ -1857,7 +1857,7 @@ public class CmisTypeServices {
 			return propertyDefinition;
 		}
 
-		private static void createFolderForType(TypeDefinition type, IUserObject userObject, String repositoryId, Map<String, String> headers)
+		private static void createFolderForType(TypeDefinition type, IUserObject userObject, String repositoryId, Map<String, String> extensionObjects)
 				throws IOException, IllegalArgumentException, CmisInvalidArgumentException {
 			PropertiesImpl result = new PropertiesImpl();
 			PropertyData<?> propertyIDData = new PropertyIdImpl(PropertyIds.OBJECT_TYPE_ID,
@@ -1865,7 +1865,7 @@ public class CmisTypeServices {
 			PropertyData<?> propertyNameData = new PropertyIdImpl(PropertyIds.NAME, type.getId());
 			result.addProperty(propertyIDData);
 			result.addProperty(propertyNameData);
-			CmisObjectService.Impl.createTypeFolder(repositoryId, result, userObject, type.getBaseTypeId(), null, null, headers);
+			CmisObjectService.Impl.createTypeFolder(repositoryId, result, userObject, type.getBaseTypeId(), null, null, extensionObjects);
 		}
 
 		private static TypeDefinition getTypeDefinitionManager(MTypeManagerDAO typeManagerDAO, TypeDefinition type,

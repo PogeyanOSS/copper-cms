@@ -234,8 +234,8 @@ public class ServletHelpers {
 			IUserObject userObject) {
 		PostRequest postRequest = new PostRequest();
 		//setting headers
-		Map<String, String> headers = getHeadersInfo(request);
-		postRequest.setHeaders(headers);		
+		Map<String, String> extensionObjects = getHeadersInfo(request);
+		postRequest.setHeaders(extensionObjects);		
 		ControlParser controlParser = new ControlParser(request);
 		if (controlParser != null) {
 			CmisRequestParameter requestParameter = new CmisRequestParameter();
