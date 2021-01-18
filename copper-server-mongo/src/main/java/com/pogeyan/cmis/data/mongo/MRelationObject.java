@@ -32,66 +32,47 @@ import org.mongodb.morphia.annotations.IndexOptions;
 import org.mongodb.morphia.annotations.Indexes;
 
 import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.IRelationObject;
 import com.pogeyan.cmis.api.data.ISettableBaseObject;
 import com.pogeyan.cmis.api.data.common.AccessControlListImplExt;
 import com.pogeyan.cmis.api.data.common.TokenImpl;
 
-@Entity(value = "objectData", noClassnameStored = true)
+@Entity(value = "relationData", noClassnameStored = true)
 @Indexes(@Index(fields = { @Field("name") }, options = @IndexOptions(unique = true)))
-public class MBaseObject implements IBaseObject, ISettableBaseObject, Serializable {
-	private static final long serialVersionUID = -1123836982757719585L;
+public class MRelationObject implements IRelationObject, ISettableBaseObject, Serializable {
+	private static final long serialVersionUID = -8927949155958535058L;
 	@Id
 	private String id;
 	private String name;
 	private BaseTypeId baseId;
 	private String typeId;
-	private String repositoryId;
-	private List<String> secondaryTypeIds;
 	private String description;
 	private String createdBy;
 	private String modifiedBy;
 	private Long createdAt;
 	private Long modifiedAt;
 	private MongoToken token;
-	private String internalPath;
-	private String path;
-	private List<String> policies;
 	private MongoAclImpl acl;
 	private String parentId;
-
 	private Map<String, Object> properties;
 
-	public String getRepositoryId() {
-		return repositoryId;
-	}
-
-	public void setRepositoryId(String repositoryId) {
-		this.repositoryId = repositoryId;
-	}
-
-	public MBaseObject() {
+	public MRelationObject() {
 
 	}
 
-	public MBaseObject(String name, BaseTypeId baseId, String typeId, String fRepositoryId,
-			List<String> secondaryTypeIds, String description, String createdBy, String modifiedBy, TokenImpl token,
-			String internalPath, Map<String, Object> properties, List<String> policies, Acl acl, String path,
+	public MRelationObject(String name, BaseTypeId baseId, String typeId, String description, String createdBy, String modifiedBy, TokenImpl token,
+		Map<String, Object> properties, Acl acl,
 			String parentId) {
 		super();
 		this.id = (new ObjectId()).toString();
 		this.name = name;
 		this.baseId = baseId;
 		this.typeId = typeId;
-		this.repositoryId = fRepositoryId;
-		this.secondaryTypeIds = secondaryTypeIds;
 		this.description = description;
 		this.createdBy = createdBy;
 		this.modifiedBy = modifiedBy;
 		this.token = convertMongoToken(token);
-		this.internalPath = internalPath;
-		this.path = path;
 		this.properties = properties;
-		this.policies = policies;
 		this.acl = convertMongoAcl(acl);
 		this.createdAt = System.currentTimeMillis();
 		this.modifiedAt = System.currentTimeMillis();
@@ -128,10 +109,6 @@ public class MBaseObject implements IBaseObject, ISettableBaseObject, Serializab
 
 	public void setTypeId(String type) {
 		this.typeId = type;
-	}
-
-	public List<String> getSecondaryTypeIds() {
-		return this.secondaryTypeIds;
 	}
 
 	public String getDescription() {
@@ -194,36 +171,12 @@ public class MBaseObject implements IBaseObject, ISettableBaseObject, Serializab
 		return false;
 	}
 
-	public String getInternalPath() {
-		return this.internalPath;
-	}
-
-	public void setInternalPath(String path) {
-		this.internalPath = path;
-	}
-
-	public List<String> getPolicies() {
-		return policies;
-	}
-
-	public void setPolicies(List<String> policies) {
-		this.policies = policies;
-	}
-
 	public MongoAclImpl getAcl() {
 		return acl;
 	}
 
 	public void setAcl(MongoAclImpl acl) {
 		this.acl = acl;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
 	}
 
 	public String getParentId() {

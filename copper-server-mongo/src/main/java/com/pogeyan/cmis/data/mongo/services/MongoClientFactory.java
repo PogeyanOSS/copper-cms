@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +54,7 @@ import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.pogeyan.cmis.api.data.IDBClientFactory;
+import com.pogeyan.cmis.api.data.common.DefaultValueImpl;
 import com.pogeyan.cmis.api.data.common.TokenChangeType;
 import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MDiscoveryServiceDAO;
@@ -61,13 +63,17 @@ import com.pogeyan.cmis.api.data.services.MDocumentTypeManagerDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationDocServiceDAO;
 import com.pogeyan.cmis.api.data.services.MNavigationServiceDAO;
 import com.pogeyan.cmis.api.data.services.MQueryDAO;
+import com.pogeyan.cmis.api.data.services.MRelationObjectDAO;
 import com.pogeyan.cmis.api.data.services.MTypeManagerDAO;
 import com.pogeyan.cmis.api.repo.IRepository;
 import com.pogeyan.cmis.api.repo.RepositoryManagerFactory;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
 import com.pogeyan.cmis.data.mongo.MDocumentObject;
+import com.pogeyan.cmis.data.mongo.MRelationObject;
 import com.pogeyan.cmis.data.mongo.MTypeDocumentObject;
 import com.pogeyan.cmis.data.mongo.MTypeObject;
+import com.pogeyan.cmis.data.mongo.PassiveExpiringMap;
+import com.pogeyan.cmis.data.mongo.PassiveExpiringMapListener;
 
 public class MongoClientFactory implements IDBClientFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(MongoClientFactory.class.getName());
@@ -79,10 +85,35 @@ public class MongoClientFactory implements IDBClientFactory {
 	private static String MTYPEMANAGERDAO = "MTypeManagerDAO";
 	private static String MNAVIGATIONDOCSERVICEDAO = "MNavigationDocServiceDAO";
 	private static String MQUERYDAO = "MQueryDAO";
+	private static String MRELATIONOBJECCTDAOIMPL = "MRelationObjectDAOImpl";
 	private Map<Class<?>, String> objectServiceClass = new HashMap<>();
-	private final Map<String, Datastore> clientDatastores = new HashMap<String, Datastore>();
-	private final Map<String, MongoClient> mongoClient = new HashMap<String, MongoClient>();
+	private final static PassiveExpiringMap<String, Datastore> clientDatastores;
 	private Morphia morphia = new Morphia();
+	private final static PassiveExpiringMap<String, MongoClient> mongoClient;
+
+	private static PassiveExpiringMapListener<String, MongoClient> removalMongoCLientListener = new PassiveExpiringMapListener<String, MongoClient>() {
+		@Override
+		public void notifyOnRemoval(Object key, MongoClient mgCli) {
+			LOG.info("Closing MongoClient connection in RemovalListener for repoId: {}", key);
+			try {
+				if (mgCli != null) {
+					mgCli.close();
+				}
+			} catch (Exception e) {
+				LOG.error("Closing MongoClient error in RemovalListener for repoId: {}", e.getMessage());
+			}
+		}
+	};
+
+	static {
+		int intervalTime = System.getenv("DB_CONNECTION_TIMEOUT") != null
+				? Integer.valueOf(System.getenv("DB_CONNECTION_TIMEOUT"))
+				: 30;
+		mongoClient = new PassiveExpiringMap<String, MongoClient>(intervalTime, TimeUnit.MINUTES)
+				.registerRemovalListener(removalMongoCLientListener);
+		clientDatastores = new PassiveExpiringMap<String, Datastore>(intervalTime, TimeUnit.MINUTES);
+
+	}
 
 	@SuppressWarnings("rawtypes")
 	public MongoClientFactory() {
@@ -94,11 +125,13 @@ public class MongoClientFactory implements IDBClientFactory {
 		objectServiceClass.put(MTypeManagerDAO.class, MongoClientFactory.MTYPEMANAGERDAO);
 		objectServiceClass.put(MNavigationDocServiceDAO.class, MongoClientFactory.MNAVIGATIONDOCSERVICEDAO);
 		objectServiceClass.put(MQueryDAO.class, MongoClientFactory.MQUERYDAO);
+		objectServiceClass.put(MRelationObjectDAO.class, MongoClientFactory.MRELATIONOBJECCTDAOIMPL);
 		morphia.getMapper().getConverters().addConverter(new BaseTypeIdConverter());
 		morphia.getMapper().getConverters().addConverter(new AceConverter());
 		morphia.getMapper().getConverters().addConverter(new TokenConverter());
 		morphia.getMapper().getConverters().addConverter(new ChoiceImplConverter());
 		morphia.getMapper().getConverters().addConverter(new ChoiceObjectConverter());
+		morphia.getMapper().getConverters().addConverter(new DefaultValueConverter());
 	}
 
 	public static IDBClientFactory createDatabaseService() {
@@ -141,6 +174,10 @@ public class MongoClientFactory implements IDBClientFactory {
 		if (className.equals(MongoClientFactory.MQUERYDAO)) {
 			return (T) getContentDBMongoClient(repositoryId, (t) -> new MQueryDAOImpl(MBaseObject.class, t));
 		}
+		if (className.equals(MongoClientFactory.MRELATIONOBJECCTDAOIMPL)) {
+			return (T) getContentDBMongoClient(repositoryId,
+					(t) -> new MRelationObjectDAOImpl(MRelationObject.class, t));
+		}
 		return null;
 	}
 
@@ -173,7 +210,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	public <T> T getContentDBMongoClient(String repositoryId, Function<Datastore, T> fun) {
-		Datastore clientDatastore = this.clientDatastores.get(repositoryId);
+		Datastore clientDatastore = MongoClientFactory.clientDatastores.get(repositoryId);
 		if (clientDatastore == null) {
 			IRepository repository = RepositoryManagerFactory.getInstance().getRepository(repositoryId);
 			String dataBaseName = repository.getDBName().get("connectionString");
@@ -201,7 +238,7 @@ public class MongoClientFactory implements IDBClientFactory {
 			this.createInternalIndex(repositoryId, mongoClient, properties, new String[] { "name" });
 
 			clientDatastore = morphia.createDatastore(mongoClient, properties.get(properties.size() - 1));
-			this.clientDatastores.put(repositoryId, clientDatastore);
+			MongoClientFactory.clientDatastores.put(repositoryId, clientDatastore);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Host Name: {}, Content DB: {}", properties.get(0), properties.get(properties.size() - 1));
 			}
@@ -221,7 +258,7 @@ public class MongoClientFactory implements IDBClientFactory {
 	}
 
 	private MongoClient getMongoClient(String repositoryId, String host, int port, Boolean replica) {
-		MongoClient mClient = this.mongoClient.get(repositoryId);
+		MongoClient mClient = MongoClientFactory.mongoClient.get(repositoryId);
 		if (mClient == null) {
 			if (replica) {
 				mClient = new MongoClient(Arrays.asList(new ServerAddress(host, port)));
@@ -231,13 +268,27 @@ public class MongoClientFactory implements IDBClientFactory {
 			} else {
 				mClient = new MongoClient(host, port);
 			}
-			this.mongoClient.put(repositoryId, mClient);
+			MongoClientFactory.mongoClient.put(repositoryId, mClient);
 		}
 		return mClient;
 	}
 
+	@Override
+	public void close(String repositoryId) {
+		if (repositoryId != null) {
+			MongoClientFactory.mongoClient.remove(repositoryId);
+			MongoClientFactory.clientDatastores.remove(repositoryId);
+		}
+	}
+
+	@Override
+	public void closeAll() {
+		MongoClientFactory.mongoClient.invalidateAll();
+		MongoClientFactory.clientDatastores.invalidateAll();
+	}
+
 	/**
-	 * Finds all substrings in MongoCilent connection details from the corresponding
+	 * Finds all substrings in MongoClient connection details from the corresponding
 	 * Environmental property.
 	 */
 	private List<String> getClientProperties(String props) {
@@ -454,9 +505,49 @@ public class MongoClientFactory implements IDBClientFactory {
 		}
 
 		@Override
-		public Object encode(final Object value, final MappedField optionalExtraInfo) {
+		public Object encode(final Object fromDBObject, final MappedField optionalExtraInfo) {
 			return null;
 		}
+	}
+
+	public static class DefaultValueConverter<T> extends TypeConverter implements SimpleValueConverter {
+		public DefaultValueConverter() {
+			super(DefaultValueImpl.class);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Object decode(Class<?> targetClass, Object fromDBObject, MappedField optionalExtraInfo)
+				throws MappingException {
+			if (fromDBObject != null) {
+				try {
+					List<T> dbObject = (List<T>) fromDBObject;
+					return new DefaultValueImpl<T>(dbObject);
+				} catch (Exception e) {
+					LOG.error("DefaultValueConverter Exception: {}, {}", e.toString(), ExceptionUtils.getStackTrace(e));
+					throw new MongoException(e.toString());
+				}
+			}
+			return null;
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public Object encode(final Object fromDBObject, final MappedField optionalExtraInfo) {
+			if (fromDBObject != null) {
+				DefaultValueImpl<T> ch = (DefaultValueImpl<T>) fromDBObject;
+				List<T> value = ch.getValue();
+				if (value.size() > 0) {
+					if (!value.isEmpty() && value.get(0) instanceof BigInteger) {
+						List<BigInteger> bigIntegerArray = (List<BigInteger>) value;
+						value = (List<T>) bigIntegerArray.stream().map(s -> s.intValue()).collect(Collectors.toList());
+					}
+					return value;
+				}
+			}
+			return null;
+		}
+
 	}
 
 }

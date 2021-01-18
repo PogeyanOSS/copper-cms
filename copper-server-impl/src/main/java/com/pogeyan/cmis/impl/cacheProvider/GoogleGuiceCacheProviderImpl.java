@@ -12,9 +12,11 @@ import com.google.common.cache.CacheBuilder;
 import com.pogeyan.cmis.api.data.ICacheProvider;
 
 public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
-
 	private Map<String, Cache<String, Object>> repo = new HashMap<String, Cache<String, Object>>();
 	private long intervalTime;
+	
+	public GoogleGuiceCacheProviderImpl(String cacheName) {
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -31,7 +33,10 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 				if (typeCacheMap.getIfPresent(key.get(0)) instanceof List<?>) {
 					return (T) typeCacheMap.getIfPresent(key.get(0));
 				}  else {
-					return (T) Arrays.asList(typeCacheMap.getIfPresent(key.get(0)));
+					Object cacheValue = typeCacheMap.getIfPresent(key.get(0));
+					if (cacheValue != null) {
+						return (T) Arrays.asList(cacheValue);
+					}
 				}
 
 			} else {
@@ -56,13 +61,6 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 	}
 
 	@Override
-	public boolean contains(String repositoryId, String key) {
-		Cache<String, Object> typeCacheMap = repo.get(repositoryId);
-		boolean typePresent = typeCacheMap.getIfPresent(key) != null ? true : false;
-		return typePresent;
-	}
-
-	@Override
 	public void init(long time) {
 		this.intervalTime = time;
 	}
@@ -83,11 +81,7 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 	}
 
 	@Override
-	public void removeByKey(String repositoryId, String key) {
-		if (repo.containsKey(repositoryId)) {
-			repo.get(repositoryId).invalidate(key);
-		}
-
+	public void close() {
+		// do nothing
 	}
-
 }

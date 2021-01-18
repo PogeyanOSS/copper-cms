@@ -46,7 +46,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUpdateConflictException;
-import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
+import com.pogeyan.cmis.api.utils.JSONConverter;
 import org.apache.chemistry.opencmis.commons.impl.ReturnVersion;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.BulkUpdateObjectIdAndChangeTokenImpl;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONArray;
@@ -73,6 +73,7 @@ import com.pogeyan.cmis.api.utils.TracingErrorMessage;
 import com.pogeyan.cmis.api.utils.TracingWriter;
 import com.pogeyan.cmis.browser.BrowserConstants;
 import com.pogeyan.cmis.impl.services.CmisObjectService;
+import com.pogeyan.cmis.impl.services.CmisRelationshipService;
 import com.pogeyan.cmis.impl.services.CmisTypeCacheService;
 import com.pogeyan.cmis.impl.services.CmisVersioningServices;
 import com.pogeyan.cmis.impl.utils.CmisPropertyConverter;
@@ -210,7 +211,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 					includeRelationships, renditionFilter, includePolicyIds, includeAcl, null, t.getUserObject(),
 					t.getBaseTypeId(), typeId, tracingId, span);
 		}
-		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(t.getRepositoryId()),
+		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(t.getRepositoryId(), t.getTypeId()),
 				JSONConverter.PropertyMode.OBJECT, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;
@@ -258,7 +259,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 						TracingWriter.log(String.format(ErrorMessages.PROPERTIES_NULL), span));
 			}
 			JSONObject result = JSONConverter.convert(properties, objectId.toString(),
-					CmisTypeCacheService.get(t.getRepositoryId()), JSONConverter.PropertyMode.CHANGE, succinct,
+					CmisTypeCacheService.get(t.getRepositoryId(), t.getTypeId()), JSONConverter.PropertyMode.CHANGE, succinct,
 					dateTimeFormat);
 			TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 			return result;
@@ -370,7 +371,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("createFolder complete with id: {}", object.getId());
 		}
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
@@ -432,7 +433,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 		}
 
 		// return object
-		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject jsonObject = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonObject;
@@ -634,7 +635,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				request.getPolicies(), aclImp, request.getRemoveAcl(), request.getUserObject(), tracingId, span);
 		LOG.info("Method name: {}, getting object using this id: {}, repositoryId: {}", "getObject", newObjectId,
 				request.getRepositoryId());
-		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), newObjectId,
+		ObjectData object = CmisRelationshipService.Impl.getRelationshipSimpleObject(request.getRepositoryId(), newObjectId,
 				request.getUserObject(), BaseTypeId.CMIS_RELATIONSHIP, request.getTypeId());
 		if (object == null) {
 			TracingApiServiceFactory.getApiService().updateSpan(span,
@@ -1107,7 +1108,7 @@ public class ObjectActor extends BaseClusterActor<BaseRequest, BaseResponse> {
 				"moveObject", objectId, sourceFolderId, targetFolderId, request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.moveObject(request.getRepositoryId(), objectIdHolder, targetFolderId,
 				sourceFolderId, null, request.getUserObject(), request.getTypeId(), tracingId, span);
-		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId()),
+		JSONObject result = JSONConverter.convert(object, CmisTypeCacheService.get(request.getRepositoryId(), request.getTypeId()),
 				JSONConverter.PropertyMode.CHANGE, succinct, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return result;

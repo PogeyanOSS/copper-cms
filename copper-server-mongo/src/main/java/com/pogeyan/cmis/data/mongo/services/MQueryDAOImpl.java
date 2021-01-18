@@ -1,13 +1,18 @@
 package com.pogeyan.cmis.data.mongo.services;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.dao.BasicDAO;
 import org.slf4j.Logger;
@@ -15,12 +20,16 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.pogeyan.cmis.api.CustomTypeId;
+import com.pogeyan.cmis.api.data.IBaseObject;
+import com.pogeyan.cmis.api.data.services.MBaseObjectDAO;
 import com.pogeyan.cmis.api.data.services.MQueryDAO;
 import com.pogeyan.cmis.data.mongo.MBaseObject;
 import com.pogeyan.cmis.data.query.FilterQueryRequest;
 import com.pogeyan.cmis.data.query.IQueryResponse;
 import com.pogeyan.cmis.data.query.QueryRequest;
 import com.pogeyan.cmis.data.query.SortQueryRequest;
+import com.pogeyan.cmis.impl.utils.DBUtils.Variables;
 
 public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQueryDAO {
 
@@ -30,10 +39,9 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		super(class1, ds);
 	}
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({ "deprecation" })
 	@Override
-	public List<IQueryResponse> query(QueryRequest request, String[] principalIds) {
-
+	public List<IQueryResponse> query(QueryRequest request, String[] principalIds, MBaseObjectDAO objectMorphiaDAO) {
 		List<Document> document = new ArrayList<Document>();
 		List<FilterQueryRequest> filterRequest = request.getFilter();
 		List<SortQueryRequest> sortRequest = request.getSort();
@@ -41,19 +49,27 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		Document projectionDocument = new Document();
 		String sourceTypeId = null;
 		String targetTypeId = null;
+		Integer relationshipType = 0;
+		String direction = null;
 		Map<String, QueryRequest> fieldsRequestMap = request.getFields();
 		if (!fieldsRequestMap.isEmpty()) {
 			for (Entry<String, QueryRequest> fieldsRequest : fieldsRequestMap.entrySet()) {
-				if (fieldsRequest.getKey().contains("_")) {
+				if (!fieldsRequest.getKey().contains(".")) {
 					String key = fieldsRequest.getKey();
-					String[] keySplit = key.split("_");
-					String direction = fieldsRequest.getValue().getDirection();
-					sourceTypeId = keySplit[0];
-					targetTypeId = keySplit[1];
+					IBaseObject baseObject = getRelationshipMd(principalIds, objectMorphiaDAO, key);
+					if (baseObject != null) {
+						sourceTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.SOURCE_TABLE);
+						targetTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.TARGET_TABLE);
+						relationshipType = (Integer) baseObject.getProperties()
+								.get(QueryAggregationConstants.RELATION_TYPE);
+						direction = fieldsRequest.getValue().getDirection();
+					} else {
+						sourceTypeId = fieldsRequest.getKey();
+					}
 					projectionDocument = getDefaultProjectDocument(fieldsRequest, projectionDocument, sourceTypeId,
 							targetTypeId, direction);
-					document = getLookupQuery(fieldsRequest, document, principalIds, sourceTypeId, targetTypeId, key,
-							projectionDocument);
+					document = getLookupQuery(fieldsRequest, document, principalIds, sourceTypeId, targetTypeId,
+							key, projectionDocument, objectMorphiaDAO);
 				} else {
 					String key = fieldsRequest.getKey();
 					if (key.contains(".")) {
@@ -71,7 +87,8 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			}
 		}
 
-		document = getQueryAggsPipeline(request, filterRequest, sortRequest, document, true, principalIds);
+		document = getQueryAggsPipeline(request, filterRequest, sortRequest, document, false, principalIds);
+
 		if (projectionDocument != null && !projectionDocument.isEmpty()) {
 			projections.append(QueryAggregationConstants.PROJECT, projectionDocument);
 			document.add(projections);
@@ -81,11 +98,13 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		MongoDatabase db = this.ds.getMongo().getDatabase(dBName);
 		MongoCursor<Document> iterator = db.getCollection(QueryAggregationConstants.COLLECTION_NAME).aggregate(document)
 				.iterator();
-		LOG.error("Get Dynamic Relationship Query Result of iterator has next : {} ", iterator.hasNext());
+		int totalObjects = getObjectCount(document);
+		LOG.debug("Get Dynamic Relationship Query Result of iterator has next : {} ", iterator.hasNext());
 		List<Document> list = new ArrayList<Document>();
 		if (iterator.hasNext()) {
 			iterator.forEachRemaining(list::add);
 		}
+
 		for (Document docs : list) {
 			IQueryResponse respose = new IQueryResponse();
 			for (Entry<String, Object> doc : docs.entrySet()) {
@@ -93,9 +112,171 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			}
 			result.add(respose);
 		}
+		IQueryResponse response = new IQueryResponse();
+		response.put("TotalObjects", totalObjects);
+		result.add(response);
+		LOG.debug("Get Response Dynamic for RelationShip Query Result : {} ", result);
 
-		LOG.error("Get Response Dynamic for RelationShip Query Result : {} ", list);
+		if (result != null && !result.isEmpty() && relationshipType.equals(1)) {
+			List<IQueryResponse> finalResult = getGroupbyResponse(result);
+			return finalResult;
+		}
 		return result;
+	}
+
+	private int getObjectCount(List<Document> document) {
+		List<Document> countdoc = new ArrayList<Document>();
+		for (Document doc : document) {
+			if (doc.containsKey(QueryAggregationConstants.LIMIT)) {
+				doc.remove(QueryAggregationConstants.LIMIT);
+			} else if (doc.containsKey(QueryAggregationConstants.SKIP)) {
+				doc.remove(QueryAggregationConstants.SKIP);
+			} else {
+				countdoc.add(doc);
+			}
+		}
+		String dBName = this.ds.getDB().getName();
+		MongoDatabase db = this.ds.getMongo().getDatabase(dBName);
+		MongoCursor<Document> totalObjects = db.getCollection(QueryAggregationConstants.COLLECTION_NAME)
+				.aggregate(countdoc).iterator();
+		int count = 0;
+		while (totalObjects.hasNext()) {
+			totalObjects.next();
+			count++;
+		}
+		return count;
+	}
+
+	private List<IQueryResponse> getGroupbyResponse(List<IQueryResponse> result) {
+		List<IQueryResponse> finalResponse = new ArrayList<IQueryResponse>();
+		for (IQueryResponse res : result) {
+			boolean isGroup = false;
+			IQueryResponse response = new IQueryResponse();
+			for (Entry<String, Object> eMap : res.entrySet()) {
+				String key = eMap.getKey();
+				if (key.equals(PropertyIds.OBJECT_ID)) {
+					for (IQueryResponse iQueryResponse : finalResponse) {
+						if (iQueryResponse.get(key) != null && iQueryResponse.get(key).equals(eMap.getValue())) {
+							isGroup = true;
+							getNestedArray(key, res, iQueryResponse);
+							break;
+						}
+					}
+				}
+				if (!isGroup) {
+					if (eMap.getValue() instanceof Map) {
+						Map<String, Object> map = getSubGroup(key, eMap.getValue(), null);
+						List<Map<String, Object>> childArray = new ArrayList<Map<String, Object>>();
+						childArray.add(map);
+						response.put(key, childArray);
+
+					} else {
+						response.put(eMap.getKey(), eMap.getValue());
+					}
+				}
+			}
+			if (!isGroup) {
+				finalResponse.add(response);
+			}
+		}
+		return finalResponse;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getSubGroup(String parentKey, Object value, IQueryResponse finalResponse) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		Object parentValue = getParentKeyValue(value);
+		boolean isGroup = false;
+		for (Entry<String, Object> sub : ((Document) value).entrySet()) {
+			if (sub.getValue() instanceof Map) {
+				Map<String, Object> cmap = getSubGroup(parentKey, sub.getValue(), finalResponse);
+				Map<String, Object> parentObject = getParentObject(parentKey, parentValue, finalResponse);
+				if (parentObject != null && parentObject.size() > 0) {
+					List<Map<String, Object>> innerArray = (List<Map<String, Object>>) parentObject.get(sub.getKey());
+					innerArray.add(cmap);
+					isGroup = true;
+					break;
+				}
+				if (!isGroup) {
+					List<Map<String, Object>> innerArray = new ArrayList<Map<String, Object>>();
+					innerArray.add(cmap);
+					map.put(sub.getKey(), innerArray);
+				}
+			} else {
+				map.put(sub.getKey(), sub.getValue());
+			}
+		}
+		return map;
+	}
+
+	private Map<String, Object> getParentObject(String parentKey, Object parentValue, IQueryResponse finalResponse) {
+		if (finalResponse != null && finalResponse.size() > 0) {
+			for (Entry<String, Object> eMap : finalResponse.entrySet()) {
+				if (eMap.getValue() instanceof List) {
+					;
+					List<Map<String, Object>> parentArray = ((List<Map<String, Object>>) finalResponse.get(parentKey));
+					for (int i = 0; i < ((List<?>) eMap.getValue()).size(); i++) {
+						String keyValue = (String) parentArray.get(i).get(PropertyIds.OBJECT_ID);
+						if (keyValue.equals(parentValue)) {
+							return (Map<String, Object>) parentArray.get(i);
+						}
+					}
+
+				}
+			}
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void getNestedArray(String key, IQueryResponse res, IQueryResponse iQueryResponse) {
+		for (Entry<String, Object> ent : res.entrySet()) {
+			String entKey = ent.getKey();
+			Object value = ent.getValue();
+			boolean isGroup = false;
+			if (value instanceof Map) {
+				Map<String, Object> cmap = getSubGroup(entKey, value, iQueryResponse);
+				String parentValue = getParentKeyValue(value);
+				Map<String, Object> parentObject = getParentObject(entKey, parentValue, iQueryResponse);
+				if (parentObject != null && parentObject.size() > 0) {
+					isGroup = true;
+					break;
+				}
+				if (!isGroup) {
+					List<Map<String, Object>> parentArray = ((List<Map<String, Object>>) iQueryResponse.get(entKey));
+					parentArray.add(cmap);
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private String getParentKeyValue(Object Value) {
+		Map<String, Object> subVlaue = (Map<String, Object>) Value;
+		if (subVlaue.get(PropertyIds.OBJECT_ID) != null) {
+			for (Entry<String, Object> sub : subVlaue.entrySet()) {
+				if (sub.getKey().equals(PropertyIds.OBJECT_ID)) {
+					return (String) sub.getValue();
+				}
+			}
+		}
+		return null;
+	}
+
+	@SuppressWarnings("serial")
+	private IBaseObject getRelationshipMd(String[] principalIds, MBaseObjectDAO objectMorphiaDAO, String key) {
+		Map<String, Object> fieldsNamesAndValues = new HashMap<String, Object>() {
+			{
+				put(Variables.NAME, key);
+				put(Variables.TYPEID, CustomTypeId.CMIS_EXT_RELATIONMD.value());
+			}
+		};
+		List<? extends IBaseObject> objects = objectMorphiaDAO.filter(fieldsNamesAndValues, principalIds, false, false,
+				0, 0, null, null);
+		if (objects.size() > 0) {
+			return objects.get(0);
+		}
+		return null;
 	}
 
 	private Document getDefaultProjectDocument(Entry<String, QueryRequest> fieldsQuery, Document projectionDocument,
@@ -155,7 +336,8 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 	}
 
 	private List<Document> getLookupQuery(Entry<String, QueryRequest> fieldsQuery, List<Document> document,
-			String[] principalIds, String sourceTypeId, String targetTypeId, String key, Document projectionDocument) {
+			String[] principalIds, String sourceTypeId, String targetTypeId, String key, Document projectionDocument,
+			MBaseObjectDAO objectMorphiaDAO) {
 		Document rootProjection = new Document();
 		Document filterDoc = new Document();
 		Document operatorDoc = new Document();
@@ -172,12 +354,23 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			rootProjection = new Document(QueryAggregationConstants.PROJECT,
 					rootProjection.append(sourceTypeId, QueryAggregationConstants.ROOT));
 			document.add(rootProjection);
+			if (targetTypeId != null) {
 			operatorDoc = new Document(sourceTypeId + "." + "token.changeType",
 					new Document("$" + QueryAggregationConstants.NOTEQUAL, 2));
+			} else {
+				Document sourceLookupDoc = new Document();
+				sourceLookupDoc.append(sourceTypeId + "." + "token.changeType",
+						new Document("$" + QueryAggregationConstants.NOTEQUAL, 2));
+				sourceLookupDoc.append(sourceTypeId + "." + "typeId", sourceTypeId);
+				operatorDoc = sourceLookupDoc;
+			}
 			filterDoc = new Document(QueryAggregationConstants.MATCH, operatorDoc);
 			document.add(filterDoc);
 		}
-		getNestedRelationShip(fieldsQuery, document, sourceTypeId, targetTypeId, projectionDocument);
+		if (targetTypeId != null) {
+			getNestedRelationShip(fieldsQuery, document, sourceTypeId, targetTypeId, projectionDocument, principalIds,
+					objectMorphiaDAO);
+		}
 
 		document = getNestedQuery(fieldsQuery, document, principalIds);
 		return document;
@@ -191,10 +384,12 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			List<FilterQueryRequest> filter = aggsRequest.getFilter();
 			List<SortQueryRequest> sort = aggsRequest.getSort();
 			document = getQueryAggsPipeline(aggsRequest, filter, sort, document, false, principalIds);
-			for (Entry<String, QueryRequest> fields : fieldsQuery.getValue().getFields().entrySet()) {
-				if (fields.getValue() != null && (fields.getValue().getFields() != null
-						|| fields.getValue().getFilter() != null || fields.getValue().getSort() != null)) {
-					getNestedQuery(fields, document, principalIds);
+			if (fieldsQuery.getValue().getFields() != null) {
+				for (Entry<String, QueryRequest> fields : fieldsQuery.getValue().getFields().entrySet()) {
+					if (fields.getValue() != null && (fields.getValue().getFields() != null
+							|| fields.getValue().getFilter() != null || fields.getValue().getSort() != null)) {
+						getNestedQuery(fields, document, principalIds);
+					}
 				}
 			}
 		}
@@ -202,24 +397,28 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 	}
 
 	private void getNestedRelationShip(Entry<String, QueryRequest> fieldsQuery, List<Document> document,
-			String sourceTypeId, String targetTypeId, Document projectionDocument) {
+			String sourceTypeId, String targetTypeId, Document projectionDocument, String[] principalIds,
+			MBaseObjectDAO objectMorphiaDAO) {
 		Document nestedProject = new Document();
 		if (fieldsQuery.getValue() != null && (fieldsQuery.getValue().getDirection() != null
 				&& fieldsQuery.getValue().getDirection().equals(QueryAggregationConstants.TARGET))) {
-			getLookupByDirection(document, targetTypeId, sourceTypeId, QueryAggregationConstants.TARGET, fieldsQuery);
-			nestedProject = getProjectDocumentOnLookup(targetTypeId, sourceTypeId, QueryAggregationConstants.SOURCE, fieldsQuery);
+			getLookupByDirection(document, targetTypeId, sourceTypeId, QueryAggregationConstants.TARGET, fieldsQuery,
+					principalIds, objectMorphiaDAO);
+			nestedProject = getProjectDocumentOnLookup(targetTypeId, sourceTypeId, QueryAggregationConstants.SOURCE,
+					fieldsQuery, principalIds, objectMorphiaDAO);
 			projectionDocument.append(sourceTypeId, nestedProject);
 		} else {
-			getLookupByDirection(document, sourceTypeId, targetTypeId, QueryAggregationConstants.SOURCE, fieldsQuery);
+			getLookupByDirection(document, sourceTypeId, targetTypeId, QueryAggregationConstants.SOURCE, fieldsQuery,
+					principalIds, objectMorphiaDAO);
 			nestedProject = getProjectDocumentOnLookup(targetTypeId, sourceTypeId, QueryAggregationConstants.TARGET,
-					fieldsQuery);
+					fieldsQuery, principalIds, objectMorphiaDAO);
 			projectionDocument.append(targetTypeId, nestedProject);
 		}
 
 	}
 
 	private Document getProjectDocumentOnLookup(String targetTypeId, String sourceTypeId, String direction,
-			Entry<String, QueryRequest> fieldsQuery) {
+			Entry<String, QueryRequest> fieldsQuery, String[] principalIds, MBaseObjectDAO objectMorphiaDAO) {
 		Document projection = new Document();
 		Document parent = new Document();
 		if (fieldsQuery.getValue().getFields() != null) {
@@ -240,20 +439,23 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		parent.putAll(projection);
 		if (fieldsQuery.getValue() != null && fieldsQuery.getValue().getFields() != null) {
 			for (Entry<String, QueryRequest> fields : fieldsQuery.getValue().getFields().entrySet()) {
-				if (fields.getKey().contains("_")) {
+				if (!fields.getKey().contains(".") && fields.getKey().contains("_")) {
 					String key = fields.getKey();
-					String[] keySplit = key.split("_");
-					sourceTypeId = keySplit[0];
-					targetTypeId = keySplit[1];
-					String order = fields.getValue().getDirection();
-					if (order != null && order.equals(QueryAggregationConstants.TARGET)) {
-						projection = getProjectDocumentOnLookup(targetTypeId, sourceTypeId,
-								QueryAggregationConstants.SOURCE, fields);
-						parent.append(sourceTypeId, projection);
-					} else {
-						projection = getProjectDocumentOnLookup(targetTypeId, sourceTypeId,
-								QueryAggregationConstants.TARGET, fields);
-						parent.append(targetTypeId, projection);
+					IBaseObject baseObject = getRelationshipMd(principalIds, objectMorphiaDAO, key);
+					if (baseObject != null) {
+						sourceTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.SOURCE_TABLE);
+						targetTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.TARGET_TABLE);
+						String order = fields.getValue().getDirection();
+
+						if (order != null && order.equals(QueryAggregationConstants.TARGET)) {
+							projection = getProjectDocumentOnLookup(targetTypeId, sourceTypeId,
+									QueryAggregationConstants.SOURCE, fields, principalIds, objectMorphiaDAO);
+							parent.append(sourceTypeId, projection);
+						} else {
+							projection = getProjectDocumentOnLookup(targetTypeId, sourceTypeId,
+									QueryAggregationConstants.TARGET, fields, principalIds, objectMorphiaDAO);
+							parent.append(targetTypeId, projection);
+						}
 					}
 				}
 			}
@@ -262,16 +464,17 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 	}
 
 	private void getLookupByDirection(List<Document> document, String sourceTypeId, String targetTypeId,
-			String direction, Entry<String, QueryRequest> fieldsQuery) {
+			String direction, Entry<String, QueryRequest> fieldsQuery, String[] principalIds,
+			MBaseObjectDAO objectMorphiaDAO) {
 		String relationshipAlias = sourceTypeId + QueryAggregationConstants.RELATIONSHIP;
 		if (direction != null && direction.equals(QueryAggregationConstants.TARGET)) {
-			getLookupDocument(QueryAggregationConstants.COLLECTION_NAME, sourceTypeId + "._id",
+			getLookupDocument(QueryAggregationConstants.RELATION_COLLECTION_NAME, sourceTypeId + "._id",
 					getQueryName(QueryAggregationConstants.TARGET_ID), relationshipAlias, document);
 			getLookupDocument(QueryAggregationConstants.COLLECTION_NAME,
 					relationshipAlias + "." + getQueryName(QueryAggregationConstants.SOURCE_ID), "_id", targetTypeId,
 					document);
 		} else {
-			getLookupDocument(QueryAggregationConstants.COLLECTION_NAME, sourceTypeId + "._id",
+			getLookupDocument(QueryAggregationConstants.RELATION_COLLECTION_NAME, sourceTypeId + "._id",
 					getQueryName(QueryAggregationConstants.SOURCE_ID), relationshipAlias, document);
 			getLookupDocument(QueryAggregationConstants.COLLECTION_NAME,
 					relationshipAlias + "." + getQueryName(QueryAggregationConstants.TARGET_ID), "_id", targetTypeId,
@@ -279,13 +482,21 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		}
 		if (fieldsQuery.getValue() != null && fieldsQuery.getValue().getFields() != null) {
 			for (Entry<String, QueryRequest> fields : fieldsQuery.getValue().getFields().entrySet()) {
-				if (fields.getKey().contains("_")) {
+				if (!fields.getKey().contains(".") && fields.getKey().contains("_")) {
 					String key = fields.getKey();
-					String[] keySplit = key.split("_");
-					String order = fields.getValue().getDirection();
-					sourceTypeId = keySplit[0];
-					targetTypeId = keySplit[1];
-					getLookupByDirection(document, sourceTypeId, targetTypeId, order, fields);
+					IBaseObject baseObject = getRelationshipMd(principalIds, objectMorphiaDAO, key);
+					if (baseObject != null) {
+						sourceTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.SOURCE_TABLE);
+						targetTypeId = (String) baseObject.getProperties().get(QueryAggregationConstants.TARGET_TABLE);
+						String order = fields.getValue().getDirection();
+						if (order != null && order.equals(QueryAggregationConstants.TARGET)) {
+							getLookupByDirection(document, targetTypeId, sourceTypeId, order, fields, principalIds,
+									objectMorphiaDAO);
+						} else {
+							getLookupByDirection(document, sourceTypeId, targetTypeId, order, fields, principalIds,
+									objectMorphiaDAO);
+						}
+					}
 				}
 			}
 		}
@@ -307,9 +518,20 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		lookupDocument.append(QueryAggregationConstants.LOOKUP, lookupObject);
 		document.add(lookupDocument);
 		document.add(unwindObject);
-		operatorDoc.append(alias + "." + "token.changeType", new Document("$" + QueryAggregationConstants.NOTEQUAL, 2));
-		filterDoc.append(QueryAggregationConstants.MATCH, operatorDoc);
-		document.add(filterDoc);
+		// operatorDoc.append(alias + "." + "token.changeType", new Document("$" +
+		// QueryAggregationConstants.NOTEQUAL, 2));
+		if (localField.contains(".") && (localField.contains(QueryAggregationConstants.TARGET_ID)
+				|| localField.contains(QueryAggregationConstants.SOURCE_ID))) {
+			String local = localField.split("[.]")[0];
+			String source = local.split(QueryAggregationConstants.RELATIONSHIP)[0];
+			if (localField.contains(QueryAggregationConstants.TARGET_ID)) {
+				operatorDoc.append(local + ".properties." + "relation_name", source + "_" + alias);
+			} else {
+				operatorDoc.append(local + ".properties." + "relation_name", alias + "_" + source);
+			}
+			filterDoc.append(QueryAggregationConstants.MATCH, operatorDoc);
+			document.add(filterDoc);
+		}
 	}
 
 	private Document getSortQuery(List<SortQueryRequest> sortRequest) {
@@ -390,6 +612,8 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			value = (List<?>) value;
 		} else if (value instanceof Integer) {
 			value = (Integer) value;
+		} else if (value instanceof Long) {
+			value = (Long) value;
 		} else {
 			value = (String) value;
 		}
@@ -419,16 +643,27 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		case QueryAggregationConstants.LESSTHAN:
 			operatorDoc.append(field, new Document("$" + QueryAggregationConstants.LESSTHAN, value));
 			break;
+			
+		case QueryAggregationConstants.CONTAINS:
+			Document stringPattern = new Document();
+			stringPattern.append("$" + QueryAggregationConstants.REGEX, value);
+			stringPattern.append("$options", "i");
+			operatorDoc.append(field, stringPattern);
+			break;
 
 		default:
 			break;
 		}
-
-		if (type != null && type.equals("or")) {
+		//supporting and/or conditions in filter
+		if (type != null) {
 			List<Document> filterList = new ArrayList<Document>();
 			Document fileterDoc = new Document();
+			if (operatorDoc.containsKey("$"+type)) {
+				filterList = (ArrayList<Document>) operatorDoc.get("$"+type);
+				operatorDoc.remove("$"+type);
+			}
 			filterList.add(operatorDoc);
-			fileterDoc.append(QueryAggregationConstants.OR, filterList);
+			fileterDoc.append("$"+type, filterList);
 			return fileterDoc;
 		}
 		return operatorDoc;
@@ -486,5 +721,4 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 		String stringValue = values[1].replaceAll("[-+.^:',{}]", "");
 		return stringValue;
 	}
-
 }

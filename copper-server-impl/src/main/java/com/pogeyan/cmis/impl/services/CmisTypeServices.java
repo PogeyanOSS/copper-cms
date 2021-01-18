@@ -505,10 +505,14 @@ public class CmisTypeServices {
 					"localNameSpace", "target_column", "target_column", "description", PropertyType.STRING,
 					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
 			list.put("target_column", target_column);
-			PropertyDefinitionImpl<?> copper_relationType = new PropertyDefinitionImpl("copper_relationType",
-					"localName", "localNameSpace", "copper_relationType", "copper_relationType", "description",
-					PropertyType.STRING, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
-			list.put("copper_relationType", copper_relationType);
+			PropertyDefinitionImpl<?> cmis_relationType = new PropertyDefinitionImpl("cmis:relationType",
+					"localName", "localNameSpace", "cmis:relationType", "cmis:relationType", "description",
+					PropertyType.INTEGER, Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+			list.put("cmis:relationType", cmis_relationType);
+			PropertyDefinitionImpl<?> relation_propagation = new PropertyDefinitionImpl("cmis:relation_propagation", "localName",
+					"localNameSpace", "cmis:relation_propagation", "cmis:relation_propagation", "description", PropertyType.BOOLEAN,
+					Cardinality.SINGLE, Updatability.ONCREATE, false, false, true, false, null);
+			list.put("cmis:relation_propagation", relation_propagation);
 			return list;
 		}
 
@@ -1849,6 +1853,7 @@ public class CmisTypeServices {
 				propertyDefinition.setMaxValue(pi.getMaxValue() == null ? null : pi.getMaxValue().intValue());
 			}
 			propertyDefinition.setChoice(pro.getChoices());
+			propertyDefinition.setDefaultValue(pro.getDefaultValue());
 			return propertyDefinition;
 		}
 

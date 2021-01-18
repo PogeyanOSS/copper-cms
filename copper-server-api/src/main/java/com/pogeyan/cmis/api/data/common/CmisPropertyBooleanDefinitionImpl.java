@@ -44,6 +44,7 @@ public class CmisPropertyBooleanDefinitionImpl<T> implements PropertyBooleanDefi
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<?> choice;
+	private DefaultValueImpl<T> defaultValue;
 
 	public CmisPropertyBooleanDefinitionImpl() {
 		super();
@@ -66,6 +67,7 @@ public class CmisPropertyBooleanDefinitionImpl<T> implements PropertyBooleanDefi
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
+		setDefaultValue(type.getDefaultValue());
 	}
 
 	@Override
@@ -138,9 +140,20 @@ public class CmisPropertyBooleanDefinitionImpl<T> implements PropertyBooleanDefi
 		return this.isOpenChoice;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Boolean> getDefaultValue() {
+		if (defaultValue != null) {
+			return (List<Boolean>) defaultValue.getValue();
+		}
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setDefaultValue(List<?> defaultValue) {
+		if (defaultValue != null) {
+			this.defaultValue = new DefaultValueImpl<T>((List<T>) defaultValue);
+		}
 	}
 
 	@SuppressWarnings("unchecked")

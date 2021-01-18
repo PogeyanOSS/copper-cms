@@ -46,6 +46,7 @@ public class CmisPropertyDateTimeDefinitionImpl<T> implements PropertyDateTimeDe
 	private Boolean isOrderable;
 	private Boolean isOpenChoice;
 	private List<?> choice;
+	private DefaultValueImpl<T> defaultValue;
 
 	public CmisPropertyDateTimeDefinitionImpl() {
 		super();
@@ -68,6 +69,7 @@ public class CmisPropertyDateTimeDefinitionImpl<T> implements PropertyDateTimeDe
 		this.isOrderable = type.isOrderable();
 		this.isOpenChoice = type.isOpenChoice();
 		this.choice = type.getChoices();
+		setDefaultValue(type.getDefaultValue());
 	}
 
 	@Override
@@ -140,9 +142,20 @@ public class CmisPropertyDateTimeDefinitionImpl<T> implements PropertyDateTimeDe
 		return this.isOpenChoice;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<GregorianCalendar> getDefaultValue() {
+		if (defaultValue != null) {
+			return (List<GregorianCalendar>) defaultValue.getValue();
+		}
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setDefaultValue(List<?> defaultValue) {
+		if (defaultValue != null) {
+			this.defaultValue = new DefaultValueImpl<T>((List<T>) defaultValue);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
