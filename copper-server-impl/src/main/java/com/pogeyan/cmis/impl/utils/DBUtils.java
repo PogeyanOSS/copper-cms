@@ -422,7 +422,6 @@ public class DBUtils {
 
 			return null;
 		}
-		
 		public static IRelationObject getRelationshipByObjectId(String repositoryId, String[] principalIds, boolean aclPropagation,
 				String objectId, String[] mappedColumns, String typeId) {
 			MRelationObjectDAO objectMorphiaDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -441,7 +440,6 @@ public class DBUtils {
 
 			return null;
 		}
-
 	}
 	
 	
