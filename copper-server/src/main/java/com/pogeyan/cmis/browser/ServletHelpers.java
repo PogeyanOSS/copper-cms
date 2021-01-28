@@ -233,6 +233,9 @@ public class ServletHelpers {
 	static BaseMessage postToBaseMessage(POSTHttpServletRequestWrapper request, String[] pathFragments,
 			IUserObject userObject) {
 		PostRequest postRequest = new PostRequest();
+		//setting headers
+		Map<String, String> extensionObjects = getHeadersInfo(request);
+		postRequest.setHeaders(extensionObjects);		
 		ControlParser controlParser = new ControlParser(request);
 		if (controlParser != null) {
 			CmisRequestParameter requestParameter = new CmisRequestParameter();

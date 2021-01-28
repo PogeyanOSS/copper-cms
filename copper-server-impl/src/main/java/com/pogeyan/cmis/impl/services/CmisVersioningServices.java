@@ -370,7 +370,7 @@ public class CmisVersioningServices {
 		public static String checkIn(String repositoryId, Map<String, List<String>> listProperties,
 				ContentStream contentStreamParam, Holder<String> objectId, Boolean majorParam, String checkinComment,
 				ObjectInfoHandler objectInfos, String userName, IUserObject userObject, String tracingId,
-				ISpan parentSpan) throws CmisObjectNotFoundException {
+				ISpan parentSpan, Map<String, String> extensionObjects) throws CmisObjectNotFoundException {
 			ISpan span = TracingApiServiceFactory.getApiService().startSpan(tracingId, parentSpan,
 					"CmisVersioningServices::checkIn", null);
 			MDocumentObjectDAO documentObjectDAO = DatabaseServiceFactory.getInstance(repositoryId)
@@ -489,7 +489,7 @@ public class CmisVersioningServices {
 						if (updateProperties != null) {
 							CmisObjectService.Impl.updateProperties(repositoryId,
 									new Holder<String>(documentObject.getId()), null, updateProperties, null, null,
-									userObject, data.getTypeId(), tracingId, span);
+									userObject, data.getTypeId(), tracingId, span, extensionObjects);
 						}
 						LOG.debug("checked in object: {}", documentObject != null ? documentObject.getId() : null);
 					}

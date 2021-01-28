@@ -400,7 +400,7 @@ public class RepositoryActor extends BaseClusterActor<BaseRequest, BaseResponse>
 		LOG.info("Method name: {}, creating the new type for this typeId: {}, repositoryId: {}", "createType",
 				typeIn.getId(), request.getRepositoryId());
 		TypeDefinition typeOut = CmisTypeServices.Impl.createType(request.getRepositoryId(), typeIn, null,
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getHeaders());
 		JSONObject jsonType = JSONConverter.convert(typeOut, dateTimeFormat);
 		TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
 		return jsonType;

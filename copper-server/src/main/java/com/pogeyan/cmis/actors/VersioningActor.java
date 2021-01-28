@@ -175,7 +175,7 @@ public class VersioningActor extends BaseClusterActor<BaseRequest, BaseResponse>
 				"checkIn", objectId, request.getRepositoryId(), major, checkinComment);
 		String versionId = CmisVersioningServices.Impl.checkIn(request.getRepositoryId(), request.getPropertyData(),
 				request.getContentStream(), objectIdHolder, major, checkinComment, null, request.getUserName(),
-				request.getUserObject(), tracingId, span);
+				request.getUserObject(), tracingId, span, request.getHeaders());
 		LOG.info("Method name: {}, getting object using this id: {},repositoryId: {}", "getObject", objectId,
 				request.getRepositoryId());
 		ObjectData object = CmisObjectService.Impl.getSimpleObject(request.getRepositoryId(), versionId,
