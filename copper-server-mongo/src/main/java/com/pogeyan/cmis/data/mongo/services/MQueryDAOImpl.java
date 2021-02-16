@@ -614,6 +614,8 @@ public class MQueryDAOImpl extends BasicDAO<MBaseObject, ObjectId> implements MQ
 			value = (Integer) value;
 		} else if (value instanceof Long) {
 			value = (Long) value;
+		} else if (value instanceof Boolean) {
+			value = (Boolean) value;
 		} else {
 			value = (String) value;
 		}
