@@ -14,7 +14,7 @@ import com.pogeyan.cmis.api.data.ICacheProvider;
 public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 	private Map<String, Cache<String, Object>> repo = new HashMap<String, Cache<String, Object>>();
 	private long intervalTime;
-	
+
 	public GoogleGuiceCacheProviderImpl(String cacheName) {
 	}
 
@@ -32,7 +32,7 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			} else if (key.size() == 1) {
 				if (typeCacheMap.getIfPresent(key.get(0)) instanceof List<?>) {
 					return (T) typeCacheMap.getIfPresent(key.get(0));
-				}  else {
+				} else {
 					Object cacheValue = typeCacheMap.getIfPresent(key.get(0));
 					if (cacheValue != null) {
 						return (T) Arrays.asList(cacheValue);
@@ -53,7 +53,7 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 			repoCacheMap.put(key, object);
 		} else {
 			Cache<String, Object> typeCacheMap = CacheBuilder.newBuilder().maximumSize(1000)
-					.expireAfterWrite(intervalTime, TimeUnit.SECONDS).build();
+					.expireAfterWrite(intervalTime, TimeUnit.SECONDS).maximumSize(1000).build();
 			typeCacheMap.put(key, object);
 			repo.put(repositoryId, typeCacheMap);
 		}
