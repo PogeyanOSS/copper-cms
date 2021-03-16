@@ -52,7 +52,7 @@ public class GoogleGuiceCacheProviderImpl implements ICacheProvider {
 		if (repoCacheMap != null) {
 			repoCacheMap.put(key, object);
 		} else {
-			Cache<String, Object> typeCacheMap = CacheBuilder.newBuilder().maximumSize(1000)
+			Cache<String, Object> typeCacheMap = CacheBuilder.newBuilder().maximumSize(100)
 					.expireAfterWrite(intervalTime, TimeUnit.SECONDS).build();
 			typeCacheMap.put(key, object);
 			repo.put(repositoryId, typeCacheMap);
