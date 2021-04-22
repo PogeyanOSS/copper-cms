@@ -211,7 +211,7 @@ public class FileSystemStorageService implements IStorageService {
 						ByteStreams.toByteArray(id), StandardOpenOption.CREATE).toFile();
 				id.close();
 				ContentStream newContent = getContent(contentStream.getFileName(), newPath.toString(),
-						contentStream.getMimeType(), BigInteger.valueOf(newFile.length()), contentStream.getFileName());
+						contentStream.getMimeType(), BigInteger.valueOf(newFile.length()), contentStream.getFileName(), null);
 				return newContent;
 			}
 		} catch (Exception e) {
@@ -268,7 +268,7 @@ public class FileSystemStorageService implements IStorageService {
 
 	@Override
 	public ContentStream getContent(String objectName, String path, String mimeType, BigInteger length,
-			String fileName) {
+			String fileName, Long modifiedAt) {
 		LOG.info("getConetent file name: {}", objectName);
 		try {
 			String objectNameWithExtension = objectName;
