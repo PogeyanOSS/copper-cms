@@ -2290,6 +2290,7 @@ public class CmisObjectService {
 					Map<String, Object> updateProps = new HashMap<String, Object>();
 					updateProps.put("contentStreamLength", contentStream.getLength());
 					updateProps.put("contentStreamMimeType", contentStream.getMimeType());
+					updateProps.put("modifiedAt", System.currentTimeMillis());
 					documentMorphiaDAO.update(document.getId(), updateProps);
 				}
 				TracingApiServiceFactory.getApiService().endSpan(tracingId, span, false);
