@@ -9,6 +9,7 @@ import com.pogeyan.cmis.api.uri.exception.ObjectLiteralException;
  */
 public class ObjectLiteralTypeDetect {
 
+	@SuppressWarnings("unused")
 	public static ObjectLiteral parseUriLiteral(final String uriLiteral) throws ObjectLiteralException {
 		if (uriLiteral == null || "null".equals(uriLiteral)) {
 			return new ObjectLiteral(ObjectTypeKind.Null, uriLiteral);
@@ -23,7 +24,16 @@ public class ObjectLiteralTypeDetect {
 		}
 
 		if (uriLiteral.matches("-?\\p{Digit}+")) {
-			final int i = Integer.parseInt(uriLiteral);
+			int i = 0;
+			try {
+				i = Integer.parseInt(uriLiteral);
+			} catch (Exception e) {
+				if (uriLiteral.contains(".")) {
+					return new ObjectLiteral(ObjectTypeKind.Decimal, uriLiteral);
+				} else {
+					return new ObjectLiteral(ObjectTypeKind.Int64, uriLiteral);
+				}
+			}
 			if (i == 0 || i == 1) {
 				return new ObjectLiteral(ObjectTypeKind.Binary, uriLiteral);
 			}
