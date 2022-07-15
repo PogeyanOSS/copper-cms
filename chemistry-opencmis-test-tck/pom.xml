@@ -24,7 +24,7 @@
     
     <properties>
         <parentBasedir>../../</parentBasedir>
-        <aws.version>1.11.98</aws.version>
+        <aws.version>1.12.261</aws.version>
     </properties>
     
     <build>
