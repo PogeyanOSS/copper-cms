@@ -297,21 +297,31 @@ public class AkkaServletContextListener implements ServletContextListener {
 		try {
 			LOG.info("Initialized Cache Provider Services Factory Class: {}", cacheProviderFactoryClassName);
 			Class<?> c = Class.forName(cacheProviderFactoryClassName);
-			ICacheProvider typeCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("types");
-			ICacheProvider userCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("users");
-			ICacheProvider roleCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("roles");
-			ICacheProvider relationshipCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("relations");
-			ICacheProvider commonCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class).newInstance("common");
+			ICacheProvider typeCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class)
+					.newInstance("types");
+			ICacheProvider userCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class)
+					.newInstance("users");
+			ICacheProvider roleCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class)
+					.newInstance("roles");
+			ICacheProvider relationshipCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class)
+					.newInstance("relations");
+			ICacheProvider commonCacheProviderFactory = (ICacheProvider) c.getDeclaredConstructor(String.class)
+					.newInstance("common");
+			Class<?> localclz = Class.forName(DEFAULT_CACHE_PROVIDER_CLASS);
+			ICacheProvider localCacheProviderFactory = (ICacheProvider) localclz.getDeclaredConstructor(String.class)
+					.newInstance("local");
 			CacheProviderServiceFactory.addTypeCacheService(typeCacheProviderFactory);
 			CacheProviderServiceFactory.addUserCacheService(userCacheProviderFactory);
 			CacheProviderServiceFactory.addRoleCacheService(roleCacheProviderFactory);
 			CacheProviderServiceFactory.addRelationshipCacheService(relationshipCacheProviderFactory);
 			CacheProviderServiceFactory.addCommonCacheService(commonCacheProviderFactory);
+			CacheProviderServiceFactory.addLocalCacheService(localCacheProviderFactory);
 			typeCacheProviderFactory.init(intervalTime);
 			userCacheProviderFactory.init(intervalTime);
 			roleCacheProviderFactory.init(intervalTime);
 			relationshipCacheProviderFactory.init(intervalTime);
 			commonCacheProviderFactory.init(intervalTime);
+			localCacheProviderFactory.init(intervalTime);
 		} catch (Exception e) {
 			LOG.error("Could not create a authentication services factory instance: {}", e);
 			return false;
