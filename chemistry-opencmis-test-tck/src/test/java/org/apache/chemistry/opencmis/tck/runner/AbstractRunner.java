@@ -47,10 +47,10 @@ public abstract class AbstractRunner {
     public static final String TCK_BUILD_TIMESTAMP_PARAMETER = "org.apache.chemistry.opencmis.tck.timestamp";
     public static final String TCK_REVISION = "/META-INF/tck-revision.txt";
     public static final String TCK_REVISION_PARAMETER = "org.apache.chemistry.opencmis.tck.revision";
-    public static final String USER_NAME = "admin";
-    public static final String PASSWORD = "admin123";
-    public static final String BROWSER_URL="http://localhost:9089/MongoTest";
-    public static final String REPOSITORY_ID="MongoTest";
+    public static final String USER_NAME = System.getenv("CMIS_USERNAME");
+	public static final String PASSWORD = System.getenv("CMIS_USERNAME");
+	public static final String BROWSER_URL = System.getenv("HOST_URL") + "/sapp-cms/" + System.getenv("CMIS_REPO_ID");
+	public static final String REPOSITORY_ID = System.getenv("CMIS_REPO_ID");
     
 
     private Map<String, String> parameters;
